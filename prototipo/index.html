@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="resource/css/styles.css">
+    <link rel="stylesheet" href="resource/css/normalize.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        integrity="sha384-..." crossorigin="anonymous" />
+
+    <!-- Google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+
+    <!-- Link Swiper's CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+</head>
+
+<body>
+    <!-- NAVBAR -->
+    <nav class="topbar">
+        <div class="container">
+            <div class="row">
+                <!-- Logo -->
+                <a href="index.html" class="container-logo brand">
+                    <img class="logo-img" src="img/logo.webp" alt="LOGO CISNERGIA">
+                    <div>
+                        <span class="cis">CIS</span><span class="nergia">NERGIA</span>
+                    </div>
+                </a>
+
+                <!-- Menu (desktop) -->
+                <nav class="menu">
+                    <a href="index.html" class="active">INICIO</a>
+                    <a href="productos.html">PRODUCTOS</a>
+                    <a href="fabricantes.html">FABRICANTES</a>
+                    <a href="ayuda.html">AYUDA</a>
+                </nav>
+
+                <!-- Search + acciones -->
+                <div class="actions">
+                    <div class="search">
+                        <div class="box">
+                            <!-- Lucide search -->
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <circle cx="11" cy="11" r="7"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="search" placeholder="Buscar productos..." />
+                        </div>
+                    </div>
+
+
+                    <!-- Cuenta -->
+                    <button class="icon-btn" aria-label="Cuenta">
+                        <i class="fa-regular fa-user"></i>
+                    </button>
+
+                    <!-- Carrito con badge -->
+                    <button class="icon-btn badge-num" aria-label="Carrito" data-count="0">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ======= HOME / INDEX ======= -->
+    <header class="hero" style="background-image:url('img/hero-solar.jpg')">
+        <div class="overlay"></div>
+        <div class="container inner">
+            <h1>Energía Solar para tu Futuro</h1>
+            <p>Más de 500 productos solares de las mejores marcas. Precios competitivos y soporte técnico especializado.
+            </p>
+
+            <div class="cta-row">
+                <a class="btn btn-primary" href="productos.html">
+                    Explorar Catálogo
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Benefits -->
+    <section class="features">
+        <div class="container">
+            <div class="grid grid-4">
+                <article class="card">
+                    <div class="content tcenter">
+                        <div class="circle">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <h3>Garantía Certificada</h3>
+                        <p>Productos con garantía del fabricante hasta 25 años</p>
+                    </div>
+                </article>
+                <article class="card">
+                    <div class="content tcenter">
+                        <div class="circle">
+                            <i class="fa-solid fa-truck"></i>
+                        </div>
+                        <h3>Envío Rápido</h3>
+                        <p>Entrega en 24-48h en península</p>
+                    </div>
+                </article>
+                <article class="card">
+                    <div class="content tcenter">
+                        <div class="circle">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+                        <h3>Soporte Técnico</h3>
+                        <p>Asesoramiento especializado incluido</p>
+                    </div>
+                </article>
+                <article class="card">
+                    <div class="content tcenter">
+                        <div class="circle">
+                            <i class="fa-solid fa-cart-flatbed"></i>
+                        </div>
+                        <h3>Stock Disponible</h3>
+                        <p>Miles de productos listos para enviar</p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fffers -->
+    <section class="offers">
+        <div class="swiper swiperOffers">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <img src="img/baner-oferta.jpg" alt="">
+                </div>
+                <div class="swiper-slide">
+                    <img src="img/baner-oferta2.jpg" alt="">
+                </div>
+                <div class="swiper-slide">
+                    <img src="img/baner-oferta.jpg" alt="">
+                </div>
+                <div class="swiper-slide">
+                    <img src="img/baner-oferta2.jpg" alt="">
+                </div>
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="section">
+        <div class="container">
+            <div class="section-head">
+                <div>
+                    <h2>Productos Destacados</h2>
+                    <p class="muted">Las mejores ofertas en energía solar</p>
+                </div>
+                <a class="btn btn-outline-dark" href="catalogo.html">
+                    Ver Todo
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M5 12h14"></path>
+                        <path d="M12 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </div>
+
+            <div class="product-container ">
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+                <div class="swiper swiperProducts">
+
+                    <div class="swiper-wrapper">
+                        <!-- Card 1 -->
+                        <div class="swiper-slide">
+                            <article class="card product">
+                                <div class="thumb">
+                                    <img src="img/product-panel.jpg" alt="Panel Solar AIKO 440W">
+                                </div>
+                                <div class="content">
+                                    <h3>Panel Solar AIKO N-Type ABC 440W</h3>
+                                    <div class="meta"><span>AIKO · <span class="muted">440W | Monocristalino | 21.8%
+                                                Eficiencia</span></span></div>
+                                    <div class="price">
+                                        $1250
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <!-- Card 2 -->
+                        <div class="swiper-slide">
+                            <article class="card product">
+                                <div class="thumb">
+                                    <img src="img/product-inverter.jpg" alt="Inversor Growatt 5000W Híbrido">
+                                </div>
+                                <div class="content">
+                                    <h3>Inversor Growatt 5000W Híbrido</h3>
+                                    <div class="meta"><span>Growatt · <span class="muted">5kW | MPPT Dual | Wi-Fi
+                                                Integrado</span></span></div>
+                                    <div class="price">
+                                        $1250
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <!-- Card 3 -->
+                        <div class="swiper-slide">
+                            <article class="card product">
+                                <div class="thumb">
+                                    <img src="img/product-battery.jpg" alt="Batería Litio 10kWh">
+                                </div>
+                                <div class="content">
+                                    <h3>Batería Litio 10kWh</h3>
+                                    <div class="meta"><span>CATL · <span class="muted">10kWh | LiFePO4 | 6000
+                                                Ciclos</span></span></div>
+                                    <div class="price">
+                                        $1250
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <!-- Card 4 -->
+                        <div class="swiper-slide">
+                            <article class="card product">
+                                <div class="thumb">
+                                    <img src="img/product-panel.jpg" alt="Panel Solar Trina Solar 550W">
+                                </div>
+                                <div class="content">
+                                    <h3>Panel Solar Trina Solar 550W</h3>
+                                    <div class="meta"><span>Trina Solar · <span class="muted">550W | Vertex | 21.5%
+                                                Eficiencia</span></span></div>
+                                    <div class="price">
+                                        $1250
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <!-- Card 4 -->
+                        <div class="swiper-slide">
+                            <article class="card product">
+                                <div class="thumb">
+                                    <img src="img/product-panel.jpg" alt="Panel Solar Trina Solar 550W">
+                                </div>
+                                <div class="content">
+                                    <h3>Panel Solar Trina Solar 550W</h3>
+                                    <div class="meta"><span>Trina Solar · <span class="muted">550W | Vertex | 21.5%
+                                                Eficiencia</span></span></div>
+                                    <div class="price">
+                                        $1250
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <!-- Card 4 -->
+                        <div class="swiper-slide">
+                            <article class="card product">
+                                <div class="thumb">
+                                    <img src="img/product-panel.jpg" alt="Panel Solar Trina Solar 550W">
+                                </div>
+                                <div class="content">
+                                    <h3>Panel Solar Trina Solar 550W</h3>
+                                    <div class="meta"><span>Trina Solar · <span class="muted">550W | Vertex | 21.5%
+                                                Eficiencia</span></span></div>
+                                    <div class="price">
+                                        $1250
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <!-- Card 4 -->
+                        <div class="swiper-slide">
+                            <article class="card product">
+                                <div class="thumb">
+                                    <img src="img/product-panel.jpg" alt="Panel Solar Trina Solar 550W">
+                                </div>
+                                <div class="content">
+                                    <h3>Panel Solar Trina Solar 550W</h3>
+                                    <div class="meta"><span>Trina Solar · <span class="muted">550W | Vertex | 21.5%
+                                                Eficiencia</span></span></div>
+                                    <div class="price">
+                                        $1250
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <!-- Card 4 -->
+                        <div class="swiper-slide">
+                            <article class="card product">
+                                <div class="thumb">
+                                    <img src="img/product-panel.jpg" alt="Panel Solar Trina Solar 550W">
+                                </div>
+                                <div class="content">
+                                    <h3>Panel Solar Trina Solar 550W</h3>
+                                    <div class="meta"><span>Trina Solar · <span class="muted">550W | Vertex | 21.5%
+                                                Eficiencia</span></span></div>
+                                    <div class="price">
+                                        $1250
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Brands -->
+    <section class="section features">
+        <div class="container">
+            <h2 class="center">Marcas Destacadas</h2>
+            <div class="swiper swiperBrands">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <img src="img/destacados/2-e1697429737692.webp" alt="">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="img/destacados/cat.webp" alt="">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="img/destacados/cropped-cropped-Logo_CropX.webp" alt="">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="img/destacados/Diseno-sin-titulo-2-e1697428084447.webp" alt="">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="img/destacados/Vestas.webp" alt="">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="img/destacados/yingli-solar-logo-8A8ACF80EB-seeklogo.com_.webp" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="gradient-hero">
+        <div class="container cta-white">
+            <h2>¿Listo para Pasarte a la Energía Solar?</h2>
+            <p>Contacta con nuestro equipo de expertos y recibe asesoramiento personalizado sin compromiso</p>
+            <a class="btn btn-primary" href="#contacto">
+                Contactar Ahora
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M5 12h14"></path>
+                    <path d="M12 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    </section>
+    <!-- ======= FOOTER ======= -->
+    <footer class="footer">
+        <div class="container pad-y-48">
+            <div class="grid grid-4 gap-24">
+                <!-- Company Info -->
+                <div>
+                    <a href="index.html" class="brand">
+                        <img class="logo-img" src="img/logo.webp" alt="LOGO CISNERGIA">
+                        <span class="cis">CIS</span><span class="nergia">NERGIA</span>
+                    </a>
+                    <p class="small muted mt-8">
+                        Líder en soluciones de energía solar para hogares y empresas. Productos certificados y soporte
+                        técnico especializado.
+                    </p>
+                    <div class="social muted mt-12">
+                        <a class="social-btn" href="#" aria-label="Facebook">
+                            <!-- Facebook -->
+                            <i class="fa-brands fa-facebook"></i>
+                        </a>
+                        <a class="social-btn" href="#" aria-label="Instagram">
+                            <!-- Instagram -->
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                        <a class="social-btn" href="#" aria-label="LinkedIn">
+                            <!-- Linkedin -->
+                            <i class="fa-brands fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="subtitle">Enlaces Rápidos</h4>
+                    <ul class="linklist">
+                        <li><a href="catalogo.html">Catálogo de Productos</a></li>
+                        <li><a href="fabricantes.html">Fabricantes</a></li>
+                        <li><a href="ayuda.html">Centro de Ayuda</a></li>
+                        <li><a href="sobre-nosotros.html">Sobre Nosotros</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h4 class="subtitle">Legal</h4>
+                    <ul class="linklist">
+                        <li><a href="terminos.html">Términos y Condiciones</a></li>
+                        <li><a href="privacidad.html">Política de Privacidad</a></li>
+                        <li><a href="aviso-legal.html">Aviso Legal</a></li>
+                        <li><a href="garantias.html">Garantías</a></li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter & Contact -->
+                <div>
+                    <h4 class="subtitle">Contacto</h4>
+
+                    <div class="contact mt-16">
+                        <div class="contact-row">
+                            <!-- Phone -->
+                            <i class="fa-solid fa-phone"></i>
+                            <span>+56 900 123 456</span>
+                        </div>
+                        <div class="contact-row">
+                            <!-- Mail -->
+                            <i class="fa-solid fa-envelope"></i>
+                            <span>info@cisnergia.com</span>
+                        </div>
+                        <div class="contact-row">
+                            <!-- MapPin -->
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>Lima - Perú</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="copyright small muted center">© 2024 CISNERGIA. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="resource/js/app.js"></script>
+</body>
+
+</html>
