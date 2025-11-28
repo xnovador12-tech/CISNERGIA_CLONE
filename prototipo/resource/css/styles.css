@@ -151,40 +151,48 @@ img {
     box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.25);
 }
 
-/* Cards de producto */
-.card {
+
+.card-feature {
     background: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     transition: .2s ease;
 }
 
-.card:hover {
+.features .card-feature:hover {
     border-color: #1565c0;
     box-shadow: 0 10px 26px rgba(0, 0, 0, .06);
 }
 
-.card .content {
+.card-feature .content {
     padding: 18px;
 }
 
+/* Cards de producto */
 
-/* 
-.product {
-    transition-property: transform;
-    transition-duration: 300ms;
-}
-
-.product:hover {
-    transform: scale(1.2);
-} */
-.product {
+.card.product {
     position: relative;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
     /* necesario para z-index */
     transition: transform .25s ease, box-shadow .25s ease;
     transform-origin: center center;
     /* o center bottom si prefieres */
     will-change: transform;
+}
+
+.card.product .content {
+    padding: 5px 15px;
+}
+
+.card.product {
+    transition: all .05s ease-in-out;
+}
+
+.card.product:hover {
+    scale: calc(.98);
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;  
 }
 
 
@@ -491,10 +499,10 @@ img {
 
 /* --- Utilities --- */
 .tcenter {
-    text-align: center
+    text-align: center;
 }
 
-.card h3 {
+.card-feature h3 {
     color: var(--secondary-text);
 }
 
@@ -506,10 +514,11 @@ img {
 .features {
     background: #f3f4f6;
     padding: 40px 0;
-    border-top: 1px solid var(--border)
+    border-top: 1px solid var(--border);
+    user-select: none;
 }
 
-.card .circle {
+.card-feature .circle {
     width: 52px;
     height: 52px;
     margin: 0 auto 10px;
@@ -522,12 +531,12 @@ img {
     color: var(--secondary-text);
 }
 
-.card h3 {
+.card-feature h3 {
     margin: 8px 0 4px;
     font-size: 16px
 }
 
-.card p {
+.card-feature p {
     margin: 0;
     color: var(--muted);
     font-size: 13px
