@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>¡Compra Confirmada! - Cisnergia Perú</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap 5 Local -->
+  <link href="css/bootstrap.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilos.css">
+  
+  <style>
+    .step-indicator {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3rem;
+    }
+    
+    .step-indicator::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #28a745;
+      z-index: 0;
+    }
+    
+    .step {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      flex: 1;
+    }
+    
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #28a745;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    
+    .success-icon {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      animation: scaleIn 0.5s ease-out;
+      box-shadow: 0 10px 40px rgba(40, 167, 69, 0.3);
+    }
+    
+    .success-icon i {
+      font-size: 4rem;
+      color: white;
+      animation: checkmark 0.8s ease-in-out 0.3s both;
+    }
+    
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes checkmark {
+      0% {
+        transform: scale(0) rotate(-45deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.2) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+    
+    .fadeInUp {
+      animation: fadeInUp 0.6s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .timeline-item {
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 1.5rem;
+    }
+    
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 28px;
+      width: 2px;
+      height: calc(100% + 1.5rem);
+      background: #e9ecef;
+    }
+    
+    .timeline-item:last-child::before {
+      display: none;
+    }
+    
+    .timeline-icon {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #0066cc;
+      border: 3px solid #f8f9fa;
+    }
+    
+    .order-tracking {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg py-2">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center me-4" href="index.html">
+      <img src="/images/cisnergia_v.png" alt="CISNERGIA PERÚ" height="45">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link px-3 fw-500" href="productos.html">Productos</a></li>
+        <li class="nav-item"><a class="nav-link px-3 fw-500" href="instalacion.html">Instalación</a></li>
+        <li class="nav-item"><a class="nav-link px-3 fw-500" href="contacto.html">Contacto</a></li>
+      </ul>
+      <div class="d-flex align-items-center">
+        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+          <i class="bi bi-check-circle-fill me-1"></i>Compra Exitosa
+        </span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- INDICADOR DE PASOS -->
+<section class="py-4 bg-light">
+  <div class="container">
+    <div class="step-indicator">
+      <div class="step completed">
+        <div class="step-circle">
+          <i class="bi bi-check-lg"></i>
+        </div>
+        <small class="text-success fw-bold">Carrito</small>
+      </div>
+      <div class="step completed">
+        <div class="step-circle">
+          <i class="bi bi-check-lg"></i>
+        </div>
+        <small class="text-success fw-bold">Pago</small>
+      </div>
+      <div class="step completed">
+        <div class="step-circle">
+          <i class="bi bi-check-lg"></i>
+        </div>
+        <small class="text-success fw-bold">Confirmación</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONFIRMACIÓN DE COMPRA -->
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        
+        <!-- Mensaje de éxito -->
+        <div class="text-center mb-5 fadeInUp">
+          <div class="success-icon">
+            <i class="bi bi-check-lg"></i>
+          </div>
+          <h1 class="display-4 fw-bold mb-3">¡Compra Confirmada!</h1>
+          <p class="lead text-muted mb-4">
+            Tu pedido ha sido procesado exitosamente. Recibirás un email de confirmación en los próximos minutos.
+          </p>
+          <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+              <i class="bi bi-receipt me-1"></i>Pedido #CS-2025-001234
+            </span>
+            <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
+              <i class="bi bi-calendar-check me-1"></i>2 de diciembre, 2025
+            </span>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Detalles del pedido -->
+          <div class="col-lg-8">
+            
+            <!-- Resumen de productos -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                  <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                    <i class="bi bi-box-seam text-primary fs-4"></i>
+                  </div>
+                  <h4 class="fw-bold mb-0">Productos Comprados</h4>
+                </div>
+
+                <div class="mb-3 pb-3 border-bottom">
+                  <div class="d-flex align-items-center">
+                    <img src="https://images.pexels.com/photos/356036/pexels-photo-356036.jpeg?auto=compress&cs=tinysrgb&w=100" 
+                         class="rounded" style="width: 80px; height: 80px; object-fit: cover;" alt="Producto">
+                    <div class="ms-3 flex-grow-1">
+                      <h6 class="mb-1 fw-bold">Panel Solar Monocristalino 550W</h6>
+                      <small class="text-muted">Cantidad: 2</small>
+                    </div>
+                    <div class="text-end">
+                      <p class="mb-0 fw-bold">S/ 1,200.00</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <div class="d-flex align-items-center">
+                    <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=100" 
+                         class="rounded" style="width: 80px; height: 80px; object-fit: cover;" alt="Producto">
+                    <div class="ms-3 flex-grow-1">
+                      <h6 class="mb-1 fw-bold">Inversor Híbrido 5kW</h6>
+                      <small class="text-muted">Cantidad: 1</small>
+                    </div>
+                    <div class="text-end">
+                      <p class="mb-0 fw-bold">S/ 3,500.00</p>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="my-3">
+
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">Subtotal</span>
+                  <span class="fw-bold">S/ 4,700.00</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">Envío</span>
+                  <span class="fw-bold text-success">Gratis</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                  <span class="text-muted">IGV (18%)</span>
+                  <span class="fw-bold">S/ 846.00</span>
+                </div>
+
+                <div class="d-flex justify-content-between border-top pt-3">
+                  <span class="fs-5 fw-bold">Total Pagado</span>
+                  <span class="fs-4 fw-bold text-primary">S/ 5,546.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información de envío -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                  <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                    <i class="bi bi-truck text-success fs-4"></i>
+                  </div>
+                  <h4 class="fw-bold mb-0">Información de Envío</h4>
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Nombre del destinatario</p>
+                    <p class="mb-0 fw-bold">Juan Pérez García</p>
+                  </div>
+                  <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Teléfono</p>
+                    <p class="mb-0 fw-bold">+51 999 999 999</p>
+                  </div>
+                  <div class="col-12">
+                    <p class="mb-1 small text-muted">Dirección de envío</p>
+                    <p class="mb-0 fw-bold">Av. Principal 123, Piso 4, Dpto 401<br>
+                    San Isidro, Lima</p>
+                  </div>
+                  <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Email</p>
+                    <p class="mb-0 fw-bold">juan.perez@email.com</p>
+                  </div>
+                  <div class="col-md-6">
+                    <p class="mb-1 small text-muted">Método de pago</p>
+                    <p class="mb-0 fw-bold">
+                      <i class="bi bi-credit-card me-1"></i>Visa •••• 1234
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Próximos pasos -->
+            <div class="card border-0 shadow-sm rounded-4">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                  <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+                    <i class="bi bi-list-check text-warning fs-4"></i>
+                  </div>
+                  <h4 class="fw-bold mb-0">¿Qué sigue ahora?</h4>
+                </div>
+
+                <div class="timeline-item">
+                  <div class="timeline-icon"></div>
+                  <h6 class="fw-bold mb-1">Confirmación por email</h6>
+                  <p class="text-muted small mb-0">Recibirás un email con los detalles de tu pedido y número de seguimiento.</p>
+                </div>
+
+                <div class="timeline-item">
+                  <div class="timeline-icon"></div>
+                  <h6 class="fw-bold mb-1">Preparación del pedido</h6>
+                  <p class="text-muted small mb-0">Nuestro equipo preparará tus productos con el mayor cuidado (1-2 días hábiles).</p>
+                </div>
+
+                <div class="timeline-item">
+                  <div class="timeline-icon"></div>
+                  <h6 class="fw-bold mb-1">Envío a tu domicilio</h6>
+                  <p class="text-muted small mb-0">El producto será enviado y podrás rastrearlo en tiempo real.</p>
+                </div>
+
+                <div class="timeline-item">
+                  <div class="timeline-icon"></div>
+                  <h6 class="fw-bold mb-1">Instalación profesional (opcional)</h6>
+                  <p class="text-muted small mb-0">Coordinaremos contigo la fecha para la instalación de tus paneles solares.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Sidebar derecho -->
+          <div class="col-lg-4">
+            
+            <!-- Rastreo de pedido -->
+            <div class="order-tracking mb-4">
+              <h5 class="fw-bold mb-3">
+                <i class="bi bi-geo-alt-fill me-2"></i>Rastrea tu Pedido
+              </h5>
+              <p class="mb-3 small opacity-90">
+                Usa tu número de pedido para rastrear tu envío en tiempo real.
+              </p>
+              <div class="bg-white bg-opacity-15 rounded-3 p-3 mb-3">
+                <p class="mb-1 small opacity-75">Número de pedido</p>
+                <p class="mb-0 fw-bold fs-5">CS-2025-001234</p>
+              </div>
+              <p class="mb-0 small opacity-90">
+                <i class="bi bi-clock me-1"></i>Tiempo estimado de entrega: 3-5 días hábiles
+              </p>
+            </div>
+
+            <!-- Acciones principales -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+              <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">Acciones</h6>
+                <div class="d-grid gap-2">
+                  <a href="#" class="btn btn-primary btn-lg">
+                    <i class="bi bi-bag-check me-2"></i>Ver Mis Compras
+                  </a>
+                  <a href="#" class="btn btn-outline-primary">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Descargar Factura
+                  </a>
+                  <a href="productos.html" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Seguir Comprando
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ayuda y soporte -->
+            <div class="card border-0 bg-light rounded-4">
+              <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">
+                  <i class="bi bi-headset me-2 text-primary"></i>¿Necesitas Ayuda?
+                </h6>
+                <p class="small text-muted mb-3">
+                  Nuestro equipo está disponible para ayudarte con cualquier consulta.
+                </p>
+                <div class="d-grid gap-2">
+                  <a href="https://wa.me/51999999999" class="btn btn-success btn-sm">
+                    <i class="bi bi-whatsapp me-2"></i>WhatsApp
+                  </a>
+                  <a href="tel:+51999999999" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-telephone me-2"></i>Llamar
+                  </a>
+                  <a href="contacto.html" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-envelope me-2"></i>Email
+                  </a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Sección de productos recomendados -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold mb-3">También te Puede Interesar</h2>
+      <p class="text-muted">Complementa tu instalación solar con estos productos</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=400" 
+               class="card-img-top rounded-top-4" alt="Batería" style="height: 200px; object-fit: cover;">
+          <div class="card-body">
+            <span class="badge bg-warning bg-opacity-10 text-warning mb-2">Recomendado</span>
+            <h6 class="fw-bold mb-2">Batería de Litio 10kWh</h6>
+            <p class="small text-muted mb-3">Almacena energía para uso nocturno</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="h5 mb-0 text-primary fw-bold">S/ 4,500</span>
+              <a href="#" class="btn btn-sm btn-primary">Ver más</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=400" 
+               class="card-img-top rounded-top-4" alt="Estructura" style="height: 200px; object-fit: cover;">
+          <div class="card-body">
+            <span class="badge bg-info bg-opacity-10 text-info mb-2">Esencial</span>
+            <h6 class="fw-bold mb-2">Estructura de Montaje</h6>
+            <p class="small text-muted mb-3">Sistema de fijación reforzado</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="h5 mb-0 text-primary fw-bold">S/ 850</span>
+              <a href="#" class="btn btn-sm btn-primary">Ver más</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=400" 
+               class="card-img-top rounded-top-4" alt="Regulador" style="height: 200px; object-fit: cover;">
+          <div class="card-body">
+            <span class="badge bg-success bg-opacity-10 text-success mb-2">Nuevo</span>
+            <h6 class="fw-bold mb-2">Regulador de Carga MPPT</h6>
+            <p class="small text-muted mb-3">Optimiza la carga de baterías</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="h5 mb-0 text-primary fw-bold">S/ 1,200</span>
+              <a href="#" class="btn btn-sm btn-primary">Ver más</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=400" 
+               class="card-img-top rounded-top-4" alt="Cables" style="height: 200px; object-fit: cover;">
+          <div class="card-body">
+            <span class="badge bg-secondary bg-opacity-10 text-secondary mb-2">Accesorio</span>
+            <h6 class="fw-bold mb-2">Kit de Cables Solares</h6>
+            <p class="small text-muted mb-3">Cables certificados 6mm²</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="h5 mb-0 text-primary fw-bold">S/ 350</span>
+              <a href="#" class="btn btn-sm btn-primary">Ver más</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-dark text-light py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6">
+        <h5 class="fw-bold mb-3"></i> CISNERGIA PERÚ</h5>
+        <p class="small text-light opacity-75 mb-3">
+          Líderes en energía solar en Perú. Transformamos hogares y empresas con soluciones sostenibles y de alta calidad.
+        </p>
+        <div class="d-flex gap-2 mb-3">
+          <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-instagram"></i></a>
+          <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-linkedin"></i></a>
+          <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-youtube"></i></a>
+        </div>
+      </div>
+      
+      <div class="col-lg-2 col-md-6">
+        <h6 class="fw-bold mb-3">Enlaces rápidos</h6>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="#inicio" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Inicio</a></li>
+          <li class="mb-2"><a href="#productos" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Productos</a></li>
+          <li class="mb-2"><a href="#instalacion" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Instalación</a></li>
+          <li class="mb-2"><a href="#proceso" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Proceso</a></li>
+          <li class="mb-2"><a href="#contacto" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Contacto</a></li>
+        </ul>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <h6 class="fw-bold mb-3">Productos</h6>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="#" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Paneles Solares</a></li>
+          <li class="mb-2"><a href="#" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Inversores</a></li>
+          <li class="mb-2"><a href="#" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Baterías</a></li>
+          <li class="mb-2"><a href="#" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Kits Completos</a></li>
+          <li class="mb-2"><a href="#" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Accesorios</a></li>
+        </ul>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <h6 class="fw-bold mb-3">Contacto</h6>
+        <ul class="list-unstyled">
+          <li class="mb-2 text-light opacity-75">
+            <i class="bi bi-geo-alt-fill text-light me-2"></i>Av. Principal 123, San Isidro, Lima
+          </li>
+          <li class="mb-2 text-light opacity-75">
+            <i class="bi bi-telephone-fill text-light me-2"></i>+51 999 999 999
+          </li>
+          <li class="mb-2 text-light opacity-75">
+            <i class="bi bi-envelope-fill text-light me-2"></i>ventas@cisnergia.pe
+          </li>
+          <li class="mb-2 text-light opacity-75">
+            <i class="bi bi-clock-fill text-light me-2"></i>Lun-Vie: 9AM-6PM
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <hr class="my-4 opacity-25">
+
+    <div class="row">
+      <div class="col-md-6 text-center text-md-start">
+        <p class="small mb-0 opacity-75">© 2025 Cisnergia Perú. Todos los derechos reservados.</p>
+      </div>
+      <div class="col-md-6 text-center text-md-end">
+        <a href="#" class="text-light opacity-75 text-decoration-none small me-3">Términos y Condiciones</a>
+        <a href="#" class="text-light opacity-75 text-decoration-none small me-3">Política de Privacidad</a>
+        <a href="#" class="text-light opacity-75 text-decoration-none small">Libro de Reclamaciones</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/scripts.js"></script>
+</body>
+</html>

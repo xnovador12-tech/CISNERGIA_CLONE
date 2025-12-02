@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Mis Favoritos - Cisnergia Perú</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap 5 Local -->
+  <link href="css/bootstrap.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilos.css">
+  
+  <style>
+    .favorite-item {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border-radius: 16px;
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid #e9ecef;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .favorite-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #0066cc 0%, #004d99 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .favorite-item:hover {
+      box-shadow: 0 8px 24px rgba(0, 102, 204, 0.12);
+      border-color: #0066cc;
+      transform: translateY(-2px);
+    }
+    
+    .favorite-item:hover::before {
+      opacity: 1;
+    }
+    
+    .product-image {
+      width: 140px;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      transition: transform 0.3s ease;
+    }
+    
+    .favorite-item:hover .product-image {
+      transform: scale(1.05);
+    }
+    
+    .product-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #212529;
+      margin-bottom: 0.25rem;
+    }
+    
+    .product-category {
+      font-size: 0.75rem;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .price-current {
+      font-size: 1.75rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .price-old {
+      font-size: 1rem;
+      color: #868e96;
+      text-decoration: line-through;
+      font-weight: 500;
+    }
+    
+    .discount-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      color: white;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .stock-status {
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.02);
+    }
+    
+    .stock-status.available {
+      color: #28a745;
+      background: rgba(40, 167, 69, 0.08);
+      border: 1px solid rgba(40, 167, 69, 0.2);
+    }
+    
+    .stock-status.limited {
+      color: #ffc107;
+      background: rgba(255, 193, 7, 0.08);
+      border: 1px solid rgba(255, 193, 7, 0.2);
+      animation: blink 2s infinite;
+    }
+    
+    .stock-status.unavailable {
+      color: #dc3545;
+      background: rgba(220, 53, 69, 0.08);
+      border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .qty-control {
+      display: inline-flex;
+      align-items: center;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    
+    .qty-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: transparent;
+      color: #0066cc;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    
+    .qty-btn:hover {
+      background: #0066cc;
+      color: white;
+    }
+    
+    .qty-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .qty-input {
+      width: 60px;
+      height: 40px;
+      border: none;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      background: transparent;
+      color: #212529;
+    }
+    
+    .qty-input:focus {
+      outline: none;
+    }
+    
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 0.625rem;
+      border-radius: 10px;
+    }
+    
+    .btn-delete {
+      color: #dc3545;
+      background: rgba(220, 53, 69, 0.05);
+    }
+    
+    .btn-delete:hover {
+      color: white;
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-similar {
+      color: #6c757d;
+      font-size: 0.875rem;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+      display: inline-block;
+    }
+    
+    .btn-similar:hover {
+      color: #0066cc;
+      background: rgba(0, 102, 204, 0.05);
+      text-decoration: none;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%) !important;
+      border: none !important;
+      padding: 0.75rem 1.5rem !important;
+      font-weight: 600 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 4px 16px rgba(0, 102, 204, 0.3) !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0, 102, 204, 0.4) !important;
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .empty-state {
+      padding: 5rem 2rem;
+      text-align: center;
+    }
+    
+    .empty-state i {
+      font-size: 6rem;
+      color: #dee2e6;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .favorite-item {
+      animation: fadeIn 0.3s ease-out;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg py-2">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center me-4" href="index.html">
+      <img src="images/cisnergia_v.png" alt="CISNERGIA PERÚ" height="45">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link px-3 fw-500" href="productos.html">Productos</a></li>
+        <li class="nav-item"><a class="nav-link px-3 fw-500" href="instalacion.html">Instalación</a></li>
+        <li class="nav-item"><a class="nav-link px-3 fw-500" href="contacto.html">Contacto</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-0 icons__navbar">
+        <!-- Hola, Inicia sesión -->
+        <div class="dropdown">
+          <button class="bg-transparent border-0 rounded-0 d-flex flex-column align-items-start py-2 px-3 rounded hover-bg" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="line-height: 1.3; transition: background 0.2s;">
+            <small class="text-secondary" style="font-size: 0.7rem; font-weight: 400;">Hola,</small>
+            <span class="fw-semibold d-flex align-items-center text-dark" style="font-size: 0.9rem;">
+              Inicia sesión
+              <i class="bi bi-chevron-down ms-1" style="font-size: 0.65rem;"></i>
+            </span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm mt-2 rounded-3">
+            <li>
+              <button type="button" class="dropdown-item py-2 rounded-2" data-bs-toggle="modal" data-bs-target="#iniciar_sesion">
+                <i class="bi bi-box-arrow-in-right me-2 text-primary"></i>Iniciar sesión
+              </button>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <a class="dropdown-item py-2 rounded-2" href="#">
+                <i class="bi bi-person-plus me-2 text-success"></i>Crear cuenta
+              </a>
+            </li>
+          </ul>
+        </div>
+
+
+        <!-- Mis compras -->
+         <div class="border-start">
+             <a href="#" class="text-decoration-none text-dark d-none d-lg-flex flex-column align-items-start py-2 px-3 rounded hover-bg" style="line-height: 1.3; transition: background 0.2s;">
+               <small class="text-secondary" style="font-size: 0.7rem; font-weight: 400;">Mis</small>
+               <span class="fw-semibold" style="font-size: 0.9rem;">compras</span>
+             </a>
+         </div>
+
+        <!-- Favoritos -->
+         <div class="border-start">
+
+             <a href="#" class="bg-transparent border-0 icon__boton position-relative d-none d-lg-flex align-items-center justify-content-center px-3 py-2 rounded hover-bg" style="text-decoration: none; transition: background 0.2s;">
+               <i class="bi bi-heart fs-4 text-dark"></i>
+             </a>
+         </div>
+
+        <!-- Carrito -->
+         <div class="border-start">
+
+             <a href="carrito_compras.html" class="bg-transparent border-0 icon__boton position-relative d-flex align-items-center justify-content-center px-3 py-2 rounded hover-bg" style="text-decoration: none; transition: background 0.2s;" data-bs-toggle="offcanvas" data-bs-target="#carrito_compras" aria-controls="carrito_compras">
+               <i class="bi bi-cart3 fs-4 text-dark"></i>
+               <span class="position-absolute badge rounded-circle bg-primary text-white" style="font-size: 0.6rem; width: 18px; height: 18px; padding: 0; display: flex; align-items: center; justify-content: center; top: 5px; right: 8px; font-weight: 600;">
+                 0
+                 <span class="visually-hidden">productos en carrito</span>
+               </span>
+             </a>
+         </div>
+      </div>
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO SECTION -->
+<section class="py-4 bg-white border-bottom">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h2 class="fw-bold mb-2">
+          <i class="bi bi-heart-fill text-danger me-2"></i>Mis favoritos
+        </h2>
+        <p class="text-muted mb-0">
+          <span id="favoriteCount">6</span> productos guardados
+        </p>
+      </div>
+      <div>
+        <button class="btn btn-outline-danger" id="clearAllBtn">
+          <i class="bi bi-trash me-2"></i>Limpiar todo
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LISTA DE PRODUCTOS FAVORITOS -->
+<section class="py-4" id="favoritesGrid">
+  <div class="container">
+    
+    <!-- Producto 1 -->
+    <div class="favorite-item" data-product-id="1">
+      <div class="row align-items-center g-4">
+        <div class="col-auto">
+          <img src="https://images.pexels.com/photos/356036/pexels-photo-356036.jpeg?auto=compress&cs=tinysrgb&w=200" 
+               class="product-image" alt="Panel Solar">
+        </div>
+        <div class="col">
+          <div class="product-category mb-2">PANELES SOLARES</div>
+          <h3 class="product-title mb-2">Panel Solar Monocristalino 550W</h3>
+          <p class="text-muted mb-3">Alta eficiencia 21.5% | Garantía 25 años</p>
+          <div class="stock-status available">
+            <i class="bi bi-check-circle-fill me-1"></i>Disponible
+          </div>
+        </div>
+        <div class="col-lg-auto text-center">
+          <div class="price-current mb-1">S/ 595</div>
+          <div class="price-old mb-2">S/ 700</div>
+          <div class="discount-badge">-15%</div>
+        </div>
+        <div class="col-lg-auto">
+          <div class="d-flex flex-column gap-3">
+            <div class="text-center">
+              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
+              <div class="qty-control">
+                <button class="qty-btn" onclick="decreaseQty(1)">−</button>
+                <input type="number" class="qty-input" value="1" min="1" id="qty-1" readonly>
+                <button class="qty-btn" onclick="increaseQty(1)">+</button>
+              </div>
+              <small class="text-muted d-block mt-2">Máx. 20 unidades</small>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary flex-grow-1" onclick="addToCart(1)" style="white-space: nowrap;">
+                <i class="bi bi-cart-plus me-2"></i>Agregar
+              </button>
+              <button class="action-btn btn-delete" onclick="removeFromFavorites(1)" title="Eliminar de favoritos">
+                <i class="bi bi-trash fs-5"></i>
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Producto 2 -->
+    <div class="favorite-item" data-product-id="2">
+      <div class="row align-items-center g-4">
+        <div class="col-auto">
+          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=200" 
+               class="product-image" alt="Inversor">
+        </div>
+        <div class="col">
+          <div class="product-category mb-2">INVERSORES</div>
+          <h3 class="product-title mb-2">Inversor Híbrido 5kW</h3>
+          <p class="text-muted mb-3">On-Grid / Off-Grid | Monitoreo WiFi</p>
+          <div class="stock-status available">
+            <i class="bi bi-check-circle-fill me-1"></i>Disponible
+          </div>
+        </div>
+        <div class="col-lg-auto text-center">
+          <div class="price-current mb-1">S/ 3,500</div>
+        </div>
+        <div class="col-lg-auto">
+          <div class="d-flex flex-column gap-3">
+            <div class="text-center">
+              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
+              <div class="qty-control">
+                <button class="qty-btn" onclick="decreaseQty(2)">−</button>
+                <input type="number" class="qty-input" value="1" min="1" id="qty-2" readonly>
+                <button class="qty-btn" onclick="increaseQty(2)">+</button>
+              </div>
+              <small class="text-muted d-block mt-2">Máx. 20 unidades</small>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary flex-grow-1" onclick="addToCart(2)" style="white-space: nowrap;">
+                <i class="bi bi-cart-plus me-2"></i>Agregar
+              </button>
+              <button class="action-btn btn-delete" onclick="removeFromFavorites(2)" title="Eliminar de favoritos">
+                <i class="bi bi-trash fs-5"></i>
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Producto 3 -->
+    <div class="favorite-item" data-product-id="3">
+      <div class="row align-items-center g-4">
+        <div class="col-auto">
+          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=200" 
+               class="product-image" alt="Batería">
+        </div>
+        <div class="col">
+          <div class="product-category mb-2">BATERÍAS</div>
+          <h3 class="product-title mb-2">Batería de Litio 10kWh</h3>
+          <p class="text-muted mb-3">6000 ciclos | BMS inteligente</p>
+          <div class="stock-status limited">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>Pocas unidades
+          </div>
+        </div>
+        <div class="col-lg-auto text-center">
+          <div class="price-current mb-1">S/ 4,400</div>
+          <div class="price-old mb-2">S/ 5,500</div>
+          <div class="discount-badge">-20%</div>
+        </div>
+        <div class="col-lg-auto">
+          <div class="d-flex flex-column gap-3">
+            <div class="text-center">
+              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
+              <div class="qty-control">
+                <button class="qty-btn" onclick="decreaseQty(3)">−</button>
+                <input type="number" class="qty-input" value="1" min="1" id="qty-3" readonly>
+                <button class="qty-btn" onclick="increaseQty(3)">+</button>
+              </div>
+              <small class="text-muted d-block mt-2">Máx. 5 unidades</small>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary flex-grow-1" onclick="addToCart(3)" style="white-space: nowrap;">
+                <i class="bi bi-cart-plus me-2"></i>Agregar
+              </button>
+              <button class="action-btn btn-delete" onclick="removeFromFavorites(3)" title="Eliminar de favoritos">
+                <i class="bi bi-trash fs-5"></i>
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Producto 4 -->
+    <div class="favorite-item" data-product-id="4">
+      <div class="row align-items-center g-4">
+        <div class="col-auto">
+          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=200" 
+               class="product-image" alt="Estructura">
+        </div>
+        <div class="col">
+          <div class="product-category mb-2">ACCESORIOS</div>
+          <h3 class="product-title mb-2">Estructura de Montaje Reforzada</h3>
+          <p class="text-muted mb-3">Aluminio anodizado | Para 8 paneles</p>
+          <div class="stock-status available">
+            <i class="bi bi-check-circle-fill me-1"></i>Disponible
+          </div>
+        </div>
+        <div class="col-lg-auto text-center">
+          <div class="price-current mb-1">S/ 850</div>
+        </div>
+        <div class="col-lg-auto">
+          <div class="d-flex flex-column gap-3">
+            <div class="text-center">
+              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
+              <div class="qty-control">
+                <button class="qty-btn" onclick="decreaseQty(4)">−</button>
+                <input type="number" class="qty-input" value="1" min="1" id="qty-4" readonly>
+                <button class="qty-btn" onclick="increaseQty(4)">+</button>
+              </div>
+              <small class="text-muted d-block mt-2">Máx. 20 unidades</small>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary flex-grow-1" onclick="addToCart(4)" style="white-space: nowrap;">
+                <i class="bi bi-cart-plus me-2"></i>Agregar
+              </button>
+              <button class="action-btn btn-delete" onclick="removeFromFavorites(4)" title="Eliminar de favoritos">
+                <i class="bi bi-trash fs-5"></i>
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Producto 5 -->
+    <div class="favorite-item" data-product-id="5">
+      <div class="row align-items-center g-4">
+        <div class="col-auto">
+          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=200" 
+               class="product-image" alt="Regulador">
+        </div>
+        <div class="col">
+          <div class="product-category mb-2">REGULADORES</div>
+          <h3 class="product-title mb-2">Regulador de Carga MPPT 60A</h3>
+          <p class="text-muted mb-3">Eficiencia 98% | Pantalla LCD</p>
+          <div class="stock-status available">
+            <i class="bi bi-check-circle-fill me-1"></i>Disponible
+          </div>
+        </div>
+        <div class="col-lg-auto text-center">
+          <div class="price-current mb-1">S/ 1,200</div>
+        </div>
+        <div class="col-lg-auto">
+          <div class="d-flex flex-column gap-3">
+            <div class="text-center">
+              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
+              <div class="qty-control">
+                <button class="qty-btn" onclick="decreaseQty(5)">−</button>
+                <input type="number" class="qty-input" value="1" min="1" id="qty-5" readonly>
+                <button class="qty-btn" onclick="increaseQty(5)">+</button>
+              </div>
+              <small class="text-muted d-block mt-2">Máx. 20 unidades</small>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary flex-grow-1" onclick="addToCart(5)" style="white-space: nowrap;">
+                <i class="bi bi-cart-plus me-2"></i>Agregar
+              </button>
+              <button class="action-btn btn-delete" onclick="removeFromFavorites(5)" title="Eliminar de favoritos">
+                <i class="bi bi-trash fs-5"></i>
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Producto 6 -->
+    <div class="favorite-item" data-product-id="6">
+      <div class="row align-items-center g-4">
+        <div class="col-auto">
+          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=200" 
+               class="product-image" alt="Kit Cables">
+        </div>
+        <div class="col">
+          <div class="product-category mb-2">ACCESORIOS</div>
+          <h3 class="product-title mb-2">Kit de Cables Solares 6mm²</h3>
+          <p class="text-muted mb-3">20 metros | Certificado UV</p>
+          <div class="stock-status available">
+            <i class="bi bi-check-circle-fill me-1"></i>Disponible
+          </div>
+        </div>
+        <div class="col-lg-auto text-center">
+          <div class="price-current mb-1">S/ 350</div>
+        </div>
+        <div class="col-lg-auto">
+          <div class="d-flex flex-column gap-3">
+            <div class="text-center">
+              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
+              <div class="qty-control">
+                <button class="qty-btn" onclick="decreaseQty(6)">−</button>
+                <input type="number" class="qty-input" value="1" min="1" id="qty-6" readonly>
+                <button class="qty-btn" onclick="increaseQty(6)">+</button>
+              </div>
+              <small class="text-muted d-block mt-2">Máx. 20 unidades</small>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary flex-grow-1" onclick="addToCart(6)" style="white-space: nowrap;">
+                <i class="bi bi-cart-plus me-2"></i>Agregar
+              </button>
+              <button class="action-btn btn-delete" onclick="removeFromFavorites(6)" title="Eliminar de favoritos">
+                <i class="bi bi-trash fs-5"></i>
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ESTADO VACÍO -->
+<section class="empty-state text-center d-none" id="emptyState">
+  <div class="container">
+    <i class="bi bi-heart"></i>
+    <h2 class="fw-bold mt-4 mb-3">Aún no tienes favoritos</h2>
+    <p class="text-muted mb-4">
+      Empieza a guardar tus productos favoritos para encontrarlos fácilmente después.
+    </p>
+    <a href="productos.html" class="btn btn-primary btn-lg">
+      <i class="bi bi-shop me-2"></i>Explorar Productos
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-dark text-light py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6">
+        <h5 class="fw-bold mb-3"></i> CISNERGIA PERÚ</h5>
+        <p class="small text-light opacity-75 mb-3">
+          Líderes en energía solar en Perú. Transformamos hogares y empresas con soluciones sostenibles y de alta calidad.
+        </p>
+        <div class="d-flex gap-2 mb-3">
+          <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-instagram"></i></a>
+          <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-linkedin"></i></a>
+          <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-youtube"></i></a>
+        </div>
+      </div>
+      
+      <div class="col-lg-2 col-md-6">
+        <h6 class="fw-bold mb-3">Enlaces rápidos</h6>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="#inicio" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Inicio</a></li>
+          <li class="mb-2"><a href="#productos" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Productos</a></li>
+          <li class="mb-2"><a href="#instalacion" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Instalación</a></li>
+          <li class="mb-2"><a href="#proceso" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Proceso</a></li>
+          <li class="mb-2"><a href="#contacto" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Contacto</a></li>
+        </ul>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <h6 class="fw-bold mb-3">Productos</h6>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="#" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Paneles Solares</a></li>
+          <li class="mb-2"><a href="#" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Inversores</a></li>
+          <li class="mb-2"><a href="#" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Baterías</a></li>
+          <li class="mb-2"><a href="#" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Kits Completos</a></li>
+          <li class="mb-2"><a href="#" class="text-light opacity-75 text-decoration-none"><i class="bi bi-chevron-right"></i> Accesorios</a></li>
+        </ul>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <h6 class="fw-bold mb-3">Contacto</h6>
+        <ul class="list-unstyled">
+          <li class="mb-2 text-light opacity-75">
+            <i class="bi bi-geo-alt-fill text-light me-2"></i>Av. Principal 123, San Isidro, Lima
+          </li>
+          <li class="mb-2 text-light opacity-75">
+            <i class="bi bi-telephone-fill text-light me-2"></i>+51 999 999 999
+          </li>
+          <li class="mb-2 text-light opacity-75">
+            <i class="bi bi-envelope-fill text-light me-2"></i>ventas@cisnergia.pe
+          </li>
+          <li class="mb-2 text-light opacity-75">
+            <i class="bi bi-clock-fill text-light me-2"></i>Lun-Vie: 9AM-6PM
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <hr class="my-4 opacity-25">
+
+    <div class="row">
+      <div class="col-md-6 text-center text-md-start">
+        <p class="small mb-0 opacity-75">© 2025 Cisnergia Perú. Todos los derechos reservados.</p>
+      </div>
+      <div class="col-md-6 text-center text-md-end">
+        <a href="#" class="text-light opacity-75 text-decoration-none small me-3">Términos y Condiciones</a>
+        <a href="#" class="text-light opacity-75 text-decoration-none small me-3">Política de Privacidad</a>
+        <a href="#" class="text-light opacity-75 text-decoration-none small">Libro de Reclamaciones</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/bootstrap.bundle.min.js"></script>
+<script>
+  // Contador de favoritos
+  let favoriteCount = 6;
+
+  // Actualizar contador
+  function updateFavoriteCount() {
+    document.getElementById('favoriteCount').textContent = favoriteCount;
+  }
+
+  // Verificar si está vacío
+  function checkIfEmpty() {
+    const items = document.querySelectorAll('.favorite-item');
+    if (items.length === 0) {
+      document.getElementById('favoritesGrid').classList.add('d-none');
+      document.getElementById('emptyState').classList.remove('d-none');
+    }
+  }
+
+  // Eliminar de favoritos
+  function removeFromFavorites(productId) {
+    if (confirm('¿Quieres eliminar este producto de tus favoritos?')) {
+      const item = document.querySelector(`[data-product-id="${productId}"]`);
+      item.style.opacity = '0';
+      item.style.transform = 'translateX(-20px)';
+      
+      setTimeout(() => {
+        item.remove();
+        favoriteCount--;
+        updateFavoriteCount();
+        checkIfEmpty();
+      }, 300);
+    }
+  }
+
+  // Limpiar todos los favoritos
+  document.getElementById('clearAllBtn').addEventListener('click', function() {
+    if (confirm('¿Estás seguro de eliminar todos tus favoritos?')) {
+      const items = document.querySelectorAll('.favorite-item');
+      items.forEach((item, index) => {
+        setTimeout(() => {
+          item.style.opacity = '0';
+          item.style.transform = 'translateX(-20px)';
+          setTimeout(() => {
+            item.remove();
+            favoriteCount--;
+            updateFavoriteCount();
+            checkIfEmpty();
+          }, 300);
+        }, index * 100);
+      });
+    }
+  });
+
+  // Aumentar cantidad
+  function increaseQty(productId) {
+    const input = document.getElementById(`qty-${productId}`);
+    const max = 20; // Máximo de unidades
+    if (parseInt(input.value) < max) {
+      input.value = parseInt(input.value) + 1;
+    }
+  }
+
+  // Disminuir cantidad
+  function decreaseQty(productId) {
+    const input = document.getElementById(`qty-${productId}`);
+    if (parseInt(input.value) > 1) {
+      input.value = parseInt(input.value) - 1;
+    }
+  }
+
+  // Agregar al carrito
+  function addToCart(productId) {
+    const qty = document.getElementById(`qty-${productId}`).value;
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    
+    // Animación de éxito
+    btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>¡Agregado!';
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-success');
+    btn.disabled = true;
+    
+    // Actualizar contador del carrito
+    const cartBadge = document.querySelector('.navbar .badge');
+    if (cartBadge) {
+      const currentCount = parseInt(cartBadge.textContent) || 0;
+      cartBadge.textContent = currentCount + parseInt(qty);
+    }
+    
+    // Restaurar botón después de 2 segundos
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.classList.remove('btn-success');
+      btn.classList.add('btn-primary');
+      btn.disabled = false;
+    }, 2000);
+  }
+
+  // Animación de fadeOut
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+</script>
+</body>
+</html>
