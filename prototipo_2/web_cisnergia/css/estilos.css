@@ -642,3 +642,172 @@ html {
     transform: translateY(0);
     }
 }
+
+
+/* ===========================================================================
+   MEGA MENÚ PRODUCTOS - Estilos CSS
+   Agregar al final de tu archivo estilos.css
+   =========================================================================== */
+
+/* Asegurar que el navbar tenga position relative para el mega menú */
+.navbar {
+  position: relative;
+}
+/* Nav item de productos */
+.nav-item-productos {
+  position: static;
+}
+/* Ahora usa :hover del padre, no clase .active */
+.nav-item-productos:hover .megamenu-productos {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.nav-item-productos::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 0;
+  pointer-events: none;
+}
+/* Cuando hay hover, el pseudo-elemento cubre todo el mega-menú */
+.nav-item-productos:hover::after {
+  height: 500px; /* Altura suficiente para cubrir el mega-menú */
+  pointer-events: auto;
+}
+.nav-item-productos.mega-active > .nav-link {
+  color: #004F9F;
+}
+
+/* Mega Menú Container */
+.megamenu-productos {
+   position: absolute;
+  top: 55px; 
+  width: 80%;
+  margin: 0 auto;
+  padding: 15px ;
+  left: 0;
+  right: 0;
+  background-color: #FFFFFF;
+  border-top: 1px solid #E5E7EB;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.25s ease;
+  z-index: 1040;
+}
+.megamenu-productos::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: transparent;
+}
+.megamenu-productos.mega-active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Contenido del mega menú */
+.megamenu-content {
+  background-color: #F5F5F5;
+  border-radius: 0 0 12px 12px;
+  padding: 2rem;
+  border: 1px solid #E5E7EB;
+}
+
+/* Grid de dos columnas */
+.megamenu-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 3rem;
+}
+
+/* Título de sección */
+.megamenu-titulo {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0F172A;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #E5E7EB;
+}
+
+/* Lista de enlaces */
+.megamenu-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.megamenu-lista li {
+  margin-bottom: 0.625rem;
+}
+
+.megamenu-lista a {
+  display: block;
+  padding: 0.375rem 0;
+  font-size: 0.9375rem;
+  color: #4B5563;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.megamenu-lista a:hover {
+  color: #004F9F;
+  padding-left: 8px;
+}
+
+/* Enlace destacado */
+.megamenu-lista a.megamenu-destacado {
+  color: #004F9F;
+  font-weight: 500;
+}
+
+/* Columna de categorías con fondo blanco */
+.megamenu-categorias {
+  background-color: #FFFFFF;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.megamenu-categorias .megamenu-lista a {
+  font-weight: 500;
+  color: #0F172A;
+}
+
+/* Overlay semi-transparente */
+.megamenu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+  z-index: 1030;
+}
+
+.megamenu-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Ocultar mega menú en móvil */
+@media (max-width: 991.98px) {
+  .megamenu-productos,
+  .megamenu-overlay {
+    display: none !important;
+  }
+}
