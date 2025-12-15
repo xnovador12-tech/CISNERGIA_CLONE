@@ -1,0 +1,813 @@
+/* Animaciones keyframes */
+@keyframes fadeInUp {
+    from {
+    opacity: 0;
+    transform: translateY(30px);
+    }
+    to {
+    opacity: 1;
+    transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+    opacity: 0;
+    transform: translateY(-20px);
+    }
+    to {
+    opacity: 1;
+    transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+    from {
+    opacity: 0;
+    transform: translateX(-30px);
+    }
+    to {
+    opacity: 1;
+    transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+    opacity: 0;
+    transform: translateX(30px);
+    }
+    to {
+    opacity: 1;
+    transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes sunGlow {
+    0%, 100% { 
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+    }
+    50% { 
+    box-shadow: 0 0 40px rgba(255, 193, 7, 0.6);
+    }
+}
+
+/* Hero Section con animaciones */
+.hero-section{
+    padding: 6rem 0;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 50%, #e6f2ff 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(0,123,255,0.05) 0%, transparent 70%);
+    animation: pulse 6s ease-in-out infinite;
+}
+
+.hero-title{
+    font-size: 3.5rem;
+    line-height: 1.2;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+    font-size: 2.5rem;
+    }
+}
+
+.hero-section .badge {
+    animation: fadeInDown 0.6s ease-out;
+}
+
+.hero-section p {
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.hero-section .btn {
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.hero-section .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.hero-section img {
+    animation: fadeIn 1s ease-out 0.3s both;
+    transition: transform 0.5s ease;
+}
+
+.hero-image-container {
+    transition: box-shadow 0.3s ease;
+}
+
+.hero-image-container:hover {
+    box-shadow: 0 25px 60px rgba(0,0,0,0.25) !important;
+}
+
+.hero-main-image {
+    transition: transform 0.6s ease, filter 0.3s ease;
+}
+
+.hero-image-container:hover .hero-main-image {
+    transform: scale(1.08);
+}
+
+.hero-image-container:hover .position-absolute {
+    transform: translateY(-5px);
+    transition: transform 0.3s ease;
+}
+
+.hero-section .position-relative > div:first-child:hover img {
+    transform: scale(1.05);
+}
+
+/* Cards flotantes con animación */
+.hero-section .position-absolute {
+    animation: fadeInUp 1s ease-out 0.8s both;
+}
+
+.hero-section .shadow-lg {
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15) !important;
+}
+
+/* Product cards con animaciones */
+.product-card{
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.product-card:nth-child(1) { animation-delay: 0.1s; }
+.product-card:nth-child(2) { animation-delay: 0.2s; }
+.product-card:nth-child(3) { animation-delay: 0.3s; }
+.product-card:nth-child(4) { animation-delay: 0.4s; }
+
+.product-card:hover{
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+}
+
+.product-card-image {
+    overflow: hidden;
+}
+
+.product-card:hover .product-card-image {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.section-title{
+    font-size: 1.8rem;
+    opacity: 0;
+    animation: fadeInDown 0.7s ease-out forwards;
+}
+
+/* Feature icons con animación de energía solar */
+.feature-icon{
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    border-radius: 16px;
+    margin-bottom: 1rem;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    transition: all 0.3s ease;
+}
+
+.feature-icon:hover {
+    transform: translateY(-5px) rotate(5deg);
+    animation: sunGlow 2s ease-in-out infinite;
+}
+
+/* Stats cards con efecto de contador */
+.stats-card{
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-info) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    text-align: center;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+    transition: transform 0.3s ease;
+}
+
+.stats-card:nth-child(1) { animation-delay: 0.1s; }
+.stats-card:nth-child(2) { animation-delay: 0.2s; }
+.stats-card:nth-child(3) { animation-delay: 0.3s; }
+.stats-card:nth-child(4) { animation-delay: 0.4s; }
+
+.stats-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Testimonial cards */
+.testimonial-card{
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    opacity: 0;
+    animation: fadeInUp 0.7s ease-out forwards;
+    transition: all 0.3s ease;
+}
+
+.testimonial-card:nth-child(1) { animation-delay: 0.1s; }
+.testimonial-card:nth-child(2) { animation-delay: 0.2s; }
+.testimonial-card:nth-child(3) { animation-delay: 0.3s; }
+
+.testimonial-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+}
+
+.testimonial-card .bi-star-fill {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.testimonial-card:hover .bi-star-fill {
+    transform: scale(1.2);
+}
+
+/* Process steps con animación secuencial */
+.process-step{
+    position: relative;
+    padding: 2rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    opacity: 0;
+    animation: fadeInUp 0.7s ease-out forwards;
+    transition: all 0.3s ease;
+}
+
+.process-step:nth-child(1) { animation-delay: 0.2s; }
+.process-step:nth-child(2) { animation-delay: 0.4s; }
+.process-step:nth-child(3) { animation-delay: 0.6s; }
+.process-step:nth-child(4) { animation-delay: 0.8s; }
+
+.process-step:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.15);
+}
+
+.process-step i {
+    transition: transform 0.3s ease;
+}
+
+.process-step:hover i {
+    transform: scale(1.2) rotate(10deg);
+}
+
+.step-number{
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 48px;
+    background: var(--bs-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.process-step:hover .step-number {
+    transform: translateX(-50%) scale(1.15) rotate(360deg);
+    animation: sunGlow 2s ease-in-out infinite;
+}
+
+/* CTA Section con gradiente animado */
+.cta-section{
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
+    color: white;
+    padding: 4rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+}
+
+.cta-section h2, .cta-section p {
+    position: relative;
+    z-index: 1;
+}
+
+.cta-section h2 {
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.cta-section p {
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.cta-section .btn {
+    position: relative;
+    z-index: 1;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+    transition: all 0.3s ease;
+}
+
+.cta-section .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Product image overlay con animación */
+.product-card-image{
+    position: relative;
+    height: 320px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: all 0.5s ease;
+}
+
+.product-card:hover .product-card-image {
+    transform: scale(1.05);
+}
+
+.product-card-overlay{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
+    padding: 2rem 1.5rem 1.5rem;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.product-card:hover .product-card-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 70%, transparent 100%);
+}
+
+/* Botones con efecto de energía */
+.btn-outline-success-custom{
+    background-color: white;
+    border: 1px solid var(--bs-success);
+    color: var(--bs-success);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-success-custom:hover{
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(53, 169, 53, 0.3);
+}
+
+.btn-primary, .btn-secondary {
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover, .btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+/* Navbar con animación de aparición */
+.navbar {
+    animation: fadeInDown 0.6s ease-out;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand {
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.05);
+}
+
+.nav-link {
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: var(--bs-primary);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 80%;
+}
+
+/* Tabs de productos con animación */
+.nav-pills .nav-link {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-pills .nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.nav-pills .nav-link:hover::before {
+    left: 100%;
+}
+
+.nav-pills .nav-link:hover {
+    transform: translateY(-2px);
+}
+
+/* Badges con efecto de brillo */
+.badge {
+    transition: all 0.3s ease;
+}
+
+.badge:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Formulario con animaciones */
+.form-control, .form-select {
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,86,163,0.15);
+}
+
+/* Footer con animación de enlaces */
+footer a {
+    transition: all 0.3s ease;
+}
+
+footer a:hover {
+    transform: translateX(5px);
+}
+
+/* Iconos de contacto con animación */
+.rounded-circle {
+    transition: all 0.3s ease;
+}
+
+.d-flex:hover .rounded-circle {
+    transform: rotate(360deg) scale(1.1);
+    animation: sunGlow 2s ease-in-out infinite;
+}
+
+/* Stars rating con animación */
+.bi-star-fill, .bi-star-half {
+    transition: all 0.2s ease;
+}
+
+.testimonial-card:hover .bi-star-fill:nth-child(1) { transform: scale(1.2); transition-delay: 0s; }
+.testimonial-card:hover .bi-star-fill:nth-child(2) { transform: scale(1.2); transition-delay: 0.05s; }
+.testimonial-card:hover .bi-star-fill:nth-child(3) { transform: scale(1.2); transition-delay: 0.1s; }
+.testimonial-card:hover .bi-star-fill:nth-child(4) { transform: scale(1.2); transition-delay: 0.15s; }
+.testimonial-card:hover .bi-star-fill:nth-child(5) { transform: scale(1.2); transition-delay: 0.2s; }
+
+/* Animación de scroll suave */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Partner logos section */
+.partner-card-link {
+    text-decoration: none;
+    display: block;
+}
+
+.partner-logo-container {
+    background: white;
+    padding: 2rem 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid #e0e0e0;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.partner-logo-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,123,255,0.05), transparent);
+    transition: left 0.5s;
+}
+
+.partner-card-link:hover .partner-logo-container::before {
+    left: 100%;
+}
+
+.partner-card-link:hover .partner-logo-container {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+    border-color: var(--bs-primary);
+}
+
+.partner-logo-wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.partner-card-link:hover .partner-logo-wrapper {
+    transform: scale(1.05);
+}
+
+.partner-logo {
+    max-width: 100%;
+    max-height: 90px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: grayscale(80%) opacity(0.7);
+    transition: filter 0.4s ease;
+}
+
+.partner-card-link:hover .partner-logo {
+    filter: grayscale(0%) opacity(1);
+}
+
+.partner-overlay {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    background: var(--bs-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.partner-card-link:hover .partner-overlay {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Staggered animation for partners */
+.partner-card-link:nth-child(1) .partner-logo-container { animation-delay: 0.05s; }
+.partner-card-link:nth-child(2) .partner-logo-container { animation-delay: 0.1s; }
+.partner-card-link:nth-child(3) .partner-logo-container { animation-delay: 0.15s; }
+.partner-card-link:nth-child(4) .partner-logo-container { animation-delay: 0.2s; }
+.partner-card-link:nth-child(5) .partner-logo-container { animation-delay: 0.25s; }
+.partner-card-link:nth-child(6) .partner-logo-container { animation-delay: 0.3s; }
+.partner-card-link:nth-child(7) .partner-logo-container { animation-delay: 0.35s; }
+.partner-card-link:nth-child(8) .partner-logo-container { animation-delay: 0.4s; }
+.partner-card-link:nth-child(9) .partner-logo-container { animation-delay: 0.45s; }
+.partner-card-link:nth-child(10) .partner-logo-container { animation-delay: 0.5s; }
+
+/* Animación para elementos que entran al viewport */
+@media (prefers-reduced-motion: no-preference) {
+    .animate-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+
+    .animate-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+    }
+}
+
+
+/* ===========================================================================
+   MEGA MENÚ PRODUCTOS - Estilos CSS
+   Agregar al final de tu archivo estilos.css
+   =========================================================================== */
+
+/* Asegurar que el navbar tenga position relative para el mega menú */
+.navbar {
+  position: relative;
+}
+/* Nav item de productos */
+.nav-item-productos {
+  position: static;
+}
+/* Ahora usa :hover del padre, no clase .active */
+.nav-item-productos:hover .megamenu-productos {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.nav-item-productos::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 0;
+  pointer-events: none;
+}
+/* Cuando hay hover, el pseudo-elemento cubre todo el mega-menú */
+.nav-item-productos:hover::after {
+  height: 500px; /* Altura suficiente para cubrir el mega-menú */
+  pointer-events: auto;
+}
+.nav-item-productos.mega-active > .nav-link {
+  color: #004F9F;
+}
+
+/* Mega Menú Container */
+.megamenu-productos {
+   position: absolute;
+  top: 55px; 
+  width: 80%;
+  margin: 0 auto;
+  padding: 15px ;
+  left: 0;
+  right: 0;
+  background-color: #FFFFFF;
+  border-top: 1px solid #E5E7EB;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.25s ease;
+  z-index: 1040;
+}
+.megamenu-productos::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: transparent;
+}
+.megamenu-productos.mega-active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Contenido del mega menú */
+.megamenu-content {
+  background-color: #F5F5F5;
+  border-radius: 0 0 12px 12px;
+  padding: 2rem;
+  border: 1px solid #E5E7EB;
+}
+
+/* Grid de dos columnas */
+.megamenu-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 3rem;
+}
+
+/* Título de sección */
+.megamenu-titulo {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0F172A;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #E5E7EB;
+}
+
+/* Lista de enlaces */
+.megamenu-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.megamenu-lista li {
+  margin-bottom: 0.625rem;
+}
+
+.megamenu-lista a {
+  display: block;
+  padding: 0.375rem 0;
+  font-size: 0.9375rem;
+  color: #4B5563;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.megamenu-lista a:hover {
+  color: #004F9F;
+  padding-left: 8px;
+}
+
+/* Enlace destacado */
+.megamenu-lista a.megamenu-destacado {
+  color: #004F9F;
+  font-weight: 500;
+}
+
+/* Columna de categorías con fondo blanco */
+.megamenu-categorias {
+  background-color: #FFFFFF;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.megamenu-categorias .megamenu-lista a {
+  font-weight: 500;
+  color: #0F172A;
+}
+
+/* Overlay semi-transparente */
+.megamenu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+  z-index: 1030;
+}
+
+.megamenu-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Ocultar mega menú en móvil */
+@media (max-width: 991.98px) {
+  .megamenu-productos,
+  .megamenu-overlay {
+    display: none !important;
+  }
+}
