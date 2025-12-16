@@ -9,5 +9,5 @@ use Illuminate\Support\Facades\Route;
 
 // ECOMMERCE
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
-
+Route::get('/products', [ecommerceController::class, 'products'])->name('ecommerce.products');
 // ADMINISTRADOR

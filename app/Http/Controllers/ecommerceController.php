@@ -10,4 +10,9 @@ class ecommerceController extends Controller
     {
         return view('ECOMMERCE.index');
     }
+
+    public function products()
+    {
+        return view('ECOMMERCE.productos.index');
+    }
 }
