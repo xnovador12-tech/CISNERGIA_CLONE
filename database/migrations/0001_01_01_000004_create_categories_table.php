@@ -15,10 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug');
-            $table->string('imagen')->nullable();
-            $table->string('icono')->nullable();
-            $table->string('tipo')->nullable();
-            $table->string('descripcion')->nullable();
             $table->string('estado');
             $table->timestamps();
         });
