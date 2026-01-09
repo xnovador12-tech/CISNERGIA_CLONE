@@ -16,6 +16,31 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     @yield('css')
     @stack('meta')
+
+    <style>
+        .scroll___menu {
+              max-height: 600px;
+              overflow-y: scroll;
+              scrollbar-width: thin;
+        }
+        
+        .scroll___menu::-webkit-scrollbar {
+              width: 6px;
+        }
+        
+        .scroll___menu::-webkit-scrollbar-track {
+              background: #f1f1f1;
+        }
+        
+        .scroll___menu::-webkit-scrollbar-thumb {
+              background: #888;
+              border-radius: 3px;
+        }
+        
+        .scroll___menu::-webkit-scrollbar-thumb:hover {
+              background: #555;
+        }
+    </style>
 </head>
 <body class="bg-light">
     <!-- sidebar -->      
@@ -35,7 +60,7 @@
                     </div>
                 </div>
             </div>
-            <div class="offcanvas-body pb-2 p-0">
+            <div class="offcanvas-body pb-2 p-0 scroll___menu">
                 <div class="navbar-white">
                     <ul class="navbar-nav">
                         <div class="">

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class admin_ProveedoresController extends Model
+class Cliente extends Model
 {
     //
 }
