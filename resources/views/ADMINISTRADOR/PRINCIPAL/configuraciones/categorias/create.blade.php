@@ -30,6 +30,18 @@
                                     El campo no puede estar vacío
                                 </div>
                             </div>
+                            <div class="mb-3">
+                                <label for="tipos_id" class=" d-block">Tipos<span class="text-danger">*</span></label>
+                                <select class="form-select form-select-sm select2 @error('tipo_id') is-invalid @enderror" name="tipo_id" id="tipos_id" required>
+                                    <option value="{{ old('tipo_id') }}" selected="selected" hidden="hidden">{{ old('tipo_id') }}</option>
+                                    @foreach($tipos as $tipo) 
+                                    <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('tipo_id')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror    
+                            </div>
                         </div>    
                     </div>                           
                 </div>

@@ -123,10 +123,10 @@
                                 <tr>
                                     <td class="fw-normal align-middle">{{ $contador }}</td>
                                     <td class="fw-normal align-middle text-uppercase">{{ $admin_proveedore->identificacion.' - '.$admin_proveedore->nro_identificacion }}</td>
-                                    <td class="fw-normal align-middle">{{ $admin_proveedore->name }}</td>
+                                    <td class="fw-normal align-middle">{{ $admin_proveedore->proveedor->name_contacto }}</td>
                                     <td class="fw-normal align-middle">{{ $admin_proveedore->proveedor->giro }}</td>
-                                    <td class="fw-normal align-middle">{{ $admin_proveedore->proveedor->email }}</td>
-                                    <td class="fw-normal align-middle">{{ $admin_proveedore->nro_contacto }}</td>
+                                    <td class="fw-normal align-middle">{{ $admin_proveedore->proveedor->email_contacto }}</td>
+                                    <td class="fw-normal align-middle">{{ $admin_proveedore->celular }}</td>
                                     <td class="fw-normal align-middle small text-start text-md-center">
                                         <form method="POST" action="/admin-proveedores/estado/{{ $admin_proveedore->slug }}" class="form-update">
                                             @csrf

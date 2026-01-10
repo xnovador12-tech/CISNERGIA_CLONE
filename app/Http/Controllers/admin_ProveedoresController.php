@@ -34,9 +34,7 @@ class admin_ProveedoresController extends Controller
         $tiposdocumento = Identificacion::all();
         $tipos = Tipo::where('id', '!=', '4')->where('id', '!=', '5')->get();
         $ubigeos = DB::table('departamentos as dep')
-            ->join('provincias as prov', 'prov.departamento_id', 'dep.id')
-            ->join('distritos as dis', 'dis.provincia_id', 'prov.id')
-            ->select('dep.id as departamento_ids', 'dis.id as distrito_ids', 'prov.id as provincia_ids', 'dep.name as departamento_name', 'dis.name as distrito_name', 'prov.name as provincia_name')
+            ->select('dep.id as departamento_ids', 'dep.name as departamento_name')
             ->get();
         return view('ADMINISTRADOR.PRINCIPAL.configuraciones.proveedores.create', compact('tiposcuentas', 'bancos', 'tiposdocumento', 'tipos', 'ubigeos'));
     }
@@ -51,19 +49,17 @@ class admin_ProveedoresController extends Controller
         $persona->nro_identificacion = $request->input('nro_documento');
         $persona->name = $request->input('name');
         $persona->slug = Str::slug($request->input('nro_documento'));
-        $persona->nro_contacto = $request->input('nro_contacto');
+        $persona->email_pnatural = $request->input('email_pnatural');
+        $persona->celular = $request->input('celular');
         $persona->direccion = $request->input('direccion');
         $persona->referencia = $request->input('referencia');
         $persona->tipo_persona = 'Proveedor';
-        $persona->marca_id = Auth::user()->persona->marca_id;
-        // $persona->marca_id = 1;
-        $persona->registrado_por = Auth::user()->persona->name . ' ' . Auth::user()->persona->lastname_padre . ' ' . Auth::user()->persona->lastname_madre;
+        $persona->registrado_por = 1;
         // $persona->registrado_por = 'Cesar';
         $persona->save();
 
         $proveedor = new Proveedor();
         $proveedor->giro = $request->input('giro');
-        $proveedor->email = $request->input('email');
         $proveedor->direccion_fiscal  = $request->input('direccion_fiscal');
         $proveedor->name_contacto   = $request->input('name_contacto');
         $proveedor->email_contacto   = $request->input('email_contacto');
@@ -96,9 +92,9 @@ class admin_ProveedoresController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(admin_ProveedoresController $admin_ProveedoresController)
+    public function show(Persona $admin_proveedore)
     {
-        //
+        return view('ADMINISTRADOR.PRINCIPAL.configuraciones.proveedores.show', compact('admin_proveedore'));
     }
 
     /**
@@ -111,9 +107,7 @@ class admin_ProveedoresController extends Controller
         $tiposdocumento = Identificacion::all();
         $tipos = Tipo::all()->where('id', '!=', '4')->where('id', '!=', '5');
         $ubigeos = DB::table('departamentos as dep')
-            ->join('provincias as prov', 'prov.departamento_id', 'dep.id')
-            ->join('distritos as dis', 'dis.provincia_id', 'prov.id')
-            ->select('dep.id as departamento_ids', 'dis.id as distrito_ids', 'prov.id as provincia_ids', 'dep.name as departamento_name', 'dis.name as distrito_name', 'prov.name as provincia_name')
+            ->select('dep.id as departamento_ids', 'dep.name as departamento_name')
             ->get();
         return view('ADMINISTRADOR.PRINCIPAL.configuraciones.proveedores.edit', compact('admin_proveedore', 'ubigeos', 'tipos', 'tiposdocumento', 'tiposcuentas', 'bancos'));
     }
@@ -136,13 +130,13 @@ class admin_ProveedoresController extends Controller
         $admin_proveedore->nro_identificacion = $request->input('nro_identificacion');
         $admin_proveedore->name = $request->input('name');
         $admin_proveedore->slug = Str::slug($request->input('name'));
-        $admin_proveedore->nro_contacto = $request->input('nro_contacto');
+        $admin_proveedore->email_pnatural = $request->input('email_pnatural');
+        $admin_proveedore->celular = $request->input('celular');
         $admin_proveedore->direccion = $request->input('direccion');
         $admin_proveedore->referencia = $request->input('referencia');
         $admin_proveedore->save();
 
         $admin_proveedore->proveedor->giro = $request->input('giro');
-        $admin_proveedore->proveedor->email = $request->input('email');
         $admin_proveedore->proveedor->direccion_fiscal  = $request->input('direccion_fiscal');
         // $admin_proveedore->proveedor->tipo_id  = $request->input('tipo_id');
         $admin_proveedore->proveedor->name_contacto   = $request->input('name_contacto');

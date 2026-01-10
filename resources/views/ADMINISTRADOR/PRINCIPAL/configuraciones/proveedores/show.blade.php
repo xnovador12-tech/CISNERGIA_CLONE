@@ -40,7 +40,7 @@
                                                 <span class="text-uppercase small">Nro de identificación</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->nro_documento }}</span>
+                                                <span>{{ $admin_proveedore->nro_identificacion }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -87,7 +87,7 @@
                                                 <span class="text-uppercase small">Nombre o razón social</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->name }}</span>
+                                                <span>{{ $admin_proveedore->proveedor->name_contacto }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -100,7 +100,7 @@
                                                 <span class="text-uppercase small">Correo electrónico</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->proveedor->email }}</span>
+                                                <span>{{ $admin_proveedore->proveedor->email_contacto }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -113,7 +113,7 @@
                                                 <span class="text-uppercase small">Nro de contacto</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->nro_contacto }}</span>
+                                                <span>{{ $admin_proveedore->celular }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -208,7 +208,7 @@
                                                 <span class="text-uppercase small">Correo electrónico</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->proveedor->email_contacto }}</span>
+                                                <span>{{ $admin_proveedore->email_pnatural }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -220,7 +220,7 @@
                                                 <span class="text-uppercase small">Nro. Contacto</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->proveedor->nro_celular_contacto }}</span>
+                                                <span>{{ $admin_proveedore->celular }}</span>
                                             </div>
                                         </div>
                                     </div>

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nombre')->unique();
             $table->string('slug')->unique();
             $table->string('descripcion')->nullable();
-            $table->string('estado')->default('activo');
+            $table->string('estado')->default('Activo');
             $table->timestamps();
         });
     }

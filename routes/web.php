@@ -53,6 +53,7 @@ Route::resource('admin-proveedores', admin_ProveedoresController::class);
 Route::put('/admin-proveedores/estado/{admin_proveedor}', [admin_ProveedoresController::class, 'estado']);
 Route::resource('admin-productos', admin_ProductosController::class);
 Route::put('/admin-productos/estado/{admin_producto}', [admin_ProductosController::class, 'estado']);
+Route::get('busqueda_categoria_productos', [admin_ProductosController::class, 'getBusqueda_categoria_productos']);
 
 Route::resource('admin-clientes', admin_ClientesController::class);
 Route::put('/admin-clientes/estado/{admin_cliente}', [admin_ClientesController::class, 'estado']);

@@ -10,7 +10,6 @@ class Proveedor extends Model
     use HasFactory;
     protected $table = 'proveedors';
     protected $fillable = [
-        'email',
         'giro',
         'tipo_cuenta_normal',
         'entidad_bancaria_normal',

@@ -24,8 +24,8 @@ class Category extends Model
         return 'slug';
     }
 
-    public function specializations()
+    public function tipo()
     {
-        return $this->hasMany(Specialization::class);
+        return $this->belongsTo(Tipo::class);
     }
 }

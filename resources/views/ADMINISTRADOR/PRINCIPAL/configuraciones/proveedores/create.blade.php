@@ -111,8 +111,8 @@
 
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
-                                        <label for="nro_contacto_id" class="">Nro de contacto<span class="text-danger">*</span></label>
-                                        <input type="number" name="nro_contacto" id="nro_contacto_id" class="form-control form-control-sm @error('nro_contacto') is-invalid @enderror" required value="{{ old('nro_contacto') }}" maxLength="100">  
+                                        <label for="nro_celular_contacto_id" class="">Nro de contacto<span class="text-danger">*</span></label>
+                                        <input type="number" name="nro_celular_contacto" id="nro_celular_contacto_id" class="form-control form-control-sm @error('nro_celular_contacto') is-invalid @enderror" required value="{{ old('nro_celular_contacto') }}" maxLength="100">  
                                         @error('nro_contacto')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -173,7 +173,7 @@
                                             <select class="js-example-basic-multiple form-select form-select-sm select2" name="tipos[]" multiple="multiple">
                                                 <option>Seleccione una opcion</option>
                                                 @foreach($tipos as $tipo)
-                                                    <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
+                                                    <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -196,18 +196,18 @@
                                 </div>
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
-                                        <label for="email_contacto_id" class="">Correo electrónico</label>
-                                        <input type="email" name="email_contacto" id="email_contacto_id" class="form-control form-control-sm @error('email_contacto') is-invalid @enderror" value="{{ old('email_contacto') }}" maxLength="100">  
-                                        @error('email_contacto')
+                                        <label for="email_pnatural_id" class="">Correo electrónico</label>
+                                        <input type="email" name="email_pnatural" id="email_pnatural_id" class="form-control form-control-sm @error('email_pnatural') is-invalid @enderror" value="{{ old('email_pnatural') }}" maxLength="100">  
+                                        @error('email_pnatural')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
-                                        <label for="nro_contacto_contacto_id" class="">Nro de contacto</label>
-                                        <input type="number" name="nro_celular_contacto" id="nro_contacto_contacto_id" class="form-control form-control-sm @error('nro_celular_contacto') is-invalid @enderror" value="{{ old('nro_celular_contacto') }}" maxLength="100">  
-                                        @error('nro_celular_contacto')
+                                        <label for="nro_celular_id" class="">Nro de contacto</label>
+                                        <input type="number" name="celular" id="nro_celular_id" class="form-control form-control-sm @error('celular') is-invalid @enderror" value="{{ old('celular') }}" maxLength="100">  
+                                        @error('celular')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>

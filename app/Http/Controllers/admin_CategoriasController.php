@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Producto;
+use App\Models\Tipo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -15,7 +16,8 @@ class admin_CategoriasController extends Controller
     public function index()
     {
         $admin_categorias = Category::all();
-        return view('ADMINISTRADOR.PRINCIPAL.configuraciones.categorias.index',compact('admin_categorias'));
+        $tipos = Tipo::where('estado', 'Activo')->get();
+        return view('ADMINISTRADOR.PRINCIPAL.configuraciones.categorias.index',compact('admin_categorias','tipos'));
     }
 
     /**

@@ -32,6 +32,18 @@
                                 </div>
                             </div>
                             <div class="mb-3">
+                                <label for="tipos_id" class=" d-block">Tipos<span class="text-danger">*</span></label>
+                                <select class="form-select select2 @error('tipo_id') is-invalid @enderror" name="tipo_id" id="tipos_id" required>
+                                    <option value="{{ $admin_categoria->tipo_id }}" selected="selected" hidden="hidden">{{ $admin_categoria->tipo->name }}</option>
+                                    @foreach($tipos as $tipo) 
+                                    <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('tipo_id')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror    
+                            </div>
+                            <div class="mb-3">
                                 <label for="estado_id">Estado<span class="text-danger">*</span></label>
                                 <select name="estado" id="estado_id" class="form-select text-uppercase" required>
                                     <option value="{{ $admin_categoria->estado }}" selected="selected" hidden="hidden">{{ $admin_categoria->estado }}</option>

@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('proveedors', function (Blueprint $table) {
             $table->id();
-            $table->string('email')->unique()->nullable();
             $table->string('giro')->nullable();
             $table->string('tipo_cuenta_normal')->nullable();
             $table->string('entidad_bancaria_normal')->nullable();

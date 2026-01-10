@@ -30,5 +30,6 @@ class DatabaseSeeder extends Seeder
         $this->call(BancoTableSeeder::class);
         $this->call(TipocuentaTableSeeder::class);
         $this->call(MediopagoTableSeeder::class);
+        $this->call(MedidaTableSeeder::class);
     }
 }

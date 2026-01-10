@@ -47,9 +47,14 @@ class Producto extends Model
         return $this->belongsTo(Medida::class);
     }
 
-    public function category()
+    public function categorie()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function marca()
+    {
+        return $this->belongsTo(Marca::class);
     }
 
     public function tag()
@@ -64,5 +69,10 @@ class Producto extends Model
     public function images()
     {
         return $this->morphMany(Image::class, 'imageable');
+    }
+
+    public function etiquetas()
+    {
+        return $this->belongsToMany(Etiqueta::class, 'etiqueta_producto', 'producto_id', 'tag_id');
     }
 }

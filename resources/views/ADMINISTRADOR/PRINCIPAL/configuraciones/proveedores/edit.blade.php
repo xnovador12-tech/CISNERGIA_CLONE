@@ -101,9 +101,9 @@
 
                                 <div class="col-12 col-md-6 col-lg-6">
                                     <div class="pb-2">
-                                        <label for="razonsocial_id" class="">Nombre o Razón social<span class="text-danger">*</span></label>
-                                        <input type="text" name="name" id="razonsocial_id" class="form-control form-control-sm @error('name') is-invalid @enderror" required value="{{ $admin_proveedore->name }}" maxLength="100">  
-                                        @error('name')
+                                        <label for="name_contacto_id" class="">Nombre o Razón social<span class="text-danger">*</span></label>
+                                        <input type="text" name="name_contacto" id="name_contacto_id" class="form-control form-control-sm @error('name_contacto') is-invalid @enderror" required value="{{ $admin_proveedore->persona->name_contacto }}" maxLength="100">  
+                                        @error('name_contacto')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
@@ -112,8 +112,8 @@
                                 <div class="col-12 col-md-6 col-lg-6">
                                     <div class="pb-2">
                                         <label for="email_id2" class="">Correo electrónico<span class="text-danger">*</span></label>
-                                        <input type="email" name="email" id="email_id2" class="form-control form-control-sm @error('email') is-invalid @enderror" required value="{{ $admin_proveedore->proveedor->email }}" maxLength="100">  
-                                        @error('email')
+                                        <input type="email" name="email" id="email_id2" class="form-control form-control-sm @error('email_contacto') is-invalid @enderror" required value="{{ $admin_proveedore->proveedor->email_contacto }}" maxLength="100">  
+                                        @error('email_contacto')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
@@ -121,9 +121,9 @@
 
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
-                                        <label for="nro_contacto_id" class="">Nro de contacto<span class="text-danger">*</span></label>
-                                        <input type="number" name="nro_contacto" id="nro_contacto_id" class="form-control form-control-sm @error('nro_contacto') is-invalid @enderror" required value="{{ $admin_proveedore->nro_contacto }}" maxLength="100">  
-                                        @error('nro_contacto')
+                                        <label for="nro_celular_contacto_id" class="">Nro de contacto<span class="text-danger">*</span></label>
+                                        <input type="number" name="nro_celular_contacto" id="nro_celular_contacto_id" class="form-control form-control-sm @error('nro_celular_contacto') is-invalid @enderror" required value="{{ $admin_proveedore->proveedor->nro_celular_contacto }}" maxLength="100">  
+                                        @error('nro_celular_contacto')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
@@ -185,16 +185,16 @@
                                                 @php
                                                     $tip = false;
                                                     $tipos_asigns = DB::table('proveedor_tipo')->join('tipos','proveedor_tipo.tipo_id','=','tipos.id')
-                                                    ->select('proveedor_tipo.tipo_id', 'tipos.nombre')
+                                                    ->select('proveedor_tipo.tipo_id', 'tipos.name')
                                                     ->where('proveedor_tipo.tipo_id',$tipo->id)
                                                     ->where('proveedor_tipo.proveedor_id',$admin_proveedore->proveedor->id)->get();
     
                                                     foreach($tipos_asigns as $tipos_asign){
                                                         $tip = $tipos_asign->tipo_id;
-                                                        $tipn = $tipos_asign->nombre;
+                                                        $tipn = $tipos_asign->name;
                                                     }
                                                 @endphp
-                                                <option {{ $tip?'selected':'' }} value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
+                                                <option {{ $tip?'selected':'' }} value="{{ $tipo->id }}">{{ $tipo->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -207,27 +207,27 @@
                             <div class="row">
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
-                                        <label for="contacto_name_id" class="">Nombres y Apellidos</label>
-                                        <input type="text" name="name_contacto" id="contacto_name_id" class="form-control form-control-sm @error('name_contacto') is-invalid @enderror" value="{{ $admin_proveedore->proveedor->name_contacto }}" maxLength="100">  
-                                        @error('name_contacto')
+                                        <label for="name_id" class="">Nombres y Apellidos</label>
+                                        <input type="text" name="name" id="name_id" class="form-control form-control-sm @error('name') is-invalid @enderror" value="{{ $admin_proveedore->name }}" maxLength="100">  
+                                        @error('name')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
-                                        <label for="email_contacto_id" class="">Correo electrónico</label>
-                                        <input type="email" name="email_contacto" id="email_contacto_id" class="form-control form-control-sm @error('email_contacto') is-invalid @enderror" value="{{ $admin_proveedore->proveedor->email_contacto }}" maxLength="100">  
-                                        @error('email_contacto')
+                                        <label for="email_pnatural_id" class="">Correo electrónico</label>
+                                        <input type="email" name="email_pnatural" id="email_pnatural_id" class="form-control form-control-sm @error('email_pnatural') is-invalid @enderror" value="{{ $admin_proveedore->email_pnatural }}" maxLength="100">  
+                                        @error('email_pnatural')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
-                                        <label for="nro_contacto_contacto_id" class="">Nro de contacto</label>
-                                        <input type="number" name="nro_celular_contacto" id="nro_contacto_contacto_id" class="form-control form-control-sm @error('nro_celular_contacto') is-invalid @enderror" value="{{ $admin_proveedore->proveedor->nro_celular_contacto }}" maxLength="100">  
-                                        @error('nro_celular_contacto')
+                                        <label for="celular__id" class="">Nro de contacto</label>
+                                        <input type="number" name="celular" id="celular__id" class="form-control form-control-sm @error('celular') is-invalid @enderror" value="{{ $admin_proveedore->celular }}" maxLength="100">  
+                                        @error('celular')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug');
             $table->string('surnames')->nullable();
+            $table->string('email_pnatural')->nullable();
             $table->string('avatar')->nullable();
             $table->string('celular')->nullable();
             $table->string('pais')->nullable();
@@ -26,6 +27,7 @@ return new class extends Migration
             $table->string('referencia')->nullable();
             $table->longText('descripcion')->nullable();
             $table->string('tipo_persona');
+            $table->string('registrado_por')->nullable();
             $table->timestamps();
         });
     }

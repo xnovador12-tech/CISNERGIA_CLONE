@@ -11,6 +11,7 @@ class Persona extends Model
         'slug',
         'name',
         'surnames',
+        'email_pnatural',
         'avatar',
         'celular',
         'pais',
