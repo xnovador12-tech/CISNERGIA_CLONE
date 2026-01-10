@@ -28,6 +28,7 @@ class UserTableSeeder extends Seeder
         $persona->direccion = "Av. Siempre Viva 123";
         $persona->referencia = "Frente al parque";
         $persona->descripcion = "Descripción de Marcos Amasifuen";
+        $persona->tipo_persona = "Cuantica";
         $persona->save();
 
         $user = new User();
@@ -51,6 +52,7 @@ class UserTableSeeder extends Seeder
         $persona->direccion = "Av. Siempre Viva 123";
         $persona->referencia = "Frente al parque";
         $persona->descripcion = "Descripción de Leidenger";
+        $persona->tipo_persona = "Administrador";
         $persona->save();
 
         $user = new User();
@@ -59,50 +61,6 @@ class UserTableSeeder extends Seeder
         $user->estado = "Activo";
         $user->role_id = "2";
         $user->persona_id = "2";
-        $user->save();
-
-        $persona = new Persona();
-        $persona->name = "leidenger";
-        $persona->slug = Str::slug($persona->name);
-        $persona->avatar = "user.png";
-        $persona->celular = "0998765432";
-        $persona->pais = "Peru";
-        $persona->ciudad = "Lima";
-        $persona->identificacion = "Dni";
-        $persona->nro_identificacion = "48895679";
-        $persona->direccion = "Av. Siempre Viva 123";
-        $persona->referencia = "Frente al parque";
-        $persona->descripcion = "Descripción de Leidenger";
-        $persona->save();
-
-        $user = new User();
-        $user->email = "instructor@leidenger.com";
-        $user->password = Hash::make("instructor");
-        $user->estado = "Activo";
-        $user->role_id = "3";
-        $user->persona_id = "3";
-        $user->save();
-
-        $persona = new Persona();
-        $persona->name = "Gilberto";
-        $persona->slug = Str::slug($persona->name);
-        $persona->avatar = "user.png";
-        $persona->celular = "0998765432";
-        $persona->pais = "Peru";
-        $persona->ciudad = "Lima";
-        $persona->identificacion = "Dni";
-        $persona->nro_identificacion = "48895679";
-        $persona->direccion = "Av. Siempre Viva 123";
-        $persona->referencia = "Frente al parque";
-        $persona->descripcion = "Descripción de Gilberto";
-        $persona->save();
-
-        $user = new User();
-        $user->email = "cliente@leidenger.com";
-        $user->password = Hash::make("cliente");
-        $user->estado = "Activo";
-        $user->role_id = "4";
-        $user->persona_id = "4";
         $user->save();
     }
 }

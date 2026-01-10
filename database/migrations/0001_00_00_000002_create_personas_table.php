@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('direccion')->nullable();
             $table->string('referencia')->nullable();
             $table->longText('descripcion')->nullable();
+            $table->string('tipo_persona');
             $table->timestamps();
         });
     }

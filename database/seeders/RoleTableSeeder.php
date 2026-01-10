@@ -29,14 +29,28 @@ class RoleTableSeeder extends Seeder
         $role->save();
 
         $role = new Role();
-        $role->name = "Consultor"; //Instructores
+        $role->name = "Logistica"; //Instructores
         $role->slug = Str::slug($role->name);
         $role->estado = "Activo";
         $role->nivel = "PRINCIPAL";
         $role->save();
 
         $role = new Role();
-        $role->name = "Auxiliar"; //Clientes
+        $role->name = "Almacen"; //Clientes
+        $role->slug = Str::slug($role->name);
+        $role->estado = "Activo";
+        $role->nivel = "PRINCIPAL";
+        $role->save();
+
+        $role = new Role();
+        $role->name = "Tesoreria"; //Clientes
+        $role->slug = Str::slug($role->name);
+        $role->estado = "Activo";
+        $role->nivel = "PRINCIPAL";
+        $role->save();
+
+        $role = new Role();
+        $role->name = "Reparto"; //Clientes
         $role->slug = Str::slug($role->name);
         $role->estado = "Activo";
         $role->nivel = "PRINCIPAL";
@@ -48,12 +62,6 @@ class RoleTableSeeder extends Seeder
         $role->estado = "Activo";
         $role->nivel = "PRINCIPAL";
         $role->save();
-
-        $role = new Role();
-        $role->name = "Postulante"; //Clientes
-        $role->slug = Str::slug($role->name);
-        $role->estado = "Activo";
-        $role->nivel = "PRINCIPAL";
-        $role->save();
+        
     }
 }

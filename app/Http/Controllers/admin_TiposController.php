@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\admin_TiposController;
 use App\Models\Producto;
 use App\Models\Tipo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-class AdminTiposControllerController extends Controller
+class admin_TiposController extends Controller
 {
     /**
      * Display a listing of the resource.

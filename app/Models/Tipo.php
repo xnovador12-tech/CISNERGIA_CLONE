@@ -35,13 +35,8 @@ class Tipo extends Model
         return $this->belongsToMany(Proveedor::class);
     }
 
-    public function categorias()
+    public function categories()
     {
-        return $this->hasMany(Categoria::class);
-    }
-
-    public function areaalmacenes()
-    {
-        return $this->belongsToMany(Areaalmacen::class);
+        return $this->hasMany(Category::class);
     }
 }

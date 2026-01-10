@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\admin_CategoriasController;
 use App\Models\Category;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-class AdminCategoriasControllerController extends Controller
+class admin_CategoriasController extends Controller
 {
     /**
      * Display a listing of the resource.

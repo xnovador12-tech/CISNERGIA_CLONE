@@ -19,7 +19,8 @@ class Persona extends Model
         'nro_identificacion',
         'direccion',
         'referencia',
-        'descripcion'
+        'descripcion',
+        'tipo_persona'
     ];
 
     public function getRouteKeyName()
@@ -31,9 +32,14 @@ class Persona extends Model
     {
         return $this->hasOne(User::class);
     }
-
-    public function consultore()
+    
+    public function cliente()
     {
-        return $this->hasOne(Consultore::class);
+        return $this->hasOne(Cliente::class);
+    }
+
+    public function proveedor()
+    {
+        return $this->hasOne(Proveedor::class);
     }
 }

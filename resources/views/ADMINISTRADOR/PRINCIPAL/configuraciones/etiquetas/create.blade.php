@@ -1,10 +1,10 @@
-<form method="POST" action="{{ route('admin-categorias.store') }}" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
+<form method="POST" action="{{ route('admin-etiquetas.store') }}" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
     @csrf    
-    <div class="modal fade" id="createcategorias" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal fade" id="createetiquetas" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-md modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white py-2">
-                    <span class="modal-title text-uppercase small" id="staticBackdropLabel">Nueva categoria</span>
+                    <span class="modal-title text-uppercase small" id="staticBackdropLabel">Nueva etiqueta</span>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">

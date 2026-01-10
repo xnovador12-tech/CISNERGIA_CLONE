@@ -35,9 +35,13 @@ class CreateProductosTable extends Migration
             $table->unsignedBigInteger('tipo_id')->nullable();
             $table->foreign('tipo_id')->references('id')->on('tipos');
             $table->unsignedBigInteger('medida_id')->nullable();
+            $table->unsignedBigInteger('marca_id')->nullable();
             $table->unsignedBigInteger('categorie_id')->nullable();
+            $table->unsignedBigInteger('tag_id')->nullable();
             $table->foreign('medida_id')->references('id')->on('medidas');
+            $table->foreign('marca_id')->references('id')->on('marcas');
             $table->foreign('categorie_id')->references('id')->on('categories');
+            $table->foreign('tag_id')->references('id')->on('tags');
             $table->timestamps();
         });
     }

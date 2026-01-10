@@ -22,10 +22,13 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
-
+        $this->call(IdentificacionTableSeeder::class);
+        $this->call(TipoTableSeeder::class);
         $this->call(RoleTableSeeder::class);
         $this->call(UserTableSeeder::class);
         $this->call(CategoryTableSeeder::class);
-        $this->call(IdentificacionTableSeeder::class);
+        $this->call(BancoTableSeeder::class);
+        $this->call(TipocuentaTableSeeder::class);
+        $this->call(MediopagoTableSeeder::class);
     }
 }

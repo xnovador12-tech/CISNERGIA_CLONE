@@ -1,10 +1,11 @@
-<form method="POST" action="{{ route('admin-categorias.store') }}" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
-    @csrf    
-    <div class="modal fade" id="createcategorias" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<form method="POST" action="{{ route('admin-marcas.update', $admin_marca->slug) }}" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
+    @csrf  
+    @method('put')  
+    <div class="modal fade" id="editmarcas{{ $admin_marca->slug }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-md modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white py-2">
-                    <span class="modal-title text-uppercase small" id="staticBackdropLabel">Nueva categoria</span>
+                    <span class="modal-title text-uppercase small" id="staticBackdropLabel">Actualizar marca</span>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -22,8 +23,22 @@
                         <div class="col-12 col-md-12 col-lg-12">
                             <div class="mb-3">
                                 <label for="name_id">Nombre<span class="text-danger">*</span></label>
-                                <input type="text" name="name" id="name_id" class="form-control" value="{{ old('name') }}"  maxLength="100" required>
+                                <input type="text" name="name" id="name_id" class="form-control" value="{{ $admin_marca->name }}"  maxLength="100" required>
                                 @error('name')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                                <div class="invalid-feedback">
+                                    El campo no puede estar vacío
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado_id">Estado<span class="text-danger">*</span></label>
+                                <select name="estado" id="estado_id" class="form-select text-uppercase" required>
+                                    <option value="{{ $admin_marca->estado }}" selected="selected" hidden="hidden">{{ $admin_marca->estado }}</option>
+                                    <option value="Activo">ACTIVO</option>
+                                    <option value="Inactivo">INACTIVO</option>
+                                </select>
+                                @error('estado')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                                 <div class="invalid-feedback">
@@ -34,7 +49,7 @@
                     </div>                           
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-dark text-uppercase small px-5 text-white">Registrar</button>   
+                    <button type="submit" class="btn btn-dark text-uppercase small px-5 text-white">Actualizar</button>   
                 </div>
             </div>
         </div>
