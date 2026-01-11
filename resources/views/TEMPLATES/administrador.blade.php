@@ -17,30 +17,7 @@
     @yield('css')
     @stack('meta')
 
-    <style>
-        .scroll___menu {
-              max-height: 600px;
-              overflow-y: scroll;
-              scrollbar-width: thin;
-        }
-        
-        .scroll___menu::-webkit-scrollbar {
-              width: 6px;
-        }
-        
-        .scroll___menu::-webkit-scrollbar-track {
-              background: #f1f1f1;
-        }
-        
-        .scroll___menu::-webkit-scrollbar-thumb {
-              background: #888;
-              border-radius: 3px;
-        }
-        
-        .scroll___menu::-webkit-scrollbar-thumb:hover {
-              background: #555;
-        }
-    </style>
+   
 </head>
 <body class="bg-light">
     <!-- sidebar -->      
@@ -104,7 +81,7 @@
                                 </li>
                     
                                 <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-formulas.index') --}}" class="nav-link px-3 {{ request()->is(['admin-formulas*'])? 'active-item' : null}} menu">
+                                    <a href="{{-- route('admin-clientes.index') --}}" class="nav-link px-3 {{ request()->is(['admin-formulas*'])? 'active-item' : null}} menu">
                                         <span class="fw-bold">
                                             <i class="bi bi-clipboard2-check me-2"></i>
                                         </span>
@@ -115,36 +92,27 @@
                                 </li>
 
                                 <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-preparacion.index') --}}" class="nav-link px-3 {{ request()->is(['admin-preparacion*'])? 'active-item' : null}} menu">
+                                    <a href="{{-- route('admin-oportunidades.index') --}}" class="nav-link px-3 {{ request()->is(['admin-preparacion*'])? 'active-item' : null}} menu">
                                         <span class="fw-bold">
                                             <i class="bi bi-clock-history me-2"></i>
                                         </span>
                                         <span>
-                                            Oportunidades y ventas
+                                            Oportunidades
                                         </span>
                                     </a>
                                 </li>
 
                                 <li>
-                                    <div class="text-white small fw-bold text-uppercase px-3">Finanzas</div>
+                                    <div class="text-white small fw-bold text-uppercase px-3">Ventas</div>
                                 </li>
-                                <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-reservas.index') --}}" class="nav-link px-3 {{ request()->is(['admin-reservas*'])? 'active-item' : null}} menu">
-                                        <span class="fw-bold">
-                                            <i class="bi bi-calendar-check me-2"></i>
-                                        </span>
-                                        <span>
-                                            Contabilidad
-                                        </span>
-                                    </a>
-                                </li>
+                                
                                 <li class="mx-2 my-1">
                                     <a href="{{-- route('admin-cotizaciones.index') --}}" class="nav-link px-3 {{ request()->is(['admin-cotizaciones*'])? 'active-item' : null}} menu">
                                         <span class="fw-bold">
                                             <i class="bi bi-file-text me-2"></i>
                                         </span>
                                         <span>
-                                            Tesorería
+                                            Cotizaciones
                                         </span>
                                     </a>
                                 </li>
@@ -154,7 +122,7 @@
                                             <i class="bi bi-cart me-2"></i>
                                         </span>
                                         <span>
-                                            Cobros
+                                            Pedidos
                                         </span>
                                     </a>
                                 </li>
@@ -164,7 +132,7 @@
                                             <i class="bi bi-cash-coin me-2"></i>
                                         </span>
                                         <span>
-                                            Pagos
+                                            Ventas
                                         </span>
                                     </a>
                                 </li>
@@ -172,19 +140,19 @@
                                 <li class="mx-2 my-1">
                                     <a href="{{-- route('admin-ventas.index') --}}" class="nav-link px-3 {{ request()->is(['admin-ventas*'])? 'active-item' : null}} menu">
                                         <span class="fw-bold">
-                                            <i class="bi bi-cash-coin me-2"></i>
+                                            <i class="bi bi-graph-up me-2"></i>
                                         </span>
                                         <span>
-                                            Presupuesto
+                                            Seguimiento
                                         </span>
                                     </a>
                                 </li>
-                           
+
                                 <li>
                                     <div class="text-white small fw-bold text-uppercase px-3">COMPRAS</div>
                                 </li>
                                 <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-ordenes.index') --}}" class="nav-link px-3 {{ request()->is(['admin-ordenes*'])? 'active-item' : null}} menu">
+                                    <a href="{{-- route('admin-compras.index') --}}" class="nav-link px-3 {{ request()->is(['admin-compras*'])? 'active-item' : null}} menu">
                                         <span class="fw-bold">
                                             <i class="bi bi-basket me-2"></i>
                                         </span>
@@ -231,88 +199,83 @@
                                     </a>
                                 </li>
 
+                                <li>
+                                    <div class="text-white small fw-bold text-uppercase px-3">Finanzas</div>
+                                </li>
                                 <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-requerimientos.index') --}}" class="nav-link px-3 {{ request()->is(['admin-requerimientos*'])? 'active-item' : null}} menu">
+                                    <a href="{{-- route('admin-reservas.index') --}}" class="nav-link px-3 {{ request()->is(['admin-reservas*'])? 'active-item' : null}} menu">
                                         <span class="fw-bold">
-                                            <i class="bi bi-clipboard-check me-2"></i>
+                                            <i class="bi bi-calendar-check me-2"></i>
                                         </span>
                                         <span>
-                                            Requerimientos
+                                            Contabilidad
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="mx-2 my-1">
+                                    <a href="{{-- route('admin-caja.index') --}}" class="nav-link px-3 {{ request()->is(['admin-cotizaciones*'])? 'active-item' : null}} menu">
+                                        <span class="fw-bold">
+                                            <i class="bi bi-file-text me-2"></i>
+                                        </span>
+                                        <span>
+                                            Caja
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="mx-2 my-1">
+                                    <a href="{{-- route('admin-pedidos.index') --}}" class="nav-link px-3 {{ request()->is(['admin-pedidos*'])? 'active-item' : null}} menu">
+                                        <span class="fw-bold">
+                                            <i class="bi bi-cart me-2"></i>
+                                        </span>
+                                        <span>
+                                            Cobros
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="mx-2 my-1">
+                                    <a href="{{-- route('admin-ventas.index') --}}" class="nav-link px-3 {{ request()->is(['admin-ventas*'])? 'active-item' : null}} menu">
+                                        <span class="fw-bold">
+                                            <i class="bi bi-cash-coin me-2"></i>
+                                        </span>
+                                        <span>
+                                            Pagos
                                         </span>
                                     </a>
                                 </li>
 
+                                <li class="mx-2 my-1">
+                                    <a href="{{-- route('admin-ventas.index') --}}" class="nav-link px-3 {{ request()->is(['admin-ventas*'])? 'active-item' : null}} menu">
+                                        <span class="fw-bold">
+                                            <i class="bi bi-receipt me-2"></i>
+                                        </span>
+                                        <span>
+                                            Comprobantes
+                                        </span>
+                                    </a>
+                                </li>  
                                 <li>
-                                    <div class="text-white small fw-bold text-uppercase px-3">RRHH</div>
+                                    <div class="text-white small fw-bold text-uppercase px-3">Otros</div>
                                 </li>
                                 <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-caja.index') --}}" class="nav-link px-3 {{ request()->is(['admin-caja*'])? 'active-item' : null}} menu">
+                                    <a href="{{-- route('admin-contacto.index') --}}" class="nav-link px-3 {{ request()->is(['admin-contacto*'])? 'active-item' : null}} menu">
                                         <span class="fw-bold">
-                                            <i class="bi bi-people me-2"></i>
+                                            <i class="bi bi-envelope me-2"></i>
                                         </span>
                                         <span>
-                                            Reclutamiento y selección
+                                            Contacto
                                         </span>
                                     </a>
-                                </li>
+                                </li>  
                                 <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-comprobantes.index') --}}" class="nav-link px-3 {{ request()->is(['admin-comprobantes*'])? 'active-item' : null}} menu">
+                                    <a href="{{-- route('admin-contacto.index') --}}" class="nav-link px-3 {{ request()->is(['admin-contacto*'])? 'active-item' : null}} menu">
                                         <span class="fw-bold">
-                                            <i class="bi bi-file-earmark-text me-2"></i>
+                                            <i class="bi bi-journal-text me-2"></i>
                                         </span>
                                         <span>
-                                            Gestión del personal
+                                            Libro de reclamaciones
                                         </span>
                                     </a>
-                                </li>
-                                <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-cobros.index') --}}" class="nav-link px-3 {{ request()->is(['admin-cobros*'])? 'active-item' : null}} menu">
-                                        <span class="fw-bold">
-                                            <i class="bi bi-credit-card me-2"></i>
-                                        </span>
-                                        <span>
-                                            Planillas
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-pagos.index') --}}" class="nav-link px-3 {{ request()->is(['admin-pagos*'])? 'active-item' : null}} menu">
-                                        <span class="fw-bold">
-                                            <i class="bi bi-wallet2 me-2"></i>
-                                        </span>
-                                        <span>
-                                            Evaluación y desempeño
-                                        </span>
-                                    </a>
-                                </li>
-                           
-                                
-                            
-                                
-                                <li>
-                                    <div class="text-white small fw-bold text-uppercase px-3">Licitaciones</div>
-                                </li>
-                                <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-entregas.index') --}}" class="nav-link px-3 {{ request()->is(['admin-entregas*'])? 'active-item' : null}} menu">
-                                        <span class="fw-bold">
-                                            <i class="bi bi-bicycle me-2"></i>
-                                        </span>
-                                        <span>
-                                            Gestion de licitaciones
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="mx-2 my-1">
-                                    <a href="{{-- route('admin-entregas.index') --}}" class="nav-link px-3 {{ request()->is(['admin-entregas*'])? 'active-item' : null}} menu">
-                                        <span class="fw-bold">
-                                            <i class="bi bi-bicycle me-2"></i>
-                                        </span>
-                                        <span>
-                                            Gestion documentaria
-                                        </span>
-                                    </a>
-                                </li>
-                                
+                                </li>                               
                         </div> 
                     </ul>
                 </div>
