@@ -1,6 +1,6 @@
 @extends('TEMPLATES.administrador')
 
-@section('title', 'BIENES')
+@section('title', 'PRODUCTOS')
 
 @section('css')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -42,12 +42,12 @@
         <div class="bg-transparent mb-3" style="height: 67px"></div>
         <div class="container-fluid">
             <div class="" data-aos="fade-right">
-                <h1 class="titulo h2 text-uppercase fw-bold mb-0">MERCADERIAS</h1>
+                <h1 class="titulo h2 text-uppercase fw-bold mb-0">PRODUCTOS</h1>
                 <div class="" style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="">Principal</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-configuraciones') }}">Configuraciones</a></li>
-                        <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-mercaderias') }}">Mercaderias</a></li>
+                        <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-productos') }}">Productos</a></li>
                         <li class="breadcrumb-item" aria-current="page">Nuevo registro</li>
                     </ol>
                 </div>
