@@ -16,8 +16,8 @@ class MedidaTableSeeder extends Seeder
     public function run(): void
     {
         $medida = new Medida();
-        $medida->name = "Unidad";
-        $medida->slug = Str::slug($medida->name);
+        $medida->nombre = "Unidad";
+        $medida->slug = Str::slug($medida->nombre);
         $medida->estado = "Activo";
         $medida->save();
     }

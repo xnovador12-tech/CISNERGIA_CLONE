@@ -18,18 +18,21 @@ class CategoryTableSeeder extends Seeder
         $category->name = "Desarrollo de software";
         $category->slug = Str::slug($category->name);
         $category->estado = "Activo";
+        $category->tipo_id = 3;
         $category->save();
 
         $category = new Category();
         $category->name = "Diseño";
         $category->slug = Str::slug($category->name);
         $category->estado = "Activo";
+        $category->tipo_id = 3;
         $category->save();
 
         $category = new Category();
         $category->name = "Ingeniería";
         $category->slug = Str::slug($category->name);
         $category->estado = "Activo";
+        $category->tipo_id = 3;
         $category->save();
     }
 }

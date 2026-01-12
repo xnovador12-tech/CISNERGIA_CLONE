@@ -66,4 +66,44 @@ Route::put('/admin-cupones/estado/{admin_cupon}', [admin_CuponesController::clas
 Route::resource('admin-servicios', admin_ServiciosController::class);
 Route::put('/admin-servicios/estado/{admin_servicio}', [admin_ServiciosController::class, 'estado']);
 
+// CRM - Prospectos
+Route::get('admin-crm-prospectos', function () {
+    return view('ADMINISTRADOR.PRINCIPAL.crm.prospectos.index');
+})->name('admin-crm-prospectos.index');
+
+// CRM - Oportunidades
+Route::get('admin-crm-oportunidades', function () {
+    return view('ADMINISTRADOR.PRINCIPAL.crm.oportunidades.index');
+})->name('admin-crm-oportunidades.index');
+
+// CRM - Cotizaciones
+Route::get('admin-crm-cotizaciones', function () {
+    return view('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.index');
+})->name('admin-crm-cotizaciones.index');
+
+// CRM - Clientes
+Route::get('admin-crm-clientes', function () {
+    return view('ADMINISTRADOR.PRINCIPAL.crm.clientes.index');
+})->name('admin-crm-clientes.index');
+
+// CRM - Agenda
+Route::get('admin-crm-agenda', function () {
+    return view('ADMINISTRADOR.PRINCIPAL.crm.agenda.index');
+})->name('admin-crm-agenda.index');
+
+// CRM - Postventa
+Route::get('admin-crm-postventa', function () {
+    return view('ADMINISTRADOR.PRINCIPAL.crm.postventa.index');
+})->name('admin-crm-postventa.index');
+
+// CRM - Fidelización
+Route::get('admin-crm-fidelizacion', function () {
+    return view('ADMINISTRADOR.PRINCIPAL.crm.fidelizacion.index');
+})->name('admin-crm-fidelizacion.index');
+
+// CRM - Marketing
+Route::get('admin-crm-marketing', function () {
+    return view('ADMINISTRADOR.PRINCIPAL.crm.marketing.index');
+})->name('admin-crm-marketing.index');
+
 Route::get('admin-reportes', [admin_ReportesController::class, 'index'])->name('admin-reportes.index');
