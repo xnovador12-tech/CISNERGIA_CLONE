@@ -101,6 +101,9 @@ class admin_ProductosController extends Controller
         $producto->medida_id = $request->input('medida_id');
         $producto->categorie_id = $request->input('categorie_id');
         $producto->peso = $request->input('peso');
+        $producto->costo = $request->input('costo');
+        $producto->precio = $request->input('precio');
+        $producto->precio_descuento = $request->input('precio_descuento');
 
         if($request->input('tipo_id') == 1){
             $producto->tipo_id = '1';
@@ -108,11 +111,10 @@ class admin_ProductosController extends Controller
             $producto->tipo_id = '2';
             $producto->vida_util = $request->input('vida_util');
             $producto->depreciacion = $request->input('depreciacion');
-            $producto->costo = $request->input('costo');
+            
             $producto->tipo_adquisicion = $request->input('tipo_adquisicion');
         }if($request->input('tipo_id') == 3){
             $producto->tipo_id = '3';
-            $producto->precio = $request->input('precio');
             $producto->tipo_afectacion = $request->input('tipo_afectacion');
         }
 
@@ -154,7 +156,14 @@ class admin_ProductosController extends Controller
      */
     public function edit(Producto $admin_producto)
     {
-        //
+        $marcas = Marca::all()->where('estado', 'Activo');
+        $tipos = Tipo::all()->where('estado', 'Activo')->where('definicion','!=','Servicios');
+        $etiquetas = Etiqueta::all()->where('estado', 'Activo');
+        $medidas = Medida::all()->where('estado', 'Activo');
+        $proveedores = Proveedor::where('estado', 'Activo')->get();
+        $categorias = Category::where('estado', 'Activo')->get();
+
+        return view('ADMINISTRADOR.PRINCIPAL.configuraciones.productos.edit', compact('admin_producto', 'etiquetas', 'proveedores','categorias','marcas','tipos','medidas'));
     }
 
     /**
@@ -162,21 +171,10 @@ class admin_ProductosController extends Controller
      */
     public function update(Request $request, Producto $admin_producto)
     {
-        $admin_producto->fill($request->except('codigo'));
-
-        if ($request->input('codigo') == $admin_producto->codigo) {
-            $admin_producto->save();
-            return redirect()->route('admin-productos.index')->with('update', 'ok');
-        } else {
-            if (Producto::where('codigo', $request->input('codigo'))->exists()) {
-                return redirect()->route('admin-productos.index')->with('exists', 'ok');
-            } else {
-                $admin_producto['codigo'] = $request->input('codigo');
-                $admin_producto['slug'] = Str::slug($request->input('codigo'));
-                $admin_producto->save();
-                return redirect()->route('admin-productos.index')->with('update', 'ok');
-            }
-        }
+        $admin_producto->fill($request->except(['codigo', 'slug']));
+        $admin_producto->precio_descuento = $request->input('precio_descuento');
+        $admin_producto->save();
+        return redirect()->route('admin-productos.index')->with('update', 'ok');
     }
 
     public function estado(Request $request, Producto $admin_producto)

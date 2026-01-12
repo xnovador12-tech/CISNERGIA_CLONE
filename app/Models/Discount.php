@@ -22,7 +22,7 @@ class Discount extends Model
         return 'slug';
     }
 
-    public function category()
+    public function categorie()
     {
         return $this->belongsTo(Category::class);
     }

@@ -29,6 +29,8 @@ class CreateProductosTable extends Migration
             $table->string('costo')->nullable();
             $table->string('estado')->nullable();
             $table->decimal('precio',8,2)->nullable();
+            $table->decimal('precio_descuento',8,2)->nullable();
+            $table->integer('porcentaje')->default(0);
             $table->string('tipo_afectacion')->default('0');
             $table->string('registrado_por')->nullable();
             $table->string('sede_id')->nullable();

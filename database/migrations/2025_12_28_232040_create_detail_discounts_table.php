@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('porcentaje');
             $table->decimal('precio', 11,2)->default(0);
             $table->decimal('precio_descuento', 11,2)->default(0);
-            $table->string('codigo_curso');
+            $table->string('codigo_producto');
             $table->string('fecha_inicio');
             $table->string('fecha_fin');
             $table->unsignedBigInteger('discount_id');
