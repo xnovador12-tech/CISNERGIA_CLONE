@@ -540,6 +540,47 @@
             window.location = $(this).val();
         });
     </script>
+
+    <!-- script del descuento para aplicar-->
+        <script>
+            $(document).ready(function() {
+                // comprobar si el descuento esta activo
+                    setInterval(() => {
+                        $.get('/ver_descuento',{validar_descuento: 'varificar_descuento'}, function(busqueda){
+                            $.each(busqueda, function(index, value){
+                                if(value[0] == 'no_existe'){
+                                    console.log('no_existe');
+                                }else{
+                                    console.log('existe');
+                                }
+                            });
+                        });
+                    }, 3000);
+                // fin de la validacion
+            });
+        </script>
+    <!-- fin de la carga del descuento para aplicar -->
+
+    <!-- script del descuento para aplicar-->
+        <script>
+            $(document).ready(function() {
+                // comprobar si el descuento esta activo
+                    setInterval(() => {
+                        $.get('/ver_cuponera',{validar_cupones: 'varificar_cupones'}, function(busqueda){
+                            $.each(busqueda, function(index, value){
+                                if(value[0] == 'no_existe'){
+                                    console.log('no_existe_cupon');
+                                }else{
+                                    console.log('existe_cupon');
+                                }
+                            });
+                        });
+                    }, 3000);
+                // fin de la validacion
+            });
+        </script>
+    <!-- fin de la carga del descuento para aplicar -->
+     
     @yield('js')
     @stack('scripts')
 </body>

@@ -57,15 +57,22 @@ Route::get('busqueda_categoria_productos', [admin_ProductosController::class, 'g
 
 Route::resource('admin-clientes', admin_ClientesController::class);
 Route::put('/admin-clientes/estado/{admin_cliente}', [admin_ClientesController::class, 'estado']);
-Route::resource('admin-coberturas', admin_CoberturasController::class);
-Route::put('/admin-coberturas/estado/{admin_cobertura}', [admin_CoberturasController::class, 'estado']);
+
 Route::resource('admin-descuentos', admin_DescuentosController::class);
 Route::put('/admin-descuentos/estado/{admin_descuento}', [admin_DescuentosController::class, 'estado']);
 Route::get('/descuentos_productos/filtro', [admin_DescuentosController::class, 'getfiltro_producto']);
+Route::get('/ver_descuento', [admin_DescuentosController::class, 'getver_descuento']);
 
 Route::resource('admin-cupones', admin_CuponesController::class);
 Route::put('/admin-cupones/estado/{admin_cupon}', [admin_CuponesController::class, 'estado']);
 Route::get('/search_codigo/cupons', [admin_CuponesController::class, 'getsearch_codigo']);
+Route::get('/ver_cuponera', [admin_CuponesController::class, 'getver_cuponera']);
+
+Route::resource('admin-coberturas', admin_CoberturasController::class);
+Route::put('/admin-coberturas/estado/{admin_cobertura}', [admin_CoberturasController::class, 'estado']);
+
+
+
 Route::resource('admin-servicios', admin_ServiciosController::class);
 Route::put('/admin-servicios/estado/{admin_servicio}', [admin_ServiciosController::class, 'estado']);
 
