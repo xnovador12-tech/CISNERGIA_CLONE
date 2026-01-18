@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('descripcion');
             $table->string('estado')->default('Inactivo');
             $table->string('registrado_por')->nullable();
+            $table->foreignId('proveedor_id')->constrained('proveedors')->onDelete('cascade');
             $table->timestamps();
         });
     }
