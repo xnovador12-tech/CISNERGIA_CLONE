@@ -15,21 +15,28 @@ class CategoryTableSeeder extends Seeder
     public function run(): void
     {
         $category = new Category();
-        $category->name = "Desarrollo de software";
+        $category->name = "Monocristalinos";
         $category->slug = Str::slug($category->name);
         $category->estado = "Activo";
         $category->tipo_id = 3;
         $category->save();
 
         $category = new Category();
-        $category->name = "Diseño";
+        $category->name = "Policristalinos";
         $category->slug = Str::slug($category->name);
         $category->estado = "Activo";
         $category->tipo_id = 3;
         $category->save();
 
         $category = new Category();
-        $category->name = "Ingeniería";
+        $category->name = "Híbridos";
+        $category->slug = Str::slug($category->name);
+        $category->estado = "Activo";
+        $category->tipo_id = 3;
+        $category->save();
+
+        $category = new Category();
+        $category->name = "Templado";
         $category->slug = Str::slug($category->name);
         $category->estado = "Activo";
         $category->tipo_id = 3;

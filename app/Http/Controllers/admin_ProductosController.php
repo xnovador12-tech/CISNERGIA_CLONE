@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 
 class admin_ProductosController extends Controller
 {
@@ -69,6 +70,19 @@ class admin_ProductosController extends Controller
         }
     }
 
+    public function getBusquedaproved(Request $request){
+        if($request->ajax()){
+            $proveedores = DB::table('personas as pe')->join('proveedors as prov','prov.persona_id','=','pe.id')
+            ->join('proveedor_tipo as provt','provt.proveedor_id','=','prov.id')
+            ->select('prov.id','pe.name','prov.name_contacto')->where('provt.tipo_id', $request->valor_tip)->where('prov.estado','Activo')->get();
+
+            foreach($proveedores as $proveedor){
+                $ArrayProve[$proveedor->id] = ['RS: '.$proveedor->name_contacto.' || PN: '.$proveedor->name];
+            }
+
+            return response()->json($ArrayProve);
+        }
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -76,10 +90,10 @@ class admin_ProductosController extends Controller
     {
         if($request->hasFile('imagen')){
             $file = $request->file('imagen');
-            $img_mercaderia = time().$file->getClientOriginalName();
-            $file->move(public_path().'/images/mercaderias/', $img_mercaderia);
+            $img_producto = time().$file->getClientOriginalName();
+            $file->move(public_path().'/images/productos/', $img_producto);
         }else{
-            $img_mercaderia = '';
+            $img_producto = '';
         }
         $tipo_value = Tipo::where('id',$request->input('tipo_id'))->first();
         // condicion para guardar el nombre de las imagenes opcionales
@@ -88,8 +102,8 @@ class admin_ProductosController extends Controller
             $imagenes = $request->file('images_opcional');
             foreach ($imagenes as $imagen) {
                 $nombre = time().'_'.$imagen->getClientOriginalName();
-                $imagen->move(public_path().'/images/mercaderias-opcional/', $nombre);
-                $urlimagenes[]['url']='/images/mercaderias-opcional/'.$nombre;
+                $imagen->move(public_path().'/images/productos-opcional/', $nombre);
+                $urlimagenes[]['url']='/images/productos-opcional/'.$nombre;
             }
         }
         
@@ -124,7 +138,7 @@ class admin_ProductosController extends Controller
         // $producto->sucursal_id = Auth::user()->persona->marca->sucursal_id;
         $producto->registrado_por = 1;
         $producto->estado = 'Inactivo';
-        $producto->imagen = $img_mercaderia;
+        $producto->imagen = $img_producto;
         $producto->save();
         
         if($request->input('etiquetas')){
@@ -166,14 +180,72 @@ class admin_ProductosController extends Controller
         return view('ADMINISTRADOR.PRINCIPAL.configuraciones.productos.edit', compact('admin_producto', 'etiquetas', 'proveedores','categorias','marcas','tipos','medidas'));
     }
 
+    public function getbusqueda_proved_edit(Request $request){
+        if($request->ajax()){
+            $proveedores = DB::table('personas as pe')->join('proveedors as prov','prov.persona_id','=','pe.id')
+            ->join('proveedor_tipo as provt','provt.proveedor_id','=','prov.id')
+            ->select('prov.id','pe.name','prov.name_contacto')->where('provt.tipo_id', $request->valor_tip)->where('prov.estado','Activo')->get();
+
+            foreach($proveedores as $proveedor){
+                if($proveedor){
+                    $provd_exits = DB::table('producto_proveedor')->select('producto_proveedor.producto_id')
+                    ->where('producto_proveedor.producto_id',$request->valor_id_prod)
+                    ->where('producto_proveedor.proveedor_id',$proveedor->id)
+                    ->exists();
+                }else{
+                    $provd_exits = '';
+                }
+                $ArrayProve[$proveedor->id] = ['RS: '.$proveedor->name_contacto.' || PN: '.$proveedor->name,$provd_exits];
+            }
+
+            return response()->json($ArrayProve);
+        }
+    }
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, Producto $admin_producto)
     {
+        // condicion para guardar el nombre de las imagenes opcionales
+        $urlimagenes = [];
+        if ($request->hasFile('images_opcional')){
+            $imagenes = $request->file('images_opcional');
+            foreach ($imagenes as $imagen) {
+                $nombre = time().'_'.$imagen->getClientOriginalName();
+                $imagen->move(public_path().'/images/productos-opcional/', $nombre);
+                $urlimagenes[]['url']='/images/productos-opcional/'.$nombre;
+            }
+        }
+        
+        $admin_producto['slug'] = Str::slug($request->input('name'));
+        $admin_producto->fill($request->except('imagen'));
+        if ($request->hasFile('imagen')) {
+            $file = $request->file('imagen');
+            $imagen = time().$file->getClientOriginalName();
+            if ($admin_producto->imagen) {
+                $file_path = public_path(). '/images/productos/'.$admin_producto->imagen;
+                File::delete($file_path);
+                $admin_producto->update([
+                    $admin_producto->imagen = $imagen,
+                    $file->move(public_path().'/images/productos/', $imagen)
+                ]);
+            }else{
+                $admin_producto['imagen'] = $admin_producto->imagen;
+            }
+        }
+
         $admin_producto->fill($request->except(['codigo', 'slug']));
         $admin_producto->precio_descuento = $request->input('precio_descuento');
         $admin_producto->save();
+
+        if($request->input('proveedores')){
+            $admin_producto->proveedores()->detach();
+            $admin_producto->proveedores()->attach($request->input('proveedores'));
+        }
+        
+        // guardar las imagenes opcionales
+        $admin_producto->images()->createMany($urlimagenes);
+
         return redirect()->route('admin-productos.index')->with('update', 'ok');
     }
 

@@ -160,7 +160,6 @@
                                                 <option value="{{ $marca->id }}">{{ $marca->name }}</option>
                                             @endforeach
                                         </select>
-                                        <input type="text" id="id_marca" value="{{ $admin_producto->marca }}" name="marca" class="form-control form-control-sm @error('marca') is-invalid @enderror">
                                         @error('marca')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -321,7 +320,7 @@
                 </div>
             </div>
             <div class="pt-3 pb-3 text-end" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
-                <a href="{{ url('admin-mercaderia') }}" class="btn btn-outline-secondary">Cancelar</a>
+                <a href="{{ url('admin-productos') }}" class="btn btn-outline-secondary">Cancelar</a>
                 <button type="submit" class="btn btn-primary px-5 my-2 my-md-0 text-white">Actualizar</button>
             </div>     
         </div> 

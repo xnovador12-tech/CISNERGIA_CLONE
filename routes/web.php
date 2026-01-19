@@ -17,6 +17,7 @@ use App\Http\Controllers\admin_ClientesController;
 use App\Http\Controllers\admin_CoberturasController;
 use App\Http\Controllers\admin_DescuentosController;
 use App\Http\Controllers\admin_CuponesController;
+use App\Http\Controllers\admin_OrdenescomprasController;
 use App\Http\Controllers\admin_ServiciosController;
 use App\Http\Controllers\ecommerceController;
 use Illuminate\Support\Facades\Route;
@@ -51,9 +52,12 @@ Route::put('/admin-etiquetas/estado/{admin_etiqueta}', [admin_EtiquetasControlle
 
 Route::resource('admin-proveedores', admin_ProveedoresController::class);
 Route::put('/admin-proveedores/estado/{admin_proveedor}', [admin_ProveedoresController::class, 'estado']);
+
 Route::resource('admin-productos', admin_ProductosController::class);
 Route::put('/admin-productos/estado/{admin_producto}', [admin_ProductosController::class, 'estado']);
 Route::get('busqueda_categoria_productos', [admin_ProductosController::class, 'getBusqueda_categoria_productos']);
+Route::get('busqueda_proved', [admin_ProductosController::class, 'getBusquedaproved']);
+Route::get('busqueda_proved_edit', [admin_ProductosController::class, 'getbusqueda_proved_edit']);
 
 Route::resource('admin-clientes', admin_ClientesController::class);
 Route::put('/admin-clientes/estado/{admin_cliente}', [admin_ClientesController::class, 'estado']);
@@ -71,10 +75,12 @@ Route::get('/ver_cuponera', [admin_CuponesController::class, 'getver_cuponera'])
 Route::resource('admin-coberturas', admin_CoberturasController::class);
 Route::put('/admin-coberturas/estado/{admin_cobertura}', [admin_CoberturasController::class, 'estado']);
 
-
-
 Route::resource('admin-servicios', admin_ServiciosController::class);
 Route::put('/admin-servicios/estado/{admin_servicio}', [admin_ServiciosController::class, 'estado']);
+
+Route::resource('admin-ordencompras', admin_OrdenescomprasController::class);
+Route::put('/admin-ordencompras/estado/{admin_ordencompra}', [admin_OrdenescomprasController::class, 'estado']);
+Route::get('busqueda_biene_compra', [admin_OrdenescomprasController::class, 'getBusqueda_compra_biene']);
 
 // CRM - Prospectos
 Route::get('admin-crm-prospectos', function () {

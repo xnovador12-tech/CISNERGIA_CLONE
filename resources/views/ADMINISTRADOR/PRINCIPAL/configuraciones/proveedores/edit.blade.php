@@ -102,7 +102,7 @@
                                 <div class="col-12 col-md-6 col-lg-6">
                                     <div class="pb-2">
                                         <label for="name_contacto_id" class="">Nombre o Razón social<span class="text-danger">*</span></label>
-                                        <input type="text" name="name_contacto" id="name_contacto_id" class="form-control form-control-sm @error('name_contacto') is-invalid @enderror" required value="{{ $admin_proveedore->persona->name_contacto }}" maxLength="100">  
+                                        <input type="text" name="name_contacto" id="name_contacto_id" class="form-control form-control-sm @error('name_contacto') is-invalid @enderror" required value="{{ $admin_proveedore->proveedor->name_contacto }}" maxLength="100">  
                                         @error('name_contacto')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror

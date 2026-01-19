@@ -36,9 +36,8 @@ class CreateOrdenescomprasTable extends Migration
             $table->string('estado_pago')->default('Pendiente');
             $table->string('observacion')->nullable();
             $table->string('validar_notify')->default('0');
-            $table->unsignedBigInteger('sede_id');
+            $table->foreignId('proveedor_id')->constrained('proveedors')->onDelete('cascade');
             $table->string('registrado_por')->nullable();
-            $table->foreign('sede_id')->references('id')->on('sedes');
             $table->timestamps();
         });
     }

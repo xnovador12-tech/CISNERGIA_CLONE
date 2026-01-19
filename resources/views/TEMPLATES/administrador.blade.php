@@ -220,8 +220,8 @@
                             <div class="text-white small fw-bold text-uppercase px-3">COMPRAS</div>
                         </li>
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-compras.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-compras*']) ? 'active-item' : null }} menu">
+                            <a href="{{route('admin-ordencompras.index')}}"
+                                class="nav-link px-3 {{ request()->is(['admin-ordencompras*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-basket me-2"></i>
                                 </span>

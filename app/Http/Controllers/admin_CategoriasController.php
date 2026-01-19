@@ -36,6 +36,7 @@ class admin_CategoriasController extends Controller
         $categoria = new Category();
         $categoria->name = $request->input('name');
         $categoria->slug = Str::slug($request->input('name'));
+        $categoria->tipo_id = $request->input('tipo_id');
         $categoria->save();
         return redirect()->route('admin-categorias.index')->with('new_registration', 'ok');
     }

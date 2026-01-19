@@ -92,8 +92,8 @@
                                 <div class="col-12 col-md-6 col-lg-6">
                                     <div class="pb-2">
                                         <label for="razonsocial_id" class="">Nombre o Razón social<span class="text-danger">*</span></label>
-                                        <input type="text" name="name" id="razonsocial_id" class="form-control form-control-sm @error('name') is-invalid @enderror" required value="{{ old('name') }}" maxLength="100">  
-                                        @error('name')
+                                        <input type="text" name="name_contacto" id="razonsocial_id" class="form-control form-control-sm @error('name_contacto') is-invalid @enderror" required value="{{ old('name_contacto') }}" maxLength="100">  
+                                        @error('name_contacto')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
@@ -187,9 +187,9 @@
                             <div class="row">
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
-                                        <label for="contacto_name_id" class="">Nombres y Apellidos</label>
-                                        <input type="text" name="name_contacto" id="contacto_name_id" class="form-control form-control-sm @error('name_contacto') is-invalid @enderror" value="{{ old('name_contacto') }}" maxLength="100">  
-                                        @error('name_contacto')
+                                        <label for="name_id" class="">Nombres y Apellidos</label>
+                                        <input type="text" name="name" id="name_id" class="form-control form-control-sm @error('name') is-invalid @enderror" value="{{ old('name_contacto') }}" maxLength="100">  
+                                        @error('name')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>

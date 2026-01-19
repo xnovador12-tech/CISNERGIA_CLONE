@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug');
-            $table->string('estado');
+            $table->string('estado')->default('Activo');
             $table->foreignId('tipo_id')->constrained('tipos')->onDelete('cascade');
             $table->timestamps();
         });

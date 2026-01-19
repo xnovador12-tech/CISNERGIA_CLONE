@@ -76,4 +76,9 @@ class Producto extends Model
     {
         return $this->belongsToMany(Etiqueta::class, 'etiqueta_producto', 'producto_id', 'tag_id');
     }
+
+    public function producto_proveedor()
+{
+    return $this->belongsToMany(Proveedor::class); // agrega tabla/pivots si difiere del naming estándar
+}
 }

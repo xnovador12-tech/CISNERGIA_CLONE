@@ -362,7 +362,7 @@
                 </div>
             </div>
             <div class="pt-3 pb-3 text-end" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
-                <a href="{{ url('admin-mercaderia') }}" class="btn btn-outline-secondary">Cancelar</a>
+                <a href="{{ url('admin-productos') }}" class="btn btn-outline-secondary">Cancelar</a>
                 <button type="submit" class="btn btn-primary px-5 my-2 my-md-0 text-white">Registrar</button>
             </div>     
         </div> 
@@ -396,32 +396,8 @@
     });
 </script>
 <script>
-    $("#id_marca").hide();
     $("#tipo_afectacion_show").hide();
     $("#id_clasificacion").hide();
-    $(document).ready(function() {
-        $('#marcas__id').on('change', function(){
-            var marca = document.getElementById("marcas__id").value.split('_');
-            $("#id_marca").val(marca[0]);
-                if (_tusuarios == 6 || _tusuarios == 7)
-                {
-                    $("#almacen").show();
-                }
-                else
-                {
-                    $("#almacen").hide();
-                }
-                if (_tusuarios == 13)
-                {
-                    $("#ventas").show();
-                }
-                else
-                {
-                    $("#ventas").hide();
-                }
-        });
-    });
-
     $(document).ready(function() {
         $('#clasificacion___id').on('change', function(){
             $('#clasificacion___id').attr("disabled","disabled");
@@ -430,8 +406,7 @@
             var __clasificacion = $("#id_clasificacion").val();
                 if (__clasificacion == "Compras")
                 {
-                    $("#id_marca").show();
-                    $("#marcas__id").hide();
+                    $("#marcas__id").show();
 
                     $('#tipos__producto_id').empty();
                     $('#tipos__producto_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
@@ -440,7 +415,6 @@
                 }
                 else
                 {
-                    $("#id_marca").hide();
                     $("#marcas__id").show();
                     $("#tipo_afectacion_show").show();
 
@@ -480,7 +454,7 @@
                     $("#proveedores").show();
                     $("#etiquetas").hide();
 
-                    $.get('/busqueda_proved', {valor_tip: 2}, function(bienes) {
+                    $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {
                         $('#mostrar_prov').empty();
                         $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
                         $.each(bienes, function(index, value) {
@@ -503,7 +477,7 @@
                     $("#proveedores").show();
                     $("#etiquetas").hide();
 
-                    $.get('/busqueda_proved', {valor_tip: 3}, function(bienes) {
+                    $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {
                          $('#mostrar_prov').empty();
                         $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
                         $.each(bienes, function(index, value) {
