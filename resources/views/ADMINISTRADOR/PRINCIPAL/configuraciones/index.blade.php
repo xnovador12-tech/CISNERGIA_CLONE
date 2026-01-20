@@ -129,10 +129,6 @@
                                 <i class="bi bi-receipt me-2"></i>
                                 <a href="{{ route('admin-cupones.index') }}" class="link-primary text-decoration-none">Cupones</a>
                             </li>
-                            <li class="text-primary menu_item">
-                                <i class="bi bi-wrench-adjustable-circle me-2"></i>
-                                <a href="{{ route('admin-servicios.index') }}" class="link-primary text-decoration-none">Servicios</a>
-                            </li>
                         </ul>
                     </div>
                 </div>

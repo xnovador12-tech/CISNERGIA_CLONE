@@ -60,5 +60,10 @@ class User extends Authenticatable
     {
         return 'slug';
     }
+
+    public function persona()
+    {
+        return $this->belongsTo(Persona::class);
+    }
     
 }
