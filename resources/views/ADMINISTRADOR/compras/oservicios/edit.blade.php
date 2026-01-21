@@ -16,7 +16,7 @@
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="">Principal</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-ordenservicios') }}">Órdenes de servicios</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Nuevo registro</li>
+                        <li class="breadcrumb-item" aria-current="page">Actualizar registro</li>
                     </ol>
                 </div>
             </div>
@@ -25,8 +25,9 @@
 <!-- fin encabezado -->
 
     {{-- contenido --}}
-        <form class="form-group" method="POST" action="/admin-ordenservicios" enctype="multipart/form-data" autocomplete="off">      
+        <form class="form-group" method="POST" action="{{ route('admin-ordenservicios.update', $admin_ordenservicio->slug) }}" enctype="multipart/form-data" autocomplete="off">      
             @csrf
+            @method('PUT')
             <div class="container-fluid">
                 <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
                     <div class="card-body">
@@ -49,8 +50,8 @@
                                             <p class="text-uppercase fw-bold mb-0">
                                                 Código
                                             </p>
-                                            <span class="text-uppercase">{{ $codigo }}</span>
-                                            <input type="text" name="codigo" value="{{ $codigo }}" hidden>
+                                            <span class="text-uppercase">{{ $admin_ordenservicio->codigo }}</span>
+                                            <input type="text" name="codigo" id="servicio_codigo" value="{{ $admin_ordenservicio->codigo }}" hidden>
                                         </div>
                                     </div>
                                     
@@ -59,28 +60,19 @@
                                             <p class="text-uppercase fw-bold mb-0">
                                                 Fecha
                                             </p>
-                                            <span class="text-uppercase">{{ $fecha_actual->format('d-m-Y') }}</span>
-                                            <input hidden name="fecha" value="{{ $fecha_actual->format('Y-m-d') }}">
-                                            <input type="text" hidden name="definicion" value="SERVICIOS">
+                                            <span class="text-uppercase">{{ $admin_ordenservicio->fecha }}</span>
+                                            <input hidden name="fecha" value="{{ $admin_ordenservicio->fecha }}">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="row g-2">
-                            {{-- <div class="col-12 col-md-3 col-lg-2">
-                                <div class="mb-3">
-                                    <label for="definicion_id" class=" d-block">Definición<span class="text-danger">*</span></label>
-                                    <select class="form-select form-select-sm @error ('definicion') is-invalid @enderror" value="{{ old('definicion') }}" name="definicion" id="definicion_id">
-                                        <option value="SERVICIOS" selected="selected" hidden="hidden">SERVICIOS</option>
-                                    </select>
-                                </div>
-                            </div> --}}
                             <div class="col-12 col-md-3 col-lg-2">
                                 <div class="mb-3 mb-lg-0">
                                     <label for="motivo_id" class=" d-block">Motivo<span class="text-danger">*</span></label>
                                     <select class="form-select form-select-sm @error ('motivo') is-invalid @enderror" required name="motivo" id="motivo_id" >
-                                        <option value="{{ old('motivo') }}" selected="selected" hidden="hidden">{{ old('motivo') }}</option>
+                                        <option value="{{ $admin_ordenservicio->motivo }}" selected="selected">{{ $admin_ordenservicio->motivo }}</option>
                                         <option value="VENTA DIRECTA">VENTA DIRECTA</option>
                                         <option value="VENTA INDIRECTA">VENTA INDIRECTA</option>   
                                     </select>
@@ -94,7 +86,7 @@
                                 <div class="mb-3 mb-lg-0">
                                     <label for="forma_pago_id" class=" d-block">Forma de pago<span class="text-danger">*</span></label>
                                     <select class="form-select form-select-sm @error ('formapago') is-invalid @enderror" required name="formapago" id="forma_pago_id" >
-                                        <option value="{{ old('formapago') }}" selected="selected" hidden="hidden">{{ old('formapago') }}</option>
+                                        <option value="{{ $admin_ordenservicio->formapago }}" selected="selected">{{ $admin_ordenservicio->formapago }}</option>
                                         @foreach($forma_pago as $forma_pagos)
                                             <option value="{{ $forma_pagos->name }}">{{ $forma_pagos->name }}</option>
                                         @endforeach
@@ -109,7 +101,7 @@
                                 <div class="mb-3 mb-lg-0">
                                     <label for="plazo_pago_id" class=" d-block">Plazo<span class="text-danger">*</span></label>
                                     <select class="form-select form-select-sm @error ('plazo_pago') is-invalid @enderror" name="plazo_pago" required id="plazo_pago_id" >
-                                        <option value="{{ old('plazo_pago') }}" selected="selected" hidden="hidden">{{ old('plazo_pago') }}</option>
+                                        <option value="{{ $admin_ordenservicio->plazo_pago }}" selected="selected" hidden="hidden">{{ $admin_ordenservicio->plazo_pago }}</option>
                                         <option value="0">DE CONTADO</option>
                                         <option value="15">15 Días</option>
                                         <option value="30">30 Días</option>
@@ -123,9 +115,7 @@
                             <div class="col-12 col-md-3 col-lg-2">
                                 <div class="mb-3 mb-lg-0">
                                     <label for="codigo_venta_id" class=" d-block">Codigo de Venta<span class="text-danger">*</span></label>
-                                    <select class="form-select form-select-sm @error ('codigo_venta') is-invalid @enderror" name="codigo_venta"  id="codigo_venta_id" >
-                                        <option value="{{ old('codigo_venta') }}" selected="selected" hidden="hidden">{{ old('codigo_venta') }}</option>
-                                    </select>  
+                                    <input class="form-control form-control-sm" type="text" id="codigo_venta_id" value="{{ $admin_ordenservicio->codigo_venta }}" disabled>
                                     @error('codigo_venta')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
@@ -204,7 +194,7 @@
                         </table>
                         <div class="row justify-content-beetween">
                             <div class="col-12 col-md-6">
-                                <textarea name="nota" id="" class="form-control w-100" placeholder="Observaciones" rows="3"></textarea>
+                                <textarea name="nota" id="" class="form-control w-100" placeholder="Observaciones" rows="3">{{ old('nota', $admin_ordenservicio->nota) }}</textarea>
                                 @error('nota')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
@@ -276,8 +266,22 @@
         };
     })(jQuery);
 
+    var formap = $('#forma_pago_id').val();
+    if(formap == 'Contado'){
+        $("#plazo_pago_id").empty('');
+        $('#plazo_pago_id').append("<option disabled>Selecciona una opcion</option>");
+        $("#plazo_pago_id").append("<option selected value='0'>Contado</option>");
+    }
+    if(formap == 'Credito'){
+        $("#plazo_pago_id").empty('');
+        $('#plazo_pago_id').append("<option selected disabled>Selecciona una opcion</option>");
+        $("#plazo_pago_id").append("<option value='15'>15 Días</option>");
+        $("#plazo_pago_id").append("<option value='30'>30 Días</option>");
+        $("#plazo_pago_id").append("<option value='60'>60 Días</option>");
+    }
+
     $('#forma_pago_id').on('change', function(){
-        var formap = $(this).val();
+        formap = $(this).val();
         if(formap == 'Contado'){
             $("#plazo_pago_id").empty('');
             $('#plazo_pago_id').append("<option disabled>Selecciona una opcion</option>");
@@ -327,7 +331,42 @@
         var contador_mps = 1;
         var cont = 0;
         total=0;
-        subtotal=[];
+        var subtotales = {};
+        var codigo_servicio = $('#servicio_codigo').val();
+        $.get('/dt_servicio',{codigo_servicio: codigo_servicio}, function(busqueda){
+            $.each(busqueda, function(index, value){
+                    var tipo_servicio = value[1];
+                    var tiempo = value[5];
+                    var precio = value[4];
+                    var vigencia = value[6];
+                    subtotales[contador_mps] = precio;
+                    total=parseFloat(total)+parseFloat(precio);
+                    var fila = '<tr class="selected igv_carta" id="filamp' + contador_mps +
+                        '"><td class="align-middle fw-normal">' + contador_mps + '</td><td class="align-middle fw-normal">' + tipo_servicio +
+                        '</td><td class="align-middle fw-normal">' + value[3] +
+                        '</td><td class="align-middle fw-normal">' + precio +
+                        '</td><td class="align-middle fw-normal">' + tiempo +
+                        '</td><td class="align-middle fw-normal">' + vigencia +
+                        '</td><input type="hidden" name="tipo_servicio[]" value="' + tipo_servicio +
+                        '"><input type="hidden" name="codigo_servicio[]" value="' + value[2] +
+                        '"><input type="hidden" name="servicio[]" value="' + value[3] +
+                        '"><input type="hidden" name="precio[]" value="' + precio +
+                        '"><input type="hidden" name="tiempo_meses[]" value="' + tiempo +
+                        '"><input type="hidden" name="vigencia[]" value="' + vigencia +
+                        '"><input type="" name="subtotal[]" value="' + subtotales[contador_mps] +
+                        '"><td class="align-middle"><button class="btn btn-sm btn-danger" onclick="eliminaroservicio(' +
+                contador_mps +','+subtotales[contador_mps]+');"><i class="bi bi-trash"></i></button></td></tr>'
+                    contador_mps++;
+                    cont++;
+
+                    $("#subtotal_id").html(total.toFixed(2));
+                    $("#subtotal").val(total.toFixed(2));
+                    $("#total_id").html(total.toFixed(2));
+                    $("#total").val(total.toFixed(2));
+
+                    $('#dtll_servicio').append(fila);
+            });
+        });
         $('#btnasignar').click(function() {
             var tipo_servicio = $('#tipos_id').val();
             var servicio = document.getElementById('servicio_id').value.split('_');
@@ -340,8 +379,8 @@
                     }else{
                         vigencia = '';
                     }
-                    subtotal=precio;
-                    total=parseFloat(total)+parseFloat(subtotal);
+                    subtotales[contador_mps] = precio;
+                    total=parseFloat(total)+parseFloat(precio);
                     var fila = '<tr class="selected igv_carta" id="filamp' + contador_mps +
                         '"><td class="align-middle fw-normal">' + contador_mps + '</td><td class="align-middle fw-normal">' + tipo_servicio +
                         '</td><td class="align-middle fw-normal">' + servicio[2] +
@@ -354,9 +393,9 @@
                         '"><input type="hidden" name="precio[]" value="' + precio +
                         '"><input type="hidden" name="tiempo_meses[]" value="' + tiempo +
                         '"><input type="hidden" name="vigencia[]" value="' + vigencia +
-                        '"><input type="hidden" name="subtotal[]" value="' + subtotal +
+                        '"><input type="" name="subtotal[]" value="' + subtotales[contador_mps] +
                         '"><td class="align-middle"><button class="btn btn-sm btn-danger" onclick="eliminaroservicio(' +
-                contador_mps +','+subtotal+');"><i class="bi bi-trash"></i></button></td></tr>';
+                contador_mps +','+subtotales[contador_mps]+');"><i class="bi bi-trash"></i></button></td></tr>';
                     contador_mps++;
                     cont++;
 

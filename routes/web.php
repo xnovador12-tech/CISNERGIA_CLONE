@@ -76,8 +76,14 @@ Route::get('/ver_cuponera', [admin_CuponesController::class, 'getver_cuponera'])
 Route::resource('admin-coberturas', admin_CoberturasController::class);
 Route::put('/admin-coberturas/estado/{admin_cobertura}', [admin_CoberturasController::class, 'estado']);
 
+Route::resource('admin-servicios', admin_ServiciosController::class);
+Route::put('/admin-servicios/estado/{admin_servicio}', [admin_ServiciosController::class, 'estado']);
+
 Route::resource('admin-ordenservicios', admin_OrdenesserviciosController::class);
 Route::put('/admin-ordenservicios/estado/{admin_servicio}', [admin_OrdenesserviciosController::class, 'estado']);
+Route::get('/busqueda_tipos', [admin_OrdenesserviciosController::class, 'getver_tipos']);
+Route::get('/fecha_vigencia', [admin_OrdenesserviciosController::class, 'getver_fecha_vigencia']);
+Route::get('/dt_servicio', [admin_OrdenesserviciosController::class, 'getver_dt_servicio']);
 
 Route::resource('admin-ordencompras', admin_OrdenescomprasController::class);
 Route::put('/admin-ordencompras/estado/{admin_ordencompra}', [admin_OrdenescomprasController::class, 'estado']);

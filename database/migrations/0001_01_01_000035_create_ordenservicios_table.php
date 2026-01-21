@@ -17,12 +17,11 @@ class CreateOrdenserviciosTable extends Migration
             $table->id();
             $table->string('codigo');
             $table->string('slug');
-            $table->string('definicion');
             $table->string('motivo');
             $table->date('fecha');
-            $table->string('cliente_id');
-            $table->string('cliente');
-            $table->string('codigo_venta');
+            $table->string('cliente_id')->nullable();
+            $table->string('cliente')->nullable();
+            $table->string('codigo_venta')->nullable();
             $table->string('formapago');
             $table->string('plazo_pago');
             $table->string('total');

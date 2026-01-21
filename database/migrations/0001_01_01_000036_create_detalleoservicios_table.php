@@ -15,9 +15,9 @@ class CreateDetalleoserviciosTable extends Migration
     {
         Schema::create('detalleoservicios', function (Blueprint $table) {
             $table->id();
-            $table->string('tipo_producto');
-            $table->string('codigo_producto');
-            $table->string('producto');
+            $table->string('tipo_servicio');
+            $table->string('codigo_servicio');
+            $table->string('servicio');
             $table->string('precio');
             $table->string('tiempo_meses');
             $table->string('vigencia');

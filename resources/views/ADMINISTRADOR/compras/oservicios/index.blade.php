@@ -21,7 +21,6 @@
                 <div class="" style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="">Principal</a></li>
-                        <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-configuraciones') }}">Configuraciones</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-ordenservicios') }}">Ordenes de servicios</a></li>
                         <li class="breadcrumb-item link" aria-current="page">Inicio</li>
                     </ol>
@@ -56,6 +55,7 @@
                             <th class="h6 small text-center text-uppercase fw-bold">Cliente</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Fecha</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Motivo</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Estado</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
                     </thead>
@@ -67,7 +67,7 @@
                             <tr>
                                 <td class="fw-normal text-center align-middle">{{ $contador }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_ordenservicio->codigo }}</td>
-                                <td class="fw-normal text-center align-middle">{{ $admin_ordenservicio->cliente->user->persona->name }}</td>
+                                <td class="fw-normal text-center align-middle">{{ $admin_ordenservicio->cliente?$admin_ordenservicio->cliente:'Por asignar' }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_ordenservicio->fecha }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_ordenservicio->motivo }}</td>
                                 <td class="fw-normal align-middle">
@@ -77,7 +77,7 @@
                                         @if($admin_ordenservicio->estado == 'Activo')
                                             <button type="submit" class="badge bg-success border-0">Activo</button>
                                         @else
-                                            <button type="submit" class="badge bg-danger border-0">Inactivo</button>
+                                            <button type="submit" class="badge bg-warning border-0">Pendiente</button>
                                         @endif
                                     </form>
                                 </td>    
@@ -86,9 +86,12 @@
                                         <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px; padding: 0;">
                                             <i class="bi bi-three-dots-vertical"></i>
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow"> 
+                                        <ul class="dropdown-menu dropdown-menu-end shadow">
                                             <li>
-                                                <button type="button" data-bs-toggle="modal" data-bs-target="#editservicios{{$admin_ordenservicio->slug}}" class="dropdown-item d-flex align-items-center"><i class="bi bi-pencil text-secondary me-2"></i>Editar</button>
+                                                <a href="{{ url("/admin-ordenservicios/$admin_ordenservicio->slug") }}" class="dropdown-item d-flex align-items-center"><i class="bi bi-eye text-secondary me-2"></i>Detalles</a>
+                                            </li> 
+                                            <li>
+                                                <a href="{{ url("/admin-ordenservicios/$admin_ordenservicio->slug/edit") }}" class="dropdown-item d-flex align-items-center"><i class="bi bi-pencil text-secondary me-2"></i>Editar</a>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
