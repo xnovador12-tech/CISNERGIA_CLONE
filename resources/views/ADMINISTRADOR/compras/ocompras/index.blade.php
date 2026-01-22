@@ -53,9 +53,11 @@
                         <tr>
                             <th class="h6 small text-center text-uppercase fw-bold">N°</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Codigo</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Nombre</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Tipo</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Proveedor</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Total</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Estado</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Estado Proceso</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Estado Pago</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
                     </thead>
@@ -67,19 +69,13 @@
                             <tr>
                                 <td class="fw-normal text-center align-middle">{{ $contador }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->codigo }}</td>
-                                <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->name }}</td>
-                                <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->tipo_servicio }}</td>
+                                <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->proveedor->persona->name }}</td>
+                                <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->total }}</td>
                                 <td class="fw-normal align-middle">
-                                    <form method="POST" action="/admin-ordencompras/estado/{{$admin_ordencompra->slug}}" class="form-update">
-                                    @csrf
-                                    @method('PUT')
-                                        @if($admin_ordencompra->estado == 'Activo')
-                                            <button type="submit" class="badge bg-success border-0">Activo</button>
-                                        @else
-                                            <button type="submit" class="badge bg-danger border-0">Inactivo</button>
-                                        @endif
-                                    </form>
+                                    <span class="badge bg-warning border-0">{{ $admin_ordencompra->estado }}</span>
                                 </td>    
+                                <td class="fw-normal text-center align-middle"><span class="badge bg-warning border-0">{{ $admin_ordencompra->estado_proceso }}</span></td>
+                                <td class="fw-normal text-center align-middle"><span class="badge bg-warning border-0">{{ $admin_ordencompra->estado_pago }}</span></td>
                                 <td class="align-middle">                                        
                                     <div class="dropstart">
                                         <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px; padding: 0;">
@@ -87,7 +83,10 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow"> 
                                             <li>
-                                                <button type="button" data-bs-toggle="modal" data-bs-target="#editordencompras{{$admin_ordencompra->slug}}" class="dropdown-item d-flex align-items-center"><i class="bi bi-pencil text-secondary me-2"></i>Editar</button>
+                                                <a href="{{ url("/admin-ordencompras/$admin_ordencompra->slug") }}" class="dropdown-item d-flex align-items-center"><i class="bi bi-eye text-secondary me-2"></i>Detalles</a>
+                                            </li> 
+                                            <li>
+                                                <a href="{{ url("/admin-ordencompras/$admin_ordencompra->slug/edit") }}" class="dropdown-item d-flex align-items-center"><i class="bi bi-pencil text-secondary me-2"></i>Editar</a>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li>

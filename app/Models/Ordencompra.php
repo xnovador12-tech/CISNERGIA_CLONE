@@ -14,4 +14,9 @@ class Ordencompra extends Model
     {
         return 'slug';
     }
+
+    public function proveedor()
+    {
+        return $this->belongsTo(Proveedor::class);
+    }
 }

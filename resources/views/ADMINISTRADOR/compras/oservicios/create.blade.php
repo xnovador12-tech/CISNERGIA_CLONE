@@ -81,8 +81,8 @@
                                     <label for="motivo_id" class=" d-block">Motivo<span class="text-danger">*</span></label>
                                     <select class="form-select form-select-sm @error ('motivo') is-invalid @enderror" required name="motivo" id="motivo_id" >
                                         <option value="{{ old('motivo') }}" selected="selected" hidden="hidden">{{ old('motivo') }}</option>
-                                        <option value="VENTA DIRECTA">VENTA DIRECTA</option>
-                                        <option value="VENTA INDIRECTA">VENTA INDIRECTA</option>   
+                                        <option value="SERVICIO DIRECTO">SERVICIO DIRECTO</option>
+                                        <option value="SERVICIO POR VENTA">SERVICIO POR VENTA</option>   
                                     </select>
                                     @error('motivo')
                                         <small class="text-danger">{{ $message }}</small>
@@ -120,13 +120,27 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-12 col-md-3 col-lg-2">
+                            <div class="col-12 col-md-3 col-lg-2" id="codigo_venta_div">
                                 <div class="mb-3 mb-lg-0">
                                     <label for="codigo_venta_id" class=" d-block">Codigo de Venta<span class="text-danger">*</span></label>
                                     <select class="form-select form-select-sm @error ('codigo_venta') is-invalid @enderror" name="codigo_venta"  id="codigo_venta_id" >
                                         <option value="{{ old('codigo_venta') }}" selected="selected" hidden="hidden">{{ old('codigo_venta') }}</option>
                                     </select>  
                                     @error('codigo_venta')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-3 col-lg-2" id="cliente_venta_div">
+                                <div class="mb-3 mb-lg-0">
+                                    <label for="cliente_venta_id" class=" d-block">Clientes<span class="text-danger">*</span></label>
+                                    <select class="form-select form-select-sm @error ('cliente') is-invalid @enderror" name="cliente" id="cliente_venta_id" >
+                                        <option value="{{ old('cliente') }}" selected="selected" hidden="hidden">{{ old('cliente') }}</option>
+                                        @foreach($clientes as $cliente)
+                                            <option value="{{ $cliente->id }}">{{ $cliente->user->name.' '.$cliente->surnames }}</option>
+                                        @endforeach
+                                    </select>  
+                                    @error('cliente')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
                                 </div>
@@ -275,6 +289,24 @@
             });
         };
     })(jQuery);
+
+    $("#codigo_venta_div").hide('');
+    $('#cliente_venta_div').hide('');
+
+    $('#motivo_id').on('change', function(){
+        valor_motivo = $(this).val();
+        if(valor_motivo == 'SERVICIO DIRECTO'){
+            $("#codigo_venta_div").hide('');
+            $("#codigo_venta_id").attr('disabled',true);
+            $('#cliente_venta_div').show('');
+            $("#cliente_venta_id").attr('disabled',false);
+        }else{
+            $("#codigo_venta_div").show('');
+            $("#codigo_venta_id").attr('disabled',false);
+            $('#cliente_venta_div').hide('');
+            $("#cliente_venta_id").attr('disabled',true);
+        }
+    });
 
     $('#forma_pago_id').on('change', function(){
         var formap = $(this).val();

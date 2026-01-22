@@ -15,29 +15,22 @@ class CreateOrdenescomprasTable extends Migration
     {
         Schema::create('ordenescompras', function (Blueprint $table) {
             $table->id();
-            $table->string('serie_compra')->nullable();
-            $table->string('correlativo_compra')->nullable();
             $table->string('codigo');
             $table->string('slug');
             $table->string('fecha');
-            $table->string('codigo_solicitud');
-            $table->string('registrado_por_compra');
-            $table->string('definicion');
-            $table->string('motivo');
-            $table->date('fecha_compra');
             $table->string('total');
             $table->string('total_pago');
-            $table->string('comprobante')->nullable();
-            $table->string('nro_comprobante')->nullable();
+            $table->string('tipo_moneda')->nullable();
             $table->string('forma_pago')->nullable();
             $table->string('plazo_pago')->nullable();
             $table->string('fecha_pago')->nullable();
             $table->string('estado')->default('Pendiente');
             $table->string('estado_pago')->default('Pendiente');
+            $table->string('estado_proceso')->default('Pendiente');
             $table->string('observacion')->nullable();
             $table->string('validar_notify')->default('0');
-            $table->foreignId('proveedor_id')->constrained('proveedors')->onDelete('cascade');
             $table->string('registrado_por')->nullable();
+            $table->foreignId('proveedor_id')->constrained('proveedors')->onDelete('cascade');
             $table->timestamps();
         });
     }

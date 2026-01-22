@@ -58,19 +58,6 @@ class admin_OrdenescomprasController extends Controller
 
         $comp = Ordencompra::orderBy('id','desc')->first();
         
-        if($comp){
-            if($comp->correlativo_compra == '99999999'){
-                $new_valor_correl = '00000001';
-                $codigsc = 'NC'.Auth::user()->persona->sede->departamento->name[0].Auth::user()->persona->sede->id;
-            }else{
-                $new_valor_correl = sprintf('%08d', trim($comp->correlativo_compra+1));
-                $codigsc = strtoupper('NC'.Auth::user()->persona->sede->departamento->name[0]).Auth::user()->persona->sede->id;
-            }
-        }else{
-            $new_valor_correl = '00000001';
-            $codigsc = strtoupper('NC'.Auth::user()->persona->sede->departamento->name[0]).Auth::user()->persona->sede->id;
-        }
-        
         $ordenC = new Ordencompra();
         // $ordenC->serie_compra = $codigsc;
         // $ordenC->correlativo_compra = $new_valor_correl;
@@ -90,6 +77,7 @@ class admin_OrdenescomprasController extends Controller
         // $ordenC->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->lastname_padre.' '.Auth::user()->persona->lastname_madre;
         $ordenC->registrado_por = 'usuario_admin';
         $ordenC->observacion = $request->input('observacion');
+        $ordenC->proveedor_id = $request->input('proveedor_id');
         $ordenC->save();
 
         $tipo_producto = $request->input('tipo_producto');
@@ -113,10 +101,11 @@ class admin_OrdenescomprasController extends Controller
                 $detalle->precio = $precio[$key];
                 $detalle->tipo_impuesto_value = $tipo_impuesto_value[$key];
                 $detalle->subtotal = $subtotal[$key];
+                $detalle->ordencompra_id = $ordenC->id;
                 $detalle->save();
                 
         }
-        return redirect()->route('admin-ordenes-compras.index')->with('addorden', 'ok');
+        return redirect()->route('admin-ordencompras.index')->with('new_registration', 'ok');
     }
 
     /**

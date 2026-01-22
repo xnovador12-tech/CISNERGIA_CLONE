@@ -37,7 +37,7 @@ class admin_OrdenesserviciosController extends Controller
         $fecha_actual = Carbon::now();
         $clientes = DB::table('personas as per')->join('users as us','us.persona_id','=','per.id')->join('clientes as cli','cli.user_id','=','us.id')->select('cli.id','per.name','per.surnames')->get();
         $forma_pago = Formapago::all();
-
+        
         return view('ADMINISTRADOR.compras.oservicios.create', compact('codigo','clientes','forma_pago','fecha_actual'));
     }
 

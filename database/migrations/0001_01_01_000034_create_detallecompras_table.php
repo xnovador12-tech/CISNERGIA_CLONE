@@ -15,7 +15,6 @@ class CreateDetallecomprasTable extends Migration
     {
         Schema::create('detallecompras', function (Blueprint $table) {
             $table->id();
-            $table->string('codigo_agrupador');
             $table->string('producto');
             $table->string('producto_id');
             $table->string('tipo_producto');
@@ -23,6 +22,7 @@ class CreateDetallecomprasTable extends Migration
             $table->string('cantidad');
             $table->string('cantidadp_ingresar');
             $table->string('precio');
+            $table->string('tipo_impuesto_value');
             $table->string('subtotal');
             $table->foreignId('ordencompra_id')->constrained('ordenescompras')->onDelete('cascade');
             $table->timestamps();

@@ -185,9 +185,9 @@
                     </div>
                 </div>
             </div>
-            <div class="pb-3 text-end" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
+            <div class="p-3 text-end" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
                 <a href="{{ url('admin-ordenes-compras') }}" class="btn btn-outline-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-primary px-5 my-2 my-md-0 text-white">Actualizar</button>
+                <button type="submit" class="btn btn-primary px-5 my-2 my-md-0 text-white">Registrar</button>
             </div>     
         </div> 
     </form>

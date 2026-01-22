@@ -188,7 +188,7 @@
         </div>
         
         <div class="p-3 text-end" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
-            <a href="{{ url('admin-ordenes-servicios') }}" class="btn btn-outline-secondary px-5">Volver</a>
+            <a href="{{ url('admin-ordenservicios') }}" class="btn btn-outline-secondary px-5">Volver</a>
         </div>     
     </div>
             
