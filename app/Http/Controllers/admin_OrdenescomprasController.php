@@ -111,25 +111,91 @@ class admin_OrdenescomprasController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, Ordencompra $admin_ordencompra)
     {
-        //
+        $dtllecompras = Detallecompra::where('ordencompra_id',$admin_ordencompra->id)->get();
+        return view('ADMINISTRADOR.compras.ocompras.show',compact('admin_ordencompra','dtllecompras'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, Ordencompra $admin_ordencompra)
     {
-        //
+        $dtllecompras = Detallecompra::where('ordencompra_id',$admin_ordencompra->id)->get();
+        return view('ADMINISTRADOR.compras.ocompras.edit',compact('admin_ordencompra','dtllecompras'));
     }
 
+    public function getBusqueda_detalle_compra(Request $request){
+        if($request->ajax()){
+            $detalle_compras = Detallecompra::whereHas('ordenescompras', function($query) use ($request){
+                $query->where('codigo', $request->codigo_compra);
+            })->get();
+            foreach($detalle_compras as $detalle_compra){
+                    $Arraydetcompra[$detalle_compra->id] = [$detalle_compra->producto_id, $detalle_compra->producto, $detalle_compra->tipo_producto,$detalle_compra->umedida, $detalle_compra->cantidad, $detalle_compra->precio,$detalle_compra->tipo_impuesto_value, $detalle_compra->subtotal];
+                
+            }
+            return response()->json($Arraydetcompra);
+        }
+    }
+
+    public function getFechacuota(Request $request){
+        if($request->ajax()){
+            if($request->cuotas == '0'){
+                $ArrayFC[1] = [Carbon::now()->format('Y-m-d')];
+            }if($request->cuotas == '30'){
+                $ArrayFC[1] = [Carbon::now()->addMonth(1)->format('Y-m-d')];
+            }if($request->cuotas == '60'){
+                $ArrayFC[1] = [Carbon::now()->addMonth(1)->format('Y-m-d'),Carbon::now()->addMonth(2)->format('Y-m-d')];
+            }if($request->cuotas == '90'){
+                $ArrayFC[1] = [Carbon::now()->addMonth(1)->format('Y-m-d'),Carbon::now()->addMonth(2)->format('Y-m-d'),Carbon::now()->addMonth(3)->format('Y-m-d')];
+            }
+
+            return response()->json($ArrayFC);
+        }
+    }
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Ordencompra $admin_ordencompra)
     {
-        //
+        $admin_ordencompra->total = $request->input('total');
+        $admin_ordencompra->total_pago = $request->input('total');
+        $admin_ordencompra->tipo_moneda = $request->input('tipo_moneda');
+        $admin_ordencompra->observacion = $request->input('observacion');
+        $admin_ordencompra->forma_pago = $request->input('forma_pago');
+        $admin_ordencompra->plazo_pago = $request->input('plazo_pago');
+        $admin_ordencompra->fecha_pago = $request->input('fecha_pago');
+        $admin_ordencompra->save();
+
+        Detallecompra::where('ordencompra_id', $admin_ordencompra->id)->delete();
+
+        $tipo_producto = $request->input('tipo_producto');
+        $bienes = $request->input('bienes');
+        $bien_id = $request->input('bien_id');
+        $cantidad = $request->input('cantidad');
+        $precio = $request->input('precio');
+        $tipo_impuesto_value = $request->input('tipo_impuesto_value');
+        $medida = $request->input('medida');
+        $subtotal = $request->input('subtotal');
+        
+        foreach ($bienes as $key => $name_producto) {
+
+                $detalle = new Detallecompra();
+                $detalle->producto = $bienes[$key];
+                $detalle->producto_id = $bien_id[$key];
+                $detalle->tipo_producto = $tipo_producto[$key];
+                $detalle->umedida = $medida[$key];
+                $detalle->cantidad = $cantidad[$key];
+                $detalle->cantidadp_ingresar = $cantidad[$key];
+                $detalle->precio = $precio[$key];
+                $detalle->tipo_impuesto_value = $tipo_impuesto_value[$key];
+                $detalle->subtotal = $subtotal[$key];
+                $detalle->ordencompra_id = $admin_ordencompra->id;
+                $detalle->save();
+                
+        }
+        return redirect()->route('admin-ordencompras.index')->with('update', 'ok');
     }
 
     /**

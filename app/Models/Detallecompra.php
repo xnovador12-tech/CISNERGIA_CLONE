@@ -11,4 +11,8 @@ class Detallecompra extends Model
     protected $table = 'detallecompras';
     protected $fillable = array('*');
 
+    public function ordenescompras()
+    {
+        return $this->belongsTo(Ordencompra::class, 'ordencompra_id');
+    }
 }

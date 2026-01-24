@@ -88,6 +88,8 @@ Route::get('/dt_servicio', [admin_OrdenesserviciosController::class, 'getver_dt_
 Route::resource('admin-ordencompras', admin_OrdenescomprasController::class);
 Route::put('/admin-ordencompras/estado/{admin_ordencompra}', [admin_OrdenescomprasController::class, 'estado']);
 Route::get('busqueda_biene_compra', [admin_OrdenescomprasController::class, 'getBusqueda_compra_biene']);
+Route::get('busqueda_detalle_compra', [admin_OrdenescomprasController::class, 'getBusqueda_detalle_compra']);
+Route::get('fecha_cuotas', [admin_OrdenescomprasController::class, 'getFechacuota']);
 
 // CRM - Prospectos
 Route::get('admin-crm-prospectos', function () {
