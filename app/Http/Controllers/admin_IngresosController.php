@@ -58,7 +58,63 @@ class admin_IngresosController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $ingresos = new Ingreso();
+        $ingresos->codigo = $request->input('codigo');
+        $ingresos->slug = Str::slug($request->input('codigo'));
+        $ingresos->ingreso_a = $request->input('ingreso_a');
+        $ingresos->id_almacen = $request->input('id_almacen');
+        $ingresos->motivo = $request->input('motivo');
+        $ingresos->fecha = $request->input('fecha');
+        if($request->input('motivo') == 'Inventario'){
+            $ingresos->codigo_ocompra = $request->input('codigo_ocompra');
+
+            $orden_c = Ordencompra::where('codigo',$request->input('codigo_ocompra'))->first();
+            if($orden_c->estado == 'Pendiente' || $orden_c->estado == 'En progreso'){
+                $orden_c->estado = 'Inventariado';
+            }elseif($orden_c->estado == 'Inventariado'){
+                $orden_c->estado = 'Inventariado';
+            }else{
+                $orden_c->estado = 'Pendiente';
+            }
+            $orden_c->save();
+        }
+
+        $ingresos->total_mat = $request->input('total_mat');
+        $ingresos->total_act = $request->input('total_act');
+        $ingresos->total = $request->input('total');
+        $ingresos->descripcion = $request->input('descripcion');
+        $ingresos->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;
+        $ingresos->sede_id = Auth::user()->persona->sede_id;
+        $ingresos->save();
+
+        $producto_id = $request->input('producto_id');
+        $producto_tipo_id = $request->input('producto_tipo_id');
+        $producto = $request->input('producto');
+        $lote_producto = $request->input('lote');
+        $medida_producto = $request->input('medida');
+        $cantidad_producto = $request->input('cantidad');
+        $precio_producto = $request->input('precio');
+
+        if(isset($producto_id)){
+            foreach ($producto_id as $key => $name) {
+                $cod_prod = Producto::where('id',$producto_id[$key])->first(); 
+                
+                $detalleingreso = new Detalleingreso();
+                $detalleingreso->ingreso_id = $ingresos->id;
+                $detalleingreso->id_producto = $producto_id[$key];
+                $detalleingreso->tipo_producto = $producto_tipo_id[$key];
+                $detalleingreso->producto = $producto[$key];
+                $detalleingreso->lote = $lote_producto[$key];
+                $detalleingreso->umedida = $medida_producto[$key];
+                $detalleingreso->cantidad = $cantidad_producto[$key];
+                $detalleingreso->precio = $precio_producto[$key];
+                $detalleingreso->save();
+
+                if($request->input('motivo') == 'Inventario'){
+                    $almacen_producto = Almacen::where('producto_id',$producto_id[$key])->where('lote',$lote_producto[$key])->where('tipo_producto',$producto_tipo_id[$key])->first();
+                }
+            }
+        }
     }
 
     /**

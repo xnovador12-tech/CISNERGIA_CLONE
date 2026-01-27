@@ -430,7 +430,6 @@ $(document).ready(function() {
                     var lote = $('#lote_id').val();
                     var cantidad = $('#cantidad_id').val();
                     var precio = $('#precio_id').val();
-                    var fecha = $('#fecha_vencimiento_id').val();
                     valormotivo = $('#motivo_id').val();
                     
                     if (producto != "" && fecha != "" && cantidad > 0 && precio > 0) {
@@ -468,7 +467,6 @@ $(document).ready(function() {
                                     '</td><td class="align-middle fw-normal">' + producto[4] +
                                     '</td><td class="align-middle fw-normal">' + cantidad +
                                     '</td><td class="align-middle fw-normal">' + producto[6] +
-                                    '</td><td class="align-middle fw-normal">' + fecha +
                                     '</td><input type="hidden" name="producto_id[]" value="' + producto[1] +
                                     '"><input type="hidden" name="producto_tipo_id[]" value="' + producto[3] +
                                     '"><input type="hidden" name="producto[]" value="' + producto[2] +
@@ -476,7 +474,6 @@ $(document).ready(function() {
                                     '"><input type="hidden" name="medida[]" value="' + producto[4] +
                                     '"><input type="hidden" name="cantidad[]" value="' + cantidad +
                                     '"><input type="hidden" name="precio[]" value="' + producto[6] +
-                                    '"><input type="hidden" name="fechas[]" value="' + fecha +
                                     '"><td class="align-middle"><button type="button" class="btn btn-sm btn-danger" onclick="eliminardtc(' +
                             contador_mps +','+cantidad+','+producto[3]+');"><i class="bi bi-trash"></i></button></td></tr>';
                             contador_mps++;

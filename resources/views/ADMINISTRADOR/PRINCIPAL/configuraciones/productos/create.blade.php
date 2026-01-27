@@ -235,7 +235,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-3 col-lg-3" id="act_vidautil">
+                                <div class="col-12 col-md-2 col-lg-2" id="act_vidautil">
                                     <div class="mb-3">
                                         <label for="vidautil__id" class="">Vida útil</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -247,7 +247,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-3 col-lg-3" id="act_costo">
+                                <div class="col-12 col-md-2 col-lg-2" id="act_costo">
                                     <div class="mb-3">
                                         <label for="costo__id" class="">Costo</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -286,19 +286,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-3 col-lg-3" id="pt_costo">
-                                    <div class="mb-3">
-                                        <label for="costo__id" class="">Costo</label>
-                                        <div class="input-group input-group-sm mb-3">
-                                            <span class="input-group-text" id="inputGroup-sizing-sm">S/</span>
-                                            <input type="decimal" name="costo" value="" class="form-control form-control-sm @error('costo') is-invalid @enderror" id="costo__id">
-                                        </div>
-                                        @error('costo')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-3 col-lg-3" id="pt_precio">
+                                <div class="col-12 col-md-2 col-lg-2" id="pt_precio">
                                     <div class="mb-3">
                                         <label for="precio__id" class="">Precio</label>
                                         <div class="input-group input-group-sm mb-3">
