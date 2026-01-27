@@ -9,6 +9,7 @@ use App\Models\Producto;
 use App\Models\Servicio;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -78,8 +79,8 @@ class admin_OrdenesserviciosController extends Controller
         $ordens->plazo_pago = $request->input('plazo_pago');
         $ordens->total = $request->input('total');
         $ordens->nota = $request->input('nota');
-        // $ordens->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->lastname_padre.' '.Auth::user()->persona->lastname_madre;
-        $ordens->registrado_por = 'Administrador Principal';
+        $ordens->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;
+        $ordens->sede_id = Auth::user()->persona->sede_id;
         $ordens->save();
 
         $tipo_servicio = $request->input('tipo_servicio');

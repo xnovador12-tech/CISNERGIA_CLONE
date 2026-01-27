@@ -33,17 +33,11 @@ class CreateProductosTable extends Migration
             $table->integer('porcentaje')->default(0);
             $table->string('tipo_afectacion')->default('0');
             $table->string('registrado_por')->nullable();
-            $table->string('sede_id')->nullable();
-            $table->unsignedBigInteger('tipo_id')->nullable();
-            $table->foreign('tipo_id')->references('id')->on('tipos');
-            $table->unsignedBigInteger('medida_id')->nullable();
-            $table->unsignedBigInteger('marca_id')->nullable();
-            $table->unsignedBigInteger('categorie_id')->nullable();
-            $table->unsignedBigInteger('tag_id')->nullable();
-            $table->foreign('medida_id')->references('id')->on('medidas');
-            $table->foreign('marca_id')->references('id')->on('marcas');
-            $table->foreign('categorie_id')->references('id')->on('categories');
-            $table->foreign('tag_id')->references('id')->on('tags');
+            $table->foreignId('tipo_id')->constrained('tipos');
+            $table->foreignId('medida_id')->constrained('medidas');
+            $table->foreignId('marca_id')->constrained('marcas');
+            $table->foreignId('categorie_id')->constrained('categories');
+            $table->foreignId('sede_id')->constrained('sedes');
             $table->timestamps();
         });
     }

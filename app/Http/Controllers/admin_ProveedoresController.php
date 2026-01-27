@@ -54,8 +54,8 @@ class admin_ProveedoresController extends Controller
         $persona->direccion = $request->input('direccion');
         $persona->referencia = $request->input('referencia');
         $persona->tipo_persona = 'Proveedor';
-        $persona->registrado_por = 1;
-        // $persona->registrado_por = 'Cesar';
+        $persona->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;
+        $persona->sede_id = Auth::user()->persona->sede_id;
         $persona->save();
 
         $proveedor = new Proveedor();

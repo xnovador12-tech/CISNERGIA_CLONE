@@ -9,6 +9,7 @@ use App\Models\Detallecompra;
 use App\Models\Tipo;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -71,13 +72,13 @@ class admin_OrdenescomprasController extends Controller
         // $ordenC->fecha_compra = $request->input('fecha_compra');
         $ordenC->total = $request->input('total');
         $ordenC->total_pago = $request->input('total');
-        // $ordenC->sede_id = Auth::user()->persona->sede_id;
         $ordenC->tipo_moneda = $request->input('tipo_moneda');
         $ordenC->estado_proceso = 'Pendiente';
-        // $ordenC->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->lastname_padre.' '.Auth::user()->persona->lastname_madre;
+        $ordenC->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;
         $ordenC->registrado_por = 'usuario_admin';
         $ordenC->observacion = $request->input('observacion');
         $ordenC->proveedor_id = $request->input('proveedor_id');
+        $ordenC->sede_id = Auth::user()->persona->sede_id;
         $ordenC->save();
 
         $tipo_producto = $request->input('tipo_producto');

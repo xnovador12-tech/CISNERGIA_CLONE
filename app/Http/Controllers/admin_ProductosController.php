@@ -134,11 +134,10 @@ class admin_ProductosController extends Controller
 
         $producto->marca_id = $request->input('marca_id');
         $producto->descripcion = $request->input('descripcion');
-        // $producto->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->lastname_padre.' '.Auth::user()->persona->lastname_madre;
-        // $producto->sucursal_id = Auth::user()->persona->marca->sucursal_id;
-        $producto->registrado_por = 1;
+        $producto->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;
         $producto->estado = 'Inactivo';
         $producto->imagen = $img_producto;
+        $producto->sede_id = Auth::user()->persona->sede_id;
         $producto->save();
         
         if($request->input('etiquetas')){

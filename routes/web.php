@@ -17,6 +17,7 @@ use App\Http\Controllers\admin_ClientesController;
 use App\Http\Controllers\admin_CoberturasController;
 use App\Http\Controllers\admin_DescuentosController;
 use App\Http\Controllers\admin_CuponesController;
+use App\Http\Controllers\admin_IngresosController;
 use App\Http\Controllers\admin_OrdenescomprasController;
 use App\Http\Controllers\admin_OrdenesserviciosController;
 use App\Http\Controllers\admin_ServiciosController;
@@ -91,6 +92,9 @@ Route::get('busqueda_biene_compra', [admin_OrdenescomprasController::class, 'get
 Route::get('busqueda_detalle_compra', [admin_OrdenescomprasController::class, 'getBusqueda_detalle_compra']);
 Route::get('fecha_cuotas', [admin_OrdenescomprasController::class, 'getFechacuota']);
 
+Route::resource('admin-ingresos', admin_IngresosController::class);
+Route::get('busqueda_dtll_oc', [admin_IngresosController::class, 'getbusqueda_det_oc']);
+
 // CRM - Prospectos
 Route::get('admin-crm-prospectos', function () {
     return view('ADMINISTRADOR.PRINCIPAL.crm.prospectos.index');
@@ -132,3 +136,7 @@ Route::get('admin-crm-marketing', function () {
 })->name('admin-crm-marketing.index');
 
 Route::get('admin-reportes', [admin_ReportesController::class, 'index'])->name('admin-reportes.index');
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

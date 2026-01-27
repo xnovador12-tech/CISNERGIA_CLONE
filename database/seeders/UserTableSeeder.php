@@ -29,6 +29,7 @@ class UserTableSeeder extends Seeder
         $persona->referencia = "Frente al parque";
         $persona->descripcion = "Descripción de Marcos Amasifuen";
         $persona->tipo_persona = "Cuantica";
+        $persona->sede_id = "1";
         $persona->save();
 
         $user = new User();
@@ -53,6 +54,7 @@ class UserTableSeeder extends Seeder
         $persona->referencia = "Frente al parque";
         $persona->descripcion = "Descripción de Leidenger";
         $persona->tipo_persona = "Administrador";
+        $persona->sede_id = "1";
         $persona->save();
 
         $user = new User();

@@ -15,11 +15,8 @@ class CreateEtiquetaProductoTable extends Migration
     {
         Schema::create('etiqueta_producto', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('producto_id');
-            $table->unsignedBigInteger('tag_id');
-
-            $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
-            $table->foreign('tag_id')->references('id')->on('tags');
+            $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
+            $table->foreignId('tag_id')->constrained('tags');
             $table->timestamps();
         });
     }

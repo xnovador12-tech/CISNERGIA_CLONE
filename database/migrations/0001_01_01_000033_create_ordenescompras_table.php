@@ -31,6 +31,7 @@ class CreateOrdenescomprasTable extends Migration
             $table->string('validar_notify')->default('0');
             $table->string('registrado_por')->nullable();
             $table->foreignId('proveedor_id')->constrained('proveedors')->onDelete('cascade');
+            $table->foreignId('sede_id')->constrained('sedes');
             $table->timestamps();
         });
     }

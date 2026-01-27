@@ -28,6 +28,7 @@ return new class extends Migration
             $table->longText('descripcion')->nullable();
             $table->string('tipo_persona');
             $table->string('registrado_por')->nullable();
+            $table->foreignId('sede_id')->constrained('sedes');
             $table->timestamps();
         });
     }

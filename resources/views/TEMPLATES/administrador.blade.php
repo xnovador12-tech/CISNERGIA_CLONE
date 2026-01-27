@@ -257,7 +257,7 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-ingresos.index') --}}"
+                            <a href="{{route('admin-ingresos.index')}}"
                                 class="nav-link px-3 {{ request()->is(['admin-ingresos*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-box-arrow-in-right me-2"></i>
@@ -404,26 +404,22 @@
                     </ul>
                 </div>
                 <div class="dropdown align-self-center">
-                    <a class="dropdown-toggle text-decoration-none link-dark" href="#" type="button"
-                        id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
-                        Juan Diego
+                    <a class="dropdown-toggle text-decoration-none link-dark" href="#" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+                    {{Auth::user()->persona->name.' '.Auth::user()->persona->surnames}}
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 py-0"
-                        aria-labelledby="dropdownMenuButton2"
-                        style="width: 285px; font-size: 15px; border-radius: 20px; overflow: hidden">
-                        <img src="/images/header_control.png" class="header_user"
-                            style="border-radius: 20px 20px 0 0" alt="">
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 py-0" aria-labelledby="dropdownMenuButton2" style="width: 285px; font-size: 15px; border-radius: 20px; overflow: hidden">
+                        <img src="/images/header_control.png" class="header_user" style="border-radius: 20px 20px 0 0" alt="">
                         <div class="contenido">
                             <div class="avatar_dropdown ps-3">
-                                <img src="/images/avatar.png" alt="">
+                                <img src="/images/users/{{ Auth::user()->persona->avatar }}" alt="">
                             </div>
                             <div class="info_user ps-3">
-                                <p class="fw-bold mb-0">Juan Diego</p>
-                                <p class="fw-light small text-muted mb-0">juan.diego@example.com</p>
+                                <p class="fw-bold mb-0">{{Auth::user()->persona->name.' '.Auth::user()->persona->surnames}}</p>
+                                <p class="fw-light small text-muted mb-0">{{Auth::user()->email}}</p>
                             </div>
                         </div>
                         <li>
-                            <a class="dropdown-item py-2" href="/admin-perfil">
+                            <a class="dropdown-item py-2" href="/">
                                 <i class="bi bi-globe me-2"></i>
                                 Ir a la plataforma
                             </a>
@@ -435,14 +431,13 @@
                                 Mi perfil
                             </a>
                         </li>
-
+                        
                         <li>
-                            <a class="dropdown-item py-2" href="{{-- route('logout') --}}"
-                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="bi bi-box-arrow-right me-2"></i>
+                            <a class="dropdown-item py-2" href="{{ route('logout')}}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="bi bi-box-arrow-right me-2"></i>
                                 Cerrar Sesión
                             </a>
-                            <form id="logout-form" action="{{-- route('logout') --}}" method="POST" class="d-none">
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                 @csrf
                             </form>
                         </li>

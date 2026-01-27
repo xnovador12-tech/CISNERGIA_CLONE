@@ -14,10 +14,8 @@ return new class extends Migration
         Schema::create('wish_lists', function (Blueprint $table) {
             $table->id();
             $table->boolean('deseo');
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('producto_id');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
             $table->timestamps();
         });
     }

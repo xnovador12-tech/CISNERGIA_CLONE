@@ -62,6 +62,87 @@
                         </ul>
                     </div>
 
+                    <!-- ===============================================
+                        MODAL: INICIO DE SESIÓN
+                        =============================================== -->
+                    <div class="modal fade" id="iniciar_sesion" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content login-modal-content">
+                                <div class="modal-header border-0">
+                                    <div class="login-modal-header-content">
+                                        <div class="login-modal-logo">
+                                            <!-- Logo -->
+                                            <img src="images/LEIDINGER.png" alt="L'EINDINGER" style="height: 40px;">
+                                            <!-- <span>⚔️ VIKINGOS</span> -->
+                                        </div>
+                                        <h4 class="modal-title" id="loginModalLabel">Bienvenido de vuelta</h4>
+                                        <p class="login-modal-subtitle">Ingresa a tu cuenta L'EINDINGER</p>
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form method="POST" action="{{ route('login') }}" autocomplete="off">
+                                    @csrf
+                                        <div class="mb-3">
+                                            <label for="loginEmail" class="form-label">Correo Electrónico</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                                <input type="email" class="form-control border-dark @error('email') is-invalid @enderror" name="email" value="" required autocomplete="email" autofocus>
+
+                                                @error('email')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="loginPassword" class="form-label">Contraseña</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                                <input type="password" name="password" id="password" class="form-control border-dark border-end-0 @error('password') is-invalid @enderror" required maxlength="16" autocomplete="current-password">
+                                                <span class="input-group-text border-start-0 px-2 border-dark" style="background-color: transparent;"><i class="bi bi-lock-fill icono" style="cursor: pointer"></i></span>
+                                            </div>
+                                            @error('password')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" {{ old('remember') ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="rememberMe">Recordarme</label>
+                                            </div>
+                                            <a href="#" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
+                                        </div>
+                                        <button type="submit" class="btn btn-viking btn-viking-gold w-100 mb-3">
+                                            <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                                        </button>
+                                    </form>
+
+                                    <div class="login-divider">
+                                        <span>o continúa con</span>
+                                    </div>
+
+                                    <div class="social-login-buttons">
+                                        <button type="button" class="btn btn-social btn-google">
+                                            <i class="bi bi-google me-2"></i>Google
+                                        </button>
+                                        <button type="button" class="btn btn-social btn-facebook">
+                                            <i class="bi bi-facebook me-2"></i>Facebook
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 justify-content-center">
+                                    <p class="mb-0">¿No tienes cuenta? <a href="registro.html" class="register-link">Regístrate aquí</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
 
                     <!-- Mis compras -->
                     <div class="border-start">

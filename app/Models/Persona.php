@@ -21,7 +21,8 @@ class Persona extends Model
         'direccion',
         'referencia',
         'descripcion',
-        'tipo_persona'
+        'tipo_persona',
+        'sede_id'
     ];
 
     public function getRouteKeyName()

@@ -28,6 +28,7 @@ class CreateOrdenserviciosTable extends Migration
             $table->string('nota')->nullable();
             $table->string('estado')->default('Pendiente');
             $table->string('registrado_por');
+            $table->foreignId('sede_id')->constrained('sedes');
             $table->timestamps();
         });
     }

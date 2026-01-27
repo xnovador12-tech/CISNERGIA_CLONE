@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(IdentificacionTableSeeder::class);
         $this->call(TipoTableSeeder::class);
+        $this->call(SedeTableSeeder::class);
         $this->call(RoleTableSeeder::class);
         $this->call(UserTableSeeder::class);
         $this->call(CategoryTableSeeder::class);
@@ -31,5 +32,8 @@ class DatabaseSeeder extends Seeder
         $this->call(TipocuentaTableSeeder::class);
         $this->call(MediopagoTableSeeder::class);
         $this->call(MedidaTableSeeder::class);
+        $this->call(MotivoTableSeeder::class);
+        $this->call(ComprobanteTableSeeder::class);
+        $this->call(AlmacenTableSeeder::class);
     }
 }
