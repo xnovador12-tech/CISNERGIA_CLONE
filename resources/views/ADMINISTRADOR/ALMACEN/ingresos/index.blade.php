@@ -73,22 +73,20 @@
                                 <td class="fw-normal align-middle text-uppercase small">{{ $admin_ingreso->almacen->name }}</td>
                                 <td class="fw-normal align-middle text-uppercase">{{ $admin_ingreso->created_at->format('d-m-Y') }}</td>
                                 <td class="fw-normal align-middle text-end">{{ number_format($admin_ingreso->total, 3, '.', ',') }}</td> 
-                                <td class="fw-normal align-middle">
-                                    <div class="text-start text-md-center">
-                                        <div class="dropstart">
-                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="bi bi-three-dots-vertical"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li class="dropdown-item">
-                                                    <a target="_blank" href="{{ route('detalle_ingreso.pdf', $admin_ingreso->slug) }}" class="link-dark text-decoration-none"><i class="bi bi-printer-fill me-2"></i>Imprimir</a>
-                                                </li>
-                                                <li class="dropdown-item">
-                                                    <a href="{{ url("admin-ingresos/$admin_ingreso->slug") }}" class="link-dark text-decoration-none"><i class="bi bi-eye-fill me-2"></i>Detalles</a>
-                                                </li>                                                    
-                                            </ul>
-                                        </div>
-                                    </div> 
+                                <td class="align-middle">                                        
+                                    <div class="dropstart">
+                                        <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px; padding: 0;">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow"> 
+                                            <li class="dropdown-item">
+                                                <a target="_blank" href="" class="link-dark text-decoration-none"><i class="bi bi-printer-fill text-secondary me-2"></i>Imprimir</a>
+                                            </li>
+                                            <li class="dropdown-item">
+                                                <a href="{{ url("admin-ingresos/$admin_ingreso->slug") }}" class="link-dark text-decoration-none"><i class="bi bi-eye text-secondary me-2"></i>Detalles</a>
+                                            </li> 
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
                         @php

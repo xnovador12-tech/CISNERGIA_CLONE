@@ -7,9 +7,14 @@ use App\Models\Detallecompra;
 use App\Models\Ingreso;
 use App\Models\Motivo;
 use App\Models\Ordencompra;
+use App\Models\Producto;
+use App\Models\Detalleingreso;
+use App\Models\Inventario;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class admin_IngresosController extends Controller
 {
@@ -53,6 +58,18 @@ class admin_IngresosController extends Controller
             return response()->json($Arraydtc);
         }
     }
+
+    public function getbusqueda_pterminado(Request $request){
+        if($request->ajax()){
+            if($request->pterm){
+                $producto_terminado = Producto::where('tipo_id',3)->get();
+                foreach($producto_terminado as $prod_terminado){
+                    $Arraypt[$prod_terminado->id] = [$prod_terminado->nombre,$prod_terminado->umedida];
+                }
+                return response()->json($Arraypt);
+            }
+        }
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -61,8 +78,6 @@ class admin_IngresosController extends Controller
         $ingresos = new Ingreso();
         $ingresos->codigo = $request->input('codigo');
         $ingresos->slug = Str::slug($request->input('codigo'));
-        $ingresos->ingreso_a = $request->input('ingreso_a');
-        $ingresos->id_almacen = $request->input('id_almacen');
         $ingresos->motivo = $request->input('motivo');
         $ingresos->fecha = $request->input('fecha');
         if($request->input('motivo') == 'Inventario'){
@@ -84,6 +99,7 @@ class admin_IngresosController extends Controller
         $ingresos->total = $request->input('total');
         $ingresos->descripcion = $request->input('descripcion');
         $ingresos->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;
+        $ingresos->almacen_id = $request->input('id_almacen');
         $ingresos->sede_id = Auth::user()->persona->sede_id;
         $ingresos->save();
 
@@ -111,24 +127,46 @@ class admin_IngresosController extends Controller
                 $detalleingreso->save();
 
                 if($request->input('motivo') == 'Inventario'){
-                    $almacen_producto = Almacen::where('producto_id',$producto_id[$key])->where('lote',$lote_producto[$key])->where('tipo_producto',$producto_tipo_id[$key])->first();
+                    if(Inventario::where('id_producto',$producto_id[$key])->where('lote',$lote_producto[$key])->where('tipo_producto',$producto_tipo_id[$key])->exists()){
+                        $almacen_producto = Inventario::where('id_producto',$producto_id[$key])->where('lote',$lote_producto[$key])->where('tipo_producto',$producto_tipo_id[$key])->first();
+    
+                        if($almacen_producto){
+                            $almacen_producto->cantidad = $almacen_producto->cantidad + $cantidad_producto[$key];
+                            $almacen_producto->save();
+                        }
+                    }else{
+                        $almacen_producto = new Inventario();
+                        $almacen_producto->id_producto = $producto_id[$key];
+                        $almacen_producto->tipo_producto = $producto_tipo_id[$key];
+                        $almacen_producto->producto = $producto[$key];
+                        $almacen_producto->lote = $lote_producto[$key];
+                        $almacen_producto->umedida = $medida_producto[$key];
+                        $almacen_producto->cantidad = $cantidad_producto[$key];
+                        $almacen_producto->precio = $precio_producto[$key];
+                        $almacen_producto->almacen_id = $request->input('id_almacen');
+                        $almacen_producto->sede_id = Auth::user()->persona->sede_id;
+                        $almacen_producto->save();
+                    }
                 }
             }
         }
+
+        return redirect()->route('admin-ingresos.index')->with('new_registration', 'ok');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, Ingreso $admin_ingreso)
     {
-        //
+        $admin_dtlle = Detalleingreso::where('ingreso_id', $admin_ingreso->id)->get();
+        return view('ADMINISTRADOR.ALMACEN.ingresos.show', compact('admin_ingreso', 'admin_dtlle'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, Ingreso $admin_ingreso)
     {
         //
     }

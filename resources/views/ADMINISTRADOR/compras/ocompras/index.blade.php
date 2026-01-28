@@ -71,7 +71,13 @@
                                 <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->proveedor->persona->name }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->total }}</td>
                                 <td class="fw-normal align-middle">
-                                    <span class="badge bg-warning border-0">{{ $admin_ordencompra->estado }}</span>
+                                    @if($admin_ordencompra->estado == 'Inventariado')
+                                        <span class="badge bg-success border-0">{{ $admin_ordencompra->estado }}</span>
+                                    @elseif($admin_ordencompra->estado == 'En progreso')
+                                        <span class="badge bg-info border-0">{{ $admin_ordencompra->estado }}</span>
+                                    @else
+                                        <span class="badge bg-warning border-0">{{ $admin_ordencompra->estado }}</span>
+                                    @endif
                                 </td>    
                                 <td class="fw-normal text-center align-middle"><span class="badge bg-warning border-0">{{ $admin_ordencompra->estado_proceso }}</span></td>
                                 <td class="fw-normal text-center align-middle"><span class="badge bg-warning border-0">{{ $admin_ordencompra->estado_pago }}</span></td>

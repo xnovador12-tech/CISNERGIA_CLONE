@@ -94,6 +94,7 @@ Route::get('fecha_cuotas', [admin_OrdenescomprasController::class, 'getFechacuot
 
 Route::resource('admin-ingresos', admin_IngresosController::class);
 Route::get('busqueda_dtll_oc', [admin_IngresosController::class, 'getbusqueda_det_oc']);
+Route::get('busqueda_pterminado', [admin_IngresosController::class, 'getbusqueda_pterminado']);
 
 // CRM - Prospectos
 Route::get('admin-crm-prospectos', function () {

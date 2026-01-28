@@ -17,13 +17,15 @@ class CreateIngresosTable extends Migration
             $table->id();
             $table->string('codigo');
             $table->string('slug');
-            $table->string('id_almacen');
             $table->string('motivo');
             $table->string('fecha');
             $table->string('codigo_ocompra')->nullable();
             $table->string('codigo_venta')->nullable();
             $table->string('guia_remision')->nullable();
-            $table->string('total');
+            $table->string('total_mat')->default(0);
+            $table->string('total_act')->default(0);
+            $table->string('total_pte')->default(0);
+            $table->string('total')->default(0);
             $table->string('descripcion')->nullable();
             $table->string('registrado_por');
             $table->foreignId('almacen_id')->constrained('almacenes');
