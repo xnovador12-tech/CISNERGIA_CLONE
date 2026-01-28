@@ -64,7 +64,7 @@ class admin_IngresosController extends Controller
             if($request->pterm){
                 $producto_terminado = Producto::where('tipo_id',3)->get();
                 foreach($producto_terminado as $prod_terminado){
-                    $Arraypt[$prod_terminado->id] = [$prod_terminado->nombre,$prod_terminado->umedida];
+                    $Arraypt[$prod_terminado->id] = [$prod_terminado->nombre,$prod_terminado->tipo->name, $prod_terminado->medida->name, '0', $prod_terminado->precio,'0'];
                 }
                 return response()->json($Arraypt);
             }
