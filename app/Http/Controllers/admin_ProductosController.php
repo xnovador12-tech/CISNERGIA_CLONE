@@ -47,7 +47,7 @@ class admin_ProductosController extends Controller
         $codigo = 'PR-'.$now->format('Ymd').'-'.$nubRow;
 
         $marcas = Marca::all()->where('estado', 'Activo');
-        $tipos = Tipo::all()->where('estado', 'Activo')->where('definicion','!=','Servicios');
+        $tipos = Tipo::all()->where('estado', 'Activo');
         $etiquetas = Etiqueta::all()->where('estado', 'Activo');
         $medidas = Medida::all()->where('estado', 'Activo');
         $proveedores = Proveedor::where('estado', 'Activo')->get();
@@ -110,7 +110,6 @@ class admin_ProductosController extends Controller
         $producto = new Producto();
         $producto->codigo = $request->input('codigo');
         $producto->slug = Str::slug($request->input('codigo'));
-        $producto->clasificacion = $request->input('clasificacion');
         $producto->name = $request->input('name');
         $producto->medida_id = $request->input('medida_id');
         $producto->categorie_id = $request->input('categorie_id');
@@ -150,7 +149,7 @@ class admin_ProductosController extends Controller
             $producto->proveedores()->attach($request->input('proveedores'));
         }
 
-        return redirect()->route('admin-productos.index')->with('addmercaderias', 'ok');
+        return redirect()->route('admin-productos.index')->with('new_registration', 'ok');
     }
 
     /**

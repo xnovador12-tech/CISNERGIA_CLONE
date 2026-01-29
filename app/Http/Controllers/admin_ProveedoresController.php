@@ -86,7 +86,7 @@ class admin_ProveedoresController extends Controller
             $proveedor->tipos()->attach($request->input('tipos'));
         }
 
-        return redirect()->route('admin-proveedores.index')->with('addproveedor', 'ok');
+        return redirect()->route('admin-proveedores.index')->with('new_registration', 'ok');
     }
 
     /**

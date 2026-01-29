@@ -93,21 +93,6 @@
                                 </div>
                             </div>
                             <div class="row">
-                                
-                                <div class="col-12 col-md-3 col-lg-3">
-                                    <div class="mb-3">
-                                        <label for="clasificacion___id" class="">Clasificación<span class="text-danger">*</span></label>
-                                        <select class="form-select form-select-sm @error ('clasificacion') is-invalid @enderror" id="clasificacion___id" required>
-                                            <option value="" selected="selected" hidden="hidden">-- Seleccione --</option>
-                                            <option value="Compras">Compras</option>
-                                            <option value="Productos Terminados">Productos Terminados</option>
-                                        </select>
-                                        <input type="text" class="form-control form-control-sm" name="clasificacion" id="id_clasificacion" required>
-                                        @error('clasificacion')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
                                 <div class="col-12 col-md-6 col-lg-7">
                                     <div class="mb-3">
                                         <label for="codigo_id" class="">Nombre<span class="text-danger">*</span></label>
@@ -129,7 +114,7 @@
                                         <select class="form-select form-select-sm @error('tipo_id') is-invalid @enderror" id="tipos__producto_id" required>
                                             <option value="{{old('tipo_id')}}" selected="selected" hidden="hidden">{{ old('tipo_id') }}</option>
                                             @foreach($tipos as $tipo)
-                                                <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
+                                                <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
                                             @endforeach
                                         </select>
                                         <input type="text" class="form-control form-control-sm" name="tipo_id" id="id_tipo" required>
@@ -223,18 +208,6 @@
                             <p class="text-secondary mb-2 small text-uppercase fw-bold" id="title_opcional">Datos adicionales</p>
 
                             <div class="row" >
-                                <div class="col-12 col-md-3 col-lg-3" id="mp_tempconservacion">
-                                    <div class="mb-3">
-                                        <label for="tempconserv__id" class="">Temp. de conservación</label>
-                                        <div class="input-group input-group-sm mb-3">
-                                            <input type="text" name="temperatura_conservacion" value="" class="form-control form-control-sm @error('temperatura_conservacion') is-invalid @enderror" id="tempconserv__id">
-                                            <span class="input-group-text" id="inputGroup-sizing-sm">°C</span>
-                                        </div>
-                                        @error('temperatura_conservacion')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
                                 <div class="col-12 col-md-2 col-lg-2" id="act_vidautil">
                                     <div class="mb-3">
                                         <label for="vidautil__id" class="">Vida útil</label>
@@ -385,33 +358,7 @@
 </script>
 <script>
     $("#tipo_afectacion_show").hide();
-    $("#id_clasificacion").hide();
     $(document).ready(function() {
-        $('#clasificacion___id').on('change', function(){
-            $('#clasificacion___id').attr("disabled","disabled");
-            var clasificacion = document.getElementById("clasificacion___id").value.split('_');
-            $("#id_clasificacion").val(clasificacion[0]);
-            var __clasificacion = $("#id_clasificacion").val();
-                if (__clasificacion == "Compras")
-                {
-                    $("#marcas__id").show();
-
-                    $('#tipos__producto_id').empty();
-                    $('#tipos__producto_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
-                    $('#tipos__producto_id').append("<option value='1'>"+'Materiales'+"</option>");
-                    $('#tipos__producto_id').append("<option value='2'>"+'Activos'+"</option>");
-                }
-                else
-                {
-                    $("#marcas__id").show();
-                    $("#tipo_afectacion_show").show();
-
-                    $('#tipos__producto_id').empty();
-                    $('#tipos__producto_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
-                    $('#tipos__producto_id').append("<option value='3'>"+'Producto Terminado'+"</option>");
-                }
-        });
-
         $('#tipos__producto_id').on('change', function() {
             var valor_bienes = $(this).val();
             $('#tipos__producto_id').attr("disabled","disabled");
@@ -431,11 +378,10 @@
                 if (__tipo == 1)
                 {
                     $("#title_opcional").hide();
-                    $("#mp_tempconservacion").hide();
-                    $("#act_vidautil").hide();
-                    $("#act_costo").hide();
-                    $("#act_depreciacion").hide();
-                    $("#act_tipo_adquisicion").hide();
+                    $("#act_vidautil").show();
+                    $("#act_costo").show();
+                    $("#act_depreciacion").show();
+                    $("#act_tipo_adquisicion").show();
                     $("#pt_precio").show();
                     $("#pt_costo").show();
                     $("#pt_imgopcional").hide();
@@ -454,7 +400,6 @@
                 if (__tipo == 2)
                 {
                     $("#title_opcional").show();
-                    $("#mp_tempconservacion").hide();
                     $("#act_vidautil").show();
                     $("#act_costo").show();
                     $("#act_depreciacion").show();
@@ -475,7 +420,7 @@
                     });
                 }
 
-                if (__tipo == 3)
+                if (__tipo == 3 || __tipo == 4 )
                 {
                     $("#title_opcional").hide();
                     $("#mp_tempconservacion").hide();
@@ -504,7 +449,6 @@
     });
 
     $("#title_opcional").hide();
-    $("#mp_tempconservacion").hide();
     $("#act_vidautil").hide();
     $("#act_costo").hide();
     $("#act_depreciacion").hide();

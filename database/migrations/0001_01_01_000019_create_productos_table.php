@@ -18,8 +18,6 @@ class CreateProductosTable extends Migration
             $table->string('codigo')->nullable();
             $table->string('slug')->nullable();
             $table->string('name')->nullable();
-            $table->string('clasificacion')->nullable();
-            $table->string('temperatura_conservacion')->nullable();
             $table->string('peso')->nullable();
             $table->string('imagen')->nullable();
             $table->longText('descripcion')->nullable();

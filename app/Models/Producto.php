@@ -14,8 +14,6 @@ class Producto extends Model
         'slug',
         'name',
         'marca_id',
-        'clasificacion',
-        'temperatura_conservacion',
         'imagen',
         'descripcion',
         'tipo_material',

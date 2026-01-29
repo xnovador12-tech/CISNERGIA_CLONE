@@ -16,7 +16,7 @@ class TipoTableSeeder extends Seeder
     public function run()
     {
         $tipo = new Tipo();
-        $tipo->name = "Materiales";
+        $tipo->name = "Accesorios";
         $tipo->slug = Str::slug($tipo->name);
         $tipo->estado = "Activo";
         // $tipo->definicion = "Bienes";
@@ -24,7 +24,7 @@ class TipoTableSeeder extends Seeder
         $tipo->save();
 
         $tipo = new Tipo();
-        $tipo->name = "Activos";
+        $tipo->name = "Repuestos";
         $tipo->slug = Str::slug($tipo->name);
         $tipo->estado = "Activo";
         // $tipo->definicion = "Bienes";
@@ -32,11 +32,17 @@ class TipoTableSeeder extends Seeder
         $tipo->save();
 
         $tipo = new Tipo();
-        $tipo->name = "Producto Terminado";
+        $tipo->name = "Kits";
         $tipo->slug = Str::slug($tipo->name);
         $tipo->estado = "Activo";
         // $tipo->definicion = "Bienes";
         // $tipo->clasificacion = "Producto Terminado";
+        $tipo->save();
+
+        $tipo = new Tipo();
+        $tipo->name = "Modulo Solar";
+        $tipo->slug = Str::slug($tipo->name);
+        $tipo->estado = "Activo";
         $tipo->save();
         
     }

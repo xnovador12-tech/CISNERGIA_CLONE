@@ -181,7 +181,6 @@
                             <div class="contenido align-self-center w-100">
                                 <div class="card rounded-0">
                                     <div class="card-body">
-                                        <small class="text-uppercase fw-bold text-muted">{{ $admin_producto->clasificacion }}</small>
                                         <h1 class="fw-light text-uppercase mb-0">{{ $admin_producto->name }}</h1>
                                         <div class="row g-2 mb-2">
                                             <div class="col-6 col-md-3">
@@ -232,14 +231,14 @@
                                         @endif
                                         <div class="mt-4">
                                             <div class="" style="min-height: 150px">
-                                                @if( $admin_producto->clasificacion == 'Compras' )
+                                                @if( $admin_producto->proveedores )
                                                     <p class="text-uppercase mb-1 fw-bold small"><span class="border-top border-2 border-primary py-2">Proveedores</span></p>
                                                     @forelse($admin_producto->proveedores as $proveedor)
                                                         <span class="badge bg-info small text-uppercase">{{ $proveedor->persona->name }}</span>         
                                                     @empty
                                                         <span class="text-muted small text-uppercase fw-light">No hay registros</span>
                                                     @endforelse                                             
-                                                @elseif( $admin_producto->clasificacion == 'Productos Terminados' )
+                                                @elseif($admin_producto->etiquetas)
                                                     <p class="text-uppercase mb-1 fw-bold small"><span class="border-top border-2 border-primary py-2">Etiquetas</span></p>
                                                     @forelse($admin_producto->etiquetas as $etiqueta)
                                                         <span class="badge bg-info small text-uppercase">{{ $etiqueta->name }}</span>         
