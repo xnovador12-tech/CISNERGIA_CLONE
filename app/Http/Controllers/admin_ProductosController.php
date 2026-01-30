@@ -47,7 +47,7 @@ class admin_ProductosController extends Controller
         $codigo = 'PR-'.$now->format('Ymd').'-'.$nubRow;
 
         $marcas = Marca::all()->where('estado', 'Activo');
-        $tipos = Tipo::all()->where('estado', 'Activo');
+        $tipos = Tipo::all()->where('estado', 'Activo')->where('id','!=',3);
         $etiquetas = Etiqueta::all()->where('estado', 'Activo');
         $medidas = Medida::all()->where('estado', 'Activo');
         $proveedores = Proveedor::where('estado', 'Activo')->get();
@@ -117,20 +117,11 @@ class admin_ProductosController extends Controller
         $producto->costo = $request->input('costo');
         $producto->precio = $request->input('precio');
         $producto->precio_descuento = $request->input('precio_descuento');
-
-        if($request->input('tipo_id') == 1){
-            $producto->tipo_id = '1';
-        }if($request->input('tipo_id') == 2){
-            $producto->tipo_id = '2';
-            $producto->vida_util = $request->input('vida_util');
-            $producto->depreciacion = $request->input('depreciacion');
-            
-            $producto->tipo_adquisicion = $request->input('tipo_adquisicion');
-        }if($request->input('tipo_id') == 3){
-            $producto->tipo_id = '3';
-            $producto->tipo_afectacion = $request->input('tipo_afectacion');
-        }
-
+        $producto->tipo_id = '2';
+        $producto->vida_util = $request->input('vida_util');
+        $producto->depreciacion = $request->input('depreciacion');
+        $producto->tipo_adquisicion = $request->input('tipo_adquisicion');
+        $producto->tipo_afectacion = $request->input('tipo_afectacion');
         $producto->marca_id = $request->input('marca_id');
         $producto->descripcion = $request->input('descripcion');
         $producto->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;

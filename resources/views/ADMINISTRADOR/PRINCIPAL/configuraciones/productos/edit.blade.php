@@ -304,7 +304,7 @@
                                 <p class="text-secondary mb-2 small text-uppercase fw-bold">Etiquetas</p>
                                 @forelse($etiquetas as $etiqueta)
                                     @php
-                                        $var_etiq = DB::Table("etiqueta_producto")->where('etiqueta_id',$etiqueta->id)->where('producto_id',$admin_producto->id)->first();
+                                        $var_etiq = DB::Table("etiqueta_producto")->where('tag_id',$etiqueta->id)->where('producto_id',$admin_producto->id)->first();
                                     @endphp
                                     @if($var_etiq)
                                         <div class="form-check form-switch">

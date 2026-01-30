@@ -21,7 +21,7 @@ class admin_OrdenescomprasController extends Controller
     public function index()
     {
         $admin_ordencompras = Ordencompra::all();
-        return view('ADMINISTRADOR.compras.ocompras.index',compact('admin_ordencompras'));
+        return view('ADMINISTRADOR.COMPRAS.ocompras.index',compact('admin_ordencompras'));
     }
 
     /**
@@ -31,7 +31,7 @@ class admin_OrdenescomprasController extends Controller
     {
         $fecha_actual = Carbon::now()->format('Y-m-d');
         $proveedores = Proveedor::where('estado','Activo')->get();
-        return view('ADMINISTRADOR.compras.ocompras.create', compact('fecha_actual', 'proveedores'));
+        return view('ADMINISTRADOR.COMPRAS.ocompras.create', compact('fecha_actual', 'proveedores'));
     }
 
     public function getBusqueda_compra_biene(Request $request){
@@ -115,7 +115,7 @@ class admin_OrdenescomprasController extends Controller
     public function show(Request $request, Ordencompra $admin_ordencompra)
     {
         $dtllecompras = Detallecompra::where('ordencompra_id',$admin_ordencompra->id)->get();
-        return view('ADMINISTRADOR.compras.ocompras.show',compact('admin_ordencompra','dtllecompras'));
+        return view('ADMINISTRADOR.COMPRAS.ocompras.show',compact('admin_ordencompra','dtllecompras'));
     }
 
     /**
@@ -124,7 +124,7 @@ class admin_OrdenescomprasController extends Controller
     public function edit(Request $request, Ordencompra $admin_ordencompra)
     {
         $dtllecompras = Detallecompra::where('ordencompra_id',$admin_ordencompra->id)->get();
-        return view('ADMINISTRADOR.compras.ocompras.edit',compact('admin_ordencompra','dtllecompras'));
+        return view('ADMINISTRADOR.COMPRAS.ocompras.edit',compact('admin_ordencompra','dtllecompras'));
     }
 
     public function getBusqueda_detalle_compra(Request $request){

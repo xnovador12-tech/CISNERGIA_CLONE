@@ -18,6 +18,7 @@ use App\Http\Controllers\admin_CoberturasController;
 use App\Http\Controllers\admin_DescuentosController;
 use App\Http\Controllers\admin_CuponesController;
 use App\Http\Controllers\admin_IngresosController;
+use App\Http\Controllers\admin_KitsController;
 use App\Http\Controllers\admin_OrdenescomprasController;
 use App\Http\Controllers\admin_OrdenesserviciosController;
 use App\Http\Controllers\admin_ServiciosController;
@@ -60,6 +61,8 @@ Route::put('/admin-productos/estado/{admin_producto}', [admin_ProductosControlle
 Route::get('busqueda_categoria_productos', [admin_ProductosController::class, 'getBusqueda_categoria_productos']);
 Route::get('busqueda_proved', [admin_ProductosController::class, 'getBusquedaproved']);
 Route::get('busqueda_proved_edit', [admin_ProductosController::class, 'getbusqueda_proved_edit']);
+
+Route::resource('admin-kits', admin_KitsController::class);
 
 Route::resource('admin-clientes', admin_ClientesController::class);
 Route::put('/admin-clientes/estado/{admin_cliente}', [admin_ClientesController::class, 'estado']);
