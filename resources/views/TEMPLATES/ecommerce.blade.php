@@ -167,11 +167,11 @@
                     <!-- Carrito -->
                     <div class="border-start">
 
-                        <a href="carrito_compras.html"
+                        <a href="{{ route('ecommerce.cart') }}"
                             class="bg-transparent border-0 icon__boton position-relative d-flex align-items-center justify-content-center px-3 py-2 rounded hover-bg"
                             style="text-decoration: none; transition: background 0.2s;">
                             <i class="bi bi-cart3 fs-4 text-primary"></i>
-                            <span class="position-absolute badge rounded-circle bg-secondary text-white"
+                            <span class="position-absolute badge rounded-circle bg-secondary text-white cart-count"
                                 style="font-size: 0.6rem; width: 18px; height: 18px; padding: 0; display: flex; align-items: center; justify-content: center; top: 5px; right: 8px; font-weight: 600;">
                                 0
                                 <span class="visually-hidden">productos en carrito</span>
@@ -313,6 +313,22 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="js/scripts.js"></script>
+    
+    <!-- Script para cargar contador del carrito -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar contador del carrito al iniciar
+            fetch('{{ route("ecommerce.cart.count") }}')
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelectorAll('.cart-count').forEach(el => {
+                        el.textContent = data.count;
+                    });
+                })
+                .catch(error => console.error('Error al cargar contador:', error));
+        });
+    </script>
+    
     @yield('js')
     @stack('scripts')
 </body>

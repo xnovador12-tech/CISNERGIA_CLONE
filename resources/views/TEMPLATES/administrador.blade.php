@@ -171,18 +171,7 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-cotizaciones.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-cotizaciones*']) ? 'active-item' : null }} menu">
-                                <span class="fw-bold">
-                                    <i class="bi bi-file-text me-2"></i>
-                                </span>
-                                <span>
-                                    Cotizaciones
-                                </span>
-                            </a>
-                        </li>
-                        <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-pedidos.index') --}}"
+                            <a href="{{ route('admin-pedidos.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-pedidos*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-cart me-2"></i>
@@ -193,7 +182,7 @@
                             </a>
                         </li>
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-ventas.index') --}}"
+                            <a href="{{ route('admin-ventas.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-ventas*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-cash-coin me-2"></i>
@@ -205,8 +194,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-ventas.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-ventas*']) ? 'active-item' : null }} menu">
+                            <a href="{{ route('admin-seguimiento.index') }}"
+                                class="nav-link px-3 {{ request()->is(['admin-seguimiento*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-graph-up me-2"></i>
                                 </span>

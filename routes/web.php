@@ -22,6 +22,9 @@ use App\Http\Controllers\admin_KitsController;
 use App\Http\Controllers\admin_OrdenescomprasController;
 use App\Http\Controllers\admin_OrdenesserviciosController;
 use App\Http\Controllers\admin_ServiciosController;
+use App\Http\Controllers\admin_PedidosController;
+use App\Http\Controllers\admin_VentasController;
+use App\Http\Controllers\admin_SeguimientoController;
 use App\Http\Controllers\ecommerceController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +35,19 @@ use Illuminate\Support\Facades\Route;
 // ECOMMERCE
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
 Route::get('/products', [ecommerceController::class, 'products'])->name('ecommerce.products');
+Route::get('/product/{slug}', [ecommerceController::class, 'show'])->name('ecommerce.product.show');
+
+// Carrito
+Route::post('/cart/add', [ecommerceController::class, 'addToCart'])->name('ecommerce.cart.add');
+Route::get('/cart', [ecommerceController::class, 'cart'])->name('ecommerce.cart');
+Route::post('/cart/update/{itemId}', [ecommerceController::class, 'updateCart'])->name('ecommerce.cart.update');
+Route::delete('/cart/remove/{itemId}', [ecommerceController::class, 'removeFromCart'])->name('ecommerce.cart.remove');
+Route::get('/cart/count', [ecommerceController::class, 'getCartCount'])->name('ecommerce.cart.count');
+
+// Checkout
+Route::get('/checkout', [ecommerceController::class, 'checkout'])->name('ecommerce.checkout');
+Route::post('/checkout/process', [ecommerceController::class, 'processCheckout'])->name('ecommerce.checkout.process');
+Route::get('/order-confirmation/{slug}', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmation');
 
 // ADMINISTRADOR
 Route::get('admin-dashboard', [admin_DashboardController::class, 'index'])->name('admin-dashboard.index');
@@ -98,6 +114,15 @@ Route::get('fecha_cuotas', [admin_OrdenescomprasController::class, 'getFechacuot
 Route::resource('admin-ingresos', admin_IngresosController::class);
 Route::get('busqueda_dtll_oc', [admin_IngresosController::class, 'getbusqueda_det_oc']);
 Route::get('busqueda_pterminado', [admin_IngresosController::class, 'getbusqueda_pterminado']);
+
+// VENTAS
+Route::resource('admin-pedidos', admin_PedidosController::class);
+Route::put('/admin-pedidos/estado/{admin_pedido}', [admin_PedidosController::class, 'estado']);
+
+Route::resource('admin-ventas', admin_VentasController::class);
+Route::put('/admin-ventas/estado/{admin_venta}', [admin_VentasController::class, 'estado']);
+
+Route::get('admin-seguimiento', [admin_SeguimientoController::class, 'index'])->name('admin-seguimiento.index');
 
 // CRM - Prospectos
 Route::get('admin-crm-prospectos', function () {
