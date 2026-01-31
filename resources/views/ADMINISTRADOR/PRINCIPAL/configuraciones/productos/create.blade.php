@@ -165,20 +165,6 @@
                                     </div>
                                 </div>
 
-                                <div class="col-12 col-md-3 col-lg-3" id="tipo_afectacion_show">
-                                    <div class="mb-3">
-                                        <label for="tipo_afectacion" class="">Asignacion de Impuesto</label>
-                                        <select class="form-select form-select-sm @error('tipo_afectacion') is-invalid @enderror" name="tipo_afectacion"  id="tipo_afectacion">
-                                            <option value="{{ old('tipo_afectacion') }}" selected="selected" hidden="hidden">{{ old('tipo_afectacion') }}</option>
-                                            <option value="0.18">IGV (18%)</option>
-                                            <option value="0">SIN IGV</option>
-                                        </select>
-                                        @error('tipo_afectacion')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
                             </div>
                             
                             <div class="row">
@@ -357,7 +343,6 @@
     });
 </script>
 <script>
-    $("#tipo_afectacion_show").hide();
     $(document).ready(function() {
         $('#tipos__producto_id').on('change', function() {
             var valor_bienes = $(this).val();

@@ -121,7 +121,6 @@ class admin_ProductosController extends Controller
         $producto->vida_util = $request->input('vida_util');
         $producto->depreciacion = $request->input('depreciacion');
         $producto->tipo_adquisicion = $request->input('tipo_adquisicion');
-        $producto->tipo_afectacion = $request->input('tipo_afectacion');
         $producto->marca_id = $request->input('marca_id');
         $producto->descripcion = $request->input('descripcion');
         $producto->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;
