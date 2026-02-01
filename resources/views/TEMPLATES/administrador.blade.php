@@ -285,7 +285,7 @@
                         </li>
                         <li class="mx-2 my-1">
                             <a href="{{-- route('admin-caja.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-cotizaciones*']) ? 'active-item' : null }} menu">
+                                class="nav-link px-3 {{ request()->is(['admin-caja*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-file-text me-2"></i>
                                 </span>
@@ -295,8 +295,8 @@
                             </a>
                         </li>
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-pedidos.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-pedidos*']) ? 'active-item' : null }} menu">
+                            <a href="{{-- route('admin-cobros.index') --}}"
+                                class="nav-link px-3 {{ request()->is(['admin-cobros*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-cart me-2"></i>
                                 </span>
@@ -306,8 +306,8 @@
                             </a>
                         </li>
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-ventas.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-ventas*']) ? 'active-item' : null }} menu">
+                            <a href="{{-- route('admin-pagos.index') --}}"
+                                class="nav-link px-3 {{ request()->is(['admin-pagos*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-cash-coin me-2"></i>
                                 </span>
@@ -318,8 +318,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-ventas.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-ventas*']) ? 'active-item' : null }} menu">
+                            <a href="{{-- route('admin-comprobantes.index') --}}"
+                                class="nav-link px-3 {{ request()->is(['admin-comprobantes*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-receipt me-2"></i>
                                 </span>

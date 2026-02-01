@@ -26,6 +26,18 @@ return new class extends Migration
             $table->foreignId('mediopago_id')->nullable()->constrained('mediopagos')->onDelete('set null');
             $table->enum('estado', ['completada', 'parcial', 'anulada'])->default('completada');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            
+            // Campos específicos para proyectos energéticos
+            $table->string('tipo_proyecto')->nullable(); // residencial, comercial, industrial, agricola
+            $table->decimal('potencia_kw', 11, 2)->nullable(); // Potencia total del sistema instalado
+            $table->date('fecha_instalacion')->nullable(); // Fecha programada de instalación
+            $table->integer('garantia_sistema_años')->default(10); // Garantía del sistema completo
+            $table->boolean('requiere_financiamiento')->default(false);
+            $table->decimal('monto_financiado', 11, 2)->nullable();
+            $table->string('entidad_financiera')->nullable();
+            $table->decimal('consumo_mensual_kwh', 11, 2)->nullable(); // Consumo actual del cliente
+            $table->string('numero_proyecto')->nullable(); // Código interno del proyecto
+            
             $table->text('observaciones')->nullable();
             $table->timestamps();
         });

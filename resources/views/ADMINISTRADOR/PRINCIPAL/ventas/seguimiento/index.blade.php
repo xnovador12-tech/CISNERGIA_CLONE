@@ -130,7 +130,7 @@
                     <div class="card-header bg-secondary text-white">
                         <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Pedidos Recientes</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body" style="min-height: 350px;">
                         <table class="table table-sm table-hover">
                             <thead class="bg-light">
                                 <tr>
@@ -142,23 +142,32 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($pedidosRecientes as $pedido)
-                                <tr>
-                                    <td><a href="{{ route('admin-pedidos.show', $pedido) }}">{{ $pedido->codigo }}</a></td>
-                                    <td>{{ $pedido->cliente->name ?? 'N/A' }}</td>
-                                    <td>{{ $pedido->created_at->format('d/m/Y') }}</td>
-                                    <td class="text-end">S/ {{ number_format($pedido->total, 2) }}</td>
-                                    <td>
-                                        @if($pedido->estado == 'pendiente')
-                                            <span class="badge bg-warning">Pendiente</span>
-                                        @elseif($pedido->estado == 'entregado')
-                                            <span class="badge bg-success">Entregado</span>
-                                        @else
-                                            <span class="badge bg-info">{{ ucfirst($pedido->estado) }}</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                                @endforeach
+                                @if($pedidosRecientes->count() > 0)
+                                    @foreach($pedidosRecientes as $pedido)
+                                    <tr>
+                                        <td><a href="{{ route('admin-pedidos.show', $pedido) }}">{{ $pedido->codigo }}</a></td>
+                                        <td>{{ $pedido->cliente->name ?? 'N/A' }}</td>
+                                        <td>{{ $pedido->created_at->format('d/m/Y') }}</td>
+                                        <td class="text-end">S/ {{ number_format($pedido->total, 2) }}</td>
+                                        <td>
+                                            @if($pedido->estado == 'pendiente')
+                                                <span class="badge bg-warning">Pendiente</span>
+                                            @elseif($pedido->estado == 'entregado')
+                                                <span class="badge bg-success">Entregado</span>
+                                            @else
+                                                <span class="badge bg-info">{{ ucfirst($pedido->estado) }}</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5">
+                                            <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                                            <p class="text-muted mb-0">No hay pedidos registrados</p>
+                                        </td>
+                                    </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -199,19 +208,20 @@
                     <div class="card-header bg-warning text-white">
                         <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Ventas Recientes</h5>
                     </div>
-                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
-                        @foreach($ventasRecientes as $venta)
-                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                            <div>
-                                <strong><a href="{{ route('admin-ventas.show', $venta) }}">{{ $venta->codigo }}</a></strong><br>
-                                <small class="text-muted">{{ $venta->cliente->name ?? 'N/A' }}</small>
+                    <div class="card-body" style="min-height: 300px; max-height: 300px; overflow-y: auto;">
+                        @if($ventasRecientes->count() > 0)
+                            @foreach($ventasRecientes as $venta)
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                <div>
+                                    <strong><a href="{{ route('admin-ventas.show', $venta) }}">{{ $venta->codigo }}</a></strong><br>
+                                    <small class="text-muted">{{ $venta->cliente->name ?? 'N/A' }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <strong class="text-success">S/ {{ number_format($venta->total, 2) }}</strong><br>
+                                    <small class="text-muted">{{ $venta->created_at->format('d/m/Y') }}</small>
+                                </div>
                             </div>
-                            <div class="text-end">
-                                <strong class="text-success">S/ {{ number_format($venta->total, 2) }}</strong><br>
-                                <small class="text-muted">{{ $venta->created_at->format('d/m/Y') }}</small>
-                            </div>
-                        </div>
-                        @endforeach
+                            @endforeach
                     </div>
                 </div>
             </div>

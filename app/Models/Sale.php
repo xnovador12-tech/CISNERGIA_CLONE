@@ -25,6 +25,17 @@ class Sale extends Model
         'mediopago_id',
         'estado',
         'user_id',
+        'sede_id',
+        'tipo_venta',
+        'tipo_proyecto',
+        'potencia_kw',
+        'fecha_instalacion',
+        'garantia_sistema_años',
+        'requiere_financiamiento',
+        'monto_financiado',
+        'entidad_financiera',
+        'consumo_mensual_kwh',
+        'numero_proyecto',
         'observaciones'
     ];
 
@@ -33,6 +44,12 @@ class Sale extends Model
         'descuento' => 'decimal:2',
         'igv' => 'decimal:2',
         'total' => 'decimal:2',
+        'potencia_kw' => 'decimal:2',
+        'monto_financiado' => 'decimal:2',
+        'consumo_mensual_kwh' => 'decimal:2',
+        'fecha_instalacion' => 'date',
+        'requiere_financiamiento' => 'boolean',
+        'garantia_sistema_años' => 'integer'
     ];
 
     public function getRouteKeyName()
@@ -64,6 +81,11 @@ class Sale extends Model
     public function usuario()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function sede()
+    {
+        return $this->belongsTo(Sede::class, 'sede_id');
     }
 
     public function detalles()

@@ -23,10 +23,10 @@ class admin_PedidosController extends Controller
 
     public function create()
     {
-        $clientes = Cliente::where('estado', 'Activo')->get();
-        $productos = Producto::where('estado', 'Activo')->get();
-        $servicios = Servicio::where('estado', 'Activo')->get();
-        $almacenes = Almacen::where('estado', 'Activo')->get();
+        $clientes = Cliente::all();
+        $productos = Producto::all();
+        $servicios = Servicio::all();
+        $almacenes = Almacen::all();
         $distritos = Distrito::all();
         $tecnicos = User::whereHas('role', function($q) {
             $q->where('name', 'Técnico');
@@ -100,10 +100,10 @@ class admin_PedidosController extends Controller
     public function edit(Pedido $admin_pedido)
     {
         $pedido = $admin_pedido->load('detalles');
-        $clientes = Cliente::where('estado', 'Activo')->get();
-        $productos = Producto::where('estado', 'Activo')->get();
-        $servicios = Servicio::where('estado', 'Activo')->get();
-        $almacenes = Almacen::where('estado', 'Activo')->get();
+        $clientes = Cliente::all();
+        $productos = Producto::all();
+        $servicios = Servicio::all();
+        $almacenes = Almacen::all();
         $distritos = Distrito::all();
         $tecnicos = User::whereHas('role', function($q) {
             $q->where('name', 'Técnico');

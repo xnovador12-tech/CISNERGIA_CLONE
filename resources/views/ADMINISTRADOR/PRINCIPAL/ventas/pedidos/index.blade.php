@@ -97,7 +97,7 @@
                 </a>
             </div>
             <div class="card-body">
-                <table id="tablaPedidos" class="table table-hover align-middle nowrap" cellspacing="0" style="width:100%">
+                <table id="display" class="table table-hover align-middle nowrap" cellspacing="0" style="width:100%">
                     <thead class="bg-dark text-white border-0">
                         <tr>
                             <th class="h6 small text-center text-uppercase fw-bold">N°</th>
@@ -112,7 +112,7 @@
                     </thead>
                     <tbody>
                         @php $contador = 1; @endphp
-                        @forelse($pedidos as $pedido)
+                        @foreach($pedidos as $pedido)
                         <tr>
                             <td class="fw-normal text-center align-middle">{{ $contador++ }}</td>
                             <td class="fw-normal text-center align-middle">
@@ -169,14 +169,7 @@
                                 </div>
                             </td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center py-4">
-                                <i class="bi bi-inbox fs-1 text-muted"></i>
-                                <p class="text-muted">No hay pedidos registrados</p>
-                            </td>
-                        </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -185,19 +178,4 @@
 @endsection
 
 @section('js')
-    <script>
-        $(document).ready(function() {
-            if ($.fn.DataTable.isDataTable('#tablaPedidos')) {
-                $('#tablaPedidos').DataTable().destroy();
-            }
-            
-            $('#tablaPedidos').DataTable({
-                responsive: true,
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
-                },
-                order: [[0, 'desc']]
-            });
-        });
-    </script>
 @endsection

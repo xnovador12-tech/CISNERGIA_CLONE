@@ -45,13 +45,75 @@
                                 </div>
 
                                 <div class="col-md-6">
+                                    <label class="form-label">Tipo de Venta <span class="text-danger">*</span></label>
+                                    <select name="tipo_venta" id="tipo_venta" class="form-select" required>
+                                        <option value="pos">POS - Venta Directa</option>
+                                        <option value="pedido">Facturación de Pedido</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6" id="pedido_field" style="display: none;">
                                     <label class="form-label">Pedido Relacionado</label>
                                     <select name="pedido_id" class="form-select">
-                                        <option value="">Sin pedido</option>
+                                        <option value="">Seleccione pedido</option>
                                         @foreach($pedidos as $pedido)
                                             <option value="{{ $pedido->id }}">{{ $pedido->codigo }} - {{ $pedido->cliente->name }}</option>
                                         @endforeach
                                     </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Tipo de Proyecto</label>
+                                    <select name="tipo_proyecto" class="form-select">
+                                        <option value="">Seleccione tipo</option>
+                                        <option value="residencial">Residencial</option>
+                                        <option value="comercial">Comercial</option>
+                                        <option value="industrial">Industrial</option>
+                                        <option value="agricola">Agrícola</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Potencia Instalada (kW)</label>
+                                    <input type="number" name="potencia_kw" class="form-control" step="0.01" value="{{ old('potencia_kw') }}" placeholder="Ej: 15.50">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Consumo Mensual Cliente (kWh)</label>
+                                    <input type="number" name="consumo_mensual_kwh" class="form-control" step="0.01" value="{{ old('consumo_mensual_kwh') }}" placeholder="Ej: 1200">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Fecha de Instalación</label>
+                                    <input type="date" name="fecha_instalacion" class="form-control" value="{{ old('fecha_instalacion') }}">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Garantía Sistema (años)</label>
+                                    <input type="number" name="garantia_sistema_años" class="form-control" value="{{ old('garantia_sistema_años', 10) }}" placeholder="10">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Número de Proyecto</label>
+                                    <input type="text" name="numero_proyecto" class="form-control" value="{{ old('numero_proyecto') }}" placeholder="PRY-2026-001">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">¿Requiere Financiamiento?</label>
+                                    <select name="requiere_financiamiento" id="requiere_financiamiento" class="form-select">
+                                        <option value="0">No</option>
+                                        <option value="1">Sí</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6" id="monto_financiado_field" style="display: none;">
+                                    <label class="form-label">Monto Financiado</label>
+                                    <input type="number" name="monto_financiado" class="form-control" step="0.01" value="{{ old('monto_financiado') }}">
+                                </div>
+
+                                <div class="col-md-6" id="entidad_field" style="display: none;">
+                                    <label class="form-label">Entidad Financiera</label>
+                                    <input type="text" name="entidad_financiera" class="form-control" value="{{ old('entidad_financiera') }}" placeholder="Ej: Banco BCP">
                                 </div>
 
                                 <div class="col-md-6">
@@ -131,4 +193,30 @@
             </div>
         </form>
     </div>
+@endsection
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        // Mostrar/ocultar campo de pedido según tipo de venta
+        $('#tipo_venta').on('change', function() {
+            if ($(this).val() === 'pedido') {
+                $('#pedido_field').show();
+            } else {
+                $('#pedido_field').hide();
+            }
+        });
+
+        // Mostrar/ocultar campos de financiamiento
+        $('#requiere_financiamiento').on('change', function() {
+            if ($(this).val() === '1') {
+                $('#monto_financiado_field').show();
+                $('#entidad_field').show();
+            } else {
+                $('#monto_financiado_field').hide();
+                $('#entidad_field').hide();
+            }
+        });
+    });
+</script>
 @endsection

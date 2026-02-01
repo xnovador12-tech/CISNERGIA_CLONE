@@ -15,18 +15,19 @@ class admin_VentasController extends Controller
 {
     public function index()
     {
-        $ventas = Sale::with(['cliente', 'tipocomprobante', 'mediopago', 'usuario'])->orderBy('created_at', 'desc')->get();
+        $ventas = Sale::with(['cliente', 'tipocomprobante', 'mediopago', 'usuario', 'sede'])->orderBy('created_at', 'desc')->get();
         return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.index', compact('ventas'));
     }
 
     public function create()
     {
-        $clientes = Cliente::where('estado', 'Activo')->get();
+        $clientes = Cliente::all(); // Todos los clientes (crear columna estado después)
+        $productos = Producto::all(); // Todos los productos para POS
         $pedidos = Pedido::where('estado', 'entregado')->whereDoesntHave('venta')->get();
-        $tiposcomprobantes = Tiposcomprobante::where('tipo', 'ventas')->where('estado', 'Activo')->get();
-        $mediospago = Mediopago::where('estado', 'Activo')->get();
+        $tiposcomprobantes = Tiposcomprobante::where('tipo', 'ventas')->get();
+        $mediospago = Mediopago::all();
         
-        return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.create', compact('clientes', 'pedidos', 'tiposcomprobantes', 'mediospago'));
+        return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.create', compact('clientes', 'productos', 'pedidos', 'tiposcomprobantes', 'mediospago'));
     }
 
     public function store(Request $request)
@@ -37,6 +38,7 @@ class admin_VentasController extends Controller
             'tiposcomprobante_id' => 'required|exists:tiposcomprobantes,id',
             'numero_comprobante' => 'nullable|string',
             'mediopago_id' => 'required|exists:mediopagos,id',
+            'tipo_venta' => 'required|in:pos,pedido',
             'observaciones' => 'nullable|string',
         ]);
 
@@ -59,6 +61,8 @@ class admin_VentasController extends Controller
         $venta->mediopago_id = $request->mediopago_id;
         $venta->estado = 'completada';
         $venta->user_id = auth()->id();
+        $venta->sede_id = auth()->user()->persona->sede_id ?? null;
+        $venta->tipo_venta = $request->tipo_venta ?? 'pos';
         $venta->observaciones = $request->observaciones;
         $venta->save();
 
@@ -68,11 +72,15 @@ class admin_VentasController extends Controller
                 Detailsale::create([
                     'sale_id' => $venta->id,
                     'producto_id' => $detalle['producto_id'] ?? null,
-                    'productos' => $detalle['productos'],
+                    'servicio_id' => $detalle['servicio_id'] ?? null,
+                    'tipo' => $detalle['tipo'] ?? 'producto',
+                    'descripcion' => $detalle['descripcion'],
                     'cantidad' => $detalle['cantidad'],
-                    'precio' => $detalle['precio'],
-                    'precio_descuento' => $detalle['precio_descuento'] ?? 0,
-                    'descuento' => $detalle['descuento'] ?? 0,
+                    'precio_unitario' => $detalle['precio_unitario'],
+                    'descuento_porcentaje' => $detalle['descuento_porcentaje'] ?? 0,
+                    'descuento_monto' => $detalle['descuento_monto'] ?? 0,
+                    'subtotal' => $detalle['subtotal'],
+                    'garantia_años' => $detalle['garantia_años'] ?? null,
                 ]);
             }
         }
