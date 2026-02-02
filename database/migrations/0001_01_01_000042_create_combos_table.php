@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('codigo');
             $table->string('slug');
-            $table->text('descripcion');
             $table->string('estado');
             $table->string('precio_total');
             $table->string('cantidad_total');
+            $table->text('descripcion');
+            $table->string('registrado_por')->nullable();
             $table->timestamps();
         });
     }

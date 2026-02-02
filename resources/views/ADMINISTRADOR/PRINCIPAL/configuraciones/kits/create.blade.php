@@ -94,7 +94,7 @@
                                     <div class="col-12 col-md-2 col-lg-2">
                                         <div class="mb-3">
                                             <label for="precio_total_id" class="">Precio Total<span class="text-danger">*</span></label>
-                                            <input type="text" name="precio_total"  class="form-control form-control-sm @error('precio_total') is-invalid @enderror" required>
+                                            <input type="text" name="precio_total" class="form-control form-control-sm @error('precio_total') is-invalid @enderror" required>
                                             @error('precio_total')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
@@ -103,7 +103,8 @@
                                     <div class="col-12 col-md-3 col-lg-3">
                                         <div class="mb-3">
                                             <label for="cantidad_total_id" class="">Cantidad Total<span class="text-danger">*</span></label>
-                                            <input type="number" name="cantidad_total" id="cantidad_total_id" class="form-control form-control-sm @error('cantidad_total') is-invalid @enderror" required>
+                                            <input type="number" disabled id="cantidad_total_id_disabled" class="form-control form-control-sm @error('cantidad_total') is-invalid @enderror">
+                                            <input type="number" hidden name="cantidad_total" id="cantidad_total_id" class="form-control form-control-sm @error('cantidad_total') is-invalid @enderror" required>
                                             @error('cantidad_total')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
@@ -252,6 +253,7 @@
                             $('#productos_id').prop('selectedIndex', 0).change();
                             $('#cantidad_id').val("");
                             $('#cantidad_total_id').val(cantidad_totalg);
+                            $('#cantidad_total_id_disabled').val(cantidad_totalg);
                             $('#dtll_combo').append(fila);
         }else{
             Swal.fire({
@@ -272,6 +274,7 @@
         cantidad_totalg = Math.max(0, cantidad_totalg - cantidad);
         
         $('#cantidad_total_id').val(cantidad_totalg);
+        $('#cantidad_total_id_disabled').val(cantidad_totalg);
         $("#filamp" + indexmp).remove();
 
         if(cantidad_totalg == 0){

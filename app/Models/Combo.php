@@ -13,7 +13,8 @@ class Combo extends Model
         'descripcion',
         'estado',
         'precio_total',
-        'cantidad_total'
+        'cantidad_total',
+        'descripcion'
     ];
 
     public function getRouteKeyName()
@@ -24,5 +25,15 @@ class Combo extends Model
     public function detallecombo()
     {
         return $this->hasMany(Detallecombo::class, 'combo_id');
+    }
+
+    public function images()
+    {
+        return $this->morphMany(Image::class, 'imageable');
+    }
+
+    public function etiquetas()
+    {
+        return $this->belongsToMany(Etiqueta::class, 'combo_etiqueta', 'combo_id', 'tag_id');
     }
 }

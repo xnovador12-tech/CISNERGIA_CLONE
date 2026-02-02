@@ -69,7 +69,7 @@
                                 <td class="fw-normal text-center align-middle">{{ $contador }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_kit->codigo }}</td>
                                 <td class="fw-normal text-center align-middle">S/
-                                    {{ number_format($admin_kit->precio, 2) }}</td>
+                                    {{ number_format($admin_kit->precio_total, 2) }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_kit->detallecombo->count() ?? '-' }}
                                 </td>
                                 <td class="fw-normal align-middle text-center">
@@ -84,7 +84,7 @@
                                         @endif
                                     </form>
                                 </td>
-                                <td class="align-middle">                                        
+                                <td class="align-middle text-center">                                        
                                     <div class="dropstart">
                                         <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px; padding: 0;">
                                             <i class="bi bi-three-dots-vertical"></i>

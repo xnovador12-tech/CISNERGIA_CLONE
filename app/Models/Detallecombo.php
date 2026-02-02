@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Detallecombo extends Model
 {
-    //
+    protected $table = 'detalle_combos';
 }

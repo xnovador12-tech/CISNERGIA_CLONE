@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('detalle_combos', function (Blueprint $table) {
+        Schema::create('combo_etiqueta', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('combo_id')->constrained('combos');
-            $table->foreignId('producto_id')->constrained('productos');
-            $table->string('cantidad');
+            $table->foreignId('combo_id')->constrained('combos')->onDelete('cascade');
+            $table->foreignId('tag_id')->constrained('tags');
             $table->timestamps();
         });
     }
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('detalle_combos');
+        Schema::dropIfExists('combo_etiqueta');
     }
 };
