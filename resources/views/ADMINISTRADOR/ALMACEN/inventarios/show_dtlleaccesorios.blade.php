@@ -1,4 +1,4 @@
-<div class="modal fade" id="showaccesorios{{almacenes_accesorios->id_producto}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal fade" id="showaccesorio{{ $al_accesorio->id_producto }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white py-2">
@@ -7,7 +7,7 @@
             </div>
             <div class="modal-body">
                 @php
-                    $producto_tipo = \App\Models\Producto::where('id',almacenes_accesorios->id_producto)->first();
+                    $producto_tipo = \App\Models\Producto::where('id',$al_accesorio->id_producto)->first();
                 @endphp
                 <div class="row">
                     <div class="col-12 col-md-4 col-lg-2">
@@ -27,10 +27,10 @@
                     </div>
                     <div class="col-12 col-md-8 col-lg-10 d-flex">
                         <div class="align-self-center">
-                            <p class="text-uppercase small mb-0">{{almacenes_accesorios->producto}} - {{almacenes_accesorios->umedida}}</p>
+                            <p class="text-uppercase small mb-0">{{ $al_accesorio->producto }} - {{ $al_accesorio->umedida }}</p>
                             <span class="border rounded px-2 fw-bold border-dark text-uppercase" style="font-size: 12px">{{$producto_tipo?$producto_tipo->tipo->name:''}}</span>
                             <p class="small text-uppercase text-primary fw-bold mb-0" style="font-size: 12px">{{$producto_tipo?$producto_tipo->tipo_costo:''}}</p>
-                            <p class="float-start text-uppercase small">Stock: <span class="float-end badge bg-primary ms-2">{{$alm_accesorios_sum->cantidad}}</span></p>
+                            <p class="float-start text-uppercase small">Stock: <span class="float-end badge bg-primary ms-2">{{$al_accesorio->cantidad}}</span></p>
                         </div>
                     </div>
                 </div>
@@ -50,7 +50,7 @@
                         <tbody>
                             @php
                                 $contador = 1;
-                                $mov_ingresos = DB::table('ingresos as ings')->join('detalleingresos as dtll','dtll.ingreso_id','=','ings.id')->select('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')->where('dtll.id_producto',$alm_accesorios_sum->id_producto)->groupby('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')->get();
+                                $mov_ingresos = DB::table('ingresos as ings')->join('detalleingresos as dtll','dtll.ingreso_id','=','ings.id')->select('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')->where('dtll.id_producto',$al_accesorio->id_producto)->groupby('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')->get();
                             @endphp
                             @foreach($mov_ingresos as $mov_ingreso)
                             <tr>
@@ -63,7 +63,7 @@
                                         SALIDA</td>
                                     @endif
                                 <td class="align-middle text-uppercase text-center">{{$mov_ingreso->motivo}}</td>
-                                <td class="align-middle text-uppercase text-center">{{$mov_ingreso->codigo_venta}}</td>
+                                <td class="align-middle text-uppercase text-center">{{$mov_ingreso->codigo_ocompra}}</td>
                                 <td class="align-middle text-uppercase text-center">{{$mov_ingreso->lote}}</td>
                                 <td class="align-middle text-uppercase text-center">{{$mov_ingreso->fecha}}</td>
                                 <td class="align-middle text-uppercase text-center text-sucess">{{$mov_ingreso->cantidad}}</td>

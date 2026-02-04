@@ -75,7 +75,7 @@
                                             <div class="card-body">
                                                 <div class="clearfix text-uppercase fw-bold">
                                                     <span class="float-start">
-                                                        <button class="stretched-link text-uppercase text-dark fw-bold bg-transparent border-0 p-0 m-0" onclick="accesorio({{$sede->id}})" data-bs-toggle="modal" data-bs-target="#showaccesorios{{$sede->id}}" data-id="areaalmacen" >Accesorios</button>
+                                                        <button class="stretched-link text-uppercase text-dark fw-bold bg-transparent border-0 p-0 m-0" onclick="accesorios({{$sede->id}})" data-bs-toggle="modal" data-bs-target="#showaccesorios{{$sede->id}}" data-id="areaalmacen" >Accesorios</button>
                                                     </span>
                                                     <span class="float-end">
                                                         {{$alm_accesorios_sum?round($alm_accesorios_sum, 2):'0'}}
@@ -118,9 +118,9 @@
     </div>
 {{-- Fin contenido --}}
     @foreach($sedes as $sede)
-        @include('ADMINISTRADOR.ALMACEN.inventarios.show_dtlleaccesorios', ['sede_id' => $sede->id])
-        @include('ADMINISTRADOR.ALMACEN.inventarios.show_dtllerepuesto', ['sede_id' => $sede->id])
-        @include('ADMINISTRADOR.ALMACEN.inventarios.show_dtllemodulo_solar', ['sede_id' => $sede->id])
+        @include('ADMINISTRADOR.ALMACEN.inventarios.showaccesorios', ['sede_id' => $sede->id])
+        @include('ADMINISTRADOR.ALMACEN.inventarios.showrepuestos', ['sede_id' => $sede->id])
+        @include('ADMINISTRADOR.ALMACEN.inventarios.showmodulo_solar', ['sede_id' => $sede->id])
     @endforeach
 @endsection
 
@@ -263,14 +263,14 @@
             });
                 
          }
-        function ptermina(x) {
-            $filtro_inventario = $('#tipo_almacenes'+x).val();
+        function repuestos(x) {
+            $filtro_inventario = $('#tipo_repuestos'+x).val();
             $('#filtro_tipo').val($filtro_inventario);
-            $('#filtro_tipo').val('pterminado_request');
-            $('#filtro_tipo_total').val('pterminado_request');
+            $('#filtro_tipo').val('repuestos_request');
+            $('#filtro_tipo_total').val('repuestos_request');
             
-            $('#filtro_tipo'+x).val('pterminado_request');
-            $('#filtro_tipo_total'+x).val('pterminado_request');
+            $('#filtro_tipo'+x).val('repuestos_request');
+            $('#filtro_tipo_total'+x).val('repuestos_request');
             console.log($filtro_inventario);
             
             $('#sede_id_value'+x).on('change', function(){
@@ -278,29 +278,14 @@
                 $('#sede_id_val'+x).val(valor_sede);
             });
          }
-         function merma(x) {
-            $filtro_inventario = $('#tipo_merma'+x).val();
+         function modulo_solar(x) {
+            $filtro_inventario = $('#tipo_modulo_solar'+x).val();
             $('#filtro_tipo').val($filtro_inventario);
-            $('#filtro_tipo').val('merma_request');
-            $('#filtro_tipo_total').val('merma_request');
+            $('#filtro_tipo').val('modulo_solar_request');
+            $('#filtro_tipo_total').val('modulo_solar_request');
             
-            $('#filtro_tipo'+x).val('merma_request');
-            $('#filtro_tipo_total'+x).val('merma_request');
-            console.log($filtro_inventario);
-            
-            $('#sede_id_value'+x).on('change', function(){
-                var valor_sede = $(this).val();
-                $('#sede_id_val'+x).val(valor_sede);
-            });
-         }
-         function devolucion(x) {
-            $filtro_inventario = $('#tipo_devo'+x).val();
-            $('#filtro_tipo').val($filtro_inventario);
-            $('#filtro_tipo').val('devolucion_request');
-            $('#filtro_tipo_total').val('devolucion_request');
-            
-            $('#filtro_tipo'+x).val('devolucion_request');
-            $('#filtro_tipo_total'+x).val('devolucion_request');
+            $('#filtro_tipo'+x).val('modulo_solar_request');
+            $('#filtro_tipo_total'+x).val('modulo_solar_request');
             console.log($filtro_inventario);
             
             $('#sede_id_value'+x).on('change', function(){
@@ -317,5 +302,17 @@
                 $('#sede_id_val').val(valor_sede);
             });
         });
+    </script>
+
+    <script>
+        function accesoriosdetalle(el, sedeId, productoId){
+            console.log('compradetalle called:', { el: el, sedeId: sedeId, productoId: productoId });
+        }
+        function repuestosdetalle(el, sedeId, productoId){
+            console.log('compradetalle called:', { el: el, sedeId: sedeId, productoId: productoId });
+        }
+        function modulosolardetalle(el, sedeId, productoId){
+            console.log('compradetalle called:', { el: el, sedeId: sedeId, productoId: productoId });
+        }
     </script>
 @endsection

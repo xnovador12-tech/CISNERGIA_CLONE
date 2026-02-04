@@ -1,24 +1,24 @@
 @php
     $sede = \App\Models\Sede::find($sede_id);
     
-    $alm_accesorios = App\Models\Inventario::where('tipo_producto','Accesorios')->where('sede_id',$sede->id)->get();
-    foreach($alm_accesorios as $alm_accesorios){
-        $alm_accesorios_sum = $alm_accesorios_sum+($alm_accesorios?$alm_accesorios->cantidad:'0');
+    $alm_accesorios = App\Models\Inventario::where('tipo_producto', 'Accesorios')->where('sede_id',$sede->id)->get();
+    foreach($alm_accesorios as $alm_accesorio){
+        $alm_accesorios_sum = $alm_accesorios_sum+($alm_accesorio?$alm_accesorio->cantidad:'0');
     }
-    $alm_repuestos = App\Models\Inventario::where('tipo_producto','Repuestos')->where('sede_id',$sede->id)->get();
+    $alm_repuestos = App\Models\Inventario::where('tipo_producto', 'Repuestos')->where('sede_id',$sede->id)->get();
     foreach($alm_repuestos as $alm_repuestos){
         $alm_repuestos_sum = $alm_repuestos_sum+($alm_repuestos?$alm_repuestos->cantidad:'0');
     }
-    $alm_modulo_solar = App\Models\Inventario::where('tipo_producto','Modulo Solar')->where('sede_id',$sede->id)->get();
-    foreach($alm_modulo_solar as $alm_modulo_solars){
-        $alm_modulo_solar_sum = $alm_modulo_solar_sum+($alm_modulo_solars?$alm_modulo_solars->cantidad:'0');
+    $alm_modulo_solar = App\Models\Inventario::where('tipo_producto', 'Modulo Solar')->where('sede_id',$sede->id)->get();
+    foreach($alm_modulo_solar as $alm_modulo_solares){
+        $alm_modulo_solares_sum = $alm_modulo_solares_sum+($alm_modulo_solares?$alm_modulo_solares->cantidad:'0');
     }
 @endphp
-<div class="modal fade" id="showareaalmacen{{$sede->id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal fade" id="showaccesorios{{$sede->id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-secondary text-white py-2">
-                <span class="modal-title text-uppercase small" id="staticBackdropLabel">Almacén de compra - Sede {{Auth::user()->persona->sede?Auth::user()->persona->sede->name:'General'}}</span>
+                <span class="modal-title text-uppercase small" id="staticBackdropLabel">Almacén de accesorios - Sede {{Auth::user()->persona->sede?Auth::user()->persona->sede->name:'General'}}</span>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -58,26 +58,26 @@
                         $contador = 1;
                     @endphp  
                     <tbody id="inventario_table">
-                        @foreach ($al_compras as $al_compra)
+                        @foreach ($al_accesorios as $al_accesorio)
                             @php
-                                $codigo_producto = \App\Models\Producto::where('id',$al_compra->id_producto)->first();
+                                $codigo_producto = \App\Models\Producto::where('id',$al_accesorio->id_producto)->first();
                             @endphp
                             <tr class="">
                                 <td class="fw-normal align-middle">{{ $contador }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $codigo_producto?$codigo_producto->codigo:'' }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $codigo_producto?$codigo_producto->tipo->name:'' }}</td>
-                                <td class="fw-normal align-middle text-uppercase small">{{ $al_compra->producto }}</td>
-                                <td class="fw-normal align-middle">{{ $al_compra->umedida }}</td>
+                                <td class="fw-normal align-middle text-uppercase small">{{ $al_accesorio->producto }}</td>
+                                <td class="fw-normal align-middle">{{ $al_accesorio->umedida }}</td>
                                 <td class="fw-normal align-middle">
-                                    @if($al_compra->cantidad <= 10)
-                                        <span class="badge w-100 bg-danger">{{ $al_compra->cantidad }}</span>
-                                    @elseif($al_compra->cantidad <= 20)
-                                        <span class="badge w-100 bg-warning">{{ $al_compra->cantidad }}</span>
-                                    @elseif($al_compra->cantidad >= 21)
-                                        <span class="badge w-100 bg-success">{{ $al_compra->cantidad }}</span>
+                                    @if($al_accesorio->cantidad <= 10)
+                                        <span class="badge w-100 bg-danger">{{ $al_accesorio->cantidad }}</span>
+                                    @elseif($al_accesorio->cantidad <= 20)
+                                        <span class="badge w-100 bg-warning">{{ $al_accesorio->cantidad }}</span>
+                                    @elseif($al_accesorio->cantidad >= 21)
+                                        <span class="badge w-100 bg-success">{{ $al_accesorio->cantidad }}</span>
                                     @endif
                                 </td>
-                                <td class="fw-normal align-middle text-center"><button type="button" data-bs-toggle="modal" onclick="compradetalle(this,{{$sede->id}},{{$al_compra->id_producto}})" data-bs-target="#showcompra{{$al_compra->id_producto}}"  class="btn btn-sm btn-secondary"><i class="bi bi-eye-fill"></i></button></td>
+                                <td class="fw-normal align-middle text-center"><button type="button" data-bs-toggle="modal" onclick="accesoriosdetalle(this,{{$sede->id}},{{$al_accesorio->id_producto}})" data-bs-target="#showaccesorio{{$al_accesorio->id_producto}}"  class="btn btn-sm btn-secondary"><i class="bi bi-eye-fill text-white"></i></button></td>
                             </tr>
                         @php
                             $contador++;
@@ -93,6 +93,6 @@
         </div>
     </div>
 </div>
-@foreach ($al_compras as $al_compra)
-    @include('ADMINISTRADOR.ALMACEN.inventario.show_detallecompra')
+@foreach ($al_accesorios as $al_accesorio)
+    @include('ADMINISTRADOR.ALMACEN.inventarios.show_dtlleaccesorios')
 @endforeach
