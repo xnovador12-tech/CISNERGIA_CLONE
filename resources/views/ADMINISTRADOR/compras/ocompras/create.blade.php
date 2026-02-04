@@ -45,13 +45,14 @@
                     <div class="row g-2">
                         <div class="col-12 col-md-4 col-lg-6">
                             <div class="mb-3">
-                                <label for="umed_id" class=" d-block">Proveedor</label>
-                                <select class="form-select form-select-sm @error('tipo_servicio') is-invalid @enderror" required name="proveedor_id" id="proveedor_id" >
+                                <label for="proveedor_id" class=" d-block">Proveedor</label>
+                                <select class="form-select form-select-sm @error('proveedor_id') is-invalid @enderror select2_bootstrap_bootstrap" required id="proveedor_id" >
                                     <option disabled="disabled" selected="selected" hidden="hidden">{{ old('proveedor_id') }}</option>
                                     @foreach($proveedores as $proveedor)
                                         <option value="{{ $proveedor->id }}">{{ 'RS: '.$proveedor->name_contacto.' || PN: '.$proveedor->persona->name}}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="proveedor_id" id="proveedores_name_value">
                             </div>
                         </div>
                         <div class="col-12 col-md-4 col-lg-2">
@@ -64,7 +65,7 @@
                         <div class="col-12 col-md-4 col-lg-2">
                             <div class="mb-3">
                                 <label for="prove_id" class=" d-block">Tipo de Moneda<span class="text-danger">*</span></label>
-                                <select class="form-select form-select-sm select2" name="tipo_moneda" id="tipo_moneda_id">
+                                <select class="form-select form-select-sm select2_bootstrap" name="tipo_moneda" id="tipo_moneda_id">
                                     <option value="Soles">Soles</option>
                                     <option value="Dolares">Dolares</option>
                                 </select>
@@ -76,7 +77,7 @@
                     <div class="row">
                         <div class="col-6 col-md-4 col-lg-3 mb-3">
                             <label for="bien_id" class=" d-block">Bienes</label>
-                            <select class="form-select select2 form-select-sm" id="bien_id" >
+                            <select class="form-select select2_bootstrap form-select-sm" id="bien_id" >
                             </select>  
                         </div>
                         <div class="col-6 col-md-3 col-lg-1 mb-3">
@@ -96,7 +97,7 @@
                         </div>
                         <div class="col-6 col-md-2 col-lg-2 mb-3">
                             <label for="prove_id" class=" d-block">Tipo de Impuesto</label>
-                            <select class="form-select form-select-sm select2" id="tipo_impuesto_id">
+                            <select class="form-select form-select-sm select2_bootstrap" id="tipo_impuesto_id">
                                 <option selected="selected" disabled>--Seleccionar--</option>
                                 <option value="IGV">IGV (18%)</option>
                                 <option value="SIN IGV">SIN IGV(0%)</option>
@@ -226,7 +227,9 @@
         });
         
         $('#proveedor_id').on('change', function() {
+            $('#proveedor_id').attr('disabled', true);
             var proveedor_ids = $(this).val();
+            $('#proveedores_name_value').val(proveedor_ids);
             $.get('/busqueda_biene_compra', {proveedor_ids: proveedor_ids}, function(bienes) {
                 $('#bien_id').empty();
                 $('#bien_id').append("<option selected='selected' hidden='hidden'></option>");

@@ -91,7 +91,7 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow">   
                                             <li>
-                                                <a href="{{ url("/admin-kits/$admin_kit->slug") }}" class="dropdown-item d-flex align-items-center"><i class="bi bi-eye text-secondary me-2"></i>Detalles</a>
+                                                <button class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#showkit{{ $admin_kit->slug }}"><i class="bi bi-eye text-secondary me-2"></i>Detalles</button>
                                             </li>
                                             
                                             <li>
@@ -118,6 +118,9 @@
             </div>
         </div>
     </div>
+    @foreach ($admin_kits as $admin_kit)
+        @include('ADMINISTRADOR.PRINCIPAL.configuraciones.kits.show')
+    @endforeach
     {{-- Fin contenido --}}
 @endsection
 

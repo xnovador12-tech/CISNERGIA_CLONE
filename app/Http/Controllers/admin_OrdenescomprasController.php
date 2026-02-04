@@ -164,6 +164,8 @@ class admin_OrdenescomprasController extends Controller
         $admin_ordencompra->total_pago = $request->input('total');
         $admin_ordencompra->tipo_moneda = $request->input('tipo_moneda');
         $admin_ordencompra->observacion = $request->input('observacion');
+        $admin_ordencompra->comprobante = $request->input('comprobante');
+        $admin_ordencompra->nro_comprobante = $request->input('nro_comprobante');
         $admin_ordencompra->forma_pago = $request->input('forma_pago');
         $admin_ordencompra->plazo_pago = $request->input('plazo_pago');
         $admin_ordencompra->fecha_pago = $request->input('fecha_pago');

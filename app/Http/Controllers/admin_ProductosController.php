@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Detallecompra;
 use App\Models\Etiqueta;
+use App\Models\Inventario;
 use App\Models\Marca;
 use App\Models\Medida;
 use App\Models\Producto;
@@ -226,6 +228,11 @@ class admin_ProductosController extends Controller
         $admin_producto->precio_descuento = $request->input('precio_descuento');
         $admin_producto->save();
 
+        if($request->input('etiquetas')){
+            $admin_producto->etiquetas()->detach();
+            $admin_producto->etiquetas()->attach($request->input('etiquetas'));
+        }
+
         if($request->input('proveedores')){
             $admin_producto->proveedores()->detach();
             $admin_producto->proveedores()->attach($request->input('proveedores'));
@@ -250,7 +257,11 @@ class admin_ProductosController extends Controller
      */
     public function destroy(Producto $admin_producto)
     {
-        Producto::destroy($admin_producto->id);
-        return redirect()->route('admin-productos.index')->with('delete', 'ok');
+        if(Detallecompra::where('producto_id',$admin_producto->id)->exists() || Inventario::where('id_producto',$admin_producto->id)->exists()){
+            return redirect()->route('admin-productos.index')->with('error', 'ok');
+        }else{
+            Producto::destroy($admin_producto->id);
+            return redirect()->route('admin-productos.index')->with('delete', 'ok');
+        }
     }
 }

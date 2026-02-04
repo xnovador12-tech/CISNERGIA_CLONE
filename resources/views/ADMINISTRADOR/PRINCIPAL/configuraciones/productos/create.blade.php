@@ -282,16 +282,11 @@
                         <div class="col-12 col-md-4 col-lg-3">
                             <div class="mb-3" id="etiquetas">
                                 <p class="text-secondary mb-2 small text-uppercase fw-bold">Etiquetas</p>
-                                @forelse($etiquetas as $etiqueta)
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" name="etiquetas[]" type="checkbox" role="switch" value="{{ $etiqueta->id }}" id="etiqueta{{ $etiqueta->id }}">
-                                        <label class="form-check-label" for="etiqueta{{ $etiqueta->id }}">{{ $etiqueta->name }}</label>
-                                    </div>
-                                @empty
-                                    <div class="w-100 d-flex justify-content-center align-items-center" style="min-height: 180px">
-                                        <p class="text-muted align-middle small mb-0">Aun no hay etiquetas. <a href="{{ url('admin-etiquetas') }}" class="link-primary">Crear nuevos</a></p>
-                                    </div>
-                                @endforelse
+                                <select class="js-example-basic-multiple form-select form-select-sm select2" name="etiquetas[]" multiple="multiple" style="width:100%">
+                                    @foreach($etiquetas as $etiqueta)
+                                    <option value="{{ $etiqueta->id }}">{{ $etiqueta->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="mb-3" id="proveedores">
                                 <p class="text-secondary mb-2 small text-uppercase fw-bold">Proveedores</p>
@@ -371,7 +366,7 @@
                     $("#pt_costo").show();
                     $("#pt_imgopcional").hide();
                     $("#proveedores").show();
-                    $("#etiquetas").hide();
+                    $("#etiquetas").show();
 
                     $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {
                         $('#mostrar_prov').empty();
@@ -393,7 +388,7 @@
                     $("#pt_costo").show();
                     $("#pt_imgopcional").hide();
                     $("#proveedores").show();
-                    $("#etiquetas").hide();
+                    $("#etiquetas").show();
 
                     $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {
                          $('#mostrar_prov').empty();
@@ -408,16 +403,15 @@
                 if (__tipo == 3 || __tipo == 4 )
                 {
                     $("#title_opcional").hide();
-                    $("#mp_tempconservacion").hide();
-                    $("#act_vidautil").hide();
-                    $("#act_costo").hide();
-                    $("#act_depreciacion").hide();
-                    $("#act_tipo_adquisicion").hide();
+                    $("#act_vidautil").show();
+                    $("#act_costo").show();
+                    $("#act_depreciacion").show();
+                    $("#act_tipo_adquisicion").show();
                     $("#pt_precio").show();
                     $("#pt_costo").show();
                     $("#pt_imgopcional").show();
                     $("#show").hide();
-                    $("#proveedores").hide();
+                    $("#proveedores").show();
                     $("#etiquetas").show();
 
                     $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {

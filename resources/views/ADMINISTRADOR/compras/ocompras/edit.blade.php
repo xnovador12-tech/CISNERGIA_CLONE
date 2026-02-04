@@ -71,6 +71,28 @@
                         </div>
                         <div class="col-12 col-md-4 col-lg-2">
                             <div class="mb-3">
+                                <label for="comprobante__id" class=" d-block">Comprobante<span class="text-danger">*</span></label>
+                                <select class="form-select form-select-sm @error ('comprobante') is-invalid @enderror" name="comprobante" id="comprobante" required>
+                                    <option value="{{ $admin_ordencompra->comprobante }}" selected="selected" hidden="hidden">{{ $admin_ordencompra->comprobante }}</option>
+                                    <option value="Boleta">Boleta</option>
+                                    <option value="Factura">Factura</option>
+                                </select>  
+                                @error('comprobante')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <div class="mb-3">
+                                <label for="numeracion__id" class=" d-block">Numeración<span class="text-danger">*</span></label>
+                                <input type="text" name="nro_comprobante" value="{{$admin_ordencompra->nro_comprobante}}" class="form-control form-control-sm @error ('nro_comprobante') is-invalid @enderror" id="numeracion__id" >
+                                @error('nro_comprobante')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <div class="mb-3">
                                 <label for="formapago__id" class=" d-block">Forma de pago<span class="text-danger">*</span></label>
                                 <select class="form-select form-select-sm @error ('forma_pago') is-invalid @enderror" required id="forma_pago_id" >
                                     <option value="{{$admin_ordencompra->forma_pago}}" selected="selected" hidden="hidden">{{$admin_ordencompra->forma_pago}}</option>

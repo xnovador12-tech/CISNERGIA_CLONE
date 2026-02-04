@@ -1,6 +1,6 @@
 @extends('TEMPLATES.administrador')
 
-@section('title', 'ORDEN DE COMPRAS')
+@section('title', 'SALIDAS')
 
 @section('css')
 <style>
@@ -17,11 +17,11 @@
         <div class="bg-transparent mb-3" style="height: 67px"></div>
         <div class="container-fluid">
             <div class="" data-aos="fade-right">
-                <h1 class="titulo h2 text-uppercase fw-bold mb-0">ORDEN DE COMPRAS</h1>
+                <h1 class="titulo h2 text-uppercase fw-bold mb-0">SALIDAS</h1>
                 <div class="" style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="">Principal</a></li>
-                        <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-ordencompras') }}">Orden de Compras</a></li>
+                        <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-salidas') }}">Salidas</a></li>
                         <li class="breadcrumb-item link" aria-current="page">Inicio</li>
                     </ol>
                 </div>
@@ -36,7 +36,7 @@
             <div class="card-header bg-transparent">
                 <div class="row justify-content-beetween">
                     <div class="col-md-3 d-flex">
-                        <a type="button" href="{{ url('admin-ordencompras/create') }}" class="btn btn-dark text-uppercase text-white btn-sm w-100">
+                        <a type="button" href="{{ url('admin-salidas/create') }}" class="btn btn-dark text-uppercase text-white btn-sm w-100">
                             <i class="bi bi-plus-circle-fill me-2"></i>
                             Nuevo Registro
                         </a>
@@ -45,18 +45,17 @@
             </div>
             <div class="card-body">
                 <div class="mb-2 col-12 col-md-6">
-                    <span class="text-uppercase">Total de registros encontrados: <span class="fw-bold">{{ $admin_ordencompras->count() }}</span></span>
+                    <span class="text-uppercase">Total de registros encontrados: <span class="fw-bold">{{ $admin_salidas->count() }}</span></span>
                 </div>
                 <table id="display" class="table table-hover table-sm text-center" cellspacing="0" style="width:100%">
                     <thead class="bg-dark text-white border-0">
                         <tr>
                             <th class="h6 small text-center text-uppercase fw-bold">N°</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Codigo</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Proveedor</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Código</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Motivo</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Salida de</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Fecha</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Total</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Estado</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Estado Proceso</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Estado Pago</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
                     </thead>
@@ -64,64 +63,35 @@
                         @php
                             $contador = 1;
                         @endphp
-                        @foreach($admin_ordencompras as $admin_ordencompra)
+                        @foreach ($admin_salidas as $admin_salida)
                             <tr>
-                                <td class="fw-normal text-center align-middle">{{ $contador }}</td>
-                                <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->codigo }}</td>
-                                <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->proveedor->persona->name }}</td>
-                                <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->total }}</td>
-                                <td class="fw-normal align-middle">
-                                    @if($admin_ordencompra->estado == 'Inventariado')
-                                        <span class="badge bg-success border-0">{{ $admin_ordencompra->estado }}</span>
-                                    @elseif($admin_ordencompra->estado == 'En progreso')
-                                        <span class="badge bg-info border-0">{{ $admin_ordencompra->estado }}</span>
-                                    @else
-                                        <span class="badge bg-warning border-0">{{ $admin_ordencompra->estado }}</span>
-                                    @endif
-                                </td>    
-                                <td class="fw-normal text-center align-middle">
-                                    @if($admin_ordencompra->estado_proceso == 'Procesado')    
-                                        <span class="badge bg-success border-0">{{ $admin_ordencompra->estado_proceso }}</span>
-                                    @elseif($admin_ordencompra->estado_proceso == 'Aprobado')    
-                                        <span class="badge bg-info border-0">{{ $admin_ordencompra->estado_proceso }}</span>
-                                    @else
-                                        <span class="badge bg-warning border-0">{{ $admin_ordencompra->estado_proceso }}</span>
-                                    @endif
-                                </td>
-                                <td class="fw-normal text-center align-middle">
-                                    @if($admin_ordencompra->estado_pago == 'Pendiente') 
-                                        <span class="badge bg-warning border-0">{{ $admin_ordencompra->estado_pago }}</span>
-                                    @else   
-                                        <span class="badge bg-success border-0">{{ $admin_ordencompra->estado_pago }}</span>
-                                    @endif
-                                </td>
+                                <td class="fw-normal align-middle">{{ $contador }}</td>
+                                @if($admin_salida->motivo == 'Venta')
+                                    <td class="fw-normal align-middle">{{ $admin_salida->codigo_venta }}</td>
+                                @endif
+                                <td class="fw-normal align-middle">{{ $admin_salida->motivo }}</td>
+                                <td class="fw-normal align-middle text-uppercase small">{{ $admin_salida->almacen->name }}</td>
+                                <td class="fw-normal align-middle text-uppercase">{{ $admin_salida->created_at->format('d-m-Y') }}</td>
+                                <td class="fw-normal align-middle text-end">{{ number_format($admin_salida->total, 3, '.', ',') }}</td> 
                                 <td class="align-middle">                                        
                                     <div class="dropstart">
                                         <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px; padding: 0;">
                                             <i class="bi bi-three-dots-vertical"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow"> 
-                                            <li>
-                                                <a href="{{ url("/admin-ordencompras/$admin_ordencompra->slug") }}" class="dropdown-item d-flex align-items-center"><i class="bi bi-eye text-secondary me-2"></i>Detalles</a>
+                                            <li class="dropdown-item">
+                                                <a target="_blank" href="" class="link-dark text-decoration-none"><i class="bi bi-printer-fill text-secondary me-2"></i>Imprimir</a>
+                                            </li>
+                                            <li class="dropdown-item">
+                                                <a href="{{ url("admin-salidas/$admin_salida->slug") }}" class="link-dark text-decoration-none"><i class="bi bi-eye text-secondary me-2"></i>Detalles</a>
                                             </li> 
-                                            <li>
-                                                <a href="{{ url("/admin-ordencompras/$admin_ordencompra->slug/edit") }}" class="dropdown-item d-flex align-items-center"><i class="bi bi-pencil text-secondary me-2"></i>Editar</a>
-                                            </li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li>
-                                                <form method="POST" action="{{ route('admin-ordencompras.destroy',$admin_ordencompra->slug) }}" class="form-delete">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item d-flex align-items-center text-danger"><i class="bi bi-trash me-2"></i>Eliminar</button>        
-                                                </form>                                                     
-                                            </li>
                                         </ul>
                                     </div>
                                 </td>
                             </tr>
-                            @php
-                                $contador++;
-                            @endphp
+                        @php
+                            $contador++;
+                        @endphp
                         @endforeach
                     </tbody>
                 </table>

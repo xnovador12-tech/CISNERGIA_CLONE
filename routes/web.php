@@ -25,6 +25,7 @@ use App\Http\Controllers\admin_ServiciosController;
 use App\Http\Controllers\admin_PedidosController;
 use App\Http\Controllers\admin_VentasController;
 use App\Http\Controllers\admin_SeguimientoController;
+use App\Http\Controllers\admin_SalidasController;
 use App\Http\Controllers\ecommerceController;
 use Illuminate\Support\Facades\Route;
 
@@ -79,6 +80,9 @@ Route::get('busqueda_proved', [admin_ProductosController::class, 'getBusquedapro
 Route::get('busqueda_proved_edit', [admin_ProductosController::class, 'getbusqueda_proved_edit']);
 
 Route::resource('admin-kits', admin_KitsController::class);
+Route::get('/dtlle_kits', [admin_KitsController::class, 'getdtlle_kits']);
+Route::get('/images/{id}/delete', [admin_KitsController::class, 'deleteImage']);
+Route::put('/admin-kits/estado/{admin_kit}', [admin_KitsController::class, 'estado']);
 
 Route::resource('admin-clientes', admin_ClientesController::class);
 Route::put('/admin-clientes/estado/{admin_cliente}', [admin_ClientesController::class, 'estado']);
@@ -114,6 +118,8 @@ Route::get('fecha_cuotas', [admin_OrdenescomprasController::class, 'getFechacuot
 Route::resource('admin-ingresos', admin_IngresosController::class);
 Route::get('busqueda_dtll_oc', [admin_IngresosController::class, 'getbusqueda_det_oc']);
 Route::get('busqueda_pterminado', [admin_IngresosController::class, 'getbusqueda_pterminado']);
+
+Route::resource('admin-salidas', admin_SalidasController::class);
 
 // VENTAS
 Route::resource('admin-pedidos', admin_PedidosController::class);

@@ -48,7 +48,7 @@
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="">Principal</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-configuraciones') }}">Configuraciones</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-kits') }}">Kits</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Nuevo registro</li>
+                        <li class="breadcrumb-item" aria-current="page">Actualizar registro</li>
                     </ol>
                 </div>
             </div>
@@ -57,8 +57,9 @@
 <!-- fin encabezado -->
 
     {{-- Contenido --}}
-    <form method="POST" action="/admin-kits" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
-        @csrf
+    <form method="POST" action="/admin-kits/{{ $admin_kit->slug }}" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
+        @csrf  
+        @method('put')  
         <div class="container-fluid">
             <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
                 <div class="card-body">
@@ -84,8 +85,7 @@
                                     <div class="col-12 col-md-3 col-lg-3">
                                         <div class="mb-3">
                                             <label for="codigo_id" class="">Codigo<span class="text-danger">*</span></label>
-                                            <input type="text" value="{{ $codigo }}" class="form-control form-control-sm bg-white" disabled id="codigo_id">
-                                            <input hidden value="{{ $codigo }}" name="codigo">
+                                            <input type="text" value="{{ $admin_kit->codigo }}" class="form-control form-control-sm bg-white" disabled id="codigo_id">
                                             @error('codigo')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
@@ -94,7 +94,7 @@
                                     <div class="col-12 col-md-2 col-lg-2">
                                         <div class="mb-3">
                                             <label for="precio_total_id" class="">Precio Total<span class="text-danger">*</span></label>
-                                            <input type="text" name="precio_total" class="form-control form-control-sm @error('precio_total') is-invalid @enderror" required>
+                                            <input type="text" name="precio_total" value="{{ old('precio_total', $admin_kit->precio_total) }}" class="form-control form-control-sm @error('precio_total') is-invalid @enderror" required>
                                             @error('precio_total')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
@@ -103,8 +103,8 @@
                                     <div class="col-12 col-md-3 col-lg-3">
                                         <div class="mb-3">
                                             <label for="cantidad_total_id" class="">Cantidad Total<span class="text-danger">*</span></label>
-                                            <input type="number" disabled id="cantidad_total_id_disabled" class="form-control form-control-sm @error('cantidad_total') is-invalid @enderror">
-                                            <input type="number" hidden name="cantidad_total" id="cantidad_total_id" class="form-control form-control-sm @error('cantidad_total') is-invalid @enderror" required>
+                                            <input type="number" disabled id="cantidad_total_id_disabled" class="form-control form-control-sm @error('cantidad_total') is-invalid @enderror" value="{{ $admin_kit->cantidad_total }}">
+                                            <input type="number" hidden name="cantidad_total" id="cantidad_total_id" class="form-control form-control-sm @error('cantidad_total') is-invalid @enderror" value="{{ old('cantidad_total', $admin_kit->cantidad_total) }}" required>
                                             @error('cantidad_total')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
@@ -116,7 +116,7 @@
                                             <div class="form-check form-switch">
                                                 <select class="js-example-basic-multiple form-select form-select-sm select2" name="etiquetas[]" multiple="multiple" style="width:100%">
                                                     @foreach($etiquetas as $etiqueta)
-                                                    <option value="{{ $etiqueta->id }}">{{ $etiqueta->name }}</option>
+                                                    <option @if($admin_kit->etiquetas->contains($etiqueta->id)) selected @endif value="{{ $etiqueta->id }}">{{ $etiqueta->name }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -125,7 +125,7 @@
                                     <div class="col-12 col-md-12 col-lg-12">
                                         <div class="mb-3">
                                             <label for="descripcion_id" class="">Descripción</label>
-                                            <textarea class="form-control @error('descripcion') is-invalid @enderror" name="descripcion" id="editor" placeholder="Escribe una descripción" style="height: 210px">{{ old('descripcion') }}</textarea>
+                                            <textarea class="form-control @error('descripcion') is-invalid @enderror" name="descripcion" id="editor" placeholder="Escribe una descripción" style="height: 210px">{{ old('descripcion', $admin_kit->descripcion) }}</textarea>
                                             @error('descripcion')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
@@ -190,6 +190,20 @@
                                                     <div id="container_images_multiple">
                 
                                                     </div>
+                                                    <div class="row my-3">
+                                                    @foreach($admin_kit->images as $image)
+                                                        <div class="col-6 col-md-3 col-lg-4">
+                                                            <div class="card text-center imagecard rounded bg-light mb-0" style="height: 160px">  
+                                                                <label class=" my-auto text-center">
+                                                                    <img for="uploadImage1" id="uploadPreview1" alt="" class="py-auto rounded" style="width: 100%; height: 156px;" src="{{ $image->url }}">   
+                                                                </label>
+                                                                <div class="card-img-overlay">
+                                                                    <a href="/images/{{ $image->id }}/delete" class="btn btn-danger btn-sm float-end"><i class="bi bi-trash"></i></a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -202,7 +216,7 @@
             </div>
             <div class="pt-3 pb-3 text-end" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
                 <a href="{{ url('admin-kits') }}" class="btn btn-outline-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-primary px-5 my-2 my-md-0 text-white">Registrar</button>
+                <button type="submit" class="btn btn-primary px-5 my-2 my-md-0 text-white">Actualizar</button>
             </div>     
         </div> 
     </form>
@@ -237,6 +251,27 @@
 <script>
     var contador_comb = 1;
     cantidad_totalg=0;
+
+    $.get('/dtlle_kits',{codigo_kits: $('#codigo_id').val()}, function(busqueda){
+        $.each(busqueda, function(index, value){
+            if(index >= 0){
+            cantidad_totalg+=Number(value[2]);
+            var fila = '<tr class="selected igv_carta" id="filamp' + contador_comb +
+                                    '"><td class="align-middle fw-normal">' + contador_comb + '</td><td class="align-middle fw-normal">' + value[1] +
+                                    '</td><td class="align-middle fw-normal">' + value[2] +
+                                    '</td><input type="hidden" name="producto_id[]" value="' + value[0] +
+                                    '"><input type="hidden" name="cantidad[]" value="' + value[2] +
+                                    '"><td class="align-middle"><button type="button" class="btn btn-sm btn-danger text-white" onclick="eliminarcombo(' +
+                            contador_comb +','+value[2]+','+value[0]+');"><i class="bi bi-trash"></i></button></td></tr>';
+                            contador_comb++;
+                            $('#cantidad_total_id').val(cantidad_totalg);
+                            $('#cantidad_total_id_disabled').val(cantidad_totalg);
+                            $('#dtll_combo').append(fila);
+            }
+        });
+    });
+
+
     $('#btnasignar').click(function() {
         var producto = document.getElementById('productos_id').value.split('_');
         var cantidad = $('#cantidad_id').val();

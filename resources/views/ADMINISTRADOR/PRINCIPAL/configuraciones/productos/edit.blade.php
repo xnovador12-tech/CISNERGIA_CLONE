@@ -288,26 +288,11 @@
                         <div class="col-12 col-md-4 col-lg-3">
                             <div class="mb-3" id="etiquetas">
                                 <p class="text-secondary mb-2 small text-uppercase fw-bold">Etiquetas</p>
-                                @forelse($etiquetas as $etiqueta)
-                                    @php
-                                        $var_etiq = DB::Table("etiqueta_producto")->where('tag_id',$etiqueta->id)->where('producto_id',$admin_producto->id)->first();
-                                    @endphp
-                                    @if($var_etiq)
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" name="etiquetas[]" checked type="checkbox" role="switch" value="{{ $etiqueta->id }}" id="etiqueta{{ $etiqueta->id }}">
-                                            <label class="form-check-label" for="etiqueta{{ $etiqueta->id }}">{{ $etiqueta->name }}</label>
-                                        </div>
-                                    @else
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" name="etiquetas[]" type="checkbox" role="switch" value="{{ $etiqueta->id }}" id="etiqueta{{ $etiqueta->id }}">
-                                            <label class="form-check-label" for="etiqueta{{ $etiqueta->id }}">{{ $etiqueta->name }}</label>
-                                        </div>
-                                    @endif
-                                @empty
-                                    <div class="w-100 d-flex justify-content-center align-items-center" style="min-height: 180px">
-                                        <p class="text-muted align-middle small mb-0">Aun no hay etiquetas. <a href="{{ url('admin-etiquetas') }}" class="link-primary">Crear nuevos</a></p>
-                                    </div>
-                                @endforelse
+                                <select class="js-example-basic-multiple form-select form-select-sm select2" name="etiquetas[]" multiple="multiple" style="width:100%">
+                                    @foreach($etiquetas as $etiqueta)
+                                    <option @if($admin_producto->etiquetas->contains($etiqueta->id)) selected @endif value="{{ $etiqueta->id }}">{{ $etiqueta->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="mb-3" id="proveedores">
                                 <p class="text-secondary mb-2 small text-uppercase fw-bold">Proveedores</p>
@@ -370,7 +355,7 @@
                     $("#pt_costo").show();
                     $("#pt_imgopcional").hide();
                     $("#proveedores").show();
-                    $("#etiquetas").hide();
+                    $("#etiquetas").show();
 
                     $.get('/busqueda_proved_edit', {valor_tip: 2, valor_id_prod:valor_id_prod}, function(bienes) {
                         $('#mostrar_prov').empty();
@@ -396,7 +381,7 @@
                     $("#pt_costo").show();
                     $("#pt_imgopcional").hide();
                     $("#proveedores").show();
-                    $("#etiquetas").hide();
+                    $("#etiquetas").show();
 
                     $.get('/busqueda_proved_edit', {valor_tip: 3, valor_id_prod:valor_id_prod}, function(bienes) {
                         $('#mostrar_prov').empty();
@@ -423,7 +408,7 @@
                     $("#pt_costo").show();
                     $("#pt_imgopcional").show();
                     $("#show").hide();
-                    $("#proveedores").hide();
+                    $("#proveedores").show();
                     $("#etiquetas").show();
 
                     $.get('/busqueda_proved_edit', {valor_tip: __tipo, valor_id_prod:valor_id_prod}, function(bienes) {

@@ -143,7 +143,7 @@
                             <table class="w-100">
                                 <tr>
                                     <td class="border-0 ps-2 py-1" style="width: 50%">
-                                        Total Materiales
+                                        Total Accesorios
                                     </td>
                                     <td class="border-0 pe-2 py-1" style="width: 50%">
                                         <div class="clearfix">
@@ -157,7 +157,7 @@
 
                                 <tr>
                                     <td class="border-0 ps-2 py-1 bg-light" style="width: 50%">
-                                        Total Activos
+                                        Total Repuestos
                                     </td>
                                     <td class="border-0 pe-2 py-1 bg-light" style="width: 50%">
                                         <div class="clearfix">
@@ -171,7 +171,7 @@
 
                                 <tr>
                                     <td class="border-0 ps-2 py-1" style="width: 50%">
-                                        Total Productos terminados
+                                        Total Modulo Solar
                                     </td>
                                     <td class="border-0 pe-2 py-1" style="width: 50%">
                                         <div class="clearfix">

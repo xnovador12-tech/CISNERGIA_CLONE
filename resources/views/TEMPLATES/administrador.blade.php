@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/css/dataTables.dataTables.css">
     <link rel="stylesheet" href="/css/responsive.bootstrap5.css"/>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
     @yield('css')
     @stack('meta')
 
@@ -258,7 +259,7 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-salidas.index') --}}"
+                            <a href="{{route('admin-salidas.index')}}"
                                 class="nav-link px-3 {{ request()->is(['admin-salidas*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-box-arrow-up-right me-2"></i>
@@ -456,6 +457,7 @@
     <script src="/js/dataTables.bootstrap5.js"></script>
     <script src="/js/dataTables.responsive.js"></script>
     <script src="/js/responsive.bootstrap5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script>
         $('.select2_bootstrap').select2({
             theme: "bootstrap-5",

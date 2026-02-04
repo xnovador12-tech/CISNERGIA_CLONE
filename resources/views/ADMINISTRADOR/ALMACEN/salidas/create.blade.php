@@ -1,6 +1,6 @@
 @extends('TEMPLATES.administrador')
 
-@section('title', 'INGRESOS')
+@section('title', 'SALIDAS')
 
 @section('css')
 @endsection
@@ -11,11 +11,11 @@
         <div class="bg-transparent mb-3" style="height: 67px"></div>
         <div class="container-fluid">
             <div class="" data-aos="fade-right">
-                <h1 class="titulo h2 text-uppercase fw-bold mb-0">INGRESOS</h1>
+                <h1 class="titulo h2 text-uppercase fw-bold mb-0">SALIDAS</h1>
                 <div class="" style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a class="text-decoration-none" href="">Almacén</a></li>
-                        <li class="breadcrumb-item"><a class="text-decoration-none" href="{{url('admin-ingresos')}}">Ingresos</a></li>
+                        <li class="breadcrumb-item"><a class="text-decoration-none" href="{{url('admin-salidas')}}">Salidas</a></li>
                         <li class="breadcrumb-item" aria-current="page">Nuevo registro</li>
                 </div>
             </div>
@@ -24,7 +24,7 @@
 <!-- fin encabezado -->
 
     {{-- contenido --}}
-        <form method="POST" action="/admin-ingresos" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
+        <form method="POST" action="/admin-salidas" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
             @csrf
             <div class="container-fluid">
                 <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
@@ -79,7 +79,7 @@
                                     <select class="form-select form-select-sm @error ('motivo') is-invalid @enderror" required name="motivo" id="motivo_id" required>
                                         <option value="{{ old('motivo') }}" selected="selected" hidden="hidden">{{ old('motivo') }}</option>
                                         @foreach ($motivos as $motivo)
-                                            @if($motivo->id == '1')
+                                            @if($motivo->id == '2')
                                                 <option value="{{ $motivo->name }}">{{ $motivo->name }}</option>
                                             @endif
                                         @endforeach
@@ -93,8 +93,7 @@
                                 <label for="Concepto_id" class=" d-block">Concepto<span class="text-danger">*</span></label>
                                 <select class="form-select form-select-sm @error ('Concepto_id') is-invalid @enderror" required name="concepto" id="Concepto_id" required>
                                     <option value="{{ old('concepto') }}" selected="selected" hidden="hidden">{{ old('concepto') }}</option>
-                                        <option value="O_COMPRA">ORDEN DE COMPRA</option>
-                                        <!-- <option value="P_TERMINADO">PRODUCTO TERMINADO</option> -->
+                                        <option value="P_TERMINADO">PRODUCTO TERMINADO</option>
                                 </select>  
                                 @error('concepto')
                                     <small class="text-danger">{{ $message }}</small>
@@ -102,16 +101,16 @@
                             </div>
                             <div class="col-12 col-md-6 col-lg-3">
                                 <div class="mb-3">
-                                    <label for="codigo_id" class="">Ingresa a<span class="text-danger">*</span></label>
-                                    <select class="form-select form-select-sm @error ('ingreso_a') is-invalid @enderror" required id="ingresoa_id">
-                                        <option value="{{ old('ingreso_a') }}" selected="selected" hidden="hidden">{{ old('ingreso_a') }}</option>
+                                    <label for="codigo_id" class="">Sale de<span class="text-danger">*</span></label>
+                                    <select class="form-select form-select-sm @error ('salida_de') is-invalid @enderror" required id="salida_de_id">
+                                        <option value="{{ old('salida_de') }}" selected="selected" hidden="hidden">{{ old('salida_de') }}</option>
                                         @foreach ($almacen as $almacenes)
                                             <option value="{{ $almacenes->name.' | '.$almacenes->sede->name }}_{{ $almacenes->id }}_{{ $almacenes->clasificacion }}">{{ $almacenes->name.' | '.$almacenes->sede->name }}</option>
                                         @endforeach
                                     </select>
-                                    <input type="text" name="ingreso_a"  hidden id="ingreso_a_id">
+                                    <input type="text" name="salida_de"  hidden id="salida_de_id">
                                     <input type="text" name="id_almacen"  hidden id="id_almacen_id">
-                                    @error('ingreso_a')
+                                    @error('salida_de')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror  
                                 </div>
@@ -119,17 +118,15 @@
                                                         
                             <div class="col-12 col-md-3 col-lg-2" id="ocompra_div">
                                 <div class="mb-3">
-                                    <label for="categoria_id" class=" d-block">Órden de compra</label>
-                                    <select class="form-select form-select-sm select2" name="ocompra" id="ocompra_id" style="width: 100%">
-                                        <option value="{{ old('ocompra') }}" selected="selected" hidden="hidden">{{ old('ocompra') }}</option>
-                                        @foreach ($ocompra as $ocompras)
-                                                <option value="{{ $ocompras->codigo }}">{{ $ocompras->codigo }}</option>
-                                        @endforeach
+                                    <label for="categoria_id" class=" d-block">Codigo de venta</label>
+                                    <select class="form-select form-select-sm select2" name="cventa" id="cventa_id" style="width: 100%">
+                                        <option value="{{ old('cventa') }}" selected="selected" hidden="hidden">{{ old('cventa') }}</option>
+                                        
                                     </select>
-                                    @error('ocompra')
+                                    @error('cventa')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
-                                    <input hidden name="codigo_ocompra" id="codigo_ocompra_id">  
+                                    <input hidden name="codigo_venta" id="codigo_venta_id">  
                                 </div>
                             </div>
                         </div>
@@ -283,14 +280,14 @@ $(document).ready(function() {
     $('#motivo_id').on('change', function(){
         valormotivo = $(this).val();
         
-        if(valormotivo == 'Inventario'){
+        if(valormotivo == 'Venta'){
             $('#concepto_div').show();
         }
     });
 
     $('#Concepto_id').on('change', function(){
         valor_concepto = $(this).val();
-        if(valor_concepto == 'O_COMPRA'){
+        if(valor_concepto == 'P_TERMINADO'){
             $('#ocompra_div').show();
             $('#ocompra_id').attr('disabled',false);
         }else{

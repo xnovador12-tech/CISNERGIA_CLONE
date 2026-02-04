@@ -32,7 +32,7 @@ class admin_ProveedoresController extends Controller
         $tiposcuentas = Tipocuenta::all();
         $bancos = Banco::all();
         $tiposdocumento = Identificacion::all();
-        $tipos = Tipo::where('id', '!=', '4')->where('id', '!=', '5')->get();
+        $tipos = Tipo::all();
         $ubigeos = DB::table('departamentos as dep')
             ->select('dep.id as departamento_ids', 'dep.name as departamento_name')
             ->get();
@@ -105,7 +105,7 @@ class admin_ProveedoresController extends Controller
         $tiposcuentas = Tipocuenta::all();
         $bancos = Banco::all();
         $tiposdocumento = Identificacion::all();
-        $tipos = Tipo::all()->where('id', '!=', '4')->where('id', '!=', '5');
+        $tipos = Tipo::all();
         $ubigeos = DB::table('departamentos as dep')
             ->select('dep.id as departamento_ids', 'dep.name as departamento_name')
             ->get();
