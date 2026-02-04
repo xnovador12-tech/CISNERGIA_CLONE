@@ -26,6 +26,7 @@ use App\Http\Controllers\admin_PedidosController;
 use App\Http\Controllers\admin_VentasController;
 use App\Http\Controllers\admin_SeguimientoController;
 use App\Http\Controllers\admin_SalidasController;
+use App\Http\Controllers\admin_InventarioController;
 use App\Http\Controllers\ecommerceController;
 use Illuminate\Support\Facades\Route;
 
@@ -120,6 +121,8 @@ Route::get('busqueda_dtll_oc', [admin_IngresosController::class, 'getbusqueda_de
 Route::get('busqueda_pterminado', [admin_IngresosController::class, 'getbusqueda_pterminado']);
 
 Route::resource('admin-salidas', admin_SalidasController::class);
+
+Route::resource('admin-inventarios', admin_InventarioController::class);
 
 // VENTAS
 Route::resource('admin-pedidos', admin_PedidosController::class);

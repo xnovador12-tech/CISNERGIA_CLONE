@@ -235,8 +235,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-inventario.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-inventario*']) ? 'active-item' : null }} menu">
+                            <a href="{{route('admin-inventarios.index')}}"
+                                class="nav-link px-3 {{ request()->is(['admin-inventarios*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-box-seam me-2"></i>
                                 </span>
