@@ -65,5 +65,20 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Persona::class);
     }
+
+    /**
+     * Accessor para obtener el nombre del usuario desde la persona relacionada
+     */
+    public function getNameAttribute()
+    {
+        if ($this->persona) {
+            $nombre = $this->persona->name;
+            if ($this->persona->surnames) {
+                $nombre .= ' ' . $this->persona->surnames;
+            }
+            return $nombre;
+        }
+        return $this->email;
+    }
     
 }

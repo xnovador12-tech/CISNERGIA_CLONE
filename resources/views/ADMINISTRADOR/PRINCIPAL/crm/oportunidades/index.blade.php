@@ -2,21 +2,47 @@
 @section('title', 'OPORTUNIDADES')
 
 @section('css')
-    <style>
-        .kanban-stage {
-            min-width: 280px;
-            max-width: 280px;
-        }
-
-        .opportunity-card {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .opportunity-card:hover {
-            transform: translateY(-2px);
-        }
-    </style>
+<style>
+    .kanban-stage { min-width: 260px; max-width: 260px; }
+    .opportunity-card { cursor: pointer; transition: all 0.2s; }
+    .opportunity-card:hover { transform: translateY(-2px); }
+    
+    /* Estilos de paginación DataTables */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 0.375rem 0.75rem;
+        margin-left: 2px;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        background: #fff;
+        color: #212529 !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #1C3146 !important;
+        color: #fff !important;
+        border-color: #1C3146;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #e9ecef !important;
+        color: #212529 !important;
+        border-color: #dee2e6;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: #1C3146 !important;
+        color: #fff !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        color: #6c757d !important;
+        cursor: not-allowed;
+    }
+    .dataTables_wrapper .dataTables_info {
+        padding-top: 0.85em;
+        color: #6c757d;
+    }
+    .dataTables_wrapper .dataTables_paginate {
+        float: right;
+        text-align: right;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -25,12 +51,9 @@
         <div class="container-fluid">
             <div class="" data-aos="fade-right">
                 <h1 class="titulo h2 text-uppercase fw-bold mb-0">OPORTUNIDADES</h1>
-                <div class=""
-                    style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);"
-                    aria-label="breadcrumb">
+                <div style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a class="text-decoration-none link"
-                                href="{{ route('admin-dashboard.index') }}">Principal</a></li>
+                        <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ route('admin-dashboard.index') }}">Principal</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="#">CRM</a></li>
                         <li class="breadcrumb-item link" aria-current="page">Oportunidades</li>
                     </ol>
@@ -48,7 +71,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <p class="text-muted mb-1 small">Valor Pipeline</p>
-                                <h3 class="mb-0 fw-bold text-primary">S/ 2.4M</h3>
+                                <h3 class="mb-0 fw-bold text-primary">S/ {{ number_format($estadisticas['valor_pipeline'] ?? 0, 0) }}</h3>
                             </div>
                             <div class="bg-primary bg-opacity-10 p-3 rounded-3">
                                 <i class="bi bi-cash-stack fs-3 text-primary"></i>
@@ -63,7 +86,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <p class="text-muted mb-1 small">Oportunidades Activas</p>
-                                <h3 class="mb-0 fw-bold">47</h3>
+                                <h3 class="mb-0 fw-bold">{{ $estadisticas['activas'] ?? 0 }}</h3>
                             </div>
                             <div class="bg-info bg-opacity-10 p-3 rounded-3">
                                 <i class="bi bi-diagram-3 fs-3 text-info"></i>
@@ -78,7 +101,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <p class="text-muted mb-1 small">Tasa Conversión</p>
-                                <h3 class="mb-0 fw-bold text-success">34%</h3>
+                                <h3 class="mb-0 fw-bold text-success">{{ $estadisticas['tasa_conversion'] ?? 0 }}%</h3>
                             </div>
                             <div class="bg-success bg-opacity-10 p-3 rounded-3">
                                 <i class="bi bi-graph-up-arrow fs-3 text-success"></i>
@@ -93,7 +116,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <p class="text-muted mb-1 small">Ciclo Promedio</p>
-                                <h3 class="mb-0 fw-bold text-warning">24 días</h3>
+                                <h3 class="mb-0 fw-bold text-warning">{{ $estadisticas['ciclo_promedio'] ?? 0 }} días</h3>
                             </div>
                             <div class="bg-warning bg-opacity-10 p-3 rounded-3">
                                 <i class="bi bi-clock-history fs-3 text-warning"></i>
@@ -105,403 +128,237 @@
         </div>
     </div>
 
-    {{-- Toggle Vista --}}
-    <div class="container-fluid mb-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <div></div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-primary active" id="btnKanban">
-                    <i class="bi bi-kanban me-1"></i> Vista Pipeline
-                </button>
-                <button class="btn btn-sm btn-outline-primary" id="btnTabla">
-                    <i class="bi bi-table me-1"></i> Vista Tabla
-                </button>
+    {{-- Alertas --}}
+    @if(session('success'))
+        <div class="container-fluid mb-3">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         </div>
-    </div>
+    @endif
 
-    {{-- Vista Kanban --}}
-    <div class="container-fluid" id="vistaKanban">
-        <div class="overflow-auto pb-3">
-            <div class="d-flex gap-3" style="min-width: max-content;">
-                {{-- Etapa: Calificación --}}
-                <div class="kanban-stage">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0 fw-bold"><i class="bi bi-funnel me-2"></i>Calificación</h6>
-                            <small>12 oportunidades | S/ 420K</small>
-                        </div>
-                        <div class="card-body p-2" style="max-height: 600px; overflow-y: auto;">
-                            <div class="card opportunity-card border-start border-primary border-4 mb-2">
-                                <div class="card-body p-3">
-                                    <h6 class="fw-bold mb-2">Sistema Residencial 5kW</h6>
-                                    <p class="text-muted small mb-2">Carlos Mendoza SAC</p>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="fw-bold text-primary">S/ 45,000</span>
-                                        <span class="badge bg-success small">85%</span>
-                                    </div>
-                                    <div class="progress mb-2" style="height: 4px;">
-                                        <div class="progress-bar bg-success" style="width: 85%"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center small text-muted">
-                                        <span><i class="bi bi-person me-1"></i>Juan D.</span>
-                                        <span><i class="bi bi-calendar3 me-1"></i>5 días</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="card opportunity-card border-start border-primary border-4 mb-2">
-                                <div class="card-body p-3">
-                                    <h6 class="fw-bold mb-2">Comercial 15kW</h6>
-                                    <p class="text-muted small mb-2">Ana García Torres</p>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="fw-bold text-primary">S/ 120,000</span>
-                                        <span class="badge bg-warning text-dark small">60%</span>
-                                    </div>
-                                    <div class="progress mb-2" style="height: 4px;">
-                                        <div class="progress-bar bg-warning" style="width: 60%"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center small text-muted">
-                                        <span><i class="bi bi-person me-1"></i>María L.</span>
-                                        <span><i class="bi bi-calendar3 me-1"></i>3 días</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Etapa: Propuesta Técnica --}}
-                <div class="kanban-stage">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-info text-white">
-                            <h6 class="mb-0 fw-bold"><i class="bi bi-file-text me-2"></i>Propuesta Técnica</h6>
-                            <small>8 oportunidades | S/ 580K</small>
-                        </div>
-                        <div class="card-body p-2" style="max-height: 600px; overflow-y: auto;">
-                            <div class="card opportunity-card border-start border-info border-4 mb-2">
-                                <div class="card-body p-3">
-                                    <h6 class="fw-bold mb-2">Granja Solar 50kW</h6>
-                                    <p class="text-muted small mb-2">Agroindustrias del Sur</p>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="fw-bold text-primary">S/ 280,000</span>
-                                        <span class="badge bg-success small">75%</span>
-                                    </div>
-                                    <div class="progress mb-2" style="height: 4px;">
-                                        <div class="progress-bar bg-success" style="width: 75%"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center small text-muted">
-                                        <span><i class="bi bi-person me-1"></i>Juan D.</span>
-                                        <span><i class="bi bi-calendar3 me-1"></i>12 días</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Etapa: Cotización --}}
-                <div class="kanban-stage">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-warning text-dark">
-                            <h6 class="mb-0 fw-bold"><i class="bi bi-calculator me-2"></i>Cotización</h6>
-                            <small>15 oportunidades | S/ 820K</small>
-                        </div>
-                        <div class="card-body p-2" style="max-height: 600px; overflow-y: auto;">
-                            <div class="card opportunity-card border-start border-warning border-4 mb-2">
-                                <div class="card-body p-3">
-                                    <h6 class="fw-bold mb-2">Edificio Comercial 30kW</h6>
-                                    <p class="text-muted small mb-2">Inversiones Plaza SAC</p>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="fw-bold text-primary">S/ 180,000</span>
-                                        <span class="badge bg-success small">90%</span>
-                                    </div>
-                                    <div class="progress mb-2" style="height: 4px;">
-                                        <div class="progress-bar bg-success" style="width: 90%"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center small text-muted">
-                                        <span><i class="bi bi-person me-1"></i>María L.</span>
-                                        <span><i class="bi bi-calendar3 me-1"></i>18 días</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Etapa: Negociación --}}
-                <div class="kanban-stage">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-success text-white">
-                            <h6 class="mb-0 fw-bold"><i class="bi bi-hand-thumbs-up me-2"></i>Negociación</h6>
-                            <small>6 oportunidades | S/ 350K</small>
-                        </div>
-                        <div class="card-body p-2" style="max-height: 600px; overflow-y: auto;">
-                            <div class="card opportunity-card border-start border-success border-4 mb-2">
-                                <div class="card-body p-3">
-                                    <h6 class="fw-bold mb-2">Minimarket 8kW</h6>
-                                    <p class="text-muted small mb-2">Bodega Don Pepe</p>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="fw-bold text-primary">S/ 65,000</span>
-                                        <span class="badge bg-success small">95%</span>
-                                    </div>
-                                    <div class="progress mb-2" style="height: 4px;">
-                                        <div class="progress-bar bg-success" style="width: 95%"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center small text-muted">
-                                        <span><i class="bi bi-person me-1"></i>Juan D.</span>
-                                        <span><i class="bi bi-calendar3 me-1"></i>25 días</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Etapa: Cierre --}}
-                <div class="kanban-stage">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-secondary text-white">
-                            <h6 class="mb-0 fw-bold"><i class="bi bi-check-circle me-2"></i>Cierre</h6>
-                            <small>6 oportunidades | S/ 280K</small>
-                        </div>
-                        <div class="card-body p-2" style="max-height: 600px; overflow-y: auto;">
-                            <div class="card opportunity-card border-start border-secondary border-4 mb-2">
-                                <div class="card-body p-3">
-                                    <h6 class="fw-bold mb-2">Casa Unifamiliar 4kW</h6>
-                                    <p class="text-muted small mb-2">Familia Rodríguez</p>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="fw-bold text-primary">S/ 35,000</span>
-                                        <span class="badge bg-success small">100%</span>
-                                    </div>
-                                    <div class="progress mb-2" style="height: 4px;">
-                                        <div class="progress-bar bg-success" style="width: 100%"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center small text-muted">
-                                        <span><i class="bi bi-person me-1"></i>María L.</span>
-                                        <span><i class="bi bi-calendar3 me-1"></i>30 días</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    @if(session('error'))
+        <div class="container-fluid mb-3">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         </div>
-    </div>
+    @endif
 
-    {{-- Vista Tabla --}}
-    <div class="container-fluid d-none" id="vistaTabla">
-        <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px;" data-aos="fade-up">
+    {{-- Tabla de Oportunidades --}}
+    <div class="container-fluid">
+        <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px; min-height: 500px" data-aos="fade-up">
             <div class="card-header bg-transparent">
-                <button type="button" data-bs-toggle="modal" data-bs-target="#createOportunidad"
-                    class="btn btn-primary text-uppercase text-white btn-sm">
-                    <i class="bi bi-plus-circle-fill me-2"></i>
-                    Nueva Oportunidad
-                </button>
+                <div class="row justify-content-between align-items-center">
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('admin.crm.oportunidades.create') }}" class="btn btn-primary text-uppercase text-white btn-sm">
+                                <i class="bi bi-plus-circle-fill me-2"></i>Nueva Oportunidad
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
-                <table id="tablaOportunidades" class="table table-hover align-middle nowrap" cellspacing="0"
-                    style="width:100%">
-                    <thead class="bg-dark text-white border-0">
+                {{-- Filtros DataTables --}}
+                <div class="row g-2 mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <select id="filtro-etapa" class="form-select form-select-sm">
+                            <option value="">Todas las Etapas</option>
+                            <option value="calificacion">Calificación</option>
+                            <option value="analisis_sitio">Análisis de Sitio</option>
+                            <option value="propuesta_tecnica">Propuesta Técnica</option>
+                            <option value="negociacion">Negociación</option>
+                            <option value="contrato">Contrato</option>
+                            <option value="ganada">Ganada</option>
+                            <option value="perdida">Perdida</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filtro-tipo" class="form-select form-select-sm">
+                            <option value="">Todos los Tipos</option>
+                            <option value="residencial">Residencial</option>
+                            <option value="comercial">Comercial</option>
+                            <option value="industrial">Industrial</option>
+                            <option value="agricola">Agrícola</option>
+                            <option value="bombeo_solar">Bombeo Solar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="incluir-cerradas" 
+                                   {{ request('incluir_cerradas') ? 'checked' : '' }}
+                                   onchange="window.location.href='{{ route('admin.crm.oportunidades.index') }}' + (this.checked ? '?incluir_cerradas=1' : '')">
+                            <label class="form-check-label small" for="incluir-cerradas">
+                                <i class="bi bi-archive me-1"></i>Incluir Ganadas/Perdidas
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-2 col-12 col-md-6">
+                    <span class="text-uppercase">Total de registros: <span class="fw-bold">{{ $oportunidades->count() }}</span></span>
+                </div>
+                <table id="tablaOportunidades" class="table table-hover align-middle" style="width:100%">
+                    <thead class="bg-dark text-white">
                         <tr>
-                            <th class="h6 small text-center text-uppercase fw-bold">N°</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Oportunidad</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Cliente</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Etapa</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Probabilidad</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Monto</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Asignado</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
+                            <th class="text-center">N°</th>
+                            <th class="text-center">Código</th>
+                            <th class="text-center">Nombre</th>
+                            <th class="text-center">Cliente/Prospecto</th>
+                            <th class="text-center">Potencia</th>
+                            <th class="text-center">Valor</th>
+                            <th class="text-center">Etapa</th>
+                            <th class="text-center">Probabilidad</th>
+                            <th class="text-center">Cierre Est.</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @php $contador = 1; @endphp
-                        <tr>
-                            <td class="fw-normal text-center align-middle">{{ $contador }}</td>
-                            <td class="fw-normal text-start align-middle">
-                                <strong>Sistema Residencial 5kW</strong><br>
-                                <small class="text-muted">5 días en etapa</small>
-                            </td>
-                            <td class="fw-normal text-center align-middle">Carlos Mendoza SAC</td>
-                            <td class="fw-normal text-center align-middle">
-                                <span class="badge bg-primary">Calificación</span>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <span class="badge bg-success">85%</span>
-                            </td>
-                            <td class="fw-normal text-center align-middle fw-bold text-primary">S/ 45,000</td>
-                            <td class="fw-normal text-center align-middle"><small>Juan Diego</small></td>
-                            <td class="text-center align-middle">
-                                <div class="dropstart">
-                                    <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
-                                        data-bs-toggle="dropdown" style="width: 36px; height: 36px; padding: 0;">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu shadow">
-                                        <li><a class="dropdown-item" href="#"><i
-                                                    class="bi bi-eye text-info me-2"></i>Ver</a></li>
-                                        <li><a class="dropdown-item" href="#"><i
-                                                    class="bi bi-pencil text-secondary me-2"></i>Editar</a></li>
-                                        <li>
-                                            <hr class="dropdown-divider">
-                                        </li>
-                                        <li><a class="dropdown-item text-danger" href="#"><i
-                                                    class="bi bi-trash me-2"></i>Eliminar</a></li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
+                        @forelse($oportunidades as $index => $oportunidad)
+                            <tr>
+                                <td class="text-center">{{ $index + 1 }}</td>
+                                <td class="text-center"><span class="badge bg-secondary">{{ $oportunidad->codigo }}</span></td>
+                                <td class="text-start">
+                                    <strong>{{ Str::limit($oportunidad->nombre, 30) }}</strong>
+                                    <br><small class="text-muted">{{ ucfirst($oportunidad->tipo_proyecto ?? '') }}</small>
+                                </td>
+                                <td class="text-center">
+                                    @if($oportunidad->cliente)
+                                        <span class="badge bg-success">{{ Str::limit($oportunidad->cliente->nombre, 20) }}</span>
+                                    @elseif($oportunidad->prospecto)
+                                        <span class="badge bg-warning text-dark">{{ Str::limit($oportunidad->prospecto->nombre_completo, 20) }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">{{ number_format($oportunidad->potencia_kw ?? 0, 1) }} kW</span>
+                                </td>
+                                <td class="text-center fw-bold text-primary">
+                                    S/ {{ number_format($oportunidad->monto_estimado, 0) }}
+                                </td>
+                                <td class="text-center">
+                                    @php
+                                        $etapaColors = [
+                                            'calificacion' => 'secondary',
+                                            'analisis_sitio' => 'info',
+                                            'propuesta_tecnica' => 'primary',
+                                            'propuesta' => 'primary',
+                                            'negociacion' => 'warning',
+                                            'contrato' => 'dark',
+                                            'cierre' => 'info',
+                                            'ganada' => 'success',
+                                            'perdida' => 'danger',
+                                        ];
+                                    @endphp
+                                    <span class="badge bg-{{ $etapaColors[$oportunidad->etapa] ?? 'secondary' }}">
+                                        {{ ucfirst(str_replace('_', ' ', $oportunidad->etapa)) }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center gap-1">
+                                        <div class="progress" style="width: 50px; height: 6px;">
+                                            <div class="progress-bar bg-{{ $oportunidad->probabilidad >= 70 ? 'success' : ($oportunidad->probabilidad >= 40 ? 'warning' : 'danger') }}"
+                                                 style="width: {{ $oportunidad->probabilidad }}%"></div>
+                                        </div>
+                                        <small>{{ $oportunidad->probabilidad }}%</small>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <small>{{ $oportunidad->fecha_cierre_estimada ? $oportunidad->fecha_cierre_estimada->format('d/m/Y') : '-' }}</small>
+                                </td>
+                                <td class="text-center">
+                                    <div class="dropstart">
+                                        <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
+                                            data-bs-toggle="dropdown" style="width: 36px; height: 36px; padding: 0;">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu shadow">
+                                            <li><a class="dropdown-item" href="{{ route('admin.crm.oportunidades.show', $oportunidad->slug) }}">
+                                                <i class="bi bi-eye text-info me-2"></i>Ver Detalles</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('admin.crm.oportunidades.edit', $oportunidad->slug) }}">
+                                                <i class="bi bi-pencil text-secondary me-2"></i>Editar</a></li>
+                                            @if(!in_array($oportunidad->etapa, ['ganada', 'perdida']))
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form action="{{ route('admin.crm.oportunidades.crear-cotizacion', $oportunidad->slug) }}" method="POST">
+                                                        @csrf
+                                                        <button class="dropdown-item text-primary">
+                                                            <i class="bi bi-file-text me-2"></i>Crear Cotización</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="{{ route('admin.crm.oportunidades.ganada', $oportunidad->slug) }}" method="POST">
+                                                        @csrf
+                                                        <button class="dropdown-item text-success">
+                                                            <i class="bi bi-trophy me-2"></i>Marcar Ganada</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="{{ route('admin.crm.oportunidades.perdida', $oportunidad->slug) }}" method="POST">
+                                                        @csrf
+                                                        <button class="dropdown-item text-danger">
+                                                            <i class="bi bi-x-circle me-2"></i>Marcar Perdida</button>
+                                                    </form>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="10" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    No hay oportunidades registradas
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    <!-- Modal: Crear Oportunidad -->
-    <div class="modal fade" id="createOportunidad" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Nueva Oportunidad</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form action="#" method="POST" class="needs-validation" novalidate>
-                    @csrf
-                    <div class="modal-body">
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <h6 class="text-primary border-bottom pb-2 mb-3"><i
-                                        class="bi bi-info-circle me-2"></i>Información General</h6>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Cliente / Prospecto <span class="text-danger">*</span></label>
-                                <select class="form-select select2" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="1">Carlos Mendoza SAC</option>
-                                    <option value="2">Ana García Torres</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Nombre Oportunidad <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" placeholder="Ej: Sistema Solar 5kW" required>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Tipo Solución <span class="text-danger">*</span></label>
-                                <select class="form-select" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="residencial">Residencial</option>
-                                    <option value="comercial">Comercial</option>
-                                    <option value="industrial">Industrial</option>
-                                    <option value="agricola">Agrícola</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Potencia Estimada (kW)</label>
-                                <input type="number" class="form-control" placeholder="5.5" step="0.1">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Monto Estimado (S/) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" placeholder="45000" required>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Probabilidad Cierre</label>
-                                <select class="form-select">
-                                    <option value="25">25% - Baja</option>
-                                    <option value="50">50% - Media</option>
-                                    <option value="75" selected>75% - Alta</option>
-                                    <option value="90">90% - Muy Alta</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Etapa Inicial</label>
-                                <select class="form-select">
-                                    <option value="calificacion" selected>Calificación</option>
-                                    <option value="propuesta">Propuesta Técnica</option>
-                                    <option value="cotizacion">Cotización</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Fecha Cierre Estimada</label>
-                                <input type="date" class="form-control">
-                            </div>
-
-                            <div class="col-12">
-                                <label class="form-label">Descripción</label>
-                                <textarea class="form-control" rows="3" placeholder="Detalles..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Crear
-                            Oportunidad</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
 @endsection
 
 @section('js')
-    <script>
-        $(document).ready(function() {
-            // Toggle entre vistas
-            $('#btnKanban').click(function() {
-                $('#vistaKanban').removeClass('d-none');
-                $('#vistaTabla').addClass('d-none');
-                $(this).addClass('active');
-                $('#btnTabla').removeClass('active');
-            });
-
-            $('#btnTabla').click(function() {
-                $('#vistaTabla').removeClass('d-none');
-                $('#vistaKanban').addClass('d-none');
-                $(this).addClass('active');
-                $('#btnKanban').removeClass('active');
-
-                // Inicializar DataTable cuando se muestra
-                if (!$.fn.DataTable.isDataTable('#tablaOportunidades')) {
-                    $('#tablaOportunidades').DataTable({
-                        responsive: true,
-                        language: {
-                            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
-                        },
-                        pageLength: 10
-                    });
-                }
-            });
-
-            // Select2
-            $('.select2').select2({
-                theme: 'bootstrap-5',
-                width: '100%',
-                dropdownParent: $('#createOportunidad')
-            });
+<script>
+    $(document).ready(function() {
+        // Inicializar DataTable con filtros del lado del cliente
+        var table = $('#tablaOportunidades').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+                paginate: {
+                    first: '«',
+                    previous: '‹',
+                    next: '›',
+                    last: '»'
+                },
+                info: 'Mostrando página _PAGE_ de _PAGES_'
+            },
+            pageLength: 10,
+            order: [[0, 'asc']],
+            columnDefs: [
+                { orderable: false, targets: [9] }
+            ],
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                 '<"row"<"col-sm-12"tr>>' +
+                 '<"row align-items-center"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7 d-flex justify-content-end"p>>'
         });
 
-        // Validación
-        (function() {
-            'use strict'
-            var forms = document.querySelectorAll('.needs-validation')
-            Array.prototype.slice.call(forms).forEach(function(form) {
-                form.addEventListener('submit', function(event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
-    </script>
+        // Filtro por Etapa (columna 6)
+        $('#filtro-etapa').on('change', function() {
+            table.column(6).search($(this).val()).draw();
+        });
+
+        // Filtro por Tipo (columna 2 - incluido en nombre)
+        $('#filtro-tipo').on('change', function() {
+            table.column(2).search($(this).val()).draw();
+        });
+    });
+</script>
 @endsection

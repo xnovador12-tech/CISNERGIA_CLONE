@@ -22,6 +22,9 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
+        // Ubigeo (Departamentos, Provincias, Distritos) - DEBE IR PRIMERO
+        $this->call(UbigeoSeeder::class);
+
         $this->call(IdentificacionTableSeeder::class);
         $this->call(TipoTableSeeder::class);
         $this->call(SedeTableSeeder::class);
@@ -35,5 +38,8 @@ class DatabaseSeeder extends Seeder
         $this->call(MotivoTableSeeder::class);
         $this->call(ComprobanteTableSeeder::class);
         $this->call(AlmacenTableSeeder::class);
+
+        // CRM Module Seeders
+        $this->call(CrmSeeder::class);
     }
 }

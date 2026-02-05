@@ -3,6 +3,56 @@
 @section('title', 'PROSPECTOS')
 
 @section('css')
+<style>
+    .scoring-badge {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-weight: bold;
+    }
+    .scoring-A { background-color: #198754; color: white; }
+    .scoring-B { background-color: #ffc107; color: #212529; }
+    .scoring-C { background-color: #dc3545; color: white; }
+    
+    /* Estilos de paginación DataTables */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 0.375rem 0.75rem;
+        margin-left: 2px;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        background: #fff;
+        color: #212529 !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #1C3146 !important;
+        color: #fff !important;
+        border-color: #1C3146;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #e9ecef !important;
+        color: #212529 !important;
+        border-color: #dee2e6;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: #1C3146 !important;
+        color: #fff !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        color: #6c757d !important;
+        cursor: not-allowed;
+    }
+    .dataTables_wrapper .dataTables_info {
+        padding-top: 0.85em;
+        color: #6c757d;
+    }
+    .dataTables_wrapper .dataTables_paginate {
+        float: right;
+        text-align: right;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -27,7 +77,7 @@
     </div>
     <!-- fin encabezado -->
 
-    {{-- KPIs --}}
+    {{-- KPIs Dinámicos --}}
     <div class="container-fluid mb-4">
         <div class="row g-3" data-aos="fade-up">
             <div class="col-md-3">
@@ -36,7 +86,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <p class="text-muted mb-1 small">Total Prospectos</p>
-                                <h3 class="mb-0 fw-bold text-primary">247</h3>
+                                <h3 class="mb-0 fw-bold text-primary">{{ $estadisticas['total'] ?? 0 }}</h3>
                             </div>
                             <div class="bg-primary bg-opacity-10 p-3 rounded-3">
                                 <i class="bi bi-people fs-3 text-primary"></i>
@@ -50,8 +100,23 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
+                                <p class="text-muted mb-1 small">Nuevos este Mes</p>
+                                <h3 class="mb-0 fw-bold text-info">{{ $estadisticas['nuevos_mes'] ?? 0 }}</h3>
+                            </div>
+                            <div class="bg-info bg-opacity-10 p-3 rounded-3">
+                                <i class="bi bi-calendar-plus fs-3 text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
                                 <p class="text-muted mb-1 small">Calificados</p>
-                                <h3 class="mb-0 fw-bold text-success">89</h3>
+                                <h3 class="mb-0 fw-bold text-success">{{ $estadisticas['calificados'] ?? 0 }}</h3>
                             </div>
                             <div class="bg-success bg-opacity-10 p-3 rounded-3">
                                 <i class="bi bi-check-circle fs-3 text-success"></i>
@@ -65,26 +130,11 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <p class="text-muted mb-1 small">En Seguimiento</p>
-                                <h3 class="mb-0 fw-bold text-warning">124</h3>
+                                <p class="text-muted mb-1 small">Pendientes Contactar</p>
+                                <h3 class="mb-0 fw-bold text-warning">{{ $estadisticas['pendientes_contactar'] ?? 0 }}</h3>
                             </div>
                             <div class="bg-warning bg-opacity-10 p-3 rounded-3">
-                                <i class="bi bi-clock-history fs-3 text-warning"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-muted mb-1 small">Descartados</p>
-                                <h3 class="mb-0 fw-bold text-danger">34</h3>
-                            </div>
-                            <div class="bg-danger bg-opacity-10 p-3 rounded-3">
-                                <i class="bi bi-x-circle fs-3 text-danger"></i>
+                                <i class="bi bi-telephone-outbound fs-3 text-warning"></i>
                             </div>
                         </div>
                     </div>
@@ -93,63 +143,92 @@
         </div>
     </div>
 
+    {{-- Alertas de sesión --}}
+    @if(session('success'))
+        <div class="container-fluid mb-3">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="container-fluid mb-3">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    @endif
+
     {{-- Contenido --}}
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px"
             data-aos="fade-up" data-aos-anchor-placement="top-bottom">
             <div class="card-header bg-transparent">
                 <div class="row justify-content-between align-items-center">
-                    <div class="col-12 col-md-3 mb-2 mb-md-0">
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#createProspecto"
-                            class="btn btn-primary text-uppercase text-white btn-sm w-100">
-                            <i class="bi bi-plus-circle-fill me-2"></i>
-                            Nuevo Prospecto
-                        </button>
-                    </div>
-                    <div class="col-12 col-md-9">
-                        <div class="row g-2">
-                            <div class="col-md-3">
-                                <select class="form-select form-select-sm" id="filtroEstado">
-                                    <option value="">Todos los Estados</option>
-                                    <option value="nuevo">Nuevo</option>
-                                    <option value="contactado">Contactado</option>
-                                    <option value="calificado">Calificado</option>
-                                    <option value="descartado">Descartado</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select class="form-select form-select-sm" id="filtroOrigen">
-                                    <option value="">Todos los Orígenes</option>
-                                    <option value="web">Sitio Web</option>
-                                    <option value="facebook">Facebook</option>
-                                    <option value="instagram">Instagram</option>
-                                    <option value="referido">Referido</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select class="form-select form-select-sm" id="filtroSegmento">
-                                    <option value="">Todos los Segmentos</option>
-                                    <option value="residencial">Residencial</option>
-                                    <option value="comercial">Comercial</option>
-                                    <option value="industrial">Industrial</option>
-                                    <option value="agricola">Agrícola</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select class="form-select form-select-sm" id="filtroScoring">
-                                    <option value="">Todos los Scoring</option>
-                                    <option value="A">A - Alto</option>
-                                    <option value="B">B - Medio</option>
-                                    <option value="C">C - Bajo</option>
-                                </select>
-                            </div>
+                    <div class="col-12 col-md-4 mb-2 mb-md-0">
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('admin.crm.prospectos.create') }}"
+                                class="btn btn-primary text-uppercase text-white btn-sm">
+                                <i class="bi bi-plus-circle-fill me-2"></i>Nuevo Prospecto
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="card-body">
-                <table id="tablaProspectos" class="table table-hover align-middle nowrap" cellspacing="0"
-                    style="width:100%">
+                {{-- Filtros DataTables --}}
+                <div class="row g-2 mb-3">
+                    <div class="col-md-3">
+                        <select id="filtro-estado" class="form-select form-select-sm">
+                            <option value="">Todos los Estados</option>
+                            <option value="Nuevo">Nuevo</option>
+                            <option value="Contactado">Contactado</option>
+                            <option value="Calificado">Calificado</option>
+                            <option value="No calificado">No calificado</option>
+                            <option value="Descartado">Descartado</option>
+                            <option value="Convertido">Convertido</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filtro-origen" class="form-select form-select-sm">
+                            <option value="">Todos los Orígenes</option>
+                            <option value="Web">Web</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Google ads">Google Ads</option>
+                            <option value="Referido">Referido</option>
+                            <option value="Llamada">Llamada</option>
+                            <option value="Visita">Visita</option>
+                            <option value="Feria">Feria</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filtro-segmento" class="form-select form-select-sm">
+                            <option value="">Todos los Segmentos</option>
+                            <option value="Residencial">Residencial</option>
+                            <option value="Comercial">Comercial</option>
+                            <option value="Industrial">Industrial</option>
+                            <option value="Agricola">Agrícola</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filtro-scoring" class="form-select form-select-sm">
+                            <option value="">Todos los Scoring</option>
+                            <option value="A">A - Alto</option>
+                            <option value="B">B - Medio</option>
+                            <option value="C">C - Bajo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-2 col-12 col-md-6">
+                    <span class="text-uppercase">Total de registros: <span class="fw-bold">{{ $prospectos->count() }}</span></span>
+                </div>
+                <table id="tablaProspectos" class="table table-hover align-middle" cellspacing="0" style="width:100%">
                     <thead class="bg-dark text-white border-0">
                         <tr>
                             <th class="h6 small text-center text-uppercase fw-bold">N°</th>
@@ -164,352 +243,243 @@
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @php $contador = 1; @endphp
-                        <tr>
-                            <td class="fw-normal text-center align-middle">{{ $contador }}</td>
-                            <td class="fw-normal text-center align-middle"><span
-                                    class="badge bg-secondary">#PROSP-001</span></td>
-                            <td class="fw-normal text-start align-middle">
-                                <strong>Carlos Mendoza SAC</strong><br>
-                                <small class="text-muted">RUC: 20123456789</small>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <small>carlos@empresa.com<br>987 654 321</small>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <span class="badge bg-info text-dark"><i class="bi bi-globe me-1"></i>Web</span>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <span class="badge bg-warning text-dark">Comercial</span>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <div class="d-flex align-items-center justify-content-center">
-                                    <span class="badge bg-success me-2">A</span>
-                                    <div class="progress" style="width: 60px; height: 8px;">
-                                        <div class="progress-bar bg-success" style="width: 85%"></div>
-                                    </div>
-                                    <small class="ms-2 text-muted">85</small>
-                                </div>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <span class="badge bg-success">Calificado</span>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <small>Juan Diego</small>
-                            </td>
-                            <td class="text-center align-middle">
-                                <div class="dropstart">
-                                    <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
-                                        data-bs-toggle="dropdown" aria-expanded="false"
-                                        style="width: 36px; height: 36px; padding: 0;">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                                        <li>
-                                            <button class="dropdown-item d-flex align-items-center">
-                                                <i class="bi bi-eye text-info me-2"></i>Ver Detalles
+                        <tbody>
+                            @forelse($prospectos as $index => $prospecto)
+                                <tr>
+                                    <td class="fw-normal text-center align-middle">{{ $index + 1 }}</td>
+                                    <td class="fw-normal text-center align-middle">
+                                        <span class="badge bg-secondary">{{ $prospecto->codigo }}</span>
+                                    </td>
+                                    <td class="fw-normal text-start align-middle">
+                                        <strong>
+                                            @if($prospecto->tipo_persona == 'juridica')
+                                                {{ $prospecto->razon_social ?? $prospecto->nombre }}
+                                            @else
+                                                {{ $prospecto->nombre }} {{ $prospecto->apellidos }}
+                                            @endif
+                                        </strong><br>
+                                        <small class="text-muted">
+                                            @if($prospecto->tipo_persona == 'juridica' && $prospecto->ruc)
+                                                RUC: {{ $prospecto->ruc }}
+                                            @elseif($prospecto->dni)
+                                                DNI: {{ $prospecto->dni }}
+                                            @endif
+                                        </small>
+                                    </td>
+                                    <td class="fw-normal text-center align-middle">
+                                        <small>
+                                            {{ $prospecto->email }}<br>
+                                            {{ $prospecto->telefono }}
+                                        </small>
+                                    </td>
+                                    <td class="fw-normal text-center align-middle">
+                                        @php
+                                            $origenColors = [
+                                                'web' => 'info',
+                                                'facebook' => 'primary',
+                                                'instagram' => 'danger',
+                                                'google_ads' => 'warning',
+                                                'referido' => 'success',
+                                                'llamada' => 'secondary',
+                                                'visita' => 'dark',
+                                                'feria' => 'info',
+                                                'otro' => 'secondary',
+                                            ];
+                                            $origenIcons = [
+                                                'web' => 'globe',
+                                                'facebook' => 'facebook',
+                                                'instagram' => 'instagram',
+                                                'google_ads' => 'google',
+                                                'referido' => 'people',
+                                                'llamada' => 'telephone',
+                                                'visita' => 'person-walking',
+                                                'feria' => 'calendar-event',
+                                                'otro' => 'tag',
+                                            ];
+                                        @endphp
+                                        <span class="badge bg-{{ $origenColors[$prospecto->origen] ?? 'secondary' }}">
+                                            <i class="bi bi-{{ $origenIcons[$prospecto->origen] ?? 'tag' }} me-1"></i>
+                                            {{ ucfirst(str_replace('_', ' ', $prospecto->origen)) }}
+                                        </span>
+                                    </td>
+                                    <td class="fw-normal text-center align-middle">
+                                        @php
+                                            $segmentoColors = [
+                                                'residencial' => 'info',
+                                                'comercial' => 'warning',
+                                                'industrial' => 'primary',
+                                                'agricola' => 'success',
+                                            ];
+                                        @endphp
+                                        <span class="badge bg-{{ $segmentoColors[$prospecto->segmento] ?? 'secondary' }} text-dark">
+                                            {{ ucfirst($prospecto->segmento) }}
+                                        </span>
+                                    </td>
+                                    <td class="fw-normal text-center align-middle">
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            <span class="scoring-badge scoring-{{ $prospecto->scoring }}">
+                                                {{ $prospecto->scoring }}
+                                            </span>
+                                            <div class="progress" style="width: 50px; height: 6px;">
+                                                <div class="progress-bar bg-{{ $prospecto->scoring == 'A' ? 'success' : ($prospecto->scoring == 'B' ? 'warning' : 'danger') }}"
+                                                     style="width: {{ $prospecto->scoring_puntos }}%"></div>
+                                            </div>
+                                            <small class="text-muted">{{ $prospecto->scoring_puntos }}</small>
+                                        </div>
+                                    </td>
+                                    <td class="fw-normal text-center align-middle">
+                                        @php
+                                            $estadoColors = [
+                                                'nuevo' => 'secondary',
+                                                'contactado' => 'primary',
+                                                'calificado' => 'success',
+                                                'descartado' => 'danger',
+                                                'convertido' => 'info',
+                                            ];
+                                        @endphp
+                                        <span class="badge bg-{{ $estadoColors[$prospecto->estado] ?? 'secondary' }}">
+                                            {{ ucfirst($prospecto->estado) }}
+                                        </span>
+                                        @if($prospecto->es_cliente)
+                                            <br><span class="badge bg-success mt-1"><i class="bi bi-check-circle me-1"></i>Es Cliente</span>
+                                        @endif
+                                    </td>
+                                    <td class="fw-normal text-center align-middle">
+                                        <small>{{ $prospecto->vendedor?->persona?->name ?? 'Sin asignar' }}</small>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <div class="dropstart">
+                                            <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
+                                                data-bs-toggle="dropdown" aria-expanded="false"
+                                                style="width: 36px; height: 36px; padding: 0;">
+                                                <i class="bi bi-three-dots-vertical"></i>
                                             </button>
-                                        </li>
-                                        <li>
-                                            <button class="dropdown-item d-flex align-items-center">
-                                                <i class="bi bi-pencil text-secondary me-2"></i>Editar
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <hr class="dropdown-divider">
-                                        </li>
-                                        <li>
-                                            <button class="dropdown-item d-flex align-items-center text-success">
-                                                <i class="bi bi-arrow-right-circle me-2"></i>Convertir a Oportunidad
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <hr class="dropdown-divider">
-                                        </li>
-                                        <li>
-                                            <form method="POST" action="#" class="form-delete">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="dropdown-item d-flex align-items-center text-danger">
-                                                    <i class="bi bi-trash me-2"></i>Eliminar
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
-                        @php $contador++; @endphp
-
-                        <tr>
-                            <td class="fw-normal text-center align-middle">{{ $contador }}</td>
-                            <td class="fw-normal text-center align-middle"><span
-                                    class="badge bg-secondary">#PROSP-002</span></td>
-                            <td class="fw-normal text-start align-middle">
-                                <strong>Ana García Torres</strong><br>
-                                <small class="text-muted">DNI: 43287651</small>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <small>ana.garcia@email.com<br>956 123 456</small>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <span class="badge bg-primary"><i class="bi bi-facebook me-1"></i>Facebook</span>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <span class="badge bg-info text-dark">Residencial</span>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <div class="d-flex align-items-center justify-content-center">
-                                    <span class="badge bg-warning text-dark me-2">B</span>
-                                    <div class="progress" style="width: 60px; height: 8px;">
-                                        <div class="progress-bar bg-warning" style="width: 60%"></div>
-                                    </div>
-                                    <small class="ms-2 text-muted">60</small>
-                                </div>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <span class="badge bg-primary">Contactado</span>
-                            </td>
-                            <td class="fw-normal text-center align-middle">
-                                <small>María López</small>
-                            </td>
-                            <td class="text-center align-middle">
-                                <div class="dropstart">
-                                    <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
-                                        data-bs-toggle="dropdown" aria-expanded="false"
-                                        style="width: 36px; height: 36px; padding: 0;">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                                        <li>
-                                            <button class="dropdown-item d-flex align-items-center">
-                                                <i class="bi bi-eye text-info me-2"></i>Ver Detalles
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <button class="dropdown-item d-flex align-items-center">
-                                                <i class="bi bi-pencil text-secondary me-2"></i>Editar
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <hr class="dropdown-divider">
-                                        </li>
-                                        <li>
-                                            <button class="dropdown-item d-flex align-items-center text-success">
-                                                <i class="bi bi-arrow-right-circle me-2"></i>Convertir a Oportunidad
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <hr class="dropdown-divider">
-                                        </li>
-                                        <li>
-                                            <form method="POST" action="#" class="form-delete">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="dropdown-item d-flex align-items-center text-danger">
-                                                    <i class="bi bi-trash me-2"></i>Eliminar
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                                <li>
+                                                    <a href="{{ route('admin.crm.prospectos.show', $prospecto) }}"
+                                                       class="dropdown-item d-flex align-items-center">
+                                                        <i class="bi bi-eye text-info me-2"></i>Ver Detalles
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="{{ route('admin.crm.prospectos.edit', $prospecto) }}"
+                                                       class="dropdown-item d-flex align-items-center">
+                                                        <i class="bi bi-pencil text-secondary me-2"></i>Editar
+                                                    </a>
+                                                </li>
+                                                @if($prospecto->estado === 'calificado' && !$prospecto->es_cliente)
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form action="{{ route('admin.crm.prospectos.crear-oportunidad', $prospecto) }}"
+                                                          method="POST" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item d-flex align-items-center text-success">
+                                                            <i class="bi bi-arrow-right-circle me-2"></i>Crear Oportunidad
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                @elseif($prospecto->es_cliente)
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <span class="dropdown-item text-success">
+                                                        <i class="bi bi-check-circle me-2"></i>Ya es cliente: {{ $prospecto->cliente->codigo ?? '' }}
+                                                    </span>
+                                                </li>
+                                                @endif
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form action="{{ route('admin.crm.prospectos.destroy', $prospecto) }}"
+                                                          method="POST" class="form-delete d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                            class="dropdown-item d-flex align-items-center text-danger">
+                                                            <i class="bi bi-trash me-2"></i>Eliminar
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="10" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                            No hay prospectos registrados
+                                        </div>
+                                        <a href="{{ route('admin.crm.prospectos.create') }}" class="btn btn-primary btn-sm mt-2">
+                                            <i class="bi bi-plus-circle me-1"></i>Crear primer prospecto
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
             </div>
         </div>
     </div>
-
-    <!-- Modal: Crear Prospecto -->
-    <div class="modal fade" id="createProspecto" tabindex="-1" aria-labelledby="createProspectoLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="createProspectoLabel">
-                        <i class="bi bi-plus-circle me-2"></i>Nuevo Prospecto
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <form action="#" method="POST" class="needs-validation" novalidate>
-                    @csrf
-                    <div class="modal-body">
-                        <div class="row g-3">
-                            <!-- Tipo de Prospecto -->
-                            <div class="col-md-12">
-                                <h6 class="text-primary border-bottom pb-2 mb-3"><i
-                                        class="bi bi-info-circle me-2"></i>Información General</h6>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Tipo de Prospecto <span class="text-danger">*</span></label>
-                                <select class="form-select" name="tipo" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="persona">Persona Natural</option>
-                                    <option value="empresa">Empresa</option>
-                                </select>
-                                <div class="invalid-feedback">Por favor seleccione el tipo</div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Documento <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="documento" placeholder="DNI o RUC"
-                                    required>
-                                <div class="invalid-feedback">Por favor ingrese el documento</div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <label class="form-label">Nombre / Razón Social <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="nombre"
-                                    placeholder="Nombre completo o razón social" required>
-                                <div class="invalid-feedback">Por favor ingrese el nombre</div>
-                            </div>
-
-                            <!-- Contacto -->
-                            <div class="col-md-12 mt-4">
-                                <h6 class="text-primary border-bottom pb-2 mb-3"><i class="bi bi-telephone me-2"></i>Datos
-                                    de Contacto</h6>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" name="email"
-                                    placeholder="correo@ejemplo.com" required>
-                                <div class="invalid-feedback">Por favor ingrese un email válido</div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Teléfono <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control" name="telefono" placeholder="987 654 321"
-                                    required>
-                                <div class="invalid-feedback">Por favor ingrese el teléfono</div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Teléfono Alternativo</label>
-                                <input type="tel" class="form-control" name="telefono_alt"
-                                    placeholder="987 654 321">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Dirección</label>
-                                <input type="text" class="form-control" name="direccion"
-                                    placeholder="Dirección completa">
-                            </div>
-
-                            <!-- Clasificación -->
-                            <div class="col-md-12 mt-4">
-                                <h6 class="text-primary border-bottom pb-2 mb-3"><i
-                                        class="bi bi-tags me-2"></i>Clasificación</h6>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Origen <span class="text-danger">*</span></label>
-                                <select class="form-select" name="origen" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="web">Sitio Web</option>
-                                    <option value="facebook">Facebook</option>
-                                    <option value="instagram">Instagram</option>
-                                    <option value="linkedin">LinkedIn</option>
-                                    <option value="google">Google Ads</option>
-                                    <option value="referido">Referido</option>
-                                    <option value="feria">Feria/Evento</option>
-                                    <option value="directo">Directo</option>
-                                    <option value="otro">Otro</option>
-                                </select>
-                                <div class="invalid-feedback">Por favor seleccione el origen</div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Segmento <span class="text-danger">*</span></label>
-                                <select class="form-select" name="segmento" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="residencial">Residencial</option>
-                                    <option value="comercial">Comercial</option>
-                                    <option value="industrial">Industrial</option>
-                                    <option value="agricola">Agrícola</option>
-                                </select>
-                                <div class="invalid-feedback">Por favor seleccione el segmento</div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Interés en</label>
-                                <select class="form-select select2" name="intereses[]" multiple>
-                                    <option value="paneles">Paneles Solares</option>
-                                    <option value="inversores">Inversores</option>
-                                    <option value="baterias">Baterías</option>
-                                    <option value="instalacion">Instalación</option>
-                                    <option value="mantenimiento">Mantenimiento</option>
-                                    <option value="consultoria">Consultoría</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Asignar a</label>
-                                <select class="form-select" name="asignado_a">
-                                    <option value="">Sin asignar</option>
-                                    <option value="1">Juan Diego</option>
-                                    <option value="2">María López</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-12">
-                                <label class="form-label">Observaciones</label>
-                                <textarea class="form-control" name="observaciones" rows="3"
-                                    placeholder="Notas adicionales sobre el prospecto..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle me-2"></i>Cancelar
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-save me-2"></i>Guardar Prospecto
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
 @endsection
 
 @section('js')
     <script>
-        // Inicializar DataTable
         $(document).ready(function() {
-            $('#tablaProspectos').DataTable({
+            // Inicializar DataTable con filtros del lado del cliente
+            var table = $('#tablaProspectos').DataTable({
                 responsive: true,
                 language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+                    paginate: {
+                        first: '«',
+                        previous: '‹',
+                        next: '›',
+                        last: '»'
+                    },
+                    info: 'Mostrando página _PAGE_ de _PAGES_'
                 },
                 pageLength: 10,
-                order: [
-                    [0, 'asc']
-                ]
+                order: [[0, 'asc']],
+                columnDefs: [
+                    { orderable: false, targets: [9] } // Desactivar orden en columna de acciones
+                ],
+                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                     '<"row"<"col-sm-12"tr>>' +
+                     '<"row align-items-center"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7 d-flex justify-content-end"p>>'
             });
 
-            // Inicializar Select2
-            $('.select2').select2({
-                theme: 'bootstrap-5',
-                width: '100%',
-                placeholder: 'Seleccionar opciones',
-                dropdownParent: $('#createProspecto')
+            // Filtro por Estado (columna 7)
+            $('#filtro-estado').on('change', function() {
+                var val = $(this).val();
+                table.column(7).search(val).draw();
+            });
+
+            // Filtro por Origen (columna 4)
+            $('#filtro-origen').on('change', function() {
+                var val = $(this).val();
+                table.column(4).search(val).draw();
+            });
+
+            // Filtro por Segmento (columna 5)
+            $('#filtro-segmento').on('change', function() {
+                var val = $(this).val();
+                table.column(5).search(val).draw();
+            });
+
+            // Filtro por Scoring (columna 6)
+            $('#filtro-scoring').on('change', function() {
+                var val = $(this).val();
+                table.column(6).search(val).draw();
             });
         });
 
         // SweetAlert para eliminar
         $('.form-delete').submit(function(e) {
             e.preventDefault();
+            const form = this;
 
             Swal.fire({
-                title: '¿Estas seguro?',
+                title: '¿Estás seguro?',
                 text: "¡No podrás revertir esto!",
                 icon: 'warning',
                 showCancelButton: true,
@@ -519,24 +489,9 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    this.submit();
+                    form.submit();
                 }
-            })
+            });
         });
-
-        // Validación de formulario Bootstrap
-        (function() {
-            'use strict'
-            var forms = document.querySelectorAll('.needs-validation')
-            Array.prototype.slice.call(forms).forEach(function(form) {
-                form.addEventListener('submit', function(event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
     </script>
 @endsection
