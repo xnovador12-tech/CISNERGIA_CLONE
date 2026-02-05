@@ -61,6 +61,7 @@ class admin_ProveedoresController extends Controller
         $proveedor = new Proveedor();
         $proveedor->giro = $request->input('giro');
         $proveedor->direccion_fiscal  = $request->input('direccion_fiscal');
+        $proveedor->email_contacto   = $request->input('email_contacto');
         $proveedor->name_contacto   = $request->input('name_contacto');
         $proveedor->email_contacto   = $request->input('email_contacto');
         $proveedor->nro_celular_contacto   = $request->input('nro_celular_contacto');
