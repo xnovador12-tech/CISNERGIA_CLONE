@@ -21,6 +21,7 @@ class CreateDetalleoserviciosTable extends Migration
             $table->string('precio');
             $table->string('tiempo_meses');
             $table->string('vigencia');
+            $table->decimal('subtotal',8,2)->default(0);
             $table->string('estado')->default('Activo');
             $table->foreignId('ordenservicio_id')->constrained('ordenservicios')->onDelete('cascade');
             $table->timestamps();

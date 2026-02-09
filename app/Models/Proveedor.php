@@ -70,4 +70,9 @@ class Proveedor extends Model
     {
         return $this->belongsToMany(Tipo::class);
     }
+
+    public function proveedorcuentas()
+{
+    return $this->hasMany(Proveedorcuenta::class, 'proveedor_id');
+}
 }

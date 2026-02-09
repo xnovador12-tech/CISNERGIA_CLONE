@@ -6,6 +6,7 @@ use App\Models\Proveedor;
 use App\Models\Servicio;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class admin_ServiciosController extends Controller
@@ -45,6 +46,7 @@ class admin_ServiciosController extends Controller
         $servicios->tipo_servicio = $request->input('tipo_servicio');
         $servicios->proveedor_id = $request->input('proveedor_id');
         $servicios->descripcion = $request->input('descripcion');
+        $servicios->sede_id = Auth::user()->persona->sede_id;
         $servicios->save();
 
         return redirect()->route('admin-servicios.index')->with('new_registration', 'ok');

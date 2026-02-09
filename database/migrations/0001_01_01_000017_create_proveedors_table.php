@@ -14,10 +14,6 @@ return new class extends Migration
         Schema::create('proveedors', function (Blueprint $table) {
             $table->id();
             $table->string('giro')->nullable();
-            $table->string('tipo_cuenta_normal')->nullable();
-            $table->string('entidad_bancaria_normal')->nullable();
-            $table->string('nro_cuenta_normal')->nullable();
-            $table->string('nro_cci_normal')->nullable();
             $table->string('tipo_cuenta_detraccion')->nullable();
             $table->string('entidad_bancaria_detraccion')->nullable();
             $table->string('nro_cuenta_detraccion')->nullable();

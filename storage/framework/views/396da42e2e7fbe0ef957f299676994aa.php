@@ -43,10 +43,10 @@
                         </div>
                     </div>      
                     <div class="row">
-                        <div class="col-12 col-md-8 col-lg-9">
+                        <div class="col-12 col-md-6 col-lg-6">
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Datos del proveedor</p>
                             <div class="row g-2">
-                                <div class="col-12 col-md-6 col-lg-4">
+                                <div class="col-12 col-md-3 col-lg-3">
                                     <div class="pb-2">
                                         <label for="nro_identificacion_id" class="">Nro de Identificación<span class="text-danger">*</span></label>
                                         <div class="input-group input-group-sm">
@@ -72,7 +72,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-6 col-lg-4">
+                                <div class="col-12 col-md-6 col-lg-6">
                                     <div class="pb-2">
                                         <label for="identificacion_id" class="">Identificación<span class="text-danger">*</span></label>
                                         <select id="identificacion_id" name="tipo_documento" class="form-select form-select-sm <?php $__errorArgs = ['tipo_documento'];
@@ -100,7 +100,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-6 col-lg-4">
+                                <div class="col-12 col-md-3 col-lg-3">
                                     <div class="pb-2">
                                         <label for="giro_id" class="">Giro<span class="text-danger">*</span></label>
                                         <select class="form-select form-select-sm <?php $__errorArgs = ['giro'];
@@ -277,7 +277,7 @@ unset($__errorArgs, $__bag); ?>
 
                                 <div class="col-12 col-md-4 col-lg-4">
                                     <div class="pb-2">
-                                        <label for="ubigeos__ids" class="">Departamento - Provincia - Distrito<span class="text-danger">*</span></label>
+                                        <label for="ubigeos__ids" class="">Departamento<span class="text-danger">*</span></label>
                                         <select id="ubigeos__ids" class="form-select form-select-sm select2 <?php $__errorArgs = ['email'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -396,103 +396,80 @@ unset($__errorArgs, $__bag); ?>
                                 </div>
                             </div>
                         </div>    
-                        <div class="col-12 col-md-4 col-lg-3">
+                        <div class="col-12 col-md-6 col-lg-6">
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Cuenta bancaria</p>
-                            <div class="pb-2">
-                                <label for="tipo_cuenta__id" class="">Tipo de cuenta</label>
-                                <select name="tipo_cuenta_normal" class="form-select form-select-sm <?php $__errorArgs = ['tipo_cuenta_normal'];
+                            <div class="row">
+                                <div class="col-12 col-md-12 col-lg-12">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <p class="text-primary mb-0 small text-uppercase fw-bold">Detalles</p>
+                                        <button type="button" id="btnasignar" class="btn btn-secondary btn-sm text-white py-0 px-2">
+                                            Agregar
+                                        </button>
+                                    </div>
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-6 col-md-3 col-lg-3 mb-3">
+                                            <label for="tipo_cuenta_id" class=" d-block">Tipo de Cuenta</label>
+                                            <select class="form-select select2 form-select-sm" id="tipo_cuenta_id">
+                                                <option selected disabled>Seleccione opción</option>
+                                                        <?php $__currentLoopData = $tiposcuentas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tiposcuenta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($tiposcuenta->name); ?>"><?php echo e($tiposcuenta->name); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                            </select>  
+                                        </div>
+                                        <div class="col-6 col-md-3 col-lg-3 mb-3">
+                                            <label for="banco_id" class=" d-block">Banco</label>
+                                            <select class="form-select form-select-sm select2 <?php $__errorArgs = ['entidad_bancaria_normal'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>">
-                                    <option value="<?php echo e(old('tipo_cuenta_normal')); ?>" selected="selected" hidden="hidden"><?php echo e(old('tipo_cuenta_normal')); ?></option>
-                                    <?php $__currentLoopData = $tiposcuentas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tiposcuenta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($tiposcuenta->name); ?>"><?php echo e($tiposcuenta->name); ?></option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
-                                <?php $__errorArgs = ['tipo_cuenta_normal'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                    <small class="text-danger"><?php echo e($message); ?></small>
-                                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                            </div>
-
-                            <div class="pb-2">
-                                <label for="tipo_cuenta__id" class="">Banco</label>
-                                <select name="entidad_bancaria_normal" class="form-select form-select-sm <?php $__errorArgs = ['entidad_bancaria_normal'];
+unset($__errorArgs, $__bag); ?>" id="banco_id">
+                                                <option value="<?php echo e(old('entidad_bancaria_normal')); ?>" selected="selected" hidden="hidden"><?php echo e(old('entidad_bancaria_normal')); ?></option>
+                                                <?php $__currentLoopData = $bancos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $banco): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <option value="<?php echo e($banco->name); ?>"><?php echo e($banco->name); ?></option>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-6 col-md-3 col-lg-3 mb-3">
+                                            <label for="nro_cuenta_id" class=" d-block">Nro de cuenta</label>
+                                            <input type="number" id="nro_cuenta_id" class="form-control form-control-sm <?php $__errorArgs = ['nro_cuenta_normal'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>">
-                                    <option value="<?php echo e(old('entidad_bancaria_normal')); ?>" selected="selected" hidden="hidden"><?php echo e(old('entidad_bancaria_normal')); ?></option>
-                                    <?php $__currentLoopData = $bancos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $banco): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($banco->name); ?>"><?php echo e($banco->name); ?></option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
-                                <?php $__errorArgs = ['entidad_bancaria_normal'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                    <small class="text-danger"><?php echo e($message); ?></small>
-                                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                            </div>
-                            <div class="pb-2">
-                                <label for="nro_cuenta__id" class="">Nro de cuenta</label>
-                                <input type="number" name="nro_cuenta_normal" class="form-control form-control-sm <?php $__errorArgs = ['nro_cuenta_normal'];
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('nro_cuenta_normal')); ?>" maxLength="100">
+                                        </div>
+                                        <div class="col-6 col-md-3 col-lg-3 mb-3">
+                                            <label for="nro_cci_id" class=" d-block">Nro de cuenta CCI</label>
+                                            <input type="number" id="nro_cci_id" class="form-control form-control-sm <?php $__errorArgs = ['nro_cci_normal'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('nro_cuenta_normal')); ?>">   
-                                <?php $__errorArgs = ['nro_cuenta_normal'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                    <small class="text-danger"><?php echo e($message); ?></small>
-                                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                            </div>
-
-                            <div class="pb-2">
-                                <label for="nro_cuenta_cci__id" class="">Nro de cuenta CCI</label>
-                                <input type="number" name="nro_cci_normal" class="form-control form-control-sm <?php $__errorArgs = ['nro_cci_normal'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('nro_cci_normal')); ?>">   
-                                <?php $__errorArgs = ['nro_cci_normal'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                    <small class="text-danger"><?php echo e($message); ?></small>
-                                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
+unset($__errorArgs, $__bag); ?>" value="<?php echo e(old('nro_cci_normal')); ?>" maxLength="100">
+                                        </div>
+                                    </div>
+                                    <table class=" table table-sm table-hover">
+                                        <thead class="bg-light">
+                                        <tr>
+                                            <th class="fw-bold small text-uppercase">Tipo de Cuenta</th>
+                                            <th class="fw-bold small text-uppercase">Banco</th>
+                                            <th class="fw-bold small text-uppercase">Nro de cuenta</th>
+                                            <th class="fw-bold small text-uppercase">Nro de CCI</th>
+                                            <th class="fw-bold small text-uppercase"></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="dtll_cuentas">
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>    
                             </div>
 
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Cuenta de detracción</p>
@@ -641,6 +618,48 @@ unset($__errorArgs, $__bag); ?>
             $('#tipod_id').val(iden[1]);
         });*/
     });
+</script>
+
+<script>
+    var contador_cuentas = 1;
+    $('#btnasignar').click(function() {
+        var tipo_cuenta = $('#tipo_cuenta_id').val();
+        var banco = $('#banco_id').val();
+        var nro_cuenta = $('#nro_cuenta_id').val();
+        var nro_cci = $('#nro_cci_id').val();
+        if(tipo_cuenta && banco && nro_cuenta && nro_cci){
+            var fila = '<tr class="selected igv_carta" id="filamp' + contador_cuentas +
+                        '"><input type="hidden" name="contadores[]" value="' + contador_cuentas +
+                        '"><td class="align-middle fw-normal">' + tipo_cuenta + '</td><td class="align-middle fw-normal">' + banco +
+                        '</td><td class="align-middle fw-normal"><input type="text" class="form-control form-control-sm" name="nro_cuenta_normal[]" value="' + nro_cuenta +
+                        '"></td><td class="align-middle fw-normal"><input type="text" class="form-control form-control-sm" name="nro_cci_normal[]" value="' + nro_cci +
+                        '"></td><input type="hidden" name="tipo_cuenta_normal[]" value="' + tipo_cuenta +
+                        '"><input type="hidden" name="entidad_bancaria_normal[]" value="' + banco +
+                        '"><td class="align-middle"><button type="button" class="btn btn-sm btn-danger text-white" onclick="eliminarcuentas(' +
+                contador_cuentas +');"><i class="bi bi-trash"></i></button></td></tr>';
+                contador_cuentas++;
+                $('#tipo_cuenta_id').prop('selectedIndex', 0).change();
+                $('#banco_id').prop('selectedIndex', 0).change();
+                $('#nro_cuenta_id').val("");
+                $('#nro_cci_id').val("");
+                $('#dtll_cuentas').append(fila);
+        }else{
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Error al ingresar el detalle del ingreso, revise los datos del requerimiento',
+            })
+        }
+    });
+
+    function eliminarcuentas(indexmp) {
+        
+        $("#filamp" + indexmp).remove();
+
+        if(indexmp == 0 || indexmp == 1 || indexmp == ''){
+            contador_cuentas = 1;
+        }
+    }
 </script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('TEMPLATES.administrador', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\CESHER\Documents\GitHub\project_cisnergia\resources\views/ADMINISTRADOR/PRINCIPAL/configuraciones/proveedores/create.blade.php ENDPATH**/ ?>

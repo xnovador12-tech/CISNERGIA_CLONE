@@ -51,7 +51,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" name="tipo_servicio" id="tipos__bien_id<?php echo e($admin_servicio->slug); ?>" required style="width: 100%;">
+unset($__errorArgs, $__bag); ?>" name="tipo_servicio" id="tipos__servicio_id_edit_<?php echo e($admin_servicio->slug); ?>" required style="width: 100%;">
                                     <option value="<?php echo e($admin_servicio->tipo_servicio); ?>" selected="selected" hidden="hidden"><?php echo e($admin_servicio->tipo_servicio); ?></option>
                                     <option value="Servicio Publico">Servicio Publico</option>
                                     <option value="Servicio Privado">Servicio Privado</option>
@@ -67,7 +67,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3" id="view_proveedor_id_edit_<?php echo e($admin_servicio->slug); ?>">
                                 <label for="proveedor__id" class="">Proveedor<span class="text-danger">*</span></label>
                                 <select class="form-select form-select-sm select2 <?php $__errorArgs = ['proveedor_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -76,8 +76,8 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" name="proveedor_id" id="proveedor__id<?php echo e($admin_servicio->slug); ?>" required style="width: 100%;">
-                                    <option value="<?php echo e($admin_servicio->proveedor_id); ?>" disabled="disabled" selected="selected" hidden="hidden"><?php echo e($admin_servicio->proveedor->name_contacto); ?></option>
+unset($__errorArgs, $__bag); ?>" name="proveedor_id" id="proveedor__id_edit_<?php echo e($admin_servicio->slug); ?>" required style="width: 100%;">
+                                    <option value="<?php echo e($admin_servicio->proveedor_id?$admin_servicio->proveedor_id:''); ?>" disabled="disabled" selected="selected" hidden="hidden"><?php echo e($admin_servicio->proveedor?$admin_servicio->proveedor->name_contacto:'Seleccionar opcion'); ?></option>
                                     <?php $__currentLoopData = $proveedores; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $proveedore): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <option value="<?php echo e($proveedore->id); ?>"><?php echo e($proveedore->name_contacto); ?></option>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

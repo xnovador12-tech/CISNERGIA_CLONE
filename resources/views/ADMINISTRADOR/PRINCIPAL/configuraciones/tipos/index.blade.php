@@ -32,10 +32,10 @@
             <div class="card-header bg-transparent">
                 <div class="row justify-content-between">
                     <div class="col-9 col-md-3 col-xl-3">
-                        <!-- <button type="button" data-bs-toggle="modal" data-bs-target="#createtipos" class="btn btn-primary text-uppercase text-white btn-sm w-100">
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#createtipos" class="btn btn-primary text-uppercase text-white btn-sm w-100">
                             <i class="bi bi-plus-circle-fill me-2"></i>
                             Nuevo Registro
-                        </button> -->
+                        </button>
                     </div>
                 </div>
             </div>

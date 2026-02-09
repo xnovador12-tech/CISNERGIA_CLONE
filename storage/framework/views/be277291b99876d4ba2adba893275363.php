@@ -88,8 +88,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="<?php echo e(route('admin-crm-prospectos.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-crm-prospectos*']) ? 'active-item' : null); ?> menu">
+                            <a href="<?php echo e(route('admin.crm.prospectos.index')); ?>"
+                                class="nav-link px-3 <?php echo e(request()->is(['admin/crm/prospectos*']) ? 'active-item' : null); ?> menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-person-plus me-2"></i>
                                 </span>
@@ -98,8 +98,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="<?php echo e(route('admin-crm-oportunidades.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-crm-oportunidades*']) ? 'active-item' : null); ?> menu">
+                            <a href="<?php echo e(route('admin.crm.oportunidades.index')); ?>"
+                                class="nav-link px-3 <?php echo e(request()->is(['admin/crm/oportunidades*']) ? 'active-item' : null); ?> menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-bullseye me-2"></i>
                                 </span>
@@ -108,8 +108,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="<?php echo e(route('admin-crm-cotizaciones.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-crm-cotizaciones*']) ? 'active-item' : null); ?> menu">
+                            <a href="<?php echo e(route('admin.crm.cotizaciones.index')); ?>"
+                                class="nav-link px-3 <?php echo e(request()->is(['admin/crm/cotizaciones*']) ? 'active-item' : null); ?> menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-file-earmark-text me-2"></i>
                                 </span>
@@ -118,52 +118,42 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="<?php echo e(route('admin-crm-clientes.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-crm-clientes*']) ? 'active-item' : null); ?> menu">
-                                <span class="fw-bold">
-                                    <i class="bi bi-people me-2"></i>
-                                </span>
-                                <span>Clientes</span>
-                            </a>
-                        </li>
-
-                        <li class="mx-2 my-1">
-                            <a href="<?php echo e(route('admin-crm-agenda.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-crm-agenda*']) ? 'active-item' : null); ?> menu">
+                            <a href="<?php echo e(route('admin.crm.actividades.index')); ?>"
+                                class="nav-link px-3 <?php echo e(request()->is(['admin/crm/actividades*']) ? 'active-item' : null); ?> menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-calendar-check me-2"></i>
                                 </span>
-                                <span>Agenda</span>
+                                <span>Actividades</span>
                             </a>
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="<?php echo e(route('admin-crm-postventa.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-crm-postventa*']) ? 'active-item' : null); ?> menu">
+                            <a href="<?php echo e(route('admin.crm.tickets.index')); ?>"
+                                class="nav-link px-3 <?php echo e(request()->is(['admin/crm/tickets*']) ? 'active-item' : null); ?> menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-headset me-2"></i>
                                 </span>
-                                <span>Postventa</span>
+                                <span>Tickets</span>
                             </a>
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="<?php echo e(route('admin-crm-fidelizacion.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-crm-fidelizacion*']) ? 'active-item' : null); ?> menu">
+                            <a href="<?php echo e(route('admin.crm.garantias.index')); ?>"
+                                class="nav-link px-3 <?php echo e(request()->is(['admin/crm/garantias*']) ? 'active-item' : null); ?> menu">
                                 <span class="fw-bold">
-                                    <i class="bi bi-star me-2"></i>
+                                    <i class="bi bi-shield-check me-2"></i>
                                 </span>
-                                <span>Fidelización</span>
+                                <span>Garantías</span>
                             </a>
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="<?php echo e(route('admin-crm-marketing.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-crm-marketing*']) ? 'active-item' : null); ?> menu">
+                            <a href="<?php echo e(route('admin.crm.mantenimientos.index')); ?>"
+                                class="nav-link px-3 <?php echo e(request()->is(['admin/crm/mantenimientos*']) ? 'active-item' : null); ?> menu">
                                 <span class="fw-bold">
-                                    <i class="bi bi-megaphone me-2"></i>
+                                    <i class="bi bi-tools me-2"></i>
                                 </span>
-                                <span>Marketing</span>
+                                <span>Mantenimientos</span>
                             </a>
                         </li>
 

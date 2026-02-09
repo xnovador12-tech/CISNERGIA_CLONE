@@ -80,6 +80,7 @@ Route::put('/admin-etiquetas/estado/{admin_etiqueta}', [admin_EtiquetasControlle
 
 Route::resource('admin-proveedores', admin_ProveedoresController::class);
 Route::put('/admin-proveedores/estado/{admin_proveedor}', [admin_ProveedoresController::class, 'estado']);
+Route::get('busqueda_list_cuentas', [admin_ProveedoresController::class, 'getbusqueda_list_cuentas']);
 
 Route::resource('admin-productos', admin_ProductosController::class);
 Route::put('/admin-productos/estado/{admin_producto}', [admin_ProductosController::class, 'estado']);

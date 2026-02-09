@@ -152,9 +152,9 @@
                             <div class="col-12 col-md-2 col-lg-2 mb-3">
                                 <label for="tipos_id" class=" d-block">Tipo</label>
                                 <select class="form-select form-select-sm" id="tipos_id" >
-                                    <option selected="selected" hidden="hidden">-- Seleccione --</option>
-                                    <option value="Servicio Publico">PUBLICO</option>
-                                    <option value="Servicio Privado">PRIVADO</option>
+                                    <option hidden="hidden">-- Seleccione --</option>
+                                    <!-- <option value="Servicio Publico">PUBLICO</option> -->
+                                    <option selected value="Servicio Privado">PRIVADO</option>
                                 </select>  
                             </div>
                             <div class="col-6 col-md-3 col-lg-3 mb-3">
@@ -277,7 +277,11 @@
 
 @section('js')
 <script>
-    (function ($) {
+    $(document).ready(function() {
+        // Inicializar Select2
+        $('.select2').select2();
+
+        (function ($) {
         $.fn.solonumeros = function () {
             return this.each(function () {
                 $(this).keypress(function (e) {
@@ -336,6 +340,11 @@
                 }
             })
         });
+    });
+
+    // Ejecutar automáticamente al cargar la página
+    $(document).ready(function(){
+        $('#tipos_id').trigger('change');
     });
 
     $('#tiempo_id').on('change', function(){
@@ -433,5 +442,6 @@
             }
             $("#filamp" + indexmp).remove();
         }
+    });
 </script>
 @endsection

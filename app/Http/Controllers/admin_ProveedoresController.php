@@ -6,6 +6,7 @@ use App\Models\Banco;
 use App\Models\Identificacion;
 use App\Models\Persona;
 use App\Models\Proveedor;
+use App\Models\Proveedorcuenta;
 use App\Models\Tipo;
 use App\Models\Tipocuenta;
 use Illuminate\Http\Request;
@@ -39,6 +40,15 @@ class admin_ProveedoresController extends Controller
         return view('ADMINISTRADOR.PRINCIPAL.configuraciones.proveedores.create', compact('tiposcuentas', 'bancos', 'tiposdocumento', 'tipos', 'ubigeos'));
     }
 
+    public function getbusqueda_list_cuentas(Request $request){
+        if($request->ajax()){
+            $cuentas = Proveedorcuenta::where('proveedor_id', $request->id_proveedor)->get();
+            foreach($cuentas as $cuenta){
+                $Arraylist[$cuenta->id] = [$cuenta->tipo_cuenta_normal, $cuenta->entidad_bancaria_normal, $cuenta->nro_cuenta_normal, $cuenta->nro_cci_normal];
+            }
+            return response()->json($Arraylist);
+        }
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -61,7 +71,6 @@ class admin_ProveedoresController extends Controller
         $proveedor = new Proveedor();
         $proveedor->giro = $request->input('giro');
         $proveedor->direccion_fiscal  = $request->input('direccion_fiscal');
-        $proveedor->email_contacto   = $request->input('email_contacto');
         $proveedor->name_contacto   = $request->input('name_contacto');
         $proveedor->email_contacto   = $request->input('email_contacto');
         $proveedor->nro_celular_contacto   = $request->input('nro_celular_contacto');
@@ -70,11 +79,6 @@ class admin_ProveedoresController extends Controller
         // $proveedor->distrito_id   = $request->input('distrito_id');
         $proveedor->estado = 'Activo';
 
-        $proveedor->tipo_cuenta_normal = $request->input('tipo_cuenta_normal');
-        $proveedor->entidad_bancaria_normal   = $request->input('entidad_bancaria_normal');
-        $proveedor->nro_cuenta_normal   = $request->input('nro_cuenta_normal');
-        $proveedor->nro_cci_normal   = $request->input('nro_cci_normal');
-
         $proveedor->tipo_cuenta_detraccion = $request->input('tipo_cuenta_detraccion');
         $proveedor->entidad_bancaria_detraccion   = $request->input('entidad_bancaria_detraccion');
         $proveedor->nro_cuenta_detraccion   = $request->input('nro_cuenta_detraccion');
@@ -82,6 +86,23 @@ class admin_ProveedoresController extends Controller
         $proveedor->persona_id   = $persona->id;
         $proveedor->save();
 
+        $contandores_cuentas = $request->input('contadores');
+        $tipo_cuentas = $request->input('tipo_cuenta_normal');
+        $entidad_bancaria = $request->input('entidad_bancaria_normal');
+        $nro_cuenta = $request->input('nro_cuenta_normal');
+        $nro_cci = $request->input('nro_cci_normal');
+
+        if($contandores_cuentas){
+            foreach($contandores_cuentas as $contador => $contadores){
+                    $proveedorcuenta = new Proveedorcuenta();
+                    $proveedorcuenta->tipo_cuenta_normal = $tipo_cuentas[$contador];
+                    $proveedorcuenta->entidad_bancaria_normal = $entidad_bancaria[$contador];
+                    $proveedorcuenta->nro_cuenta_normal = $nro_cuenta[$contador];
+                    $proveedorcuenta->nro_cci_normal = $nro_cci[$contador];
+                    $proveedorcuenta->proveedor_id = $proveedor->id;
+                    $proveedorcuenta->save();
+            }
+        }
 
         if ($request->input('tipos')) {
             $proveedor->tipos()->attach($request->input('tipos'));
@@ -147,16 +168,30 @@ class admin_ProveedoresController extends Controller
         // $admin_proveedore->proveedor->provincia_id   = $request->input('provincia_id');
         // $admin_proveedore->proveedor->distrito_id   = $request->input('distrito_id');
 
-        $admin_proveedore->proveedor->tipo_cuenta_normal = $request->input('tipo_cuenta_normal');
-        $admin_proveedore->proveedor->entidad_bancaria_normal   = $request->input('entidad_bancaria_normal');
-        $admin_proveedore->proveedor->nro_cuenta_normal   = $request->input('nro_cuenta_normal');
-        $admin_proveedore->proveedor->nro_cci_normal   = $request->input('nro_cci_normal');
-
         $admin_proveedore->proveedor->tipo_cuenta_detraccion = $request->input('tipo_cuenta_detraccion');
         $admin_proveedore->proveedor->entidad_bancaria_detraccion   = $request->input('entidad_bancaria_detraccion');
         $admin_proveedore->proveedor->nro_cuenta_detraccion   = $request->input('nro_cuenta_detraccion');
 
         $admin_proveedore->proveedor->save();
+
+        $contandores_cuentas = $request->input('contadores');
+        $tipo_cuentas = $request->input('tipo_cuenta_normal');
+        $entidad_bancaria = $request->input('entidad_bancaria_normal');
+        $nro_cuenta = $request->input('nro_cuenta_normal');
+        $nro_cci = $request->input('nro_cci_normal');
+
+        Proveedorcuenta::where('proveedor_id', $admin_proveedore->proveedor->id)->delete();
+        if($contandores_cuentas){
+            foreach($contandores_cuentas as $contador => $contadores){
+                    $proveedorcuenta = new Proveedorcuenta();
+                    $proveedorcuenta->tipo_cuenta_normal = $tipo_cuentas[$contador];
+                    $proveedorcuenta->entidad_bancaria_normal = $entidad_bancaria[$contador];
+                    $proveedorcuenta->nro_cuenta_normal = $nro_cuenta[$contador];
+                    $proveedorcuenta->nro_cci_normal = $nro_cci[$contador];
+                    $proveedorcuenta->proveedor_id = $admin_proveedore->proveedor->id;
+                    $proveedorcuenta->save();
+            }
+        }
 
         if ($request->input('tipos')) {
             $admin_proveedore->proveedor->tipos()->detach();

@@ -30,7 +30,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="tipos__bien_id" class="">Tipo<span class="text-danger">*</span></label>
-                                <select class="form-select form-select-sm @error('tipo_servicio') is-invalid @enderror" name="tipo_servicio" id="tipos__bien_id{{ $admin_servicio->slug }}" required style="width: 100%;">
+                                <select class="form-select form-select-sm @error('tipo_servicio') is-invalid @enderror" name="tipo_servicio" id="tipos__servicio_id_edit_{{ $admin_servicio->slug }}" required style="width: 100%;">
                                     <option value="{{ $admin_servicio->tipo_servicio }}" selected="selected" hidden="hidden">{{ $admin_servicio->tipo_servicio }}</option>
                                     <option value="Servicio Publico">Servicio Publico</option>
                                     <option value="Servicio Privado">Servicio Privado</option>
@@ -39,10 +39,10 @@
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3" id="view_proveedor_id_edit_{{ $admin_servicio->slug }}">
                                 <label for="proveedor__id" class="">Proveedor<span class="text-danger">*</span></label>
-                                <select class="form-select form-select-sm select2 @error('proveedor_id') is-invalid @enderror" name="proveedor_id" id="proveedor__id{{ $admin_servicio->slug }}" required style="width: 100%;">
-                                    <option value="{{ $admin_servicio->proveedor_id }}" disabled="disabled" selected="selected" hidden="hidden">{{ $admin_servicio->proveedor->name_contacto }}</option>
+                                <select class="form-select form-select-sm select2 @error('proveedor_id') is-invalid @enderror" name="proveedor_id" id="proveedor__id_edit_{{ $admin_servicio->slug }}" required style="width: 100%;">
+                                    <option value="{{ $admin_servicio->proveedor_id?$admin_servicio->proveedor_id:'' }}" disabled="disabled" selected="selected" hidden="hidden">{{ $admin_servicio->proveedor?$admin_servicio->proveedor->name_contacto:'Seleccionar opcion' }}</option>
                                     @foreach($proveedores as $proveedore)
                                         <option value="{{ $proveedore->id }}">{{ $proveedore->name_contacto }}</option>
                                     @endforeach

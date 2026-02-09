@@ -62,7 +62,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3" id="view_proveedor_id">
                                 <label for="proveedor__id" class="">Proveedor<span class="text-danger">*</span></label>
                                 <select class="form-select form-select-sm select2 <?php $__errorArgs = ['proveedor_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
