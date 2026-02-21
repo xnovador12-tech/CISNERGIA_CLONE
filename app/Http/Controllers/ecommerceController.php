@@ -79,6 +79,35 @@ class ecommerceController extends Controller
 
         $producto = Producto::findOrFail($request->producto_id);
 
+        // Validar Stock
+        $stockDisponible = \App\Models\Inventario::where('id_producto', $producto->id)->sum('cantidad');
+        
+        // Calcular cantidad actual en carrito para este producto
+        $cantidadEnCarrito = 0;
+        if (auth()->check()) {
+            $existingCart = Cart::where('user_id', auth()->id())->first();
+            if ($existingCart) {
+                $existingItem = CartItem::where('cart_id', $existingCart->id)->where('producto_id', $producto->id)->first();
+                $cantidadEnCarrito = $existingItem ? $existingItem->cantidad : 0;
+            }
+        } else {
+            $sessionId = Session::get('cart_session_id');
+            if ($sessionId) {
+                $existingCart = Cart::where('session_id', $sessionId)->first();
+                if ($existingCart) {
+                    $existingItem = CartItem::where('cart_id', $existingCart->id)->where('producto_id', $producto->id)->first();
+                    $cantidadEnCarrito = $existingItem ? $existingItem->cantidad : 0;
+                }
+            }
+        }
+
+        if (($cantidadEnCarrito + $request->cantidad) > $stockDisponible) {
+             return response()->json([
+                'success' => false,
+                'message' => 'No hay suficiente stock disponible. Stock actual: ' . intval($stockDisponible)
+            ], 422);
+        }
+
         // Obtener o crear carrito
         $cart = $this->getOrCreateCart();
 
@@ -227,11 +256,44 @@ class ecommerceController extends Controller
             $pedido->igv = $cart->igv;
             $pedido->total = $cart->total;
             $pedido->estado = 'pendiente';
+            $pedido->aprobacion_stock = true; // Stock descontado al crear (RESERVA AUTOMÁTICA)
+            $pedido->aprobacion_finanzas = false; // Finanzas PENDIENTE de revisión manual de transferencia
             $pedido->direccion_instalacion = $request->direccion;
             $pedido->distrito_id = $request->distrito_id;
             $pedido->observaciones = $request->observaciones ?? null;
             $pedido->origen = 'ecommerce';
             $pedido->save();
+
+            // Descontar Stock del Inventario (LIFO o FIFO - Simplificado: descuenta del primer almácen con stock)
+            foreach ($cart->items as $item) {
+                $cantidadNecesaria = $item->cantidad;
+                
+                // Buscar inventarios con stock de este producto
+                $inventarios = \App\Models\Inventario::where('id_producto', $item->producto_id)
+                                ->where('cantidad', '>', 0)
+                                ->orderBy('created_at', 'asc') // FIFO
+                                ->get();
+                                
+                $stockTotal = $inventarios->sum('cantidad');
+
+                if ($stockTotal < $cantidadNecesaria) {
+                     throw new \Exception("Stock insuficiente para el producto: " . $item->nombre);
+                }
+
+                foreach ($inventarios as $inventario) {
+                    if ($cantidadNecesaria <= 0) break;
+
+                    if ($inventario->cantidad >= $cantidadNecesaria) {
+                        $inventario->cantidad -= $cantidadNecesaria;
+                        $inventario->save();
+                        $cantidadNecesaria = 0;
+                    } else {
+                        $cantidadNecesaria -= $inventario->cantidad;
+                        $inventario->cantidad = 0;
+                        $inventario->save();
+                    }
+                }
+            }
 
             // Crear detalles del pedido
             foreach ($cart->items as $item) {

@@ -2,6 +2,41 @@
 @section('title', 'PEDIDOS')
 
 @section('content')
+    <style>
+        /* Estados Minimalistas */
+        .status-dot {
+            display: inline-flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #4b5563;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .dot-warning { background-color: #f59e0b; }
+        .dot-info    { background-color: #3b82f6; }
+        .dot-primary { background-color: #6366f1; }
+        .dot-success { background-color: #10b981; }
+        .dot-danger  { background-color: #ef4444; }
+        .dot-secondary { background-color: #9ca3af; }
+
+        /* Aprobaciones Minimalistas */
+        .mini-approvals {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 4px;
+            font-size: 1rem;
+        }
+        .text-ready { color: #10b981 !important; }
+        .text-not-ready { color: #d1d5db !important; }
+    </style>
+
     <div class="header_section">
         <div class="bg-transparent mb-3" style="height: 67px"></div>
         <div class="container-fluid">
@@ -60,7 +95,7 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <p class="text-muted mb-1 small">En Proceso</p>
-                                <h3 class="mb-0 fw-bold text-info">{{ $pedidos->whereIn('estado', ['confirmado', 'preparacion', 'despacho'])->count() }}</h3>
+                                <h3 class="mb-0 fw-bold text-info">{{ $pedidos->where('estado', 'proceso')->count() }}</h3>
                             </div>
                             <div class="bg-info bg-opacity-10 p-3 rounded-3">
                                 <i class="bi bi-arrow-repeat fs-3 text-info"></i>
@@ -87,14 +122,61 @@
         </div>
     </div>
 
+
+
     <!-- Tabla de Pedidos -->
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px"
             data-aos="fade-up">
-            <div class="card-header bg-transparent">
-                <a href="{{ route('admin-pedidos.create') }}" class="btn btn-primary text-uppercase text-white btn-sm">
-                    <i class="bi bi-plus-circle-fill me-2"></i>Nuevo Pedido
-                </a>
+            <div class="card-header bg-transparent py-3 border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    {{-- Botón Estilo Prospectos (Izquierda) --}}
+                    <div>
+                        <a href="{{ route('admin-pedidos.create') }}" class="btn btn-dark text-uppercase px-4 fw-bold shadow-sm" style="border-radius: 50px; background-color: #000c19; border: none; font-size: 0.8rem; padding: 10px 25px;">
+                            <i class="bi bi-plus-circle-fill me-2"></i>Nuevo Pedido
+                        </a>
+                    </div>
+                    
+                    {{-- Filtros Estilo Prospectos (Derecha) --}}
+                    <div class="flex-grow-1">
+                        <form action="{{ route('admin-pedidos.index') }}" method="GET" class="row g-2 justify-content-end align-items-center">
+                            <div class="col-auto">
+                                <input type="date" name="desde" class="form-control form-control-sm shadow-sm" 
+                                    value="{{ request('desde') }}" 
+                                    style="border-radius: 8px; border: 1px solid #ced4da; height: 38px; min-width: 150px;"
+                                    title="Fecha Desde">
+                            </div>
+                            <div class="col-auto">
+                                <input type="date" name="hasta" class="form-control form-control-sm shadow-sm" 
+                                    value="{{ request('hasta') }}" 
+                                    style="border-radius: 8px; border: 1px solid #ced4da; height: 38px; min-width: 150px;"
+                                    title="Fecha Hasta">
+                            </div>
+                            <div class="col-auto">
+                                <select name="estado" class="form-select form-select-sm shadow-sm fw-bold text-muted" 
+                                    style="border-radius: 8px; border: 1px solid #ced4da; height: 38px; min-width: 160px; font-size: 0.85rem;">
+                                    <option value="">TODOS LOS ESTADOS</option>
+                                    <option value="pendiente" {{ request('estado') == 'pendiente' ? 'selected' : '' }}>PENDIENTE</option>
+                                    <option value="proceso" {{ request('estado') == 'proceso' ? 'selected' : '' }}>EN PROCESO</option>
+                                    <option value="entregado" {{ request('estado') == 'entregado' ? 'selected' : '' }}>ENTREGADO</option>
+                                    <option value="cancelado" {{ request('estado') == 'cancelado' ? 'selected' : '' }}>CANCELADO</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <div class="btn-group btn-group-sm">
+                                    <button type="submit" class="btn btn-outline-dark shadow-sm px-3" style="border-radius: 8px; height: 38px;">
+                                        <i class="bi bi-filter"></i>
+                                    </button>
+                                    @if(request()->anyFilled(['desde', 'hasta', 'estado']))
+                                        <a href="{{ route('admin-pedidos.index') }}" class="btn btn-outline-danger shadow-sm px-3" style="border-radius: 8px; height: 38px;">
+                                            <i class="bi bi-x-lg"></i>
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <table id="display" class="table table-hover align-middle nowrap" cellspacing="0" style="width:100%">
@@ -111,10 +193,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $contador = 1; @endphp
                         @foreach($pedidos as $pedido)
                         <tr>
-                            <td class="fw-normal text-center align-middle">{{ $contador++ }}</td>
+                            <td class="fw-normal text-center align-middle">{{ $pedido->id }}</td>
                             <td class="fw-normal text-center align-middle">
                                 <strong>{{ $pedido->codigo }}</strong><br>
                                 <small class="text-muted">{{ $pedido->created_at->format('d/m/Y') }}</small>
@@ -122,20 +203,35 @@
                             <td class="fw-normal text-center align-middle">{{ $pedido->cliente->name ?? 'N/A' }}</td>
                             <td class="fw-normal text-center align-middle">{{ $pedido->fecha_entrega_estimada ? $pedido->fecha_entrega_estimada->format('d/m/Y') : 'Sin fecha' }}</td>
                             <td class="fw-normal text-center align-middle text-primary fw-bold">S/ {{ number_format($pedido->total, 2) }}</td>
-                            <td class="fw-normal text-center align-middle">
-                                @if($pedido->estado == 'pendiente')
-                                    <span class="badge bg-warning">Pendiente</span>
-                                @elseif($pedido->estado == 'confirmado')
-                                    <span class="badge bg-info">Confirmado</span>
-                                @elseif($pedido->estado == 'preparacion')
-                                    <span class="badge bg-primary">En Preparación</span>
-                                @elseif($pedido->estado == 'despacho')
-                                    <span class="badge bg-secondary">En Despacho</span>
-                                @elseif($pedido->estado == 'entregado')
-                                    <span class="badge bg-success">Entregado</span>
-                                @else
-                                    <span class="badge bg-danger">Cancelado</span>
-                                @endif
+                            <td class="text-center align-middle">
+                                {{-- Estado Minimalista Simplificado --}}
+                                @php
+                                    $dotColor = match($pedido->estado) {
+                                        'pendiente' => 'dot-warning',
+                                        'proceso'   => 'dot-info',
+                                        'entregado' => 'dot-success',
+                                        'cancelado' => 'dot-danger',
+                                        default     => 'dot-secondary',
+                                    };
+                                    $label = match($pedido->estado) {
+                                        'pendiente' => 'Pendiente',
+                                        'proceso'   => 'En Proceso',
+                                        'entregado' => 'Entregado',
+                                        'cancelado' => 'Cancelado',
+                                        default     => ucfirst($pedido->estado),
+                                    };
+                                @endphp
+                                <div class="status-dot">
+                                    <span class="dot {{ $dotColor }}"></span>{{ $label }}
+                                </div>
+
+                                {{-- Aprobaciones Minimalistas --}}
+                                <div class="mini-approvals">
+                                    <i class="bi bi-wallet2 {{ $pedido->aprobacion_finanzas ? 'text-ready' : 'text-not-ready' }}" 
+                                       title="Pago: {{ $pedido->aprobacion_finanzas ? 'Aprobado' : 'Pendiente' }}"></i>
+                                    <i class="bi bi-box-seam {{ $pedido->aprobacion_stock ? 'text-ready' : 'text-not-ready' }}" 
+                                       title="Stock: {{ $pedido->aprobacion_stock ? 'Reservado' : 'Sin reserva' }}"></i>
+                                </div>
                             </td>
                             <td class="fw-normal text-center align-middle">
                                 <span class="badge {{ $pedido->origen == 'ecommerce' ? 'bg-purple' : 'bg-secondary' }}">
@@ -155,13 +251,52 @@
                                         <li><a class="dropdown-item" href="{{ route('admin-pedidos.edit', $pedido) }}">
                                             <i class="bi bi-pencil text-secondary me-2"></i>Editar</a>
                                         </li>
+                                        {{-- Acciones Minimalistas Inteligentes --}}
+                                        @if(!$pedido->aprobacion_finanzas && $pedido->estado !== 'cancelado')
+                                            <li>
+                                                <form action="{{ route('admin-pedidos.aprobar-finanzas', $pedido) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="dropdown-item">
+                                                        <i class="bi bi-cash-coin text-primary me-2"></i>Confirmar Pago
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                        @endif
+
+                                        @if($pedido->estado === 'proceso')
+                                            <li>
+                                                <form action="{{ route('admin-pedidos.estado', $pedido) }}" method="POST">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="hidden" name="estado" value="entregado">
+                                                    <button type="submit" class="dropdown-item">
+                                                        <i class="bi bi-check2-all text-success me-2"></i>Marcar como Entregado
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        @endif
+
+                                        @if($pedido->estado !== 'cancelado')
+                                            <li>
+                                                <form action="{{ route('admin-pedidos.estado', $pedido) }}" method="POST">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="hidden" name="estado" value="cancelado">
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="bi bi-x-circle me-2"></i>Anular Pedido
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        @endif
+
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <form action="{{ route('admin-pedidos.destroy', $pedido) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('admin-pedidos.destroy', $pedido) }}" method="POST">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="dropdown-item" onclick="return confirm('¿Estás seguro?')">
-                                                    <i class="bi bi-trash text-danger me-2"></i>Eliminar
+                                                <button type="submit" class="dropdown-item p-n3 small opacity-50" onclick="return confirm('¿Eliminar registro permanentemente?')">
+                                                    <i class="bi bi-trash me-2"></i>Borrar (Admin)
                                                 </button>
                                             </form>
                                         </li>
@@ -178,4 +313,22 @@
 @endsection
 
 @section('js')
+<style>
+    /* Mostrar X registros en una sola línea horizontal */
+    .dataTables_length {
+        display: flex !important;
+        align-items: center !important;
+    }
+    .dataTables_length label {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-bottom: 0 !important;
+        white-space: nowrap !important;
+    }
+    .dataTables_length select {
+        width: auto !important;
+        display: inline-block !important;
+    }
+</style>
 @endsection

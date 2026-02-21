@@ -22,9 +22,75 @@
     </div>
 
     <div class="container-fluid">
+
+        {{-- ====== MENSAJES FLASH ====== --}}
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-3" role="alert">
+                <i class="bi bi-check-circle-fill fs-5"></i>
+                <div>{{ session('success') }}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-3" role="alert">
+                <i class="bi bi-x-circle-fill fs-5"></i>
+                <div>{{ session('error') }}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if(session('warning'))
+            <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center gap-2 mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                <div>{{ session('warning') }}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if(session('info'))
+            <div class="alert alert-info alert-dismissible fade show d-flex align-items-center gap-2 mb-3" role="alert">
+                <i class="bi bi-info-circle-fill fs-5"></i>
+                <div>{{ session('info') }}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        {{-- ============================== --}}
+
         <div class="row g-3">
             <!-- Información del Pedido -->
             <div class="col-md-8">
+                
+                <!-- Indicador de Origen -->
+                <div class="mb-3" data-aos="fade-up">
+                    @if($pedido->origen === 'ecommerce')
+                        <span class="badge bg-info fs-6">
+                            <i class="bi bi-cart-check me-2"></i>Pedido E-commerce (Pago Online Confirmado)
+                        </span>
+                    @elseif($pedido->origen === 'cotizacion')
+                        <span class="badge bg-primary fs-6">
+                            <i class="bi bi-file-earmark-text me-2"></i>Pedido desde Cotización
+                        </span>
+                    @else
+                        <span class="badge bg-secondary fs-6">
+                            <i class="bi bi-briefcase me-2"></i>Pedido Manual (Proyecto B2B)
+                        </span>
+                    @endif
+                </div>
+
+                {{-- Nota de Stock (Solo si falló la reserva automática) --}}
+                @if(!$pedido->aprobacion_stock && $pedido->estado === 'pendiente')
+                    <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center gap-3 mb-3" data-aos="fade-up">
+                        <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Atención: Stock insuficiente</h6>
+                            <small>No se pudo reservar el stock automáticamente. Por favor, revisa el inventario y una vez abastecido vuelve a intentar la reserva.</small>
+                            <form action="{{ route('admin-pedidos.aprobar-stock', $pedido) }}" method="POST" class="mt-2">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-dark">Re-intentar reserva de stock</button>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+
+
                 <div class="card border-0 shadow-sm" data-aos="fade-up">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Información del Pedido</h5>
@@ -43,17 +109,13 @@
                             <div class="col-md-6">
                                 <p class="mb-1"><strong>Estado:</strong>
                                     @if($pedido->estado == 'pendiente')
-                                        <span class="badge bg-warning">Pendiente</span>
-                                    @elseif($pedido->estado == 'confirmado')
-                                        <span class="badge bg-info">Confirmado</span>
-                                    @elseif($pedido->estado == 'preparacion')
-                                        <span class="badge bg-primary">En Preparación</span>
-                                    @elseif($pedido->estado == 'despacho')
-                                        <span class="badge bg-secondary">En Despacho</span>
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                    @elseif($pedido->estado == 'proceso')
+                                        <span class="badge bg-info">En Proceso</span>
                                     @elseif($pedido->estado == 'entregado')
                                         <span class="badge bg-success">Entregado</span>
                                     @else
-                                        <span class="badge bg-danger">Cancelado</span>
+                                        <span class="badge bg-danger">Anulado / Cancelado</span>
                                     @endif
                                 </p>
                                 <p class="mb-1"><strong>Fecha Entrega:</strong> {{ $pedido->fecha_entrega_estimada ? $pedido->fecha_entrega_estimada->format('d/m/Y') : 'Sin fecha' }}</p>
@@ -63,25 +125,23 @@
 
                         <hr>
 
-                        <h6 class="text-uppercase fw-bold mb-3">Cliente</h6>
                         <div class="row mb-3">
-                            <div class="col-md-12">
+                            <!-- Cliente -->
+                            <div class="col-md-6">
+                                <h6 class="text-uppercase fw-bold mb-3">Cliente</h6>
                                 <p class="mb-1"><strong>Nombre:</strong> {{ $pedido->cliente->name ?? 'N/A' }}</p>
                                 <p class="mb-1"><strong>Documento:</strong> {{ $pedido->cliente->documento ?? 'N/A' }}</p>
                                 <p class="mb-1"><strong>Correo:</strong> {{ $pedido->cliente->correo ?? 'N/A' }}</p>
                                 <p class="mb-1"><strong>Teléfono:</strong> {{ $pedido->cliente->telefono ?? 'N/A' }}</p>
                             </div>
-                        </div>
 
-                        <hr>
-
-                        <h6 class="text-uppercase fw-bold mb-3">Instalación</h6>
-                        <div class="row mb-3">
-                            <div class="col-md-12">
+                            <!-- Instalación -->
+                            <div class="col-md-6">
+                                <h6 class="text-uppercase fw-bold mb-3">Instalación</h6>
                                 <p class="mb-1"><strong>Dirección:</strong> {{ $pedido->direccion_instalacion ?? 'No especificada' }}</p>
                                 <p class="mb-1"><strong>Distrito:</strong> {{ $pedido->distrito->name ?? 'No especificado' }}</p>
                                 <p class="mb-1"><strong>Técnico Asignado:</strong> {{ $pedido->tecnico->name ?? 'Sin asignar' }}</p>
-                                <p class="mb-1"><strong>Almacén:</strong> {{ $pedido->almacen->name ?? 'Sin asignar' }}</p>
+                                <p class="mb-1"><strong>Almacén:</strong> {{ $pedido->almacen->nombre ?? 'Sin asignar' }}</p>
                             </div>
                         </div>
 
@@ -164,6 +224,34 @@
                         <h5 class="mb-0"><i class="bi bi-tools me-2"></i>Acciones</h5>
                     </div>
                     <div class="card-body">
+                        @if($pedido->venta)
+                            <a href="{{ route('admin-ventas.show', $pedido->venta) }}" class="btn btn-success w-100 mb-2">
+                                <i class="bi bi-check-circle me-2"></i>Ver Comprobante: {{ $pedido->venta->codigo }}
+                            </a>
+                        @else
+                            {{-- Botón de Pago (Finanzas) simplificado en Acciones --}}
+                            @if(!$pedido->aprobacion_finanzas)
+                                <form action="{{ route('admin-pedidos.aprobar-finanzas', $pedido) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary w-100 mb-2 py-2">
+                                        <i class="bi bi-cash-coin me-2"></i>Confirmar Pago
+                                    </button>
+                                </form>
+                            @else
+                                <div class="alert alert-success py-2 mb-2 text-center" style="font-size:0.85rem;">
+                                    <i class="bi bi-check-all me-1"></i> Pago Verificado
+                                    <form action="{{ route('admin-pedidos.aprobar-finanzas', $pedido) }}" method="POST" class="d-inline ms-2">
+                                        @csrf
+                                        <button type="submit" class="btn btn-link p-0 text-danger text-decoration-none small" title="Revocar Pago">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#modalGenerarComprobante">
+                                    <i class="bi bi-receipt me-2"></i>Generar Comprobante
+                                </button>
+                            @endif
+                        @endif
                         <a href="{{ route('admin-pedidos.edit', $pedido) }}" class="btn btn-warning w-100 mb-2">
                             <i class="bi bi-pencil me-2"></i>Editar Pedido
                         </a>
@@ -175,4 +263,68 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal: Generar Comprobante -->
+@if(!$pedido->venta)
+    <div class="modal fade" id="modalGenerarComprobante" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-receipt me-2"></i>Generar Comprobante de Venta</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ route('admin-pedidos.generar-comprobante', $pedido) }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            El comprobante heredará todos los datos del pedido <strong>{{ $pedido->codigo }}</strong>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Comprobante <span class="text-danger">*</span></label>
+                            <select name="tiposcomprobante_id" class="form-select" required>
+                                <option value="">Seleccionar...</option>
+                                @foreach(\App\Models\Tiposcomprobante::where('tipo', 'ventas')->get() as $tipo)
+                                    <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Medio de Pago <span class="text-danger">*</span></label>
+                            <select name="mediopago_id" class="form-select" required>
+                                <option value="">Seleccionar...</option>
+                                @foreach(\App\Models\Mediopago::all() as $medio)
+                                    <option value="{{ $medio->id }}">{{ $medio->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Número de Comprobante</label>
+                            <input type="text" name="numero_comprobante" class="form-control" placeholder="Ej: F001-00001 (opcional)">
+                            <small class="text-muted">Dejar vacío para generar automáticamente</small>
+                        </div>
+
+                        <hr>
+                        <h6 class="fw-bold">Resumen del Pedido:</h6>
+                        <table class="table table-sm">
+                            <tr><td>Cliente:</td><td class="fw-bold">{{ $pedido->cliente->name ?? 'N/A' }}</td></tr>
+                            <tr><td>Subtotal:</td><td>S/ {{ number_format($pedido->subtotal, 2) }}</td></tr>
+                            <tr><td>IGV:</td><td>S/ {{ number_format($pedido->igv, 2) }}</td></tr>
+                            <tr class="table-primary"><td class="fw-bold">TOTAL:</td><td class="fw-bold">S/ {{ number_format($pedido->total, 2) }}</td></tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>Generar Comprobante
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
 @endsection

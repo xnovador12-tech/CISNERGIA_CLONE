@@ -34,6 +34,11 @@ class DatabaseSeeder extends Seeder
         $this->call(MedidaTableSeeder::class);
         $this->call(MotivoTableSeeder::class);
         $this->call(ComprobanteTableSeeder::class);
+        $this->call(MarcaTableSeeder::class);
         $this->call(AlmacenTableSeeder::class);
+        $this->call(ClienteSeeder::class);
+        $this->call(ProductoSeeder::class);
+        $this->call(InventarioSeeder::class);
+
     }
 }

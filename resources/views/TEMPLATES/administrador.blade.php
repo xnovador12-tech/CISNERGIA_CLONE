@@ -194,17 +194,7 @@
                             </a>
                         </li>
 
-                        <li class="mx-2 my-1">
-                            <a href="{{ route('admin-seguimiento.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin-seguimiento*']) ? 'active-item' : null }} menu">
-                                <span class="fw-bold">
-                                    <i class="bi bi-graph-up me-2"></i>
-                                </span>
-                                <span>
-                                    Seguimiento
-                                </span>
-                            </a>
-                        </li>
+
 
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3">COMPRAS</div>

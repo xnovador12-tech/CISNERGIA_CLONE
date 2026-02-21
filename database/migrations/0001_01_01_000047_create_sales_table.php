@@ -26,6 +26,8 @@ return new class extends Migration
             $table->foreignId('mediopago_id')->nullable()->constrained('mediopagos')->onDelete('set null');
             $table->enum('estado', ['completada', 'parcial', 'anulada'])->default('completada');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('sede_id')->nullable()->constrained('sedes')->onDelete('set null');
+            $table->enum('tipo_venta', ['pos', 'pedido', 'ecommerce'])->default('pos');
             
             // Campos específicos para proyectos energéticos
             $table->string('tipo_proyecto')->nullable(); // residencial, comercial, industrial, agricola

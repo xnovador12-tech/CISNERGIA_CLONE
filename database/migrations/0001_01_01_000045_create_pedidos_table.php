@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('codigo')->unique();
             $table->string('slug')->unique();
+            $table->foreignId('cotizacion_id')->nullable()->constrained('cotizaciones')->onDelete('set null'); // Enlace con Cotización
             $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->decimal('subtotal', 11, 2)->default(0);
@@ -22,6 +23,11 @@ return new class extends Migration
             $table->decimal('igv', 11, 2)->default(0);
             $table->decimal('total', 11, 2)->default(0);
             $table->enum('estado', ['pendiente', 'confirmado', 'preparacion', 'despacho', 'entregado', 'cancelado'])->default('pendiente');
+            
+            // Flags de Aprobación del Flujo
+            $table->boolean('aprobacion_finanzas')->default(false); // ¿Pagó el anticipo?
+            $table->boolean('aprobacion_stock')->default(false);    // ¿Hay stock reservado?
+            
             $table->string('direccion_instalacion')->nullable();
             $table->foreignId('distrito_id')->nullable()->constrained('distritos')->onDelete('set null');
             $table->date('fecha_entrega_estimada')->nullable();

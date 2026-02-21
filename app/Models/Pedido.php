@@ -14,6 +14,7 @@ class Pedido extends Model
     protected $fillable = [
         'codigo',
         'slug',
+        'cotizacion_id',
         'cliente_id',
         'user_id',
         'subtotal',
@@ -21,6 +22,8 @@ class Pedido extends Model
         'igv',
         'total',
         'estado',
+        'aprobacion_finanzas',
+        'aprobacion_stock',
         'direccion_instalacion',
         'distrito_id',
         'fecha_entrega_estimada',
@@ -36,6 +39,8 @@ class Pedido extends Model
         'descuento' => 'decimal:2',
         'igv' => 'decimal:2',
         'total' => 'decimal:2',
+        'aprobacion_finanzas' => 'boolean',
+        'aprobacion_stock' => 'boolean',
     ];
 
     public function getRouteKeyName()
@@ -44,6 +49,11 @@ class Pedido extends Model
     }
 
     // Relaciones
+    public function cotizacion()
+    {
+        return $this->belongsTo(Cotizacion::class, 'cotizacion_id');
+    }
+
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'cliente_id');

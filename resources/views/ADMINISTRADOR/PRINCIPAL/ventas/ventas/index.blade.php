@@ -89,11 +89,7 @@
     <!-- Tabla de Ventas -->
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px" data-aos="fade-up">
-            <div class="card-header bg-transparent">
-                <a href="{{ route('admin-ventas.create') }}" class="btn btn-success text-uppercase text-white btn-sm">
-                    <i class="bi bi-plus-circle-fill me-2"></i>Registrar Venta
-                </a>
-            </div>
+
             <div class="card-body">
                 <table id="display" class="table table-hover align-middle nowrap" cellspacing="0" style="width:100%">
                     <thead class="bg-dark text-white border-0">

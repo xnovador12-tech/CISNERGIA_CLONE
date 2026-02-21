@@ -24,7 +24,6 @@ use App\Http\Controllers\admin_OrdenesserviciosController;
 use App\Http\Controllers\admin_ServiciosController;
 use App\Http\Controllers\admin_PedidosController;
 use App\Http\Controllers\admin_VentasController;
-use App\Http\Controllers\admin_SeguimientoController;
 use App\Http\Controllers\admin_SalidasController;
 use App\Http\Controllers\ecommerceController;
 use Illuminate\Support\Facades\Route;
@@ -123,12 +122,15 @@ Route::resource('admin-salidas', admin_SalidasController::class);
 
 // VENTAS
 Route::resource('admin-pedidos', admin_PedidosController::class);
-Route::put('/admin-pedidos/estado/{admin_pedido}', [admin_PedidosController::class, 'estado']);
+Route::put('/admin-pedidos/estado/{admin_pedido}', [admin_PedidosController::class, 'estado'])->name('admin-pedidos.estado');
+Route::post('/admin-pedidos/aprobar-finanzas/{admin_pedido}', [admin_PedidosController::class, 'aprobarFinanzas'])->name('admin-pedidos.aprobar-finanzas');
+Route::post('/admin-pedidos/aprobar-stock/{admin_pedido}', [admin_PedidosController::class, 'aprobarStock'])->name('admin-pedidos.aprobar-stock');
+Route::post('/admin-pedidos/generar-comprobante/{admin_pedido}', [admin_PedidosController::class, 'generarComprobante'])->name('admin-pedidos.generar-comprobante');
+Route::post('/admin-pedidos/desde-ecommerce/{admin_venta}', [admin_PedidosController::class, 'storeFromEcommerce'])->name('admin-pedidos.desde-ecommerce');
 
 Route::resource('admin-ventas', admin_VentasController::class);
 Route::put('/admin-ventas/estado/{admin_venta}', [admin_VentasController::class, 'estado']);
 
-Route::get('admin-seguimiento', [admin_SeguimientoController::class, 'index'])->name('admin-seguimiento.index');
 
 // CRM - Prospectos
 Route::get('admin-crm-prospectos', function () {
