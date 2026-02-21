@@ -16,7 +16,12 @@ class admin_CrmProspectosController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Prospecto::with(['vendedor', 'distrito', 'cliente']);
+        $query = Prospecto::with(['vendedor', 'distrito', 'cliente'])
+            ->addSelect(['wishlist_count' => \DB::table('wish_lists')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('wish_lists.user_id', 'prospectos.registered_user_id')
+                ->where('wish_lists.deseo', true)
+            ]);
 
         // Filtros
         if ($request->filled('buscar')) {
@@ -38,10 +43,6 @@ class admin_CrmProspectosController extends Controller
             $query->where('segmento', $request->segmento);
         }
 
-        if ($request->filled('scoring')) {
-            $query->where('scoring', $request->scoring);
-        }
-
         if ($request->filled('origen')) {
             $query->where('origen', $request->origen);
         }
@@ -58,15 +59,17 @@ class admin_CrmProspectosController extends Controller
         // Cargar todos para DataTables del lado cliente
         $prospectos = $query->get();
 
-        // EstadÃ­sticas
+        // Estadísticas
         $estadisticas = [
             'total' => Prospecto::count(),
             'nuevos_mes' => Prospecto::nuevosEsteMes()->count(),
             'calificados' => Prospecto::porEstado('calificado')->count(),
-            'pendientes_contactar' => Prospecto::conSeguimientoPendiente()->count(),
+            'tasa_conversion' => Prospecto::count() > 0
+                ? round((Prospecto::porEstado('calificado')->count() / Prospecto::count()) * 100, 1)
+                : 0,
         ];
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.prospectos.index', compact(
+        return view('ADMINISTRADOR.CRM.prospectos.index', compact(
             'prospectos',
             'estadisticas'
         ));
@@ -80,7 +83,7 @@ class admin_CrmProspectosController extends Controller
         $distritos = Distrito::orderBy('nombre')->get();
         $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.prospectos.create', compact('distritos', 'vendedores'));
+        return view('ADMINISTRADOR.CRM.prospectos.create', compact('distritos', 'vendedores'));
     }
 
     /**
@@ -100,19 +103,11 @@ class admin_CrmProspectosController extends Controller
             'direccion' => 'nullable|string|max:255',
             'distrito_id' => 'nullable|exists:distritos,id',
             'tipo_persona' => 'required|in:natural,juridica',
-            'origen' => 'required|in:web,facebook,instagram,google_ads,referido,llamada,visita,feria,otro',
-            'origen_detalle' => 'nullable|string|max:255',
+            'origen' => 'required|in:sitio_web,redes_sociales,llamada,referido,ecommerce,otro',
             'segmento' => 'required|in:residencial,comercial,industrial,agricola',
-            'consumo_mensual_kwh' => 'nullable|numeric|min:0',
-            'factura_mensual_soles' => 'nullable|numeric|min:0',
-            'tipo_inmueble' => 'nullable|string|max:50',
-            'area_disponible_m2' => 'nullable|numeric|min:0',
-            'tiene_medidor_bidireccional' => 'boolean',
-            'empresa_electrica' => 'nullable|string|max:100',
-            'presupuesto_estimado' => 'nullable|numeric|min:0',
+            'tipo_interes' => 'required|in:producto,servicio,ambos',
             'nivel_interes' => 'nullable|in:muy_alto,alto,medio,bajo',
             'urgencia' => 'nullable|in:inmediata,corto_plazo,mediano_plazo,largo_plazo',
-            'requiere_financiamiento' => 'boolean',
             'user_id' => 'nullable|exists:users,id',
             'observaciones' => 'nullable|string',
         ]);
@@ -122,12 +117,11 @@ class admin_CrmProspectosController extends Controller
 
         $prospecto = \DB::transaction(function () use ($validated) {
             $prospecto = Prospecto::create($validated);
-            $prospecto->actualizarScoring();
             return $prospecto;
         });
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.prospectos.show', $prospecto)
+            ->route('admin.crm.prospectos.show', $prospecto)
             ->with('success', 'Prospecto creado exitosamente.');
     }
 
@@ -150,7 +144,28 @@ class admin_CrmProspectosController extends Controller
             ->take(20)
             ->get();
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.prospectos.show', compact('prospecto', 'timeline'));
+        // Cargar wishlist si el prospecto tiene usuario registrado (ecommerce)
+        $wishlistItems = collect();
+        if ($prospecto->registered_user_id) {
+            $wishlistItems = \DB::table('wish_lists')
+                ->join('productos', 'wish_lists.producto_id', '=', 'productos.id')
+                ->where('wish_lists.user_id', $prospecto->registered_user_id)
+                ->where('wish_lists.deseo', true)
+                ->select(
+                    'productos.id',
+                    'productos.name as nombre',
+                    'productos.precio',
+                    'productos.precio_descuento',
+                    'productos.imagen',
+                    'wish_lists.created_at'
+                )
+                ->orderByDesc('wish_lists.created_at')
+                ->get();
+        }
+
+        $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+
+        return view('ADMINISTRADOR.CRM.prospectos.show', compact('prospecto', 'timeline', 'wishlistItems', 'vendedores'));
     }
 
     /**
@@ -161,7 +176,7 @@ class admin_CrmProspectosController extends Controller
         $distritos = Distrito::orderBy('nombre')->get();
         $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.prospectos.edit', compact('prospecto', 'distritos', 'vendedores'));
+        return view('ADMINISTRADOR.CRM.prospectos.edit', compact('prospecto', 'distritos', 'vendedores'));
     }
 
     /**
@@ -181,37 +196,22 @@ class admin_CrmProspectosController extends Controller
             'direccion' => 'nullable|string|max:255',
             'distrito_id' => 'nullable|exists:distritos,id',
             'tipo_persona' => 'required|in:natural,juridica',
-            'origen' => 'required|in:web,facebook,instagram,google_ads,referido,llamada,visita,feria,otro',
-            'origen_detalle' => 'nullable|string|max:255',
+            'origen' => 'required|in:sitio_web,redes_sociales,llamada,referido,ecommerce,otro',
             'segmento' => 'required|in:residencial,comercial,industrial,agricola',
-            'estado' => 'required|in:nuevo,contactado,calificado,no_calificado,descartado',
+            'tipo_interes' => 'required|in:producto,servicio,ambos',
+            'estado' => 'required|in:nuevo,contactado,calificado,descartado',
             'motivo_descarte' => 'nullable|required_if:estado,descartado|string|max:255',
-            'consumo_mensual_kwh' => 'nullable|numeric|min:0',
-            'factura_mensual_soles' => 'nullable|numeric|min:0',
-            'tipo_inmueble' => 'nullable|string|max:50',
-            'area_disponible_m2' => 'nullable|numeric|min:0',
-            'tiene_medidor_bidireccional' => 'boolean',
-            'empresa_electrica' => 'nullable|string|max:100',
-            'presupuesto_estimado' => 'nullable|numeric|min:0',
             'nivel_interes' => 'nullable|in:muy_alto,alto,medio,bajo',
             'urgencia' => 'nullable|in:inmediata,corto_plazo,mediano_plazo,largo_plazo',
-            'requiere_financiamiento' => 'boolean',
             'user_id' => 'nullable|exists:users,id',
             'fecha_proximo_contacto' => 'nullable|date',
             'observaciones' => 'nullable|string',
-            'scoring' => 'nullable|in:A,B,C',
-            'scoring_puntos' => 'nullable|integer|min:0|max:100',
         ]);
 
         $prospecto->update($validated);
 
-        // Solo recalcular scoring automÃ¡ticamente si no se proporcionÃ³ manualmente
-        if (!$request->filled('scoring') && !$request->filled('scoring_puntos')) {
-            $prospecto->actualizarScoring();
-        }
-
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.prospectos.show', $prospecto)
+            ->route('admin.crm.prospectos.show', $prospecto)
             ->with('success', 'Prospecto actualizado exitosamente.');
     }
 
@@ -223,7 +223,7 @@ class admin_CrmProspectosController extends Controller
         $prospecto->delete();
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.prospectos.index')
+            ->route('admin.crm.prospectos.index')
             ->with('success', 'Prospecto eliminado exitosamente.');
     }
 
@@ -236,8 +236,8 @@ class admin_CrmProspectosController extends Controller
             $cliente = $prospecto->convertirACliente();
             
             return redirect()
-                ->route('ADMINISTRADOR.PRINCIPAL.crm.prospectos.index')
-                ->with('success', "Prospecto '{$prospecto->nombre_completo}' convertido a cliente exitosamente. CÃ³digo: {$cliente->codigo}");
+                ->route('admin.crm.prospectos.index')
+                ->with('success', "Prospecto '{$prospecto->nombre_completo}' convertido a cliente exitosamente. Código: {$cliente->codigo}");
         } catch (\Exception $e) {
             return back()->with('error', 'Error al convertir: ' . $e->getMessage());
         }
@@ -271,7 +271,7 @@ class admin_CrmProspectosController extends Controller
         }
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.oportunidades.show', $oportunidad)
+            ->route('admin.crm.oportunidades.show', $oportunidad)
             ->with('success', 'Oportunidad creada exitosamente.');
     }
 
@@ -285,15 +285,14 @@ class admin_CrmProspectosController extends Controller
             'titulo' => 'required|string|max:200',
             'descripcion' => 'nullable|string',
             'fecha_programada' => 'required|date',
-            'hora_inicio' => 'nullable|date_format:H:i',
-            'duracion_minutos' => 'nullable|integer|min:5',
-            'prioridad' => 'nullable|in:alta,media,baja',
-            'recordatorio_activo' => 'boolean',
-            'recordatorio_minutos_antes' => 'nullable|integer|min:5',
+            'prioridad' => 'nullable|in:alta,media,baja,urgente',
+            'estado' => 'nullable|in:programada,en_progreso,completada,cancelada,reprogramada,no_realizada',
+            'user_id' => 'nullable|exists:users,id',
         ]);
 
-        $validated['estado'] = 'programada';
-        $validated['user_id'] = auth()->id();
+        $validated['estado'] = $validated['estado'] ?? 'programada';
+        $validated['user_id'] = $validated['user_id'] ?? auth()->id();
+        $validated['created_by'] = auth()->id();
 
         $prospecto->actividades()->create($validated);
 
@@ -305,18 +304,18 @@ class admin_CrmProspectosController extends Controller
      */
     public function kanban()
     {
-        $estados = ['nuevo', 'contactado', 'calificado', 'no_calificado', 'descartado'];
+        $estados = ['nuevo', 'contactado', 'calificado', 'descartado'];
         
         $prospectosPorEstado = [];
         foreach ($estados as $estado) {
             $prospectosPorEstado[$estado] = Prospecto::with('vendedor')
                 ->where('estado', $estado)
-                ->orderByDesc('scoring_puntos')
+                ->orderByDesc('created_at')
                 ->take(20)
                 ->get();
         }
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.prospectos.kanban', compact('prospectosPorEstado', 'estados'));
+        return view('ADMINISTRADOR.CRM.prospectos.kanban', compact('prospectosPorEstado', 'estados'));
     }
 
     /**
@@ -325,13 +324,13 @@ class admin_CrmProspectosController extends Controller
     public function actualizarEstado(Request $request, Prospecto $prospecto)
     {
         $validated = $request->validate([
-            'estado' => 'required|in:nuevo,contactado,calificado,no_calificado,descartado',
+            'estado' => 'required|in:nuevo,contactado,calificado,descartado',
             'motivo_descarte' => 'nullable|required_if:estado,descartado|string',
         ]);
 
         $prospecto->update($validated);
 
-        // Si es peticiÃ³n AJAX, devolver JSON
+        // Si es petición AJAX, devolver JSON
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -342,35 +341,10 @@ class admin_CrmProspectosController extends Controller
 
         // Si es formulario normal, redirigir con mensaje
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.prospectos.show', $prospecto)
+            ->route('admin.crm.prospectos.show', $prospecto)
             ->with('success', 'Estado actualizado a ' . ucfirst(str_replace('_', ' ', $validated['estado'])));
     }
 
-    /**
-     * Actualizar scoring manualmente
-     */
-    public function actualizarScoring(Request $request, Prospecto $prospecto)
-    {
-        $validated = $request->validate([
-            'scoring' => 'required|in:A,B,C',
-            'scoring_puntos' => 'required|integer|min:0|max:100',
-        ]);
-
-        $prospecto->update($validated);
-
-        // Si es peticiÃ³n AJAX, devolver JSON
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Scoring actualizado',
-                'prospecto' => $prospecto->fresh(),
-            ]);
-        }
-
-        return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.prospectos.show', $prospecto)
-            ->with('success', 'Scoring actualizado correctamente');
-    }
 
     /**
      * Exportar prospectos a Excel/CSV
@@ -401,8 +375,8 @@ class admin_CrmProspectosController extends Controller
             
             // Encabezados
             fputcsv($file, [
-                'CÃ³digo', 'Nombre', 'Email', 'TelÃ©fono', 'Segmento', 
-                'Estado', 'Scoring', 'Origen', 'Consumo kWh', 'Presupuesto',
+                'Código', 'Nombre', 'Email', 'Teléfono', 'Segmento', 
+                'Estado', 'Origen', 'Nivel Interés', 'Urgencia',
                 'Vendedor', 'Fecha Registro'
             ]);
 
@@ -414,11 +388,10 @@ class admin_CrmProspectosController extends Controller
                     $p->celular ?? $p->telefono,
                     $p->segmento,
                     $p->estado,
-                    $p->scoring,
                     $p->origen,
-                    $p->consumo_mensual_kwh,
-                    $p->presupuesto_estimado,
-                    $p->vendedor?->name,
+                    $p->nivel_interes,
+                    $p->urgencia,
+                    $p->vendedor?->persona?->name ?? '',
                     $p->created_at->format('d/m/Y'),
                 ]);
             }

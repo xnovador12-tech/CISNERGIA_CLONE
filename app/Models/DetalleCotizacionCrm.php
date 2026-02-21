@@ -39,12 +39,9 @@ class DetalleCotizacionCrm extends Model
      * Categorías disponibles
      */
     public const CATEGORIAS = [
-        'equipo' => ['nombre' => 'Equipo', 'icono' => 'bi-box', 'color' => 'primary'],
-        'mano_obra' => ['nombre' => 'Mano de Obra', 'icono' => 'bi-tools', 'color' => 'warning'],
-        'servicio' => ['nombre' => 'Servicio', 'icono' => 'bi-gear', 'color' => 'info'],
-        'material' => ['nombre' => 'Material', 'icono' => 'bi-bricks', 'color' => 'secondary'],
-        'tramite' => ['nombre' => 'Trámite', 'icono' => 'bi-file-earmark-text', 'color' => 'success'],
-        'otro' => ['nombre' => 'Otro', 'icono' => 'bi-three-dots', 'color' => 'dark'],
+        'producto'  => ['nombre' => 'Producto', 'icono' => 'bi-box', 'color' => 'primary'],
+        'servicio'  => ['nombre' => 'Servicio', 'icono' => 'bi-gear', 'color' => 'info'],
+        'otro'      => ['nombre' => 'Otro', 'icono' => 'bi-three-dots', 'color' => 'secondary'],
     ];
 
     /**
@@ -65,50 +62,46 @@ class DetalleCotizacionCrm extends Model
     ];
 
     /**
-     * Boot del modelo
+     * Boot del modelo - Calcula subtotal automáticamente al guardar
      */
-    protected static function boot()
+    protected static function booted(): void
     {
-        parent::boot();
-
         static::saving(function ($detalle) {
-            // Calcular descuento en monto
-            if ($detalle->descuento_porcentaje > 0) {
-                $detalle->descuento_monto = ($detalle->cantidad * $detalle->precio_unitario) * ($detalle->descuento_porcentaje / 100);
+            $cantidad = (float) ($detalle->cantidad ?? 0);
+            $precioUnitario = (float) ($detalle->precio_unitario ?? 0);
+            $descuentoPct = (float) ($detalle->descuento_porcentaje ?? 0);
+
+            $bruto = $cantidad * $precioUnitario;
+
+            if ($descuentoPct > 0) {
+                $detalle->descuento_monto = round($bruto * ($descuentoPct / 100), 2);
+            } else {
+                $detalle->descuento_monto = 0;
             }
-            
-            // Calcular subtotal
-            $detalle->subtotal = ($detalle->cantidad * $detalle->precio_unitario) - $detalle->descuento_monto;
+
+            $detalle->subtotal = round($bruto - $detalle->descuento_monto, 2);
         });
     }
 
-    /**
-     * Relación con cotización
-     */
+    // ==================== RELACIONES ====================
+
     public function cotizacion()
     {
         return $this->belongsTo(CotizacionCrm::class, 'cotizacion_id');
     }
 
-    /**
-     * Relación con producto (opcional)
-     */
     public function producto()
     {
         return $this->belongsTo(Producto::class);
     }
 
-    /**
-     * Obtener info de la categoría
-     */
+    // ==================== ACCESSORS ====================
+
     public function getCategoriaInfoAttribute(): array
     {
         return self::CATEGORIAS[$this->categoria] ?? self::CATEGORIAS['otro'];
     }
 
-    /**
-     * Obtener nombre de unidad
-     */
     public function getNombreUnidadAttribute(): string
     {
         return self::UNIDADES[$this->unidad] ?? $this->unidad;

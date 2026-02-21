@@ -101,9 +101,55 @@ return new class extends Migration
                 $table->date('fecha_ultimo_contacto')->nullable();
             }
             
-            // Asignación
-            if (!Schema::hasColumn('clientes', 'user_id')) {
-                $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            // Asignación (vendedor_id en lugar de user_id para evitar conflicto con el user_id original de clientes)
+            if (!Schema::hasColumn('clientes', 'vendedor_id')) {
+                $table->foreignId('vendedor_id')->nullable()->constrained('users')->onDelete('set null');
+            }
+
+            // Ubicación
+            if (!Schema::hasColumn('clientes', 'distrito_id')) {
+                $table->foreignId('distrito_id')->nullable()->constrained('distritos')->onDelete('set null');
+            }
+            if (!Schema::hasColumn('clientes', 'sede_id')) {
+                $table->foreignId('sede_id')->nullable()->constrained('sedes')->onDelete('set null');
+            }
+
+            // Scoring y análisis
+            if (!Schema::hasColumn('clientes', 'scoring')) {
+                $table->enum('scoring', ['A', 'B', 'C'])->default('C');
+            }
+            if (!Schema::hasColumn('clientes', 'valor_tiempo_vida')) {
+                $table->decimal('valor_tiempo_vida', 14, 2)->default(0);
+            }
+            if (!Schema::hasColumn('clientes', 'dias_sin_comprar')) {
+                $table->integer('dias_sin_comprar')->nullable();
+            }
+            if (!Schema::hasColumn('clientes', 'estado_rfm')) {
+                $table->string('estado_rfm')->nullable(); // vip, activo, regular, inactivo, perdido
+            }
+
+            // Preferencias de comunicación
+            if (!Schema::hasColumn('clientes', 'preferencias_comunicacion')) {
+                $table->json('preferencias_comunicacion')->nullable();
+            }
+            if (!Schema::hasColumn('clientes', 'horario_contacto_preferido')) {
+                $table->string('horario_contacto_preferido')->nullable();
+            }
+            if (!Schema::hasColumn('clientes', 'acepta_marketing')) {
+                $table->boolean('acepta_marketing')->default(true);
+            }
+
+            // NPS (Net Promoter Score)
+            if (!Schema::hasColumn('clientes', 'nps_score')) {
+                $table->integer('nps_score')->nullable();
+            }
+            if (!Schema::hasColumn('clientes', 'fecha_ultimo_nps')) {
+                $table->date('fecha_ultimo_nps')->nullable();
+            }
+
+            // Notas
+            if (!Schema::hasColumn('clientes', 'observaciones')) {
+                $table->text('observaciones')->nullable();
             }
             
             // SoftDeletes
@@ -133,7 +179,10 @@ return new class extends Migration
                 'total_compras', 'cantidad_compras', 'ticket_promedio',
                 'potencia_instalada_kw', 'fecha_instalacion', 'cantidad_proyectos',
                 'fecha_primera_compra', 'fecha_ultima_compra', 'fecha_ultimo_contacto',
-                'user_id'
+                'vendedor_id', 'distrito_id', 'sede_id',
+                'scoring', 'valor_tiempo_vida', 'dias_sin_comprar', 'estado_rfm',
+                'preferencias_comunicacion', 'horario_contacto_preferido', 'acepta_marketing',
+                'nps_score', 'fecha_ultimo_nps', 'observaciones'
             ];
             
             foreach ($columns as $column) {

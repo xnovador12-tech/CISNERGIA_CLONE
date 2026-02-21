@@ -17,7 +17,7 @@
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg py-2">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center me-4" href="index.html">
+            <a class="navbar-brand d-flex align-items-center me-4" href="{{ route('ecommerce.index') }}">
                 <img src="images/cisnergia_v.png" alt="CISNERGIA PERÚ" height="45">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
@@ -32,7 +32,7 @@
                     <li class="nav-item"><a class="nav-link px-3 fw-500" href="contacto.html">Contacto</a></li>
                 </ul>
                 <div class="d-flex align-items-center gap-0 icons__navbar">
-                    <!-- Hola, Inicia sesión -->
+                    <!-- Sesión de usuario -->
                     <div class="dropdown">
                         <button
                             class="bg-transparent border-0 rounded-0 d-flex flex-column align-items-start py-2 px-3 rounded hover-bg"
@@ -40,25 +40,54 @@
                             style="line-height: 1.3; transition: background 0.2s;">
                             <small class="text-secondary" style="font-size: 0.7rem; font-weight: 400;">Hola,</small>
                             <span class="fw-semibold d-flex align-items-center text-primary" style="font-size: 0.9rem;">
-                                Inicia sesión
+                                @auth
+                                    {{ Auth::user()->persona->name ?? 'Mi cuenta' }}
+                                @else
+                                    Inicia sesión
+                                @endauth
                                 <i class="bi bi-chevron-down ms-1" style="font-size: 0.65rem;"></i>
                             </span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm mt-2 rounded-3">
-                            <li>
-                                <button type="button" class="dropdown-item py-2 rounded-2" data-bs-toggle="modal"
-                                    data-bs-target="#iniciar_sesion">
-                                    <i class="bi bi-box-arrow-in-right me-2 text-primary"></i>Iniciar sesión
-                                </button>
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider my-1">
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-2 rounded-2" href="#">
-                                    <i class="bi bi-person-plus me-2 text-secondary"></i>Crear cuenta
-                                </a>
-                            </li>
+                            @auth
+                                <li>
+                                    <a class="dropdown-item py-2 rounded-2" href="{{ route('home') }}">
+                                        <i class="bi bi-person me-2 text-primary"></i>Mi cuenta
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 rounded-2" href="{{ route('wishlist.index') }}">
+                                        <i class="bi bi-heart me-2 text-danger"></i>Mis favoritos
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider my-1">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 rounded-2" href="{{ route('logout') }}"
+                                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="bi bi-box-arrow-left me-2 text-secondary"></i>Cerrar sesión
+                                    </a>
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                        @csrf
+                                    </form>
+                                </li>
+                            @else
+                                <li>
+                                    <button type="button" class="dropdown-item py-2 rounded-2" data-bs-toggle="modal"
+                                        data-bs-target="#iniciar_sesion">
+                                        <i class="bi bi-box-arrow-in-right me-2 text-primary"></i>Iniciar sesión
+                                    </button>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider my-1">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 rounded-2" href="{{ route('register') }}">
+                                        <i class="bi bi-person-plus me-2 text-secondary"></i>Crear cuenta
+                                    </a>
+                                </li>
+                            @endauth
                         </ul>
                     </div>
 
@@ -188,7 +217,7 @@
                                 <div class="modal-footer border-0 justify-content-center" style="background: #f8fafc; padding: 1.5rem 2rem;">
                                     <p class="mb-0" style="color: #64748b; font-size: 0.95rem;">
                                         ¿No tienes cuenta? 
-                                        <a href="registro.html" style="color: #00A3E0; font-weight: 600; text-decoration: none; transition: color 0.3s ease;">
+                                        <a href="{{ route('register') }}" style="color: #00A3E0; font-weight: 600; text-decoration: none; transition: color 0.3s ease;">
                                             Regístrate aquí
                                         </a>
                                     </p>
@@ -282,7 +311,7 @@
                     <!-- Favoritos -->
                     <div class="border-start">
 
-                        <a href="favoritos.html"
+                        <a href="{{ route('wishlist.index') }}"
                             class="bg-transparent border-0 icon__boton position-relative d-none d-lg-flex align-items-center justify-content-center px-3 py-2 rounded hover-bg"
                             style="text-decoration: none; transition: background 0.2s;">
                             <i class="bi bi-heart fs-4 text-secondary"></i>

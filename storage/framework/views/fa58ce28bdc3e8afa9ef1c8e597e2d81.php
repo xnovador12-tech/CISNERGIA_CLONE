@@ -151,6 +151,22 @@
                     </div>
                 </div>
             </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                <div class="card border-4 borde-top-secondary box-shadow h-100" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
+                    <div class="card-header bg-transparent">
+                        <span class="text-uppercase text-secondary fw-bold">Facturación</span>
+                    </div>
+                    <div class="card-body pb-0">
+                        <p class="fw-normal" align="justify">Administra la información de numeraciones para poder asignar a los comprobantes de venta registradas.</p>
+                        <ul class="list-unstyled">
+                            <li class="text-primary menu_item">
+                                <i class="bi bi-card-text me-2"></i>
+                                <a href="" class="link-primary text-decoration-none">Numeraciones</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     

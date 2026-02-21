@@ -3,204 +3,208 @@
 namespace Database\Seeders;
 
 use App\Models\Oportunidad;
+use App\Models\Producto;
 use App\Models\Prospecto;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class OportunidadSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Crea 6 oportunidades (una por etapa) con productos asociados.
      */
     public function run(): void
     {
         $vendedor = User::first();
         $prospectos = Prospecto::whereIn('estado', ['calificado', 'contactado'])->get();
 
+        if ($prospectos->isEmpty()) {
+            $this->command->warn('⚠️ No hay prospectos disponibles. Se omitió OportunidadSeeder.');
+            return;
+        }
+
+        // Precargar productos por código para asociar al pivot
+        $productos = Producto::whereIn('codigo', [
+            'PNL-001', 'PNL-002', 'PNL-003', 'PNL-004',
+            'INV-001', 'INV-002', 'INV-003', 'INV-004',
+            'BAT-001', 'EST-001',
+        ])->get()->keyBy('codigo');
+
         $oportunidades = [
-            // Oportunidades en diferentes etapas
+            // ─── CALIFICACIÓN (producto) ───
             [
-                'nombre' => 'Sistema Solar Residencial 5kW - La Molina',
-                'etapa' => 'negociacion',
-                'monto_estimado' => 22500,
-                'probabilidad' => 75,
-                'tipo_proyecto' => 'residencial',
-                'potencia_kw' => 5.0,
-                'cantidad_paneles' => 10,
-                'tipo_panel' => 'monocristalino',
-                'marca_panel' => 'JA Solar',
-                'tipo_inversor' => 'string',
-                'marca_inversor' => 'Growatt',
-                'incluye_baterias' => false,
-                'produccion_mensual_kwh' => 650,
-                'produccion_anual_kwh' => 7800,
-                'ahorro_mensual_soles' => 325,
-                'ahorro_anual_soles' => 3900,
-                'retorno_inversion_anos' => 5.8,
-                'fecha_cierre_estimada' => now()->addDays(15),
+                'data' => [
+                    'nombre' => 'Sistema Solar Residencial 5kW - La Molina',
+                    'etapa' => 'calificacion',
+                    'probabilidad' => 10,
+                    'tipo_proyecto' => 'residencial',
+                    'tipo_oportunidad' => 'producto',
+                    'requiere_visita_tecnica' => false,
+                    'descripcion' => 'Cliente interesado en sistema de 10 paneles para reducir factura eléctrica de S/350/mes.',
+                    'fecha_cierre_estimada' => now()->addDays(45),
+                ],
+                // 10x Panel 550W ($650) + 1x Inversor Growatt 5kW ($3,200) = $9,700
+                'items' => [
+                    ['codigo' => 'PNL-001', 'cantidad' => 10, 'notas' => 'Paneles para techo de concreto'],
+                    ['codigo' => 'INV-001', 'cantidad' => 1, 'notas' => 'Inversor Growatt 5kW'],
+                ],
             ],
+
+            // ─── EVALUACIÓN (producto) ───
             [
-                'nombre' => 'Sistema Comercial 25kW - Restaurante San Isidro',
-                'etapa' => 'propuesta_tecnica',
-                'monto_estimado' => 82000,
-                'probabilidad' => 50,
-                'tipo_proyecto' => 'comercial',
-                'potencia_kw' => 25.0,
-                'cantidad_paneles' => 50,
-                'tipo_panel' => 'monocristalino_bifacial',
-                'marca_panel' => 'LONGi',
-                'tipo_inversor' => 'string',
-                'marca_inversor' => 'Huawei',
-                'incluye_baterias' => false,
-                'produccion_mensual_kwh' => 3250,
-                'produccion_anual_kwh' => 39000,
-                'ahorro_mensual_soles' => 1625,
-                'ahorro_anual_soles' => 19500,
-                'retorno_inversion_anos' => 4.2,
-                'fecha_cierre_estimada' => now()->addDays(30),
+                'data' => [
+                    'nombre' => 'Sistema Comercial 25kW - Restaurante San Isidro',
+                    'etapa' => 'evaluacion',
+                    'probabilidad' => 25,
+                    'tipo_proyecto' => 'comercial',
+                    'tipo_oportunidad' => 'producto',
+                    'requiere_visita_tecnica' => true,
+                    'fecha_visita_programada' => now()->addDays(3),
+                    'descripcion' => 'Restaurante con consumo alto. Techo metálico amplio disponible.',
+                    'fecha_cierre_estimada' => now()->addDays(30),
+                ],
+                // 10x Panel 580W ($750) + 1x Inversor Huawei 25kW ($5,800) + 10x Estructura ($120) = $14,500
+                'items' => [
+                    ['codigo' => 'PNL-002', 'cantidad' => 10, 'notas' => 'TOPCon alta eficiencia'],
+                    ['codigo' => 'INV-002', 'cantidad' => 1, 'notas' => ''],
+                    ['codigo' => 'EST-001', 'cantidad' => 10, 'notas' => 'Estructura para techo metálico'],
+                ],
             ],
+
+            // ─── PROPUESTA TÉCNICA (servicio) ───
             [
-                'nombre' => 'Sistema Industrial 100kW - Textiles del Norte',
-                'etapa' => 'contrato',
-                'monto_estimado' => 320000,
-                'probabilidad' => 90,
-                'tipo_proyecto' => 'industrial',
-                'potencia_kw' => 100.0,
-                'cantidad_paneles' => 200,
-                'tipo_panel' => 'monocristalino_bifacial',
-                'marca_panel' => 'Trina Solar',
-                'tipo_inversor' => 'central',
-                'marca_inversor' => 'Sungrow',
-                'incluye_baterias' => false,
-                'produccion_mensual_kwh' => 13000,
-                'produccion_anual_kwh' => 156000,
-                'ahorro_mensual_soles' => 8200,
-                'ahorro_anual_soles' => 98400,
-                'retorno_inversion_anos' => 3.3,
-                'fecha_cierre_estimada' => now()->addDays(7),
-                'notas_tecnicas' => 'Techo metálico en buenas condiciones. Requiere refuerzo estructural en sección norte.',
+                'data' => [
+                    'nombre' => 'Mantenimiento Preventivo - Hotel Miraflores',
+                    'etapa' => 'propuesta_tecnica',
+                    'monto_estimado' => 3500,
+                    'probabilidad' => 50,
+                    'tipo_proyecto' => 'comercial',
+                    'tipo_oportunidad' => 'servicio',
+                    'tipo_servicio' => 'mantenimiento_preventivo',
+                    'descripcion_servicio' => 'Mantenimiento anual + limpieza de paneles para sistema de 15kW instalado hace 2 años.',
+                    'requiere_visita_tecnica' => true,
+                    'fecha_visita_programada' => now()->addDays(2),
+                    'descripcion' => 'Hotel con sistema solar existente solicita mantenimiento preventivo.',
+                    'fecha_cierre_estimada' => now()->addDays(10),
+                ],
+                'items' => [], // Servicio puro, sin productos
             ],
+
+            // ─── NEGOCIACIÓN (mixto) ───
             [
-                'nombre' => 'Sistema Híbrido 8kW con Baterías - Surco',
-                'etapa' => 'analisis_sitio',
-                'monto_estimado' => 45000,
-                'probabilidad' => 25,
-                'tipo_proyecto' => 'residencial',
-                'potencia_kw' => 8.0,
-                'cantidad_paneles' => 16,
-                'tipo_panel' => 'monocristalino',
-                'marca_panel' => 'Canadian Solar',
-                'tipo_inversor' => 'hibrido',
-                'marca_inversor' => 'Deye',
-                'incluye_baterias' => true,
-                'capacidad_baterias_kwh' => 15.0,
-                'produccion_mensual_kwh' => 1040,
-                'produccion_anual_kwh' => 12480,
-                'ahorro_mensual_soles' => 520,
-                'ahorro_anual_soles' => 6240,
-                'retorno_inversion_anos' => 7.2,
-                'fecha_cierre_estimada' => now()->addDays(45),
-                'notas_tecnicas' => 'Cliente desea autonomía de 8 horas. Verificar orientación del techo.',
+                'data' => [
+                    'nombre' => 'Ampliación + Mantenimiento - Fábrica Ate',
+                    'etapa' => 'negociacion',
+                    'probabilidad' => 80,
+                    'tipo_proyecto' => 'industrial',
+                    'tipo_oportunidad' => 'mixto',
+                    'tipo_servicio' => 'ampliacion',
+                    'descripcion_servicio' => 'Ampliar de 50kW a 100kW + contrato de mantenimiento anual.',
+                    'requiere_visita_tecnica' => true,
+                    'fecha_visita_programada' => now()->subDays(10),
+                    'resultado_visita' => 'Nave industrial de 2000m². Techo metálico en buenas condiciones.',
+                    'descripcion' => 'Fábrica textil quiere duplicar capacidad + contrato de servicio.',
+                    'observaciones' => 'Pendiente aprobación del directorio.',
+                    'fecha_cierre_estimada' => now()->addDays(15),
+                ],
+                // 8x Panel 545W ($720) + 1x Inversor SMA ($5,500) = $11,260 (+ servicio manual)
+                'items' => [
+                    ['codigo' => 'PNL-003', 'cantidad' => 8, 'notas' => 'Paneles bifaciales para nave industrial'],
+                    ['codigo' => 'INV-003', 'cantidad' => 1, 'notas' => 'Inversor SMA Tripower'],
+                ],
             ],
+
+            // ─── GANADA (producto) ───
             [
-                'nombre' => 'Bombeo Solar 15HP - Fundo Cañete',
-                'etapa' => 'calificacion',
-                'monto_estimado' => 65000,
-                'probabilidad' => 10,
-                'tipo_proyecto' => 'bombeo_solar',
-                'potencia_kw' => 15.0,
-                'cantidad_paneles' => 30,
-                'tipo_panel' => 'monocristalino',
-                'marca_panel' => 'Risen',
-                'tipo_inversor' => 'variador',
-                'marca_inversor' => 'ABB',
-                'incluye_baterias' => false,
-                'produccion_mensual_kwh' => 1950,
-                'ahorro_mensual_soles' => 1200,
-                'ahorro_anual_soles' => 14400,
-                'retorno_inversion_anos' => 4.5,
-                'fecha_cierre_estimada' => now()->addDays(60),
-                'notas_tecnicas' => 'Pozo profundo 80m. Requiere bomba sumergible 15HP. Caudal requerido: 20 l/s.',
+                'data' => [
+                    'nombre' => 'Sistema 3kW - Departamento Jesús María',
+                    'etapa' => 'ganada',
+                    'probabilidad' => 100,
+                    'tipo_proyecto' => 'residencial',
+                    'tipo_oportunidad' => 'producto',
+                    'requiere_visita_tecnica' => true,
+                    'resultado_visita' => 'Departamento último piso. Techo compartido con autorización.',
+                    'descripcion' => 'Sistema pequeño para departamento. Instalación completada.',
+                    'fecha_cierre_estimada' => now()->subDays(10),
+                    'fecha_cierre_real' => now()->subDays(8),
+                ],
+                // 6x Panel 500W ($580) + 1x Inversor Deye ($2,400) = $5,880
+                'items' => [
+                    ['codigo' => 'PNL-004', 'cantidad' => 6, 'notas' => ''],
+                    ['codigo' => 'INV-004', 'cantidad' => 1, 'notas' => 'Microinversor híbrido'],
+                ],
             ],
+
+            // ─── PERDIDA (producto) ───
             [
-                'nombre' => 'Sistema Clínica Dental 10kW - Magdalena',
-                'etapa' => 'propuesta_tecnica',
-                'monto_estimado' => 42000,
-                'probabilidad' => 50,
-                'tipo_proyecto' => 'comercial',
-                'potencia_kw' => 10.0,
-                'cantidad_paneles' => 20,
-                'tipo_panel' => 'monocristalino',
-                'marca_panel' => 'JA Solar',
-                'tipo_inversor' => 'string',
-                'marca_inversor' => 'Fronius',
-                'incluye_baterias' => false,
-                'produccion_mensual_kwh' => 1300,
-                'produccion_anual_kwh' => 15600,
-                'ahorro_mensual_soles' => 780,
-                'ahorro_anual_soles' => 9360,
-                'retorno_inversion_anos' => 4.5,
-                'fecha_cierre_estimada' => now()->addDays(25),
-            ],
-            // Oportunidades ganadas
-            [
-                'nombre' => 'Sistema Residencial 3kW - San Borja',
-                'etapa' => 'ganada',
-                'monto_estimado' => 15000,
-                'monto_final' => 14500,
-                'probabilidad' => 100,
-                'tipo_proyecto' => 'residencial',
-                'potencia_kw' => 3.0,
-                'cantidad_paneles' => 6,
-                'tipo_panel' => 'monocristalino',
-                'marca_panel' => 'JA Solar',
-                'tipo_inversor' => 'microinversor',
-                'marca_inversor' => 'Hoymiles',
-                'incluye_baterias' => false,
-                'produccion_mensual_kwh' => 390,
-                'produccion_anual_kwh' => 4680,
-                'ahorro_mensual_soles' => 195,
-                'ahorro_anual_soles' => 2340,
-                'retorno_inversion_anos' => 6.2,
-                'fecha_cierre_estimada' => now()->subDays(30),
-                'fecha_cierre_real' => now()->subDays(25),
-            ],
-            // Oportunidades perdidas
-            [
-                'nombre' => 'Sistema Comercial 15kW - Miraflores',
-                'etapa' => 'perdida',
-                'monto_estimado' => 55000,
-                'probabilidad' => 0,
-                'tipo_proyecto' => 'comercial',
-                'potencia_kw' => 15.0,
-                'cantidad_paneles' => 30,
-                'motivo_perdida' => 'precio',
-                'detalle_perdida' => 'El cliente consiguió una oferta 20% más barata con otro proveedor',
-                'competidor_ganador' => 'EnelX',
-                'fecha_cierre_estimada' => now()->subDays(15),
-                'fecha_cierre_real' => now()->subDays(10),
+                'data' => [
+                    'nombre' => 'Sistema 10kW + Baterías - Colegio Lince',
+                    'etapa' => 'perdida',
+                    'probabilidad' => 0,
+                    'tipo_proyecto' => 'comercial',
+                    'tipo_oportunidad' => 'producto',
+                    'requiere_visita_tecnica' => true,
+                    'resultado_visita' => 'Techo amplio en buen estado. Sin problemas técnicos.',
+                    'descripcion' => 'Colegio privado interesado en reducir costos. Eligieron competencia.',
+                    'motivo_perdida' => 'Competencia',
+                    'competidor_ganador' => 'SolarMax Perú',
+                    'detalle_perdida' => 'Competidor ofreció 15% menos usando paneles de menor calidad.',
+                    'fecha_cierre_estimada' => now()->subDays(20),
+                    'fecha_cierre_real' => now()->subDays(18),
+                ],
+                // 10x Panel 550W ($650) + 1x Inversor Growatt ($3,200) + 1x Batería ($6,800) = $16,500
+                'items' => [
+                    ['codigo' => 'PNL-001', 'cantidad' => 10, 'notas' => ''],
+                    ['codigo' => 'INV-001', 'cantidad' => 1, 'notas' => ''],
+                    ['codigo' => 'BAT-001', 'cantidad' => 1, 'notas' => 'Batería de litio 10kWh'],
+                ],
             ],
         ];
 
-        foreach ($oportunidades as $index => $data) {
-            $prospecto = $prospectos->random();
-            $codigo = 'OPO-' . date('Y') . '-' . str_pad($index + 1, 4, '0', STR_PAD_LEFT);
-            
-            // Calcular valor ponderado
-            $valorPonderado = ($data['monto_estimado'] * $data['probabilidad']) / 100;
-            
-            Oportunidad::updateOrCreate(
-                ['codigo' => $codigo],
-                array_merge($data, [
-                    'codigo' => $codigo,
-                    'slug' => Str::slug($data['nombre'] . '-' . $codigo),
-                    'prospecto_id' => $prospecto->id,
-                    'user_id' => $vendedor?->id,
-                    'valor_ponderado' => $valorPonderado,
-                    'fecha_creacion' => now()->subDays(rand(5, 45)),
-                ])
-            );
+        foreach ($oportunidades as $index => $entry) {
+            $prospecto = $prospectos[$index % $prospectos->count()];
+            $data = $entry['data'];
+            $items = $entry['items'];
+
+            // Calcular monto desde productos (si no está definido manualmente)
+            if (!isset($data['monto_estimado']) && !empty($items)) {
+                $monto = 0;
+                foreach ($items as $item) {
+                    $prod = $productos->get($item['codigo']);
+                    if ($prod) {
+                        $monto += $prod->precio * $item['cantidad'];
+                    }
+                }
+                $data['monto_estimado'] = $monto;
+            }
+
+            // Si es ganada, monto_final = monto_estimado (o con descuento)
+            if ($data['etapa'] === 'ganada' && !isset($data['monto_final'])) {
+                $data['monto_final'] = $data['monto_estimado'];
+            }
+
+            $data['prospecto_id'] = $prospecto->id;
+            $data['user_id'] = $vendedor?->id;
+            $data['fecha_creacion'] = now()->subDays(rand(5, 45));
+            $data['codigo'] = Oportunidad::generarCodigo();
+            $data['slug'] = Oportunidad::generarSlug($data['nombre'], $data['codigo']);
+
+            $oportunidad = Oportunidad::create($data);
+
+            // Asociar productos al pivot
+            if (!empty($items)) {
+                $syncData = [];
+                foreach ($items as $item) {
+                    $prod = $productos->get($item['codigo']);
+                    if ($prod) {
+                        $syncData[$prod->id] = [
+                            'cantidad' => $item['cantidad'],
+                            'notas' => $item['notas'],
+                        ];
+                    }
+                }
+                $oportunidad->productosInteres()->sync($syncData);
+            }
         }
     }
 }

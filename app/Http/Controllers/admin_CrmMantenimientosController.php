@@ -61,7 +61,7 @@ class admin_CrmMantenimientosController extends Controller
         // Usar get() para DataTables del lado del cliente
         $mantenimientos = $query->get();
 
-        // EstadÃ­sticas
+        // Estadísticas
         $hoy = now();
         $stats = [
             'programados' => Mantenimiento::whereIn('estado', ['programado', 'confirmado'])->count(),
@@ -76,7 +76,7 @@ class admin_CrmMantenimientosController extends Controller
         $tecnicos = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
         $clientes = Cliente::orderBy('nombre')->get();
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.index', compact(
+        return view('ADMINISTRADOR.CRM.mantenimientos.index', compact(
             'mantenimientos',
             'stats',
             'tecnicos',
@@ -110,7 +110,7 @@ class admin_CrmMantenimientosController extends Controller
 
         $tecnicos = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->nombre);
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.calendario', compact(
+        return view('ADMINISTRADOR.CRM.mantenimientos.calendario', compact(
             'mantenimientos',
             'mes',
             'ano',
@@ -128,10 +128,10 @@ class admin_CrmMantenimientosController extends Controller
         $tecnicos = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->nombre);
         $clienteId = $request->get('cliente_id');
 
-        // Checklist por defecto segÃƒÂºn tipo
+        // Checklist por defecto según tipo
         $checklistsPorTipo = $this->getChecklistsPorTipo();
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.create', compact(
+        return view('ADMINISTRADOR.CRM.mantenimientos.create', compact(
             'clientes',
             'tecnicos',
             'clienteId',
@@ -165,7 +165,7 @@ class admin_CrmMantenimientosController extends Controller
 
         $validated['estado'] = 'programado';
 
-        // Generar checklist por defecto si no se enviÃ³
+        // Generar checklist por defecto si no se envió
         if (empty($validated['checklist'])) {
             $validated['checklist'] = $this->getChecklistPorTipo($validated['tipo']);
         }
@@ -173,7 +173,7 @@ class admin_CrmMantenimientosController extends Controller
         $mantenimiento = Mantenimiento::create($validated);
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.show', $mantenimiento)
+            ->route('admin.crm.mantenimientos.show', $mantenimiento)
             ->with('success', 'Mantenimiento programado exitosamente.');
     }
 
@@ -191,7 +191,7 @@ class admin_CrmMantenimientosController extends Controller
             ->take(5)
             ->get();
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.show', compact('mantenimiento', 'historial'));
+        return view('ADMINISTRADOR.CRM.mantenimientos.show', compact('mantenimiento', 'historial'));
     }
 
     /**
@@ -203,7 +203,7 @@ class admin_CrmMantenimientosController extends Controller
         $tecnicos = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->nombre);
         $checklistsPorTipo = $this->getChecklistsPorTipo();
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.edit', compact(
+        return view('ADMINISTRADOR.CRM.mantenimientos.edit', compact(
             'mantenimiento',
             'clientes',
             'tecnicos',
@@ -216,7 +216,7 @@ class admin_CrmMantenimientosController extends Controller
      */
     public function update(Request $request, Mantenimiento $mantenimiento)
     {
-        // Si solo se estÃ¡ actualizando el checklist
+        // Si solo se está actualizando el checklist
         if ($request->has('solo_checklist')) {
             $checklist = [];
             foreach ($request->input('checklist', []) as $item) {
@@ -228,7 +228,7 @@ class admin_CrmMantenimientosController extends Controller
             $mantenimiento->update(['checklist' => $checklist]);
             
             return redirect()
-                ->route('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.show', $mantenimiento)
+                ->route('admin.crm.mantenimientos.show', $mantenimiento)
                 ->with('success', 'Checklist actualizado exitosamente.');
         }
 
@@ -265,7 +265,7 @@ class admin_CrmMantenimientosController extends Controller
         $mantenimiento->update($validated);
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.show', $mantenimiento)
+            ->route('admin.crm.mantenimientos.show', $mantenimiento)
             ->with('success', 'Mantenimiento actualizado exitosamente.');
     }
 
@@ -277,7 +277,7 @@ class admin_CrmMantenimientosController extends Controller
         $mantenimiento->delete();
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.index')
+            ->route('admin.crm.mantenimientos.index')
             ->with('success', 'Mantenimiento eliminado exitosamente.');
     }
 
@@ -331,7 +331,7 @@ class admin_CrmMantenimientosController extends Controller
             'costo_materiales' => 'nullable|numeric|min:0',
         ]);
 
-        // Calcular hora fin y duraciÃ³n real si tiene hora inicio
+        // Calcular hora fin y duración real si tiene hora inicio
         $duracionReal = null;
         $horaFin = now()->format('H:i');
         
@@ -358,7 +358,7 @@ class admin_CrmMantenimientosController extends Controller
         ]);
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.index')
+            ->route('admin.crm.mantenimientos.index')
             ->with('success', 'âœ… Mantenimiento completado exitosamente.');
     }
 
@@ -383,7 +383,7 @@ class admin_CrmMantenimientosController extends Controller
         ]);
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.index')
+            ->route('admin.crm.mantenimientos.index')
             ->with('info', 'Mantenimiento cancelado correctamente.');
     }
 
@@ -414,7 +414,7 @@ class admin_CrmMantenimientosController extends Controller
     }
 
     /**
-     * Asignar tÃƒÂ©cnico
+     * Asignar técnico
      */
     public function asignarTecnico(Request $request, Mantenimiento $mantenimiento)
     {
@@ -425,7 +425,7 @@ class admin_CrmMantenimientosController extends Controller
         $mantenimiento->update(['tecnico_id' => $validated['tecnico_id']]);
 
         $tecnico = User::find($validated['tecnico_id']);
-        return back()->with('success', "TÃƒÂ©cnico {$tecnico->name} asignado.");
+        return back()->with('success', "Técnico {$tecnico->name} asignado.");
     }
 
     /**
@@ -439,14 +439,14 @@ class admin_CrmMantenimientosController extends Controller
 
         $mantenimiento->load(['cliente', 'tecnico']);
 
-        // Usar DomPDF si estÃƒÂ¡ disponible
+        // Usar DomPDF si está disponible
         if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.reporte-pdf', compact('mantenimiento'));
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('ADMINISTRADOR.CRM.mantenimientos.reporte-pdf', compact('mantenimiento'));
             return $pdf->download("mantenimiento_{$mantenimiento->codigo}.pdf");
         }
 
         // Fallback: vista HTML para imprimir
-        return view('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.reporte-pdf', compact('mantenimiento'));
+        return view('ADMINISTRADOR.CRM.mantenimientos.reporte-pdf', compact('mantenimiento'));
     }
 
     /**
@@ -484,7 +484,7 @@ class admin_CrmMantenimientosController extends Controller
         }
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.index')
+            ->route('admin.crm.mantenimientos.index')
             ->with('success', count($mantenimientosCreados) . ' mantenimientos programados exitosamente.');
     }
 
@@ -530,7 +530,7 @@ class admin_CrmMantenimientosController extends Controller
                     'estado' => $m->estado,
                     'cliente' => $m->cliente->nombre_completo,
                     'tecnico' => $m->tecnico?->name,
-                    'url' => route('ADMINISTRADOR.PRINCIPAL.crm.mantenimientos.show', $m),
+                    'url' => route('ADMINISTRADOR.CRM.mantenimientos.show', $m),
                 ],
             ];
         });
@@ -553,54 +553,54 @@ class admin_CrmMantenimientosController extends Controller
     }
 
     /**
-     * Obtener checklist especÃƒÂ­fico por tipo
+     * Obtener checklist específico por tipo
      */
     protected function getChecklistPorTipo(string $tipo): array
     {
         $checklists = [
             'preventivo' => [
-                ['tarea' => 'InspecciÃ³n visual de paneles', 'completado' => false],
+                ['tarea' => 'Inspección visual de paneles', 'completado' => false],
                 ['tarea' => 'Limpieza de paneles solares', 'completado' => false],
-                ['tarea' => 'VerificaciÃ³n de conexiones elÃ©ctricas', 'completado' => false],
-                ['tarea' => 'RevisiÃ³n de estructura de montaje', 'completado' => false],
-                ['tarea' => 'VerificaciÃ³n de inversor (luces, pantalla)', 'completado' => false],
-                ['tarea' => 'Lectura de producciÃ³n actual', 'completado' => false],
-                ['tarea' => 'VerificaciÃ³n de puesta a tierra', 'completado' => false],
-                ['tarea' => 'RevisiÃ³n de cableado y canalizaciones', 'completado' => false],
-                ['tarea' => 'VerificaciÃ³n de protecciones elÃ©ctricas', 'completado' => false],
+                ['tarea' => 'Verificación de conexiones eléctricas', 'completado' => false],
+                ['tarea' => 'Revisión de estructura de montaje', 'completado' => false],
+                ['tarea' => 'Verificación de inversor (luces, pantalla)', 'completado' => false],
+                ['tarea' => 'Lectura de producción actual', 'completado' => false],
+                ['tarea' => 'Verificación de puesta a tierra', 'completado' => false],
+                ['tarea' => 'Revisión de cableado y canalizaciones', 'completado' => false],
+                ['tarea' => 'Verificación de protecciones eléctricas', 'completado' => false],
                 ['tarea' => 'Test de funcionamiento general', 'completado' => false],
             ],
             'correctivo' => [
-                ['tarea' => 'DiagnÃ³stico del problema', 'completado' => false],
-                ['tarea' => 'IdentificaciÃ³n de componente fallado', 'completado' => false],
-                ['tarea' => 'ReparaciÃ³n/reemplazo realizado', 'completado' => false],
-                ['tarea' => 'Pruebas post-reparaciÃ³n', 'completado' => false],
-                ['tarea' => 'VerificaciÃ³n de funcionamiento normal', 'completado' => false],
-                ['tarea' => 'Lectura de producciÃ³n post-reparaciÃ³n', 'completado' => false],
+                ['tarea' => 'Diagnóstico del problema', 'completado' => false],
+                ['tarea' => 'Identificación de componente fallado', 'completado' => false],
+                ['tarea' => 'Reparación/reemplazo realizado', 'completado' => false],
+                ['tarea' => 'Pruebas post-reparación', 'completado' => false],
+                ['tarea' => 'Verificación de funcionamiento normal', 'completado' => false],
+                ['tarea' => 'Lectura de producción post-reparación', 'completado' => false],
             ],
             'limpieza' => [
                 ['tarea' => 'Limpieza de superficie de paneles', 'completado' => false],
                 ['tarea' => 'Limpieza de marcos de paneles', 'completado' => false],
                 ['tarea' => 'Limpieza de estructura', 'completado' => false],
-                ['tarea' => 'Limpieza de Ã¡rea del inversor', 'completado' => false],
+                ['tarea' => 'Limpieza de área del inversor', 'completado' => false],
                 ['tarea' => 'Retiro de hojas/suciedad acumulada', 'completado' => false],
-                ['tarea' => 'VerificaciÃ³n visual post-limpieza', 'completado' => false],
+                ['tarea' => 'Verificación visual post-limpieza', 'completado' => false],
             ],
             'inspeccion' => [
-                ['tarea' => 'InspecciÃ³n visual de paneles', 'completado' => false],
-                ['tarea' => 'InspecciÃ³n de estructura', 'completado' => false],
-                ['tarea' => 'InspecciÃ³n de cableado', 'completado' => false],
-                ['tarea' => 'InspecciÃ³n del inversor', 'completado' => false],
-                ['tarea' => 'VerificaciÃ³n de medidor bidireccional', 'completado' => false],
-                ['tarea' => 'Registro fotogrÃ¡fico', 'completado' => false],
-                ['tarea' => 'Lectura de producciÃ³n', 'completado' => false],
+                ['tarea' => 'Inspección visual de paneles', 'completado' => false],
+                ['tarea' => 'Inspección de estructura', 'completado' => false],
+                ['tarea' => 'Inspección de cableado', 'completado' => false],
+                ['tarea' => 'Inspección del inversor', 'completado' => false],
+                ['tarea' => 'Verificación de medidor bidireccional', 'completado' => false],
+                ['tarea' => 'Registro fotográfico', 'completado' => false],
+                ['tarea' => 'Lectura de producción', 'completado' => false],
             ],
             'predictivo' => [
-                ['tarea' => 'AnÃ¡lisis de datos de producciÃ³n', 'completado' => false],
-                ['tarea' => 'TermografÃ­a de paneles', 'completado' => false],
-                ['tarea' => 'MediciÃ³n de curvas I-V', 'completado' => false],
-                ['tarea' => 'AnÃ¡lisis de rendimiento', 'completado' => false],
-                ['tarea' => 'EvaluaciÃ³n de degradaciÃ³n', 'completado' => false],
+                ['tarea' => 'Análisis de datos de producción', 'completado' => false],
+                ['tarea' => 'Termografía de paneles', 'completado' => false],
+                ['tarea' => 'Medición de curvas I-V', 'completado' => false],
+                ['tarea' => 'Análisis de rendimiento', 'completado' => false],
+                ['tarea' => 'Evaluación de degradación', 'completado' => false],
                 ['tarea' => 'Informe predictivo', 'completado' => false],
             ],
         ];
@@ -638,8 +638,8 @@ class admin_CrmMantenimientosController extends Controller
             $file = fopen('php://output', 'w');
             
             fputcsv($file, [
-                'CÃƒÂ³digo', 'Cliente', 'Tipo', 'Fecha Programada', 'Estado',
-                'TÃƒÂ©cnico', 'DuraciÃƒÂ³n (hrs)', 'Costo Total', 'Observaciones'
+                'Código', 'Cliente', 'Tipo', 'Fecha Programada', 'Estado',
+                'Técnico', 'Duración (hrs)', 'Costo Total', 'Observaciones'
             ]);
 
             foreach ($mantenimientos as $m) {

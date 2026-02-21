@@ -43,8 +43,9 @@ class Cliente extends Model
         'acepta_marketing',
         'nps_score',
         'fecha_ultimo_nps',
-        'user_id',
+        'vendedor_id',
         'sede_id',
+        'distrito_id',
         'observaciones',
     ];
 
@@ -123,7 +124,7 @@ class Cliente extends Model
 
     public function vendedor()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'vendedor_id');
     }
 
     public function sede()
@@ -155,11 +156,6 @@ class Cliente extends Model
     public function tickets()
     {
         return $this->hasMany(Ticket::class);
-    }
-
-    public function garantias()
-    {
-        return $this->hasMany(Garantia::class);
     }
 
     public function mantenimientos()
@@ -320,14 +316,6 @@ class Cliente extends Model
     public function tieneTicketsAbiertos(): bool
     {
         return $this->tickets()->abiertos()->exists();
-    }
-
-    /**
-     * Verificar si tiene garantías vigentes
-     */
-    public function tieneGarantiasVigentes(): bool
-    {
-        return $this->garantias()->vigentes()->exists();
     }
 
     /**

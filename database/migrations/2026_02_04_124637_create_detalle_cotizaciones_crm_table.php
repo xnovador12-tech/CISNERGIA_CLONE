@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('detalle_cotizaciones_crm', function (Blueprint $table) {
@@ -17,13 +14,9 @@ return new class extends Migration
             
             // Categoría del ítem
             $table->enum('categoria', [
-                'equipo',
-                'mano_obra', 
-                'servicio',
-                'material',
-                'tramite',
-                'otro'
-            ])->default('equipo');
+                'producto',    // Productos del catálogo (paneles, inversores, etc.)
+                'servicio'     // Instalación, mantenimiento, trámites, mano de obra, etc.
+            ])->default('producto');
             
             // Descripción del ítem
             $table->string('codigo_item')->nullable();
@@ -54,9 +47,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('detalle_cotizaciones_crm');

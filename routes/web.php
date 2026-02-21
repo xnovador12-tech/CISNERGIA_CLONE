@@ -33,7 +33,7 @@ use App\Http\Controllers\admin_CrmOportunidadesController;
 use App\Http\Controllers\admin_CrmCotizacionesController;
 use App\Http\Controllers\admin_CrmActividadesController;
 use App\Http\Controllers\admin_CrmTicketsController;
-use App\Http\Controllers\admin_CrmGarantiasController;
+
 use App\Http\Controllers\admin_CrmMantenimientosController;
 use Illuminate\Support\Facades\Route;
 
@@ -155,7 +155,6 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     Route::post('prospectos/{prospecto}/crear-oportunidad', [admin_CrmProspectosController::class, 'crearOportunidad'])->name('prospectos.crear-oportunidad');
     Route::post('prospectos/{prospecto}/actividad', [admin_CrmProspectosController::class, 'registrarActividad'])->name('prospectos.actividad');
     Route::patch('prospectos/{prospecto}/estado', [admin_CrmProspectosController::class, 'actualizarEstado'])->name('prospectos.actualizar-estado');
-    Route::patch('prospectos/{prospecto}/scoring', [admin_CrmProspectosController::class, 'actualizarScoring'])->name('prospectos.actualizar-scoring');
     Route::get('prospectos-exportar', [admin_CrmProspectosController::class, 'exportar'])->name('prospectos.exportar');
 
     // -------------------------------------------------
@@ -163,45 +162,45 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     // -------------------------------------------------
     Route::resource('oportunidades', admin_CrmOportunidadesController::class)->parameters(['oportunidades' => 'oportunidad']);
     Route::post('oportunidades/{oportunidad}/avanzar', [admin_CrmOportunidadesController::class, 'avanzarEtapa'])->name('oportunidades.avanzar');
-    Route::patch('oportunidades/{oportunidad}/etapa', [admin_CrmOportunidadesController::class, 'cambiarEtapa'])->name('oportunidades.cambiar-etapa');
     Route::post('oportunidades/{oportunidad}/ganada', [admin_CrmOportunidadesController::class, 'marcarGanada'])->name('oportunidades.ganada');
     Route::post('oportunidades/{oportunidad}/perdida', [admin_CrmOportunidadesController::class, 'marcarPerdida'])->name('oportunidades.perdida');
     Route::post('oportunidades/{oportunidad}/convertir-cliente', [admin_CrmOportunidadesController::class, 'convertirACliente'])->name('oportunidades.convertir-cliente');
     Route::post('oportunidades/{oportunidad}/cotizacion', [admin_CrmOportunidadesController::class, 'crearCotizacion'])->name('oportunidades.crear-cotizacion');
     Route::post('oportunidades/{oportunidad}/actividad', [admin_CrmOportunidadesController::class, 'registrarActividad'])->name('oportunidades.actividad');
     Route::get('oportunidades-exportar', [admin_CrmOportunidadesController::class, 'exportar'])->name('oportunidades.exportar');
+    Route::get('prospectos/{prospecto:id}/wishlist', [admin_CrmOportunidadesController::class, 'getWishlist'])->name('prospectos.wishlist');
 
     // -------------------------------------------------
     // COTIZACIONES
     // -------------------------------------------------
-    Route::resource('cotizaciones', admin_CrmCotizacionesController::class);
-    Route::post('cotizaciones/{cotizacione}/enviar', [admin_CrmCotizacionesController::class, 'enviar'])->name('cotizaciones.enviar');
-    Route::post('cotizaciones/{cotizacione}/aprobar', [admin_CrmCotizacionesController::class, 'aprobar'])->name('cotizaciones.aprobar');
-    Route::post('cotizaciones/{cotizacione}/rechazar', [admin_CrmCotizacionesController::class, 'rechazar'])->name('cotizaciones.rechazar');
-    Route::post('cotizaciones/{cotizacione}/duplicar', [admin_CrmCotizacionesController::class, 'duplicar'])->name('cotizaciones.duplicar');
-    Route::get('cotizaciones/{cotizacione}/pdf', [admin_CrmCotizacionesController::class, 'generarPdf'])->name('cotizaciones.pdf');
-    Route::get('cotizaciones/{cotizacione}/preview', [admin_CrmCotizacionesController::class, 'previsualizarPdf'])->name('cotizaciones.preview');
-    Route::post('cotizaciones/{cotizacione}/recalcular', [admin_CrmCotizacionesController::class, 'recalcular'])->name('cotizaciones.recalcular');
-    Route::get('cotizaciones-comparar', [admin_CrmCotizacionesController::class, 'comparar'])->name('cotizaciones.comparar');
+    Route::resource('cotizaciones', admin_CrmCotizacionesController::class)->parameters(['cotizaciones' => 'cotizacion']);
+    Route::post('cotizaciones/{cotizacion}/enviar', [admin_CrmCotizacionesController::class, 'enviar'])->name('cotizaciones.enviar');
+    Route::post('cotizaciones/{cotizacion}/aprobar', [admin_CrmCotizacionesController::class, 'aprobar'])->name('cotizaciones.aprobar');
+    Route::post('cotizaciones/{cotizacion}/rechazar', [admin_CrmCotizacionesController::class, 'rechazar'])->name('cotizaciones.rechazar');
+    Route::post('cotizaciones/{cotizacion}/duplicar', [admin_CrmCotizacionesController::class, 'duplicar'])->name('cotizaciones.duplicar');
+    Route::get('cotizaciones/{cotizacion}/pdf', [admin_CrmCotizacionesController::class, 'generarPdf'])->name('cotizaciones.pdf');
+    Route::get('cotizaciones/{cotizacion}/preview', [admin_CrmCotizacionesController::class, 'previsualizarPdf'])->name('cotizaciones.preview');
+    Route::post('cotizaciones/{cotizacion}/recalcular', [admin_CrmCotizacionesController::class, 'recalcular'])->name('cotizaciones.recalcular');
+    // Route::get('cotizaciones-comparar', [admin_CrmCotizacionesController::class, 'comparar'])->name('cotizaciones.comparar'); // TODO: falta vista comparar.blade.php
 
     // Ítems de cotización
-    Route::post('cotizaciones/{cotizacione}/items', [admin_CrmCotizacionesController::class, 'agregarItem'])->name('cotizaciones.agregarItem');
-    Route::put('cotizaciones/{cotizacione}/items/{item}', [admin_CrmCotizacionesController::class, 'actualizarItem'])->name('cotizaciones.actualizarItem');
-    Route::delete('cotizaciones/{cotizacione}/items/{item}', [admin_CrmCotizacionesController::class, 'eliminarItem'])->name('cotizaciones.eliminarItem');
-    Route::post('cotizaciones/{cotizacione}/items-guardar', [admin_CrmCotizacionesController::class, 'guardarItems'])->name('cotizaciones.guardarItems');
+    Route::post('cotizaciones/{cotizacion}/items', [admin_CrmCotizacionesController::class, 'agregarItem'])->name('cotizaciones.agregarItem');
+    Route::put('cotizaciones/{cotizacion}/items/{item}', [admin_CrmCotizacionesController::class, 'actualizarItem'])->name('cotizaciones.actualizarItem');
+    Route::delete('cotizaciones/{cotizacion}/items/{item}', [admin_CrmCotizacionesController::class, 'eliminarItem'])->name('cotizaciones.eliminarItem');
+    Route::post('cotizaciones/{cotizacion}/items-guardar', [admin_CrmCotizacionesController::class, 'guardarItems'])->name('cotizaciones.guardarItems');
 
     // -------------------------------------------------
     // ACTIVIDADES (Agenda CRM)
     // -------------------------------------------------
-    Route::resource('actividades', admin_CrmActividadesController::class);
-    Route::get('actividades-calendario', [admin_CrmActividadesController::class, 'calendario'])->name('actividades.calendario');
-    Route::get('actividades-agenda', [admin_CrmActividadesController::class, 'agenda'])->name('actividades.agenda');
-    Route::post('actividades/{actividade}/completar', [admin_CrmActividadesController::class, 'completar'])->name('actividades.completar');
-    Route::post('actividades/{actividade}/cancelar', [admin_CrmActividadesController::class, 'cancelar'])->name('actividades.cancelar');
-    Route::post('actividades/{actividade}/reprogramar', [admin_CrmActividadesController::class, 'reprogramar'])->name('actividades.reprogramar');
-    Route::post('actividades/{actividade}/seguimiento', [admin_CrmActividadesController::class, 'crearSeguimiento'])->name('actividades.seguimiento');
+    Route::resource('actividades', admin_CrmActividadesController::class)->parameters(['actividades' => 'actividad']);
+    // Route::get('actividades-calendario', [admin_CrmActividadesController::class, 'calendario'])->name('actividades.calendario'); // TODO: falta vista calendario.blade.php
+    // Route::get('actividades-agenda', [admin_CrmActividadesController::class, 'agenda'])->name('actividades.agenda'); // TODO: falta vista agenda.blade.php
+    Route::post('actividades/{actividad}/completar', [admin_CrmActividadesController::class, 'completar'])->name('actividades.completar');
+    Route::post('actividades/{actividad}/cancelar', [admin_CrmActividadesController::class, 'cancelar'])->name('actividades.cancelar');
+    Route::post('actividades/{actividad}/reprogramar', [admin_CrmActividadesController::class, 'reprogramar'])->name('actividades.reprogramar');
+    Route::post('actividades/{actividad}/seguimiento', [admin_CrmActividadesController::class, 'crearSeguimiento'])->name('actividades.seguimiento');
     Route::get('actividades-eventos', [admin_CrmActividadesController::class, 'eventosCalendario'])->name('actividades.eventos');
-    Route::patch('actividades/{actividade}/fecha', [admin_CrmActividadesController::class, 'actualizarFecha'])->name('actividades.actualizar-fecha');
+    Route::patch('actividades/{actividad}/fecha', [admin_CrmActividadesController::class, 'actualizarFecha'])->name('actividades.actualizar-fecha');
     Route::get('actividades-pendientes', [admin_CrmActividadesController::class, 'misPendientes'])->name('actividades.pendientes');
     Route::get('actividades-recordatorios', [admin_CrmActividadesController::class, 'recordatoriosProximos'])->name('actividades.recordatorios');
 
@@ -214,41 +213,36 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     Route::post('tickets/{ticket}/asignar', [admin_CrmTicketsController::class, 'asignar'])->name('tickets.asignar');
     Route::post('tickets/{ticket}/escalar', [admin_CrmTicketsController::class, 'escalar'])->name('tickets.escalar');
     Route::post('tickets/{ticket}/calificar', [admin_CrmTicketsController::class, 'calificar'])->name('tickets.calificar');
-    Route::get('tickets-metricas', [admin_CrmTicketsController::class, 'metricas'])->name('tickets.metricas');
-
-    // -------------------------------------------------
-    // GARANTÍAS
-    // -------------------------------------------------
-    Route::resource('garantias', admin_CrmGarantiasController::class);
-    Route::post('garantias/{garantia}/uso', [admin_CrmGarantiasController::class, 'registrarUso'])->name('garantias.uso');
-    Route::post('garantias/{garantia}/extender', [admin_CrmGarantiasController::class, 'extender'])->name('garantias.extender');
-    Route::get('garantias-verificar', [admin_CrmGarantiasController::class, 'verificar'])->name('garantias.verificar');
-    Route::get('garantias-alertas', [admin_CrmGarantiasController::class, 'alertas'])->name('garantias.alertas');
-    Route::get('garantias-reporte', [admin_CrmGarantiasController::class, 'reporte'])->name('garantias.reporte');
-    Route::get('garantias-exportar', [admin_CrmGarantiasController::class, 'exportar'])->name('garantias.exportar');
+    // Route::get('tickets-metricas', [admin_CrmTicketsController::class, 'metricas'])->name('tickets.metricas'); // TODO: falta vista metricas.blade.php
 
     // -------------------------------------------------
     // MANTENIMIENTOS
     // -------------------------------------------------
     Route::resource('mantenimientos', admin_CrmMantenimientosController::class);
-    Route::get('mantenimientos-calendario', [admin_CrmMantenimientosController::class, 'calendario'])->name('mantenimientos.calendario');
+    // Route::get('mantenimientos-calendario', [admin_CrmMantenimientosController::class, 'calendario'])->name('mantenimientos.calendario'); // TODO: falta vista calendario.blade.php
     Route::post('mantenimientos/{mantenimiento}/confirmar', [admin_CrmMantenimientosController::class, 'confirmar'])->name('mantenimientos.confirmar');
     Route::post('mantenimientos/{mantenimiento}/iniciar', [admin_CrmMantenimientosController::class, 'iniciar'])->name('mantenimientos.iniciar');
     Route::post('mantenimientos/{mantenimiento}/completar', [admin_CrmMantenimientosController::class, 'completar'])->name('mantenimientos.completar');
     Route::post('mantenimientos/{mantenimiento}/cancelar', [admin_CrmMantenimientosController::class, 'cancelar'])->name('mantenimientos.cancelar');
     Route::post('mantenimientos/{mantenimiento}/reprogramar', [admin_CrmMantenimientosController::class, 'reprogramar'])->name('mantenimientos.reprogramar');
     Route::post('mantenimientos/{mantenimiento}/asignar-tecnico', [admin_CrmMantenimientosController::class, 'asignarTecnico'])->name('mantenimientos.asignar-tecnico');
-    Route::get('mantenimientos/{mantenimiento}/reporte', [admin_CrmMantenimientosController::class, 'generarReporte'])->name('mantenimientos.reporte');
+    // Route::get('mantenimientos/{mantenimiento}/reporte', [admin_CrmMantenimientosController::class, 'generarReporte'])->name('mantenimientos.reporte'); // TODO: falta vista reporte-pdf.blade.php
     Route::post('mantenimientos-recurrente', [admin_CrmMantenimientosController::class, 'programarRecurrente'])->name('mantenimientos.recurrente');
     Route::get('mantenimientos-eventos', [admin_CrmMantenimientosController::class, 'eventosCalendario'])->name('mantenimientos.eventos');
     Route::get('mantenimientos-exportar', [admin_CrmMantenimientosController::class, 'exportar'])->name('mantenimientos.exportar');
 }); // Fin del grupo CRM
 
-// Verificación pública de garantías
-Route::get('verificar-garantia', [admin_CrmGarantiasController::class, 'verificar'])->name('garantias.verificar-publico');
 
 
 Route::get('admin-reportes', [admin_ReportesController::class, 'index'])->name('admin-reportes.index');
+
+// ==================== WISHLIST / FAVORITOS ====================
+Route::middleware('auth')->prefix('wishlist')->name('wishlist.')->group(function () {
+    Route::get('/', [App\Http\Controllers\WishListController::class, 'index'])->name('index');
+    Route::post('/toggle', [App\Http\Controllers\WishListController::class, 'toggle'])->name('toggle');
+    Route::delete('/{id}', [App\Http\Controllers\WishListController::class, 'destroy'])->name('destroy');
+    Route::post('/check', [App\Http\Controllers\WishListController::class, 'check'])->name('check');
+});
 
 Auth::routes();
 

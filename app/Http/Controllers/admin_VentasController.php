@@ -8,6 +8,7 @@ use App\Models\Pedido;
 use App\Models\Cliente;
 use App\Models\Tiposcomprobante;
 use App\Models\Mediopago;
+use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 

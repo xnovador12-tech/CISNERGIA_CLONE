@@ -20,7 +20,6 @@ class Prospecto extends Model
         'nuevo' => 'Nuevo',
         'contactado' => 'Contactado',
         'calificado' => 'Calificado',
-        'no_calificado' => 'No Calificado',
         'descartado' => 'Descartado',
         'convertido' => 'Convertido',
     ];
@@ -29,14 +28,11 @@ class Prospecto extends Model
      * Orígenes de captación
      */
     public const ORIGENES = [
-        'web' => 'Página Web',
-        'facebook' => 'Facebook',
-        'instagram' => 'Instagram',
-        'google_ads' => 'Google Ads',
-        'referido' => 'Referido',
+        'sitio_web' => 'Sitio Web',
+        'redes_sociales' => 'Redes Sociales',
         'llamada' => 'Llamada',
-        'visita' => 'Visita',
-        'feria' => 'Feria/Evento',
+        'referido' => 'Referido',
+        'ecommerce' => 'E-commerce',
         'otro' => 'Otro',
     ];
 
@@ -48,15 +44,6 @@ class Prospecto extends Model
         'comercial' => 'Comercial',
         'industrial' => 'Industrial',
         'agricola' => 'Agrícola',
-    ];
-
-    /**
-     * Niveles de scoring
-     */
-    public const SCORINGS = [
-        'A' => 'A - Alto Potencial',
-        'B' => 'B - Potencial Medio',
-        'C' => 'C - Bajo Potencial',
     ];
 
     protected $fillable = [
@@ -74,27 +61,17 @@ class Prospecto extends Model
         'distrito_id',
         'tipo_persona',
         'origen',
-        'origen_detalle',
         'segmento',
-        'scoring',
-        'scoring_puntos',
+        'tipo_interes',
         'estado',
         'motivo_descarte',
         'fecha_primer_contacto',
         'fecha_ultimo_contacto',
         'fecha_proximo_contacto',
-        'consumo_mensual_kwh',
-        'factura_mensual_soles',
-        'tipo_inmueble',
-        'area_disponible_m2',
-        'tiene_medidor_bidireccional',
-        'empresa_electrica',
-        'presupuesto_estimado',
         'nivel_interes',
         'urgencia',
-        'requiere_financiamiento',
         'user_id',
-        'sede_id',
+        'registered_user_id',
         'observaciones',
         'created_by',
         'updated_by',
@@ -104,12 +81,6 @@ class Prospecto extends Model
         'fecha_primer_contacto' => 'date',
         'fecha_ultimo_contacto' => 'date',
         'fecha_proximo_contacto' => 'date',
-        'consumo_mensual_kwh' => 'decimal:2',
-        'factura_mensual_soles' => 'decimal:2',
-        'area_disponible_m2' => 'decimal:2',
-        'presupuesto_estimado' => 'decimal:2',
-        'tiene_medidor_bidireccional' => 'boolean',
-        'requiere_financiamiento' => 'boolean',
     ];
 
     /**
@@ -193,9 +164,13 @@ class Prospecto extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function sede()
+    /**
+     * Usuario del e-commerce vinculado a este prospecto.
+     * Diferente a vendedor() que es el usuario interno asignado.
+     */
+    public function registeredUser()
     {
-        return $this->belongsTo(Sede::class);
+        return $this->belongsTo(User::class, 'registered_user_id');
     }
 
     public function oportunidades()
@@ -240,7 +215,7 @@ class Prospecto extends Model
 
     public function scopeActivos($query)
     {
-        return $query->whereNotIn('estado', ['descartado', 'no_calificado']);
+        return $query->whereNotIn('estado', ['descartado', 'convertido']);
     }
 
     public function scopePorEstado($query, $estado)
@@ -251,11 +226,6 @@ class Prospecto extends Model
     public function scopePorSegmento($query, $segmento)
     {
         return $query->where('segmento', $segmento);
-    }
-
-    public function scopePorScoring($query, $scoring)
-    {
-        return $query->where('scoring', $scoring);
     }
 
     public function scopePorOrigen($query, $origen)
@@ -271,7 +241,7 @@ class Prospecto extends Model
     public function scopeConSeguimientoPendiente($query)
     {
         return $query->where('fecha_proximo_contacto', '<=', now())
-                    ->whereNotIn('estado', ['descartado', 'no_calificado']);
+                    ->whereNotIn('estado', ['descartado', 'convertido']);
     }
 
     public function scopeNuevosHoy($query)
@@ -286,72 +256,6 @@ class Prospecto extends Model
     }
 
     // ==================== MÉTODOS ====================
-
-    /**
-     * Calcular el scoring basado en varios factores
-     */
-    public function calcularScoring(): int
-    {
-        $puntos = 0;
-
-        // Por nivel de interés
-        $puntos += match($this->nivel_interes) {
-            'muy_alto' => 30,
-            'alto' => 20,
-            'medio' => 10,
-            'bajo' => 0,
-            default => 0,
-        };
-
-        // Por urgencia
-        $puntos += match($this->urgencia) {
-            'inmediata' => 25,
-            'corto_plazo' => 15,
-            'mediano_plazo' => 5,
-            'largo_plazo' => 0,
-            default => 0,
-        };
-
-        // Por presupuesto
-        if ($this->presupuesto_estimado) {
-            if ($this->presupuesto_estimado >= 100000) $puntos += 20;
-            elseif ($this->presupuesto_estimado >= 50000) $puntos += 15;
-            elseif ($this->presupuesto_estimado >= 20000) $puntos += 10;
-            else $puntos += 5;
-        }
-
-        // Por segmento
-        $puntos += match($this->segmento) {
-            'industrial' => 15,
-            'comercial' => 10,
-            'agricola' => 10,
-            'residencial' => 5,
-            default => 0,
-        };
-
-        // Por consumo eléctrico
-        if ($this->consumo_mensual_kwh && $this->consumo_mensual_kwh > 500) {
-            $puntos += 10;
-        }
-
-        return min($puntos, 100);
-    }
-
-    /**
-     * Actualizar scoring y categoría
-     */
-    public function actualizarScoring(): void
-    {
-        $this->scoring_puntos = $this->calcularScoring();
-        
-        $this->scoring = match(true) {
-            $this->scoring_puntos >= 70 => 'A',
-            $this->scoring_puntos >= 40 => 'B',
-            default => 'C',
-        };
-        
-        $this->save();
-    }
 
     /**
      * Convertir prospecto a cliente
@@ -373,7 +277,7 @@ class Prospecto extends Model
             'user_id' => $this->user_id ?? auth()->id(),
         ]);
 
-        $this->update(['estado' => 'calificado']);
+        $this->update(['estado' => 'convertido']);
 
         return $cliente;
     }

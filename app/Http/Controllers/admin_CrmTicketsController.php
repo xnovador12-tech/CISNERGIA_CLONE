@@ -70,7 +70,7 @@ class admin_CrmTicketsController extends Controller
         // Usar get() para DataTables del lado del cliente
         $tickets = $query->get();
 
-        // EstadÃ­sticas
+        // Estadísticas
         $stats = [
             'abiertos' => Ticket::abiertos()->count(),
             'en_progreso' => Ticket::where('estado', 'en_progreso')->count(),
@@ -79,7 +79,7 @@ class admin_CrmTicketsController extends Controller
             'tiempo_promedio' => $this->calcularTiempoRespuestaPromedio() . 'h',
         ];
 
-        // Por categorÃ­a
+        // Por categoría
         $porCategoria = Ticket::selectRaw('categoria, COUNT(*) as total')
             ->abiertos()
             ->groupBy('categoria')
@@ -88,7 +88,7 @@ class admin_CrmTicketsController extends Controller
         $usuarios = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
         $clientes = Cliente::orderBy('nombre')->get();
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.tickets.index', compact(
+        return view('ADMINISTRADOR.CRM.tickets.index', compact(
             'tickets',
             'stats',
             'porCategoria',
@@ -107,7 +107,7 @@ class admin_CrmTicketsController extends Controller
 
         $clienteId = $request->get('cliente_id');
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.tickets.create', compact('clientes', 'usuarios', 'clienteId'));
+        return view('ADMINISTRADOR.CRM.tickets.create', compact('clientes', 'usuarios', 'clienteId'));
     }
 
     /**
@@ -126,13 +126,13 @@ class admin_CrmTicketsController extends Controller
             'user_id' => 'nullable|exists:users,id',
             'instalacion_id' => 'nullable|integer',
             'adjuntos' => 'nullable|array',
-            'adjuntos.*' => 'file|max:10240', // 10MB mÃ¡x
+            'adjuntos.*' => 'file|max:10240', // 10MB máx
         ]);
 
         $validated['user_id'] = auth()->id();
         $validated['estado'] = 'abierto';
         
-        // Calcular SLA segÃƒÂºn prioridad
+        // Calcular SLA según prioridad
         $horasSla = match($validated['prioridad']) {
             'critica' => 4,
             'alta' => 8,
@@ -158,13 +158,13 @@ class admin_CrmTicketsController extends Controller
 
         $ticket = Ticket::create($validated);
 
-        // Registrar primera respuesta automÃƒÂ¡tica si hay asignado
+        // Registrar primera respuesta automática si hay asignado
         if ($ticket->user_id) {
             $ticket->update(['fecha_primera_respuesta' => now()]);
         }
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.tickets.show', $ticket)
+            ->route('admin.crm.tickets.show', $ticket)
             ->with('success', "Ticket #{$ticket->codigo} creado exitosamente.");
     }
 
@@ -191,7 +191,7 @@ class admin_CrmTicketsController extends Controller
         // Historial de estados
         $usuarios = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->nombre);
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.tickets.show', compact(
+        return view('ADMINISTRADOR.CRM.tickets.show', compact(
             'ticket',
             'tiempoTranscurrido',
             'tiempoRestanteSla',
@@ -207,7 +207,7 @@ class admin_CrmTicketsController extends Controller
         $clientes = Cliente::orderBy('nombre')->get();
         $usuarios = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->nombre);
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.tickets.edit', compact('ticket', 'clientes', 'usuarios'));
+        return view('ADMINISTRADOR.CRM.tickets.edit', compact('ticket', 'clientes', 'usuarios'));
     }
 
     /**
@@ -238,7 +238,7 @@ class admin_CrmTicketsController extends Controller
         $ticket->update($validated);
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.tickets.show', $ticket)
+            ->route('admin.crm.tickets.show', $ticket)
             ->with('success', 'Ticket actualizado exitosamente.');
     }
 
@@ -257,7 +257,7 @@ class admin_CrmTicketsController extends Controller
         $ticket->delete();
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.tickets.index')
+            ->route('admin.crm.tickets.index')
             ->with('success', 'Ticket eliminado exitosamente.');
     }
 
@@ -357,7 +357,7 @@ class admin_CrmTicketsController extends Controller
             'fecha_primera_respuesta' => $ticket->fecha_primera_respuesta ?? now(),
         ]);
 
-        // Registrar asignaciÃƒÂ³n
+        // Registrar asignación
         $usuario = User::find($validated['user_id']);
         $ticket->mensajes()->create([
             'user_id' => auth()->id(),
@@ -378,7 +378,7 @@ class admin_CrmTicketsController extends Controller
             'nuevo_user_id' => 'nullable|exists:users,id',
         ]);
 
-        // Subir prioridad si no es crÃƒÂ­tica
+        // Subir prioridad si no es crítica
         if ($ticket->prioridad !== 'critica') {
             $prioridades = ['baja' => 'media', 'media' => 'alta', 'alta' => 'critica'];
             $ticket->prioridad = $prioridades[$ticket->prioridad] ?? $ticket->prioridad;
@@ -405,7 +405,7 @@ class admin_CrmTicketsController extends Controller
     }
 
     /**
-     * Registrar calificaciÃƒÂ³n del cliente
+     * Registrar calificación del cliente
      */
     public function calificar(Request $request, Ticket $ticket)
     {
@@ -419,11 +419,11 @@ class admin_CrmTicketsController extends Controller
             'comentario_cliente' => $validated['comentario_cliente'],
         ]);
 
-        return back()->with('success', 'Gracias por tu calificaciÃƒÂ³n.');
+        return back()->with('success', 'Gracias por tu calificación.');
     }
 
     /**
-     * Dashboard de mÃƒÂ©tricas de soporte
+     * Dashboard de métricas de soporte
      */
     public function metricas(Request $request)
     {
@@ -437,7 +437,7 @@ class admin_CrmTicketsController extends Controller
             default => now()->startOfMonth(),
         };
 
-        // MÃƒÂ©tricas generales
+        // Métricas generales
         $metricas = [
             'total_tickets' => Ticket::where('created_at', '>=', $fechaInicio)->count(),
             'resueltos' => Ticket::where('estado', 'resuelto')
@@ -451,7 +451,7 @@ class admin_CrmTicketsController extends Controller
             'cumplimiento_sla' => $this->calcularCumplimientoSla($fechaInicio),
         ];
 
-        // Por categorÃƒÂ­a
+        // Por categoría
         $porCategoria = Ticket::selectRaw('categoria, COUNT(*) as total')
             ->where('created_at', '>=', $fechaInicio)
             ->groupBy('categoria')
@@ -472,7 +472,7 @@ class admin_CrmTicketsController extends Controller
             ->orderBy('fecha')
             ->get();
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.tickets.metricas', compact(
+        return view('ADMINISTRADOR.CRM.tickets.metricas', compact(
             'metricas',
             'porCategoria',
             'porAgente',
@@ -506,7 +506,7 @@ class admin_CrmTicketsController extends Controller
     }
 
     /**
-     * Calcular tiempo de resoluciÃƒÂ³n promedio en horas
+     * Calcular tiempo de resolución promedio en horas
      */
     protected function calcularTiempoResolucionPromedio($desde = null): float
     {
@@ -530,7 +530,7 @@ class admin_CrmTicketsController extends Controller
     }
 
     /**
-     * Calcular tasa de resoluciÃƒÂ³n en primer contacto
+     * Calcular tasa de resolución en primer contacto
      */
     protected function calcularTasaFCR($desde = null): float
     {

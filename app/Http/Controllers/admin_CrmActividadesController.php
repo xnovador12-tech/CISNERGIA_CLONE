@@ -60,7 +60,7 @@ class admin_CrmActividadesController extends Controller
 
         $actividades = $query->get();
 
-        // EstadÃ­sticas
+        // Estadísticas
         $stats = [
             'hoy' => ActividadCrm::programadasHoy()->count(),
             'llamadas' => ActividadCrm::where('tipo', 'llamada')->pendientes()->count(),
@@ -70,7 +70,7 @@ class admin_CrmActividadesController extends Controller
 
         $usuarios = User::all();
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.actividades.index', compact(
+        return view('ADMINISTRADOR.CRM.actividades.index', compact(
             'actividades',
             'stats',
             'usuarios'
@@ -103,7 +103,7 @@ class admin_CrmActividadesController extends Controller
 
         $usuarios = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->nombre);
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.actividades.calendario', compact(
+        return view('ADMINISTRADOR.CRM.actividades.calendario', compact(
             'actividades',
             'mes',
             'ano',
@@ -113,7 +113,7 @@ class admin_CrmActividadesController extends Controller
     }
 
     /**
-     * Vista de agenda del dÃ­a
+     * Vista de agenda del día
      */
     public function agenda(Request $request)
     {
@@ -135,7 +135,7 @@ class admin_CrmActividadesController extends Controller
 
         $usuarios = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->nombre);
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.actividades.agenda', compact(
+        return view('ADMINISTRADOR.CRM.actividades.agenda', compact(
             'actividades',
             'vencidas',
             'fecha',
@@ -157,7 +157,7 @@ class admin_CrmActividadesController extends Controller
         $entidadTipo = $request->get('entidad_tipo');
         $entidadId = $request->get('entidad_id');
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.actividades.create', compact(
+        return view('ADMINISTRADOR.CRM.actividades.create', compact(
             'prospectos',
             'oportunidades',
             'usuarios',
@@ -171,7 +171,7 @@ class admin_CrmActividadesController extends Controller
      */
     public function store(Request $request)
     {
-        // DEBUG: Ver quÃ© llega del formulario ANTES de validar
+        // DEBUG: Ver qué llega del formulario ANTES de validar
         \Log::info('REQUEST COMPLETO', [
             'all' => $request->all(),
             'user_id_from_request' => $request->input('user_id'),
@@ -218,7 +218,7 @@ class admin_CrmActividadesController extends Controller
         // SIEMPRE asignar created_by con el usuario actual
         $validated['created_by'] = auth()->id();
 
-        // DEBUG: Ver quÃ© valores se estÃ¡n pasando
+        // DEBUG: Ver qué valores se están pasando
         \Log::info('Creando actividad', [
             'user_id' => $validated['user_id'],
             'created_by' => $validated['created_by'],
@@ -227,7 +227,7 @@ class admin_CrmActividadesController extends Controller
 
         $actividad = ActividadCrm::create($validated);
 
-        // DEBUG: Ver quÃ© se guardÃ³ realmente
+        // DEBUG: Ver qué se guardó realmente
         \Log::info('Actividad creada', [
             'id' => $actividad->id,
             'user_id' => $actividad->user_id,
@@ -235,16 +235,16 @@ class admin_CrmActividadesController extends Controller
         ]);
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.actividades.show', $actividad)
+            ->route('admin.crm.actividades.show', $actividad)
             ->with('success', 'Actividad creada exitosamente.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(ActividadCrm $actividade)
+    public function show(ActividadCrm $actividad)
     {
-        $actividade->load([
+        $actividad->load([
             'usuario.persona', 
             'activable', 
             'asignadoA.persona', 
@@ -252,20 +252,20 @@ class admin_CrmActividadesController extends Controller
             'actividadable'
         ]);
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.actividades.show', compact('actividade'));
+        return view('ADMINISTRADOR.CRM.actividades.show', compact('actividad'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(ActividadCrm $actividade)
+    public function edit(ActividadCrm $actividad)
     {
         $prospectos = Prospecto::orderBy('nombre')->get();
         $oportunidades = Oportunidad::with('prospecto')->orderByDesc('created_at')->get();
         $usuarios = User::with('persona')->get();
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.actividades.edit', compact(
-            'actividade',
+        return view('ADMINISTRADOR.CRM.actividades.edit', compact(
+            'actividad',
             'prospectos',
             'oportunidades',
             'usuarios'
@@ -275,7 +275,7 @@ class admin_CrmActividadesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ActividadCrm $actividade)
+    public function update(Request $request, ActividadCrm $actividad)
     {
         $validated = $request->validate([
             'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,videollamada,whatsapp,tarea,nota',
@@ -309,35 +309,35 @@ class admin_CrmActividadesController extends Controller
             unset($validated['activable_id']);
         }
 
-        $actividade->update($validated);
+        $actividad->update($validated);
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.actividades.show', $actividade)
+            ->route('admin.crm.actividades.show', $actividad)
             ->with('success', 'Actividad actualizada exitosamente.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ActividadCrm $actividade)
+    public function destroy(ActividadCrm $actividad)
     {
-        $actividade->delete();
+        $actividad->delete();
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.actividades.index')
+            ->route('admin.crm.actividades.index')
             ->with('success', 'Actividad eliminada exitosamente.');
     }
 
     /**
      * Marcar actividad como completada
      */
-    public function completar(Request $request, ActividadCrm $actividade)
+    public function completar(Request $request, ActividadCrm $actividad)
     {
         $validated = $request->validate([
             'resultado' => 'nullable|string',
         ]);
 
-        $actividade->update([
+        $actividad->update([
             'estado' => 'completada',
             'fecha_realizada' => now(),
             'resultado' => $validated['resultado'] ?? 'Actividad completada',
@@ -349,13 +349,13 @@ class admin_CrmActividadesController extends Controller
     /**
      * Marcar actividad como cancelada
      */
-    public function cancelar(Request $request, ActividadCrm $actividade)
+    public function cancelar(Request $request, ActividadCrm $actividad)
     {
         $validated = $request->validate([
             'motivo_cancelacion' => 'nullable|string|max:255',
         ]);
 
-        $actividade->update([
+        $actividad->update([
             'estado' => 'cancelada',
             'motivo_cancelacion' => $validated['motivo_cancelacion'] ?? 'Sin motivo especificado',
         ]);
@@ -417,7 +417,7 @@ class admin_CrmActividadesController extends Controller
         ]);
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.actividades.show', $seguimiento)
+            ->route('admin.crm.actividades.show', $seguimiento)
             ->with('success', 'Actividad de seguimiento creada.');
     }
 
@@ -470,7 +470,7 @@ class admin_CrmActividadesController extends Controller
                     'estado' => $actividad->estado,
                     'prioridad' => $actividad->prioridad,
                     'entidad' => $actividad->activable?->nombre_completo ?? $actividad->activable?->nombre,
-                    'url' => route('ADMINISTRADOR.PRINCIPAL.crm.actividades.show', $actividad),
+                    'url' => route('ADMINISTRADOR.CRM.actividades.show', $actividad),
                 ],
             ];
         });
@@ -513,7 +513,7 @@ class admin_CrmActividadesController extends Controller
     }
 
     /**
-     * Recordatorios prÃ³ximos (para notificaciones)
+     * Recordatorios próximos (para notificaciones)
      */
     public function recordatoriosProximos()
     {

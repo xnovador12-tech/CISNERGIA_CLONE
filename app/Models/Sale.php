@@ -15,6 +15,8 @@ class Sale extends Model
         'codigo',
         'slug',
         'pedido_id',
+        'oportunidad_id',
+        'cotizacion_crm_id',
         'cliente_id',
         'tiposcomprobante_id',
         'numero_comprobante',
@@ -57,7 +59,8 @@ class Sale extends Model
         return 'slug';
     }
 
-    // Relaciones
+    // ==================== RELACIONES ====================
+
     public function pedido()
     {
         return $this->belongsTo(Pedido::class, 'pedido_id');
@@ -66,6 +69,22 @@ class Sale extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'cliente_id');
+    }
+
+    /**
+     * Oportunidad CRM que originó esta venta
+     */
+    public function oportunidad()
+    {
+        return $this->belongsTo(Oportunidad::class, 'oportunidad_id');
+    }
+
+    /**
+     * Cotización CRM aprobada que originó esta venta
+     */
+    public function cotizacionCrm()
+    {
+        return $this->belongsTo(CotizacionCrm::class, 'cotizacion_crm_id');
     }
 
     public function tipocomprobante()

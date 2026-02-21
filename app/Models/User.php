@@ -67,6 +67,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Prospecto CRM vinculado a este usuario (solo para rol Cliente).
+     * Un usuario del e-commerce genera un prospecto automáticamente al registrarse.
+     */
+    public function prospecto()
+    {
+        return $this->hasOne(Prospecto::class, 'registered_user_id');
+    }
+
+    /**
      * Accessor para obtener el nombre del usuario desde la persona relacionada
      */
     public function getNameAttribute()

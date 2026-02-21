@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\CotizacionCrm;
+use App\Models\DetalleCotizacionCrm;
 use App\Models\Oportunidad;
-use App\Models\Prospecto;
+use App\Models\Producto;
+use App\Models\Tipo;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -19,7 +22,6 @@ class admin_CrmCotizacionesController extends Controller
     {
         $query = CotizacionCrm::with(['oportunidad.prospecto', 'usuario']);
 
-        // Filtros
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
             $query->where(function($q) use ($buscar) {
@@ -38,25 +40,9 @@ class admin_CrmCotizacionesController extends Controller
             $query->where('estado', $request->estado);
         }
 
-        if ($request->filled('fecha_desde')) {
-            $query->where('fecha_emision', '>=', $request->fecha_desde);
-        }
-
-        if ($request->filled('fecha_hasta')) {
-            $query->where('fecha_emision', '<=', $request->fecha_hasta);
-        }
-
-        if ($request->filled('usuario_id')) {
-            $query->where('user_id', $request->usuario_id);
-        }
-
-        $orderBy = $request->get('order_by', 'created_at');
-        $orderDir = $request->get('order_dir', 'desc');
-        $query->orderBy($orderBy, $orderDir);
-
+        $query->orderByDesc('created_at');
         $cotizaciones = $query->get();
 
-        // EstadÃ­sticas
         $stats = [
             'total_mes' => CotizacionCrm::whereMonth('created_at', now()->month)->count(),
             'valor_total' => CotizacionCrm::whereMonth('created_at', now()->month)->sum('total'),
@@ -66,11 +52,7 @@ class admin_CrmCotizacionesController extends Controller
 
         $usuarios = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.index', compact(
-            'cotizaciones',
-            'stats',
-            'usuarios'
-        ));
+        return view('ADMINISTRADOR.CRM.cotizaciones.index', compact('cotizaciones', 'stats', 'usuarios'));
     }
 
     /**
@@ -85,7 +67,18 @@ class admin_CrmCotizacionesController extends Controller
 
         $oportunidadId = $request->get('oportunidad_id');
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.create', compact('oportunidades', 'oportunidadId'));
+        // Tipos con sus categorías (para selects en cascada)
+        $tipos = Tipo::with(['categories' => function ($q) {
+            $q->where('estado', 'Activo')->orderBy('name');
+        }])->where('estado', 'Activo')->orderBy('name')->get();
+
+        // Productos activos con relaciones
+        $productos = Producto::where('estado', 'Activo')
+            ->with(['marca', 'medida', 'categorie', 'tipo'])
+            ->orderBy('name')
+            ->get();
+
+        return view('ADMINISTRADOR.CRM.cotizaciones.create', compact('oportunidades', 'oportunidadId', 'tipos', 'productos'));
     }
 
     /**
@@ -95,407 +88,307 @@ class admin_CrmCotizacionesController extends Controller
     {
         $validated = $request->validate([
             'oportunidad_id' => 'required|exists:oportunidades,id',
+            'nombre_proyecto' => 'required|string|max:200',
             'vigencia_dias' => 'required|integer|min:1|max:90',
+            'incluye_igv' => 'nullable|boolean',
             
-            // Especificaciones tÃ©cnicas
-            'potencia_kw' => 'required|numeric|min:0.5',
-            'cantidad_paneles' => 'required|integer|min:1',
-            'marca_panel' => 'required|string|max:50',
-            'modelo_panel' => 'nullable|string|max:100',
-            'potencia_panel_w' => 'required|numeric|min:100',
+            // Ítems
+            'items' => 'required|array|min:1',
+            'items.*.categoria' => 'required|in:producto,servicio,otro',
+            'items.*.descripcion' => 'required|string|max:255',
+            'items.*.especificaciones' => 'nullable|string',
+            'items.*.cantidad' => 'required|numeric|min:0.01',
+            'items.*.unidad' => 'required|string|max:20',
+            'items.*.precio_unitario' => 'required|numeric|min:0',
+            'items.*.descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
+            'items.*.producto_id' => 'nullable|exists:productos,id',
             
-            'marca_inversor' => 'required|string|max:50',
-            'modelo_inversor' => 'nullable|string|max:100',
-            'potencia_inversor_kw' => 'required|numeric|min:0.5',
-            
-            'incluye_baterias' => 'boolean',
-            'marca_bateria' => 'nullable|string|max:50',
-            'modelo_bateria' => 'nullable|string|max:100',
-            'capacidad_baterias_kwh' => 'nullable|numeric|min:0',
-            
-            // Precios
-            'precio_equipos' => 'required|numeric|min:0',
-            'precio_instalacion' => 'required|numeric|min:0',
-            'precio_estructura' => 'nullable|numeric|min:0',
-            'precio_tramites' => 'nullable|numeric|min:0',
-            'precio_otros' => 'nullable|numeric|min:0',
+            // Totales
             'descuento_porcentaje' => 'nullable|numeric|min:0|max:50',
             
-            // Tiempos y garantÃ­as
-            'tiempo_instalacion_dias' => 'nullable|integer|min:1',
-            'garantia_paneles_anos' => 'nullable|integer|min:1|max:30',
-            'garantia_inversor_anos' => 'nullable|integer|min:1|max:15',
-            'garantia_instalacion_anos' => 'nullable|integer|min:1|max:10',
+            // Plazos
+            'tiempo_ejecucion_dias' => 'nullable|integer|min:1',
+            'garantia_servicio' => 'nullable|string|max:200',
             
-            // Datos de producciÃ³n
-            'horas_sol_pico' => 'nullable|numeric|min:1|max:10',
-            'tarifa_electrica_kwh' => 'nullable|numeric|min:0',
-            
-            // Otros
+            // Notas
             'condiciones_comerciales' => 'nullable|string',
             'notas_internas' => 'nullable|string',
             'observaciones' => 'nullable|string',
         ]);
 
-        $validated['estado'] = 'borrador';
-        $validated['version'] = 1;
-        $validated['fecha_emision'] = now();
-        $validated['fecha_vigencia'] = now()->addDays((int) $validated['vigencia_dias']);
-        $validated['user_id'] = auth()->id();
+        $oportunidad = Oportunidad::findOrFail($validated['oportunidad_id']);
 
-        // Obtener datos de la oportunidad para nombre_proyecto y prospecto_id
-        $oportunidad = Oportunidad::find($validated['oportunidad_id']);
-        $validated['nombre_proyecto'] = $oportunidad->nombre;
-        $validated['prospecto_id'] = $oportunidad->prospecto_id;
-        $validated['cliente_id'] = $oportunidad->cliente_id;
+        // Generar código y slug explícitamente
+        $codigo = CotizacionCrm::generarCodigo();
+        $slug = CotizacionCrm::generarSlug($codigo);
 
-        // Valores por defecto
-        $validated['horas_sol_pico'] = $validated['horas_sol_pico'] ?? 5.0;
-        $validated['tarifa_electrica_kwh'] = $validated['tarifa_electrica_kwh'] ?? 0.65;
-        $validated['garantia_paneles_anos'] = $validated['garantia_paneles_anos'] ?? 25;
-        $validated['garantia_inversor_anos'] = $validated['garantia_inversor_anos'] ?? 10;
-        $validated['garantia_instalacion_anos'] = $validated['garantia_instalacion_anos'] ?? 2;
+        $cotizacion = CotizacionCrm::create([
+            'codigo' => $codigo,
+            'slug' => $slug,
+            'oportunidad_id' => $oportunidad->id,
+            'prospecto_id' => $oportunidad->prospecto_id,
+            'cliente_id' => $oportunidad->cliente_id,
+            'nombre_proyecto' => $validated['nombre_proyecto'],
+            'version' => 1,
+            'estado' => 'borrador',
+            'fecha_emision' => now(),
+            'fecha_vigencia' => now()->addDays((int) $validated['vigencia_dias']),
+            'user_id' => auth()->id(),
+            'incluye_igv' => $request->boolean('incluye_igv', true),
+            'descuento_porcentaje' => $validated['descuento_porcentaje'] ?? 0,
+            'tiempo_ejecucion_dias' => $validated['tiempo_ejecucion_dias'] ?? 5,
+            'garantia_servicio' => $validated['garantia_servicio'] ?? null,
+            'condiciones_comerciales' => $validated['condiciones_comerciales'] ?? null,
+            'notas_internas' => $validated['notas_internas'] ?? null,
+            'observaciones' => $validated['observaciones'] ?? null,
+        ]);
 
-        // Eliminar campo auxiliar
-        unset($validated['vigencia_dias']);
+        // Crear los ítems de detalle
+        $this->guardarItemsDeCotizacion($cotizacion, $validated['items']);
 
-        $cotizacion = CotizacionCrm::create($validated);
-        
-        // Calcular valores derivados
         $cotizacion->calcularTotales();
-        $cotizacion->calcularProduccion();
-        $cotizacion->calcularAhorro();
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.show', $cotizacion)
-            ->with('success', 'CotizaciÃ³n creada exitosamente.');
+            ->route('admin.crm.cotizaciones.show', $cotizacion)
+            ->with('success', 'Cotización creada exitosamente.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(CotizacionCrm $cotizacione)
+    public function show(CotizacionCrm $cotizacion)
     {
-        $cotizacione->load(['oportunidad.prospecto', 'oportunidad.cliente', 'usuario', 'detalles']);
+        $cotizacion->load(['oportunidad.prospecto', 'oportunidad.cliente', 'usuario', 'detalles.producto']);
 
-        // Agrupar detalles por categorÃ­a
-        $detallesPorCategoria = $cotizacione->detalles->groupBy('categoria');
+        $detallesPorCategoria = $cotizacion->detalles->groupBy('categoria');
 
-        // Datos para grÃ¡fico de ahorro proyectado
-        $proyeccionAhorro = $this->calcularProyeccionAhorro($cotizacione);
-
-        return view('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.show', compact('cotizacione', 'proyeccionAhorro', 'detallesPorCategoria'));
+        return view('ADMINISTRADOR.CRM.cotizaciones.show', compact('cotizacion', 'detallesPorCategoria'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(CotizacionCrm $cotizacione)
+    public function edit(CotizacionCrm $cotizacion)
     {
-        if ($cotizacione->estado === 'aceptada') {
-            return back()->with('error', 'No se puede editar una cotizaciÃ³n aceptada.');
-        }
-
-        $cotizacione->load('detalles');
+        $cotizacion->load(['detalles.producto', 'oportunidad.prospecto']);
 
         $oportunidades = Oportunidad::with('prospecto')
+            ->where(function ($q) use ($cotizacion) {
+                $q->activas()->orWhere('id', $cotizacion->oportunidad_id);
+            })
             ->orderByDesc('created_at')
             ->get();
 
-        $productos = \App\Models\Producto::where('estado', 'Activo')
+        // Tipos con sus categorías (para selects en cascada)
+        $tipos = Tipo::with(['categories' => function ($q) {
+            $q->where('estado', 'Activo')->orderBy('name');
+        }])->where('estado', 'Activo')->orderBy('name')->get();
+
+        $productos = Producto::where('estado', 'Activo')
+            ->with(['marca', 'medida', 'categorie', 'tipo'])
             ->orderBy('name')
             ->get();
 
-        $categorias = \App\Models\DetalleCotizacionCrm::CATEGORIAS;
-        $unidades = \App\Models\DetalleCotizacionCrm::UNIDADES;
+        $categorias = DetalleCotizacionCrm::CATEGORIAS;
+        $unidades = DetalleCotizacionCrm::UNIDADES;
 
-        return view('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.edit', compact('cotizacione', 'oportunidades', 'productos', 'categorias', 'unidades'));
+        // Preparar ítems existentes para JavaScript (evita closure en @json de Blade)
+        $itemsParaEditar = $cotizacion->detalles->map(fn($d) => [
+            'categoria' => $d->categoria,
+            'descripcion' => $d->descripcion,
+            'especificaciones' => $d->especificaciones,
+            'cantidad' => $d->cantidad,
+            'unidad' => $d->unidad,
+            'precio_unitario' => $d->precio_unitario,
+            'descuento_porcentaje' => $d->descuento_porcentaje,
+            'producto_id' => $d->producto_id,
+            'producto_tipo_id' => $d->producto?->tipo_id,
+            'producto_categorie_id' => $d->producto?->categorie_id,
+        ])->values();
+
+        return view('ADMINISTRADOR.CRM.cotizaciones.edit', compact(
+            'cotizacion', 'oportunidades', 'tipos', 'productos', 'categorias', 'unidades', 'itemsParaEditar'
+        ));
     }
 
     /**
      * Update the specified resource in storage.
+     * Ahora recibe y procesa el array de ítems completo (igual que store).
      */
-    public function update(Request $request, CotizacionCrm $cotizacione)
+    public function update(Request $request, CotizacionCrm $cotizacion)
     {
-        if ($cotizacione->estado === 'aceptada') {
-            return back()->with('error', 'No se puede editar una cotizaciÃ³n aceptada.');
-        }
-
         $validated = $request->validate([
             'oportunidad_id' => 'required|exists:oportunidades,id',
-            'fecha_vigencia' => 'required|date|after:today',
-            
-            // Especificaciones tÃ©cnicas
-            'potencia_kw' => 'required|numeric|min:0.5',
-            'cantidad_paneles' => 'required|integer|min:1',
-            'marca_panel' => 'required|string|max:50',
-            'modelo_panel' => 'nullable|string|max:100',
-            'potencia_panel_w' => 'required|numeric|min:100',
-            
-            'marca_inversor' => 'required|string|max:50',
-            'modelo_inversor' => 'nullable|string|max:100',
-            'potencia_inversor_kw' => 'required|numeric|min:0.5',
-            
-            'incluye_baterias' => 'boolean',
-            'marca_bateria' => 'nullable|string|max:50',
-            'modelo_bateria' => 'nullable|string|max:100',
-            'capacidad_baterias_kwh' => 'nullable|numeric|min:0',
-            
-            // Precios
-            'precio_equipos' => 'required|numeric|min:0',
-            'precio_instalacion' => 'required|numeric|min:0',
-            'precio_estructura' => 'nullable|numeric|min:0',
-            'precio_tramites' => 'nullable|numeric|min:0',
-            'precio_otros' => 'nullable|numeric|min:0',
+            'nombre_proyecto' => 'required|string|max:200',
+            'fecha_vigencia' => 'required|date',
+            'incluye_igv' => 'nullable|boolean',
+
+            // Ítems (obligatorios, mismo formato que store)
+            'items' => 'required|array|min:1',
+            'items.*.categoria' => 'required|in:producto,servicio,otro',
+            'items.*.descripcion' => 'required|string|max:255',
+            'items.*.especificaciones' => 'nullable|string',
+            'items.*.cantidad' => 'required|numeric|min:0.01',
+            'items.*.unidad' => 'required|string|max:20',
+            'items.*.precio_unitario' => 'required|numeric|min:0',
+            'items.*.descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
+            'items.*.producto_id' => 'nullable|exists:productos,id',
+
+            // Totales
             'descuento_porcentaje' => 'nullable|numeric|min:0|max:50',
-            
-            // Tiempos y garantÃ­as
-            'tiempo_instalacion_dias' => 'nullable|integer|min:1',
-            'garantia_paneles_anos' => 'nullable|integer|min:1|max:30',
-            'garantia_inversor_anos' => 'nullable|integer|min:1|max:15',
-            'garantia_instalacion_anos' => 'nullable|integer|min:1|max:10',
-            
-            // Otros
+
+            // Plazos
+            'tiempo_ejecucion_dias' => 'nullable|integer|min:1',
+            'garantia_servicio' => 'nullable|string|max:200',
+
+            // Notas
             'condiciones_comerciales' => 'nullable|string',
             'notas_internas' => 'nullable|string',
             'observaciones' => 'nullable|string',
         ]);
 
-        // Incrementar versiÃ³n si ya fue enviada
-        if ($cotizacion->estado === 'enviada') {
-            $validated['version'] = $cotizacion->version + 1;
-            $validated['estado'] = 'borrador';
-        }
+        $oportunidad = Oportunidad::findOrFail($validated['oportunidad_id']);
 
-        // Si no hay baterÃ­as, limpiar campos relacionados
-        if (!($validated['incluye_baterias'] ?? false)) {
-            $validated['incluye_baterias'] = false;
-            $validated['marca_bateria'] = null;
-            $validated['modelo_bateria'] = null;
-            $validated['capacidad_baterias_kwh'] = null;
-        }
+        // Actualizar datos generales de la cotización
+        $cotizacion->update([
+            'oportunidad_id' => $oportunidad->id,
+            'prospecto_id' => $oportunidad->prospecto_id,
+            'cliente_id' => $oportunidad->cliente_id,
+            'nombre_proyecto' => $validated['nombre_proyecto'],
+            'fecha_vigencia' => $validated['fecha_vigencia'],
+            'incluye_igv' => $request->boolean('incluye_igv', true),
+            'descuento_porcentaje' => $validated['descuento_porcentaje'] ?? 0,
+            'tiempo_ejecucion_dias' => $validated['tiempo_ejecucion_dias'] ?? 5,
+            'garantia_servicio' => $validated['garantia_servicio'] ?? null,
+            'condiciones_comerciales' => $validated['condiciones_comerciales'] ?? null,
+            'notas_internas' => $validated['notas_internas'] ?? null,
+            'observaciones' => $validated['observaciones'] ?? null,
+        ]);
 
-        $cotizacione->update($validated);
-        
-        // Recalcular valores
-        $cotizacione->calcularTotales();
-        $cotizacione->calcularProduccion();
-        $cotizacione->calcularAhorro();
+        // Eliminar ítems anteriores y recrear desde el formulario
+        $cotizacion->detalles()->delete();
+        $this->guardarItemsDeCotizacion($cotizacion, $validated['items']);
+
+        // Recalcular totales desde los nuevos ítems
+        $cotizacion->calcularTotales();
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.show', $cotizacione)
-            ->with('success', 'CotizaciÃ³n actualizada exitosamente.');
+            ->route('admin.crm.cotizaciones.show', $cotizacion)
+            ->with('success', 'Cotización actualizada exitosamente.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(CotizacionCrm $cotizacione)
+    public function destroy(CotizacionCrm $cotizacion)
     {
-        if ($cotizacione->estado === 'aceptada') {
-            return back()->with('error', 'No se puede eliminar una cotizaciÃ³n aceptada.');
+        if (in_array($cotizacion->estado, ['aceptada'])) {
+            return back()->with('error', 'No se puede eliminar una cotización aceptada.');
         }
 
-        $cotizacione->delete();
+        $cotizacion->delete();
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.index')
-            ->with('success', 'CotizaciÃ³n eliminada exitosamente.');
+            ->route('admin.crm.cotizaciones.index')
+            ->with('success', 'Cotización eliminada correctamente.');
     }
 
     /**
-     * Enviar cotizaciÃ³n al cliente
+     * Enviar cotización
      */
-    public function enviar(Request $request, CotizacionCrm $cotizacione)
+    public function enviar(CotizacionCrm $cotizacion)
     {
-        if ($cotizacione->estado !== 'borrador') {
-            return back()->with('error', 'Solo se pueden enviar cotizaciones en borrador.');
+        if ($cotizacion->estado !== 'borrador') {
+            return back()->with('error', 'Solo se pueden enviar cotizaciones en estado borrador.');
         }
 
-        // Validar que tenga email
-        $prospecto = $cotizacione->oportunidad->prospecto;
-        if (!$prospecto?->email) {
-            return back()->with('error', 'El prospecto no tiene email registrado.');
-        }
+        $cotizacion->marcarEnviada();
 
-        $cotizacione->update([
-            'estado' => 'enviada',
-            'fecha_envio' => now(),
-        ]);
-
-        // TODO: Enviar email con PDF adjunto
-        // Mail::to($prospecto->email)->send(new CotizacionMail($cotizacione));
-
-        return back()->with('success', 'CotizaciÃ³n enviada exitosamente.');
+        return back()->with('success', 'Cotización enviada exitosamente.');
     }
 
     /**
-     * Marcar cotizaciÃ³n como aceptada
+     * Aprobar cotización
      */
-    public function aprobar(Request $request, CotizacionCrm $cotizacione)
+    public function aprobar(CotizacionCrm $cotizacion)
     {
-        if (!in_array($cotizacione->estado, ['borrador', 'enviada'])) {
-            return back()->with('error', 'Esta cotizaciÃ³n no puede ser aceptada.');
-        }
+        $cotizacion->aceptar();
 
-        $cotizacione->update([
-            'estado' => 'aceptada',
-            'fecha_aprobacion' => now(),
-        ]);
-
-        // Actualizar oportunidad
-        $oportunidad = $cotizacione->oportunidad;
-        if ($oportunidad && $oportunidad->etapa !== 'ganada') {
-            $oportunidad->update([
-                'etapa' => 'negociacion',
-                'probabilidad' => 70,
-                'monto_final' => $cotizacione->total,
-            ]);
-        }
-
-        return back()->with('success', 'âœ… CotizaciÃ³n aceptada. La oportunidad ha sido actualizada.');
+        return back()->with('success', 'Cotización aprobada exitosamente.');
     }
 
     /**
-     * Marcar cotizaciÃ³n como rechazada
+     * Rechazar cotización
      */
-    public function rechazar(Request $request, CotizacionCrm $cotizacione)
+    public function rechazar(Request $request, CotizacionCrm $cotizacion)
     {
-        $validated = $request->validate([
+        $request->validate([
             'motivo_rechazo' => 'required|string|max:500',
         ]);
 
-        $cotizacione->update([
-            'estado' => 'rechazada',
-            'motivo_rechazo' => $validated['motivo_rechazo'],
-        ]);
+        $cotizacion->rechazar($request->motivo_rechazo);
 
-        return back()->with('info', 'CotizaciÃ³n marcada como rechazada.');
+        return back()->with('success', 'Cotización rechazada.');
     }
 
     /**
-     * Duplicar cotizaciÃ³n
+     * Duplicar cotización
      */
-    public function duplicar(CotizacionCrm $cotizacione)
+    public function duplicar(CotizacionCrm $cotizacion)
     {
-        $nueva = $cotizacione->replicate([
-            'codigo', 'estado', 'fecha_emision', 'fecha_envio', 
-            'fecha_aprobacion', 'motivo_rechazo', 'version'
-        ]);
-
-        $nueva->estado = 'borrador';
-        $nueva->version = 1;
-        $nueva->fecha_emision = now();
-        $nueva->fecha_vigencia = now()->addDays(30);
-        $nueva->user_id = auth()->id();
-        $nueva->save();
+        $nueva = $cotizacion->crearNuevaVersion();
 
         return redirect()
-            ->route('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.edit', $nueva)
-            ->with('success', 'CotizaciÃ³n duplicada. Puedes editarla antes de enviar.');
+            ->route('admin.crm.cotizaciones.edit', $nueva)
+            ->with('success', 'Cotización duplicada. Puedes editarla antes de enviar.');
     }
 
     /**
-     * Generar PDF de la cotizaciÃ³n
+     * Generar PDF profesional
      */
-    public function generarPdf(CotizacionCrm $cotizacione)
+    public function generarPdf(CotizacionCrm $cotizacion)
     {
-        $cotizacione->load(['oportunidad.prospecto', 'oportunidad.cliente', 'usuario']);
-        
-        $proyeccionAhorro = $this->calcularProyeccionAhorro($cotizacione);
+        $cotizacion->load(['oportunidad.prospecto', 'oportunidad.cliente', 'usuario', 'detalles.producto']);
 
-        $pdf = Pdf::loadView('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.pdf', compact('cotizacione', 'proyeccionAhorro'));
-        
+        $detallesPorCategoria = $cotizacion->detalles->groupBy('categoria');
+
+        $pdf = Pdf::loadView('ADMINISTRADOR.CRM.cotizaciones.pdf', compact('cotizacion', 'detallesPorCategoria'));
         $pdf->setPaper('A4', 'portrait');
 
-        $filename = "cotizacion_{$cotizacione->codigo}.pdf";
-
-        return $pdf->download($filename);
+        return $pdf->download("cotizacion_{$cotizacion->codigo}.pdf");
     }
 
     /**
      * Vista previa del PDF
      */
-    public function previsualizarPdf(CotizacionCrm $cotizacione)
+    public function previsualizarPdf(CotizacionCrm $cotizacion)
     {
-        $cotizacione->load(['oportunidad.prospecto', 'oportunidad.cliente', 'usuario']);
-        
-        $proyeccionAhorro = $this->calcularProyeccionAhorro($cotizacione);
+        $cotizacion->load(['oportunidad.prospecto', 'oportunidad.cliente', 'usuario', 'detalles.producto']);
 
-        $pdf = Pdf::loadView('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.pdf', compact('cotizacione', 'proyeccionAhorro'));
-        
-        return $pdf->stream("cotizacion_{$cotizacione->codigo}.pdf");
+        $detallesPorCategoria = $cotizacion->detalles->groupBy('categoria');
+
+        $pdf = Pdf::loadView('ADMINISTRADOR.CRM.cotizaciones.pdf', compact('cotizacion', 'detallesPorCategoria'));
+
+        return $pdf->stream("cotizacion_{$cotizacion->codigo}.pdf");
     }
 
     /**
-     * Recalcular valores de la cotizaciÃ³n
+     * Recalcular valores
      */
-    public function recalcular(CotizacionCrm $cotizacione)
+    public function recalcular(CotizacionCrm $cotizacion)
     {
-        $cotizacione->calcularTotales();
-        $cotizacione->calcularProduccion();
-        $cotizacione->calcularAhorro();
+        $cotizacion->calcularTotales();
 
         return back()->with('success', 'Valores recalculados exitosamente.');
     }
 
     /**
-     * Calcular proyecciÃ³n de ahorro a 25 aÃ±os
+     * Agregar ítem (desde edit modal legacy — se mantiene por compatibilidad)
      */
-    protected function calcularProyeccionAhorro(CotizacionCrm $cotizacion): array
-    {
-        $proyeccion = [];
-        $ahorroAnual = ($cotizacion->ahorro_mensual_soles ?? 0) * 12;
-        $tarifaIncremento = ($cotizacion->incremento_tarifa_anual ?? 4) / 100;
-        $degradacionPanel = 0.005; // 0.5% anual
-        $ahorroAcumulado = 0;
-        $inversion = $cotizacion->total ?? 0;
-
-        for ($ano = 1; $ano <= 25; $ano++) {
-            // Ajustar por incremento de tarifa y degradaciÃ³n del panel
-            $factorTarifa = pow(1 + $tarifaIncremento, $ano - 1);
-            $factorDegradacion = pow(1 - $degradacionPanel, $ano - 1);
-            
-            $ahorroAnoActual = $ahorroAnual * $factorTarifa * $factorDegradacion;
-            $ahorroAcumulado += $ahorroAnoActual;
-            
-            $proyeccion[] = [
-                'ano' => $ano,
-                'ahorro_anual' => round($ahorroAnoActual, 2),
-                'ahorro_acumulado' => round($ahorroAcumulado, 2),
-                'roi' => $inversion > 0 ? round((($ahorroAcumulado - $inversion) / $inversion) * 100, 1) : 0,
-                'recuperado' => $ahorroAcumulado >= $inversion,
-            ];
-        }
-
-        return $proyeccion;
-    }
-
-    /**
-     * Comparar cotizaciones
-     */
-    public function comparar(Request $request)
-    {
-        $ids = $request->get('ids', []);
-        
-        if (count($ids) < 2 || count($ids) > 4) {
-            return back()->with('error', 'Selecciona entre 2 y 4 cotizaciones para comparar.');
-        }
-
-        $cotizaciones = CotizacionCrm::with(['oportunidad.prospecto'])
-            ->whereIn('id', $ids)
-            ->get();
-
-        return view('ADMINISTRADOR.PRINCIPAL.crm.cotizaciones.comparar', compact('cotizaciones'));
-    }
-
-    /**
-     * Agregar Ã­tem a cotizaciÃ³n
-     */
-    public function agregarItem(Request $request, CotizacionCrm $cotizacione)
+    public function agregarItem(Request $request, CotizacionCrm $cotizacion)
     {
         $validated = $request->validate([
-            'categoria' => 'required|in:equipo,mano_obra,servicio,material,tramite,otro',
+            'categoria' => 'required|in:producto,servicio,otro',
             'descripcion' => 'required|string|max:255',
             'especificaciones' => 'nullable|string',
             'cantidad' => 'required|numeric|min:0.01',
@@ -505,24 +398,22 @@ class admin_CrmCotizacionesController extends Controller
             'producto_id' => 'nullable|exists:productos,id',
         ]);
 
-        $validated['cotizacion_id'] = $cotizacione->id;
-        $validated['orden'] = $cotizacione->detalles()->max('orden') + 1;
+        $validated['cotizacion_id'] = $cotizacion->id;
+        $validated['orden'] = $cotizacion->detalles()->max('orden') + 1;
 
-        \App\Models\DetalleCotizacionCrm::create($validated);
+        DetalleCotizacionCrm::create($validated);
+        $cotizacion->calcularTotales();
 
-        // Recalcular totales
-        $cotizacione->calcularTotales();
-
-        return back()->with('success', 'Ãtem agregado correctamente.');
+        return back()->with('success', 'Ítem agregado correctamente.');
     }
 
     /**
-     * Actualizar Ã­tem de cotizaciÃ³n
+     * Actualizar ítem
      */
-    public function actualizarItem(Request $request, CotizacionCrm $cotizacione, $itemId)
+    public function actualizarItem(Request $request, CotizacionCrm $cotizacion, $itemId)
     {
         $validated = $request->validate([
-            'categoria' => 'required|in:equipo,mano_obra,servicio,material,tramite,otro',
+            'categoria' => 'required|in:producto,servicio,otro',
             'descripcion' => 'required|string|max:255',
             'especificaciones' => 'nullable|string',
             'cantidad' => 'required|numeric|min:0.01',
@@ -531,49 +422,69 @@ class admin_CrmCotizacionesController extends Controller
             'descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
         ]);
 
-        $item = $cotizacione->detalles()->findOrFail($itemId);
+        $item = $cotizacion->detalles()->findOrFail($itemId);
         $item->update($validated);
+        $cotizacion->calcularTotales();
 
-        // Recalcular totales
-        $cotizacione->calcularTotales();
-
-        return back()->with('success', 'Ãtem actualizado correctamente.');
+        return back()->with('success', 'Ítem actualizado correctamente.');
     }
 
     /**
-     * Eliminar Ã­tem de cotizaciÃ³n
+     * Eliminar ítem
      */
-    public function eliminarItem(CotizacionCrm $cotizacione, $itemId)
+    public function eliminarItem(CotizacionCrm $cotizacion, $itemId)
     {
-        $item = $cotizacione->detalles()->findOrFail($itemId);
+        $item = $cotizacion->detalles()->findOrFail($itemId);
         $item->delete();
+        $cotizacion->calcularTotales();
 
-        // Recalcular totales
-        $cotizacione->calcularTotales();
-
-        return back()->with('success', 'Ãtem eliminado correctamente.');
+        return back()->with('success', 'Ítem eliminado correctamente.');
     }
 
     /**
-     * Guardar mÃºltiples Ã­tems (AJAX)
+     * Guardar múltiples ítems (AJAX)
      */
-    public function guardarItems(Request $request, CotizacionCrm $cotizacione)
+    public function guardarItems(Request $request, CotizacionCrm $cotizacion)
     {
         $request->validate([
             'items' => 'required|array',
-            'items.*.categoria' => 'required|in:equipo,mano_obra,servicio,material,tramite,otro',
+            'items.*.categoria' => 'required|in:producto,servicio,otro',
             'items.*.descripcion' => 'required|string|max:255',
             'items.*.cantidad' => 'required|numeric|min:0.01',
             'items.*.unidad' => 'required|string|max:20',
             'items.*.precio_unitario' => 'required|numeric|min:0',
         ]);
 
-        // Eliminar Ã­tems anteriores y recrear
-        $cotizacione->detalles()->delete();
+        $cotizacion->detalles()->delete();
+        $this->guardarItemsDeCotizacion($cotizacion, $request->items);
+        $cotizacion->calcularTotales();
 
-        foreach ($request->items as $index => $itemData) {
-            \App\Models\DetalleCotizacionCrm::create([
-                'cotizacion_id' => $cotizacione->id,
+        return response()->json([
+            'success' => true,
+            'message' => 'Ítems guardados correctamente.',
+            'totales' => [
+                'subtotal' => $cotizacion->subtotal,
+                'descuento' => $cotizacion->descuento_monto,
+                'igv' => $cotizacion->igv,
+                'total' => $cotizacion->total,
+            ]
+        ]);
+    }
+
+    // ================================================================
+    // MÉTODOS PRIVADOS
+    // ================================================================
+
+    /**
+     * Guardar array de ítems en la cotización.
+     * Reutilizado por store(), update() y guardarItems().
+     */
+    private function guardarItemsDeCotizacion(CotizacionCrm $cotizacion, array $items): void
+    {
+        $orden = 1;
+        foreach ($items as $itemData) {
+            DetalleCotizacionCrm::create([
+                'cotizacion_id' => $cotizacion->id,
                 'categoria' => $itemData['categoria'],
                 'descripcion' => $itemData['descripcion'],
                 'especificaciones' => $itemData['especificaciones'] ?? null,
@@ -581,23 +492,9 @@ class admin_CrmCotizacionesController extends Controller
                 'unidad' => $itemData['unidad'],
                 'precio_unitario' => $itemData['precio_unitario'],
                 'descuento_porcentaje' => $itemData['descuento_porcentaje'] ?? 0,
-                'orden' => $index + 1,
+                'producto_id' => !empty($itemData['producto_id']) ? $itemData['producto_id'] : null,
+                'orden' => $orden++,
             ]);
         }
-
-        // Recalcular totales
-        $cotizacione->calcularTotales();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Ãtems guardados correctamente.',
-            'totales' => [
-                'subtotal' => $cotizacione->subtotal,
-                'descuento' => $cotizacione->descuento_monto,
-                'igv' => $cotizacione->igv,
-                'total' => $cotizacione->total,
-            ]
-        ]);
     }
 }
-

@@ -19,6 +19,9 @@ class CrmSeeder extends Seeder
         // 1. Datos principales del pipeline de ventas
         $this->command->info('👥 Creando prospectos...');
         $this->call(ProspectoSeeder::class);
+
+        $this->command->info('❤️ Creando wishlists (ecommerce)...');
+        $this->call(WishListSeeder::class);
         
         $this->command->info('💼 Creando oportunidades...');
         $this->call(OportunidadSeeder::class);
@@ -33,9 +36,6 @@ class CrmSeeder extends Seeder
         $this->command->info('🎫 Creando tickets de soporte...');
         $this->call(TicketSeeder::class);
         
-        $this->command->info('🛡️ Creando garantías...');
-        $this->call(GarantiaSeeder::class);
-        
         $this->command->info('🔧 Creando mantenimientos...');
         $this->call(MantenimientoSeeder::class);
         
@@ -45,12 +45,12 @@ class CrmSeeder extends Seeder
         $this->command->table(
             ['Módulo', 'Datos creados'],
             [
-                ['Prospectos', '10 registros'],
-                ['Oportunidades', '9 registros'],
-                ['Cotizaciones', '~7 registros'],
+                ['Prospectos', '13 registros (10 producto, 3 servicio)'],
+                ['Wishlists', '3 prospectos con wishlist (~12 productos)'],
+                ['Oportunidades', '6 registros (1 por etapa, con productos asociados)'],
+                ['Cotizaciones', '~6 registros'],
                 ['Actividades', '~50 registros'],
                 ['Tickets', '6 registros'],
-                ['Garantías', '10 registros'],
                 ['Mantenimientos', '7 registros'],
             ]
         );

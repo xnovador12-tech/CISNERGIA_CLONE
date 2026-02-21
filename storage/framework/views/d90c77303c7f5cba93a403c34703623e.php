@@ -70,7 +70,7 @@
                                 <td class="fw-normal align-middle"><?php echo e($admin_ingreso->motivo); ?></td>
                                 <td class="fw-normal align-middle text-uppercase small"><?php echo e($admin_ingreso->almacen->name); ?></td>
                                 <td class="fw-normal align-middle text-uppercase"><?php echo e($admin_ingreso->created_at->format('d-m-Y')); ?></td>
-                                <td class="fw-normal align-middle text-end"><?php echo e(number_format($admin_ingreso->total, 3, '.', ',')); ?></td> 
+                                <td class="fw-normal align-middle text-end"><?php echo e(number_format($admin_ingreso->total, 2, '.', ',')); ?></td> 
                                 <td class="align-middle">                                        
                                     <div class="dropstart">
                                         <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px; padding: 0;">

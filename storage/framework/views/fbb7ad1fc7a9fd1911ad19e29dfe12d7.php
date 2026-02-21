@@ -17,7 +17,7 @@
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg py-2">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center me-4" href="index.html">
+            <a class="navbar-brand d-flex align-items-center me-4" href="<?php echo e(route('ecommerce.index')); ?>">
                 <img src="images/cisnergia_v.png" alt="CISNERGIA PERÚ" height="45">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
@@ -32,7 +32,7 @@
                     <li class="nav-item"><a class="nav-link px-3 fw-500" href="contacto.html">Contacto</a></li>
                 </ul>
                 <div class="d-flex align-items-center gap-0 icons__navbar">
-                    <!-- Hola, Inicia sesión -->
+                    <!-- Sesión de usuario -->
                     <div class="dropdown">
                         <button
                             class="bg-transparent border-0 rounded-0 d-flex flex-column align-items-start py-2 px-3 rounded hover-bg"
@@ -40,25 +40,55 @@
                             style="line-height: 1.3; transition: background 0.2s;">
                             <small class="text-secondary" style="font-size: 0.7rem; font-weight: 400;">Hola,</small>
                             <span class="fw-semibold d-flex align-items-center text-primary" style="font-size: 0.9rem;">
-                                Inicia sesión
+                                <?php if(auth()->guard()->check()): ?>
+                                    <?php echo e(Auth::user()->persona->name ?? 'Mi cuenta'); ?>
+
+                                <?php else: ?>
+                                    Inicia sesión
+                                <?php endif; ?>
                                 <i class="bi bi-chevron-down ms-1" style="font-size: 0.65rem;"></i>
                             </span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm mt-2 rounded-3">
-                            <li>
-                                <button type="button" class="dropdown-item py-2 rounded-2" data-bs-toggle="modal"
-                                    data-bs-target="#iniciar_sesion">
-                                    <i class="bi bi-box-arrow-in-right me-2 text-primary"></i>Iniciar sesión
-                                </button>
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider my-1">
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-2 rounded-2" href="#">
-                                    <i class="bi bi-person-plus me-2 text-secondary"></i>Crear cuenta
-                                </a>
-                            </li>
+                            <?php if(auth()->guard()->check()): ?>
+                                <li>
+                                    <a class="dropdown-item py-2 rounded-2" href="<?php echo e(route('home')); ?>">
+                                        <i class="bi bi-person me-2 text-primary"></i>Mi cuenta
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 rounded-2" href="<?php echo e(route('wishlist.index')); ?>">
+                                        <i class="bi bi-heart me-2 text-danger"></i>Mis favoritos
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider my-1">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 rounded-2" href="<?php echo e(route('logout')); ?>"
+                                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="bi bi-box-arrow-left me-2 text-secondary"></i>Cerrar sesión
+                                    </a>
+                                    <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" class="d-none">
+                                        <?php echo csrf_field(); ?>
+                                    </form>
+                                </li>
+                            <?php else: ?>
+                                <li>
+                                    <button type="button" class="dropdown-item py-2 rounded-2" data-bs-toggle="modal"
+                                        data-bs-target="#iniciar_sesion">
+                                        <i class="bi bi-box-arrow-in-right me-2 text-primary"></i>Iniciar sesión
+                                    </button>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider my-1">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 rounded-2" href="<?php echo e(route('register')); ?>">
+                                        <i class="bi bi-person-plus me-2 text-secondary"></i>Crear cuenta
+                                    </a>
+                                </li>
+                            <?php endif; ?>
                         </ul>
                     </div>
 
@@ -67,109 +97,236 @@
                         =============================================== -->
                     <div class="modal fade" id="iniciar_sesion" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content login-modal-content">
-                                <div class="modal-header border-0">
-                                    <div class="login-modal-header-content">
-                                        <div class="login-modal-logo">
-                                            <!-- Logo -->
-                                            <img src="images/LEIDINGER.png" alt="L'EINDINGER" style="height: 40px;">
-                                            <!-- <span>⚔️ VIKINGOS</span> -->
+                            <div class="modal-content" style="border: none; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);">
+                                <!-- Header con gradiente -->
+                                <div class="modal-header border-0 position-relative" style="background: linear-gradient(135deg, #051833 0%, #020c19 100%); padding: 2.5rem 2rem 2rem; z-index: 1;">
+                                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at top right, rgba(0, 163, 224, 0.15), transparent 70%); z-index: -1;"></div>
+                                    
+                                    <div class="w-100 text-center">
+                                        <div class="mb-3">
+                                            <img src="images/logo_v.png" alt="CISNERGIA" style="height: 45px; filter: brightness(0) invert(1);">
                                         </div>
-                                        <h4 class="modal-title" id="loginModalLabel">Bienvenido de vuelta</h4>
-                                        <p class="login-modal-subtitle">Ingresa a tu cuenta L'EINDINGER</p>
+                                        <h4 class="text-white fw-bold mb-2" id="loginModalLabel" style="font-size: 1.75rem;">Bienvenido de vuelta</h4>
+                                        <p class="text-white-50 mb-0" style="font-size: 0.95rem;">Ingresa a tu cuenta CISNERGIA</p>
                                     </div>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                        aria-label="Close"></button>
+                                    
+                                    <button type="button" class="btn-close btn-close-white position-absolute" data-bs-dismiss="modal" aria-label="Close" style="top: 1rem; right: 1rem; opacity: 0.8;"></button>
                                 </div>
-                                <div class="modal-body">
+                                
+                                <!-- Body del modal -->
+                                <div class="modal-body" style="padding: 2.5rem 2rem 1.5rem; background: #ffffff;">
                                     <form method="POST" action="<?php echo e(route('login')); ?>" autocomplete="off">
                                     <?php echo csrf_field(); ?>
-                                        <div class="mb-3">
-                                            <label for="loginEmail" class="form-label">Correo Electrónico</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                                <input type="email" class="form-control border-dark <?php $__errorArgs = ['email'];
+                                        <!-- Email Input -->
+                                        <div class="mb-4">
+                                            <label for="loginEmail" class="form-label fw-semibold" style="color: #334155; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                                <i class="bi bi-envelope me-1 text-primary"></i>Correo Electrónico
+                                            </label>
+                                            <input type="email" 
+                                                   class="form-control <?php $__errorArgs = ['email'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" name="email" value="" required autocomplete="email" autofocus>
-
-                                                <?php $__errorArgs = ['email'];
+unset($__errorArgs, $__bag); ?>" 
+                                                   id="loginEmail"
+                                                   name="email" 
+                                                   value="<?php echo e(old('email')); ?>" 
+                                                   required 
+                                                   autocomplete="email" 
+                                                   autofocus
+                                                   placeholder="nombre@ejemplo.com"
+                                                   style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.75rem 1rem; font-size: 0.95rem; transition: all 0.3s ease; background: #f8fafc;">
+                                            <?php $__errorArgs = ['email'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong><?php echo e($message); ?></strong>
-                                                    </span>
-                                                <?php unset($message);
+                                                <div class="invalid-feedback d-block mt-2" style="font-size: 0.85rem;">
+                                                    <i class="bi bi-exclamation-circle me-1"></i><?php echo e($message); ?>
+
+                                                </div>
+                                            <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                                            </div>
                                         </div>
-                                        <div class="mb-3">
-                                            <label for="loginPassword" class="form-label">Contraseña</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                                <input type="password" name="password" id="password" class="form-control border-dark border-end-0 <?php $__errorArgs = ['password'];
+
+                                        <!-- Password Input -->
+                                        <div class="mb-4">
+                                            <label for="loginPassword" class="form-label fw-semibold" style="color: #334155; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                                <i class="bi bi-lock me-1 text-primary"></i>Contraseña
+                                            </label>
+                                            <div class="position-relative">
+                                                <input type="password" 
+                                                       name="password" 
+                                                       id="loginPassword" 
+                                                       class="form-control <?php $__errorArgs = ['password'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" required maxlength="16" autocomplete="current-password">
-                                                <span class="input-group-text border-start-0 px-2 border-dark" style="background-color: transparent;"><i class="bi bi-lock-fill icono" style="cursor: pointer"></i></span>
+unset($__errorArgs, $__bag); ?>" 
+                                                       required 
+                                                       maxlength="16" 
+                                                       autocomplete="current-password"
+                                                       placeholder="••••••••"
+                                                       style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.75rem 3rem 0.75rem 1rem; font-size: 0.95rem; transition: all 0.3s ease; background: #f8fafc;">
+                                                <button type="button" 
+                                                        class="btn position-absolute top-50 end-0 translate-middle-y pe-3" 
+                                                        style="border: none; background: transparent; z-index: 10;"
+                                                        onclick="togglePassword()">
+                                                    <i class="bi bi-eye text-secondary" id="toggleIcon" style="font-size: 1.1rem; cursor: pointer;"></i>
+                                                </button>
                                             </div>
                                             <?php $__errorArgs = ['password'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong><?php echo e($message); ?></strong>
-                                                </span>
+                                                <div class="invalid-feedback d-block mt-2" style="font-size: 0.85rem;">
+                                                    <i class="bi bi-exclamation-circle me-1"></i><?php echo e($message); ?>
+
+                                                </div>
                                             <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                                         </div>
+
+                                        <!-- Recordarme y Olvidaste contraseña -->
                                         <div class="d-flex justify-content-between align-items-center mb-4">
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" <?php echo e(old('remember') ? 'checked' : ''); ?>>
-                                                <label class="form-check-label" for="rememberMe">Recordarme</label>
+                                                <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" <?php echo e(old('remember') ? 'checked' : ''); ?> style="border: 2px solid #cbd5e1; border-radius: 6px; width: 1.1em; height: 1.1em;">
+                                                <label class="form-check-label" for="rememberMe" style="color: #64748b; font-size: 0.9rem; margin-left: 0.25rem;">
+                                                    Recordarme
+                                                </label>
                                             </div>
-                                            <a href="#" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
+                                            <a href="#" style="color: #00A3E0; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.3s ease;">
+                                                ¿Olvidaste tu contraseña?
+                                            </a>
                                         </div>
-                                        <button type="submit" class="btn btn-viking btn-viking-gold w-100 mb-3">
+
+                                        <!-- Botón de Iniciar Sesión -->
+                                        <button type="submit" class="btn w-100 mb-3" style="background: linear-gradient(135deg, #00A3E0 0%, #0082b3 100%); color: white; border: none; border-radius: 12px; padding: 0.875rem 1.5rem; font-size: 1rem; font-weight: 600; box-shadow: 0 8px 24px rgba(0, 163, 224, 0.25); transition: all 0.3s ease;">
                                             <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
                                         </button>
                                     </form>
 
-                                    <div class="login-divider">
-                                        <span>o continúa con</span>
+                                    <!-- Divider -->
+                                    <div class="position-relative my-4">
+                                        <hr style="border-color: #e2e8f0; margin: 0;">
+                                        <span class="position-absolute top-50 start-50 translate-middle px-3" style="background: white; color: #94a3b8; font-size: 0.85rem; font-weight: 500;">
+                                            o continúa con
+                                        </span>
                                     </div>
 
-                                    <div class="social-login-buttons">
-                                        <button type="button" class="btn btn-social btn-google">
-                                            <i class="bi bi-google me-2"></i>Google
+                                    <!-- Botones sociales -->
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: 500; transition: all 0.3s ease; background: #f8fafc;">
+                                            <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                                                <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                                                <path d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                                                <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+                                            </svg>
+                                            <span style="color: #334155;">Continuar con Google</span>
                                         </button>
-                                        <button type="button" class="btn btn-social btn-facebook">
-                                            <i class="bi bi-facebook me-2"></i>Facebook
+                                        
+                                        <button type="button" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: 500; transition: all 0.3s ease; background: #f8fafc;">
+                                            <i class="bi bi-facebook" style="font-size: 1.25rem; color: #1877F2;"></i>
+                                            <span style="color: #334155;">Continuar con Facebook</span>
                                         </button>
                                     </div>
                                 </div>
-                                <div class="modal-footer border-0 justify-content-center">
-                                    <p class="mb-0">¿No tienes cuenta? <a href="registro.html" class="register-link">Regístrate aquí</a>
+                                
+                                <!-- Footer -->
+                                <div class="modal-footer border-0 justify-content-center" style="background: #f8fafc; padding: 1.5rem 2rem;">
+                                    <p class="mb-0" style="color: #64748b; font-size: 0.95rem;">
+                                        ¿No tienes cuenta? 
+                                        <a href="<?php echo e(route('register')); ?>" style="color: #00A3E0; font-weight: 600; text-decoration: none; transition: color 0.3s ease;">
+                                            Regístrate aquí
+                                        </a>
                                     </p>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <style>
+                        /* Estilos para el modal de login */
+                        #iniciar_sesion .form-control:focus {
+                            border-color: #00A3E0 !important;
+                            box-shadow: 0 0 0 0.2rem rgba(0, 163, 224, 0.15) !important;
+                            background: #ffffff !important;
+                        }
+
+                        #iniciar_sesion .form-check-input:checked {
+                            background-color: #00A3E0;
+                            border-color: #00A3E0;
+                        }
+
+                        #iniciar_sesion .btn-outline-secondary:hover {
+                            background: #ffffff !important;
+                            border-color: #00A3E0 !important;
+                            transform: translateY(-2px);
+                            box-shadow: 0 8px 16px rgba(0, 163, 224, 0.15);
+                        }
+
+                        #iniciar_sesion .btn-primary:hover {
+                            background: linear-gradient(135deg, #0082b3 0%, #00A3E0 100%) !important;
+                            transform: translateY(-2px);
+                            box-shadow: 0 12px 32px rgba(0, 163, 224, 0.35) !important;
+                        }
+
+                        #iniciar_sesion a:not(.btn):hover {
+                            color: #0082b3 !important;
+                        }
+
+                        #iniciar_sesion .modal.fade .modal-dialog {
+                            transition: transform 0.3s ease-out;
+                        }
+
+                        #iniciar_sesion .modal.show .modal-dialog {
+                            transform: none;
+                        }
+
+                        @keyframes fadeInModal {
+                            from {
+                                opacity: 0;
+                                transform: translateY(-20px);
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translateY(0);
+                            }
+                        }
+
+                        #iniciar_sesion.show .modal-content {
+                            animation: fadeInModal 0.3s ease-out;
+                        }
+                    </style>
+
+                    <script>
+                        function togglePassword() {
+                            const passwordInput = document.getElementById('loginPassword');
+                            const toggleIcon = document.getElementById('toggleIcon');
+                            
+                            if (passwordInput.type === 'password') {
+                                passwordInput.type = 'text';
+                                toggleIcon.classList.remove('bi-eye');
+                                toggleIcon.classList.add('bi-eye-slash');
+                            } else {
+                                passwordInput.type = 'password';
+                                toggleIcon.classList.remove('bi-eye-slash');
+                                toggleIcon.classList.add('bi-eye');
+                            }
+                        }
+                    </script>
 
 
                     <!-- Mis compras -->
@@ -185,7 +342,7 @@ unset($__errorArgs, $__bag); ?>
                     <!-- Favoritos -->
                     <div class="border-start">
 
-                        <a href="favoritos.html"
+                        <a href="<?php echo e(route('wishlist.index')); ?>"
                             class="bg-transparent border-0 icon__boton position-relative d-none d-lg-flex align-items-center justify-content-center px-3 py-2 rounded hover-bg"
                             style="text-decoration: none; transition: background 0.2s;">
                             <i class="bi bi-heart fs-4 text-secondary"></i>

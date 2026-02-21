@@ -138,16 +138,6 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{ route('admin.crm.garantias.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin/crm/garantias*']) ? 'active-item' : null }} menu">
-                                <span class="fw-bold">
-                                    <i class="bi bi-shield-check me-2"></i>
-                                </span>
-                                <span>Garantías</span>
-                            </a>
-                        </li>
-
-                        <li class="mx-2 my-1">
                             <a href="{{ route('admin.crm.mantenimientos.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin/crm/mantenimientos*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
@@ -385,16 +375,16 @@
                 </div>
                 <div class="dropdown align-self-center">
                     <a class="dropdown-toggle text-decoration-none link-dark" href="#" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
-                    {{Auth::user()->persona->name.' '.Auth::user()->persona->surnames}}
+                    {{Auth::user()?->persona?->name.' '.Auth::user()?->persona?->surnames}}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 py-0" aria-labelledby="dropdownMenuButton2" style="width: 285px; font-size: 15px; border-radius: 20px; overflow: hidden">
                         <img src="/images/header_control.png" class="header_user" style="border-radius: 20px 20px 0 0" alt="">
                         <div class="contenido">
                             <div class="avatar_dropdown ps-3">
-                                <img src="/images/users/{{ Auth::user()->persona->avatar }}" alt="">
+                                <img src="/images/users/{{ Auth::user()?->persona?->avatar }}" alt="">
                             </div>
                             <div class="info_user ps-3">
-                                <p class="fw-bold mb-0">{{Auth::user()->persona->name.' '.Auth::user()->persona->surnames}}</p>
+                                <p class="fw-bold mb-0">{{Auth::user()?->persona?->name.' '.Auth::user()?->persona?->surnames}}</p>
                                 <p class="fw-light small text-muted mb-0">{{Auth::user()->email}}</p>
                             </div>
                         </div>

@@ -9,19 +9,18 @@
     <link rel="icon" href="/images/icon.png">
     <link rel="stylesheet" href="/css/bootstrap.css">
     <link rel="stylesheet" href="/css/dashboard.css">
-    <link rel="stylesheet" href="/css/select2.min.css" />
-    <link rel="stylesheet" href="/css/select2-bootstrap-5-theme.min.css" />
-    <link rel="stylesheet" href="/css/dataTables.bootstrap5.css" />
+    <link rel="stylesheet" href="/css/select2.min.css"/>
+    <link rel="stylesheet" href="/css/select2-bootstrap-5-theme.min.css"/>
+    <link rel="stylesheet" href="/css/dataTables.bootstrap5.css"/>
     <link rel="stylesheet" href="/css/dataTables.dataTables.css">
-    <link rel="stylesheet" href="/css/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="/css/responsive.bootstrap5.css"/>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
     <?php echo $__env->yieldContent('css'); ?>
     <?php echo $__env->yieldPushContent('meta'); ?>
 
-
+   
 </head>
-
 <body class="bg-light">
     <!-- sidebar -->
     <div class="offcanvas offcanvas-start sidebar-nav" tabindex="-1" id="offcanvasmenu">
@@ -139,16 +138,6 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="<?php echo e(route('admin.crm.garantias.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin/crm/garantias*']) ? 'active-item' : null); ?> menu">
-                                <span class="fw-bold">
-                                    <i class="bi bi-shield-check me-2"></i>
-                                </span>
-                                <span>Garantías</span>
-                            </a>
-                        </li>
-
-                        <li class="mx-2 my-1">
                             <a href="<?php echo e(route('admin.crm.mantenimientos.index')); ?>"
                                 class="nav-link px-3 <?php echo e(request()->is(['admin/crm/mantenimientos*']) ? 'active-item' : null); ?> menu">
                                 <span class="fw-bold">
@@ -226,8 +215,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href=""
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-inventario*']) ? 'active-item' : null); ?> menu">
+                            <a href="<?php echo e(route('admin-inventarios.index')); ?>"
+                                class="nav-link px-3 <?php echo e(request()->is(['admin-inventarios*']) ? 'active-item' : null); ?> menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-box-seam me-2"></i>
                                 </span>
@@ -385,23 +374,18 @@
                     </ul>
                 </div>
                 <div class="dropdown align-self-center">
-                    <a class="dropdown-toggle text-decoration-none link-dark" href="#" type="button"
-                        id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
-                        <?php echo e(Auth::user()->persona->name . ' ' . Auth::user()->persona->surnames); ?>
+                    <a class="dropdown-toggle text-decoration-none link-dark" href="#" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+                    <?php echo e(Auth::user()?->persona?->name.' '.Auth::user()?->persona?->surnames); ?>
 
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 py-0"
-                        aria-labelledby="dropdownMenuButton2"
-                        style="width: 285px; font-size: 15px; border-radius: 20px; overflow: hidden">
-                        <img src="/images/header_control.png" class="header_user"
-                            style="border-radius: 20px 20px 0 0" alt="">
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 py-0" aria-labelledby="dropdownMenuButton2" style="width: 285px; font-size: 15px; border-radius: 20px; overflow: hidden">
+                        <img src="/images/header_control.png" class="header_user" style="border-radius: 20px 20px 0 0" alt="">
                         <div class="contenido">
                             <div class="avatar_dropdown ps-3">
-                                <img src="/images/users/<?php echo e(Auth::user()->persona->avatar); ?>" alt="">
+                                <img src="/images/users/<?php echo e(Auth::user()?->persona?->avatar); ?>" alt="">
                             </div>
                             <div class="info_user ps-3">
-                                <p class="fw-bold mb-0">
-                                    <?php echo e(Auth::user()->persona->name . ' ' . Auth::user()->persona->surnames); ?></p>
+                                <p class="fw-bold mb-0"><?php echo e(Auth::user()?->persona?->name.' '.Auth::user()?->persona?->surnames); ?></p>
                                 <p class="fw-light small text-muted mb-0"><?php echo e(Auth::user()->email); ?></p>
                             </div>
                         </div>
@@ -418,11 +402,10 @@
                                 Mi perfil
                             </a>
                         </li>
-
+                        
                         <li>
-                            <a class="dropdown-item py-2" href="<?php echo e(route('logout')); ?>"
-                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="bi bi-box-arrow-right me-2"></i>
+                            <a class="dropdown-item py-2" href="<?php echo e(route('logout')); ?>" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="bi bi-box-arrow-right me-2"></i>
                                 Cerrar Sesión
                             </a>
                             <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" class="d-none">
@@ -444,7 +427,7 @@
     </main>
 
     <!-- fin contenido -->
-
+        
     <script src="/js/jquery-3.7.1.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/popper.min.js"></script>
@@ -535,49 +518,45 @@
     </script>
 
     <!-- script del descuento para aplicar-->
-    <script>
-        $(document).ready(function() {
-            // comprobar si el descuento esta activo
-            setInterval(() => {
-                $.get('/ver_descuento', {
-                    validar_descuento: 'varificar_descuento'
-                }, function(busqueda) {
-                    $.each(busqueda, function(index, value) {
-                        if (value[0] == 'no_existe') {
-                            console.log('no_existe');
-                        } else {
-                            console.log('existe');
-                        }
-                    });
-                });
-            }, 3000);
-            // fin de la validacion
-        });
-    </script>
+        <script>
+            $(document).ready(function() {
+                // comprobar si el descuento esta activo
+                    setInterval(() => {
+                        $.get('/ver_descuento',{validar_descuento: 'varificar_descuento'}, function(busqueda){
+                            $.each(busqueda, function(index, value){
+                                if(value[0] == 'no_existe'){
+                                    console.log('no_existe');
+                                }else{
+                                    console.log('existe');
+                                }
+                            });
+                        });
+                    }, 3000);
+                // fin de la validacion
+            });
+        </script>
     <!-- fin de la carga del descuento para aplicar -->
 
     <!-- script del descuento para aplicar-->
-    <script>
-        $(document).ready(function() {
-            // comprobar si el descuento esta activo
-            setInterval(() => {
-                $.get('/ver_cuponera', {
-                    validar_cupones: 'varificar_cupones'
-                }, function(busqueda) {
-                    $.each(busqueda, function(index, value) {
-                        if (value[0] == 'no_existe') {
-                            console.log('no_existe_cupon');
-                        } else {
-                            console.log('existe_cupon');
-                        }
-                    });
-                });
-            }, 3000);
-            // fin de la validacion
-        });
-    </script>
+        <script>
+            $(document).ready(function() {
+                // comprobar si el descuento esta activo
+                    setInterval(() => {
+                        $.get('/ver_cuponera',{validar_cupones: 'varificar_cupones'}, function(busqueda){
+                            $.each(busqueda, function(index, value){
+                                if(value[0] == 'no_existe'){
+                                    console.log('no_existe_cupon');
+                                }else{
+                                    console.log('existe_cupon');
+                                }
+                            });
+                        });
+                    }, 3000);
+                // fin de la validacion
+            });
+        </script>
     <!-- fin de la carga del descuento para aplicar -->
-
+     
     <?php echo $__env->yieldContent('js'); ?>
     <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
