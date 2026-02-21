@@ -37,6 +37,15 @@ class Cart extends Model
         return $this->hasMany(CartItem::class);
     }
 
+    /**
+     * Oportunidad CRM vinculada a este carrito.
+     * Se crea automáticamente al agregar el primer producto.
+     */
+    public function oportunidad()
+    {
+        return $this->hasOne(Oportunidad::class);
+    }
+
     // Métodos auxiliares
     public function calculateTotals()
     {

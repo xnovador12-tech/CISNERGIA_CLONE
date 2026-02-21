@@ -15,4 +15,9 @@ class Role extends Model
         'estado',
         'nivel'
     ];
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
 }

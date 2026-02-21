@@ -3,6 +3,22 @@
 @section('title', 'Proveedores')
 
 @section('css')
+<style>
+    .scroll-thin {
+        scrollbar-width: thin;
+        scrollbar-color: #c1c1c1 transparent;
+    }
+    .scroll-thin::-webkit-scrollbar {
+        width: 6px;
+    }
+    .scroll-thin::-webkit-scrollbar-thumb {
+        background-color: #c1c1c1;
+        border-radius: 8px;
+    }
+    .scroll-thin::-webkit-scrollbar-track {
+        background: transparent;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -30,7 +46,7 @@
             <div class="card border-4 borde-top-primary shadow-sm h-100" style="border-radius: 20px; min-height: 500px" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-12 col-md-8 col-lg-9">
+                        <div class="col-12 col-md-6 col-lg-6">
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Datos del proveedor</p>
                             <div class="row">
                                 <div class="col-12 col-md-6 col-lg-4">
@@ -227,49 +243,45 @@
                                 </div>
                             </div>
                         </div>    
-                        <div class="col-12 col-md-4 col-lg-3">
-                            <p class="text-secondary mb-2 small text-uppercase fw-bold">Cuenta bancaria</p>
-                            <div class="pb-3">
-                                <div class="card">
-                                    <div class="card-header py-1">
-                                        <span class="text-uppercase small">Tipo de cuenta</span>
-                                    </div>
-                                    <div class="card-body py-2">
-                                        <span>{{ $admin_proveedore->proveedor->tipo_cuenta_normal }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="pb-3">
-                                <div class="card">
-                                    <div class="card-header py-1">
-                                        <span class="text-uppercase small">Banco</span>
-                                    </div>
-                                    <div class="card-body py-2">
-                                        <span>{{ $admin_proveedore->proveedor->entidad_bancaria_normal }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pb-3">
-                                <div class="card">
-                                    <div class="card-header py-1">
-                                        <span class="text-uppercase small">Nro. de cuenta</span>
-                                    </div>
-                                    <div class="card-body py-2">
-                                        <span>{{ $admin_proveedore->proveedor->nro_cuenta_normal }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="pb-3">
-                                <div class="card">
-                                    <div class="card-header py-1">
-                                        <span class="text-uppercase small">Nro. de cuenta CCI</span>
-                                    </div>
-                                    <div class="card-body py-2">
-                                        <span>{{ $admin_proveedore->proveedor->nro_cci_normal }}</span>
+                        <div class="col-12 col-md-6 col-lg-6">
+                            <p class="text-secondary mb-2 small text-uppercase fw-bold">Cuentas bancaria</p>
+                            <div class="overflow-auto scroll-thin" style="max-height: 220px;">
+                                @foreach($admin_proveedore->proveedor->proveedorcuentas as $cuenta)
+                                <div class="pb-3">
+                                    <div class="card">
+                                        <div class="card-header py-1">
+                                            <div class="row bg-light">
+                                                <div class="col-4 col-md-3 col-lg-3">
+                                                    <span class="text-uppercase small">Tipo de cuenta</span>
+                                                </div>
+                                                <div class="col-4 col-md-3 col-lg-3">
+                                                    <span class="text-uppercase small">Banco</span>
+                                                </div>
+                                                <div class="col-4 col-md-3 col-lg-3">
+                                                    <span class="text-uppercase small">Nro. de cuenta</span>
+                                                </div>
+                                                <div class="col-4 col-md-3 col-lg-3">
+                                                    <span class="text-uppercase small">Nro. de CCI</span>
+                                                </div>
+                                            </div>
+                                            <div class="row bg-white">
+                                                <div class="col-4 col-md-3 col-lg-3">
+                                                    <span class="text-uppercase small">{{$cuenta->tipo_cuenta_normal}}</span>
+                                                </div>
+                                                <div class="col-4 col-md-3 col-lg-3">
+                                                    <span class="text-uppercase small">{{$cuenta->entidad_bancaria_normal}}</span>
+                                                </div>
+                                                <div class="col-4 col-md-3 col-lg-3">
+                                                    <span class="text-uppercase small">{{$cuenta->nro_cuenta_normal}}</span>
+                                                </div>
+                                                <div class="col-4 col-md-3 col-lg-3">
+                                                    <span class="text-uppercase small">{{$cuenta->nro_cci_normal}}</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+                                @endforeach
                             </div>
 
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Cuenta de detracción</p>

@@ -87,7 +87,7 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow"> 
                                             <li>
-                                                <button type="button" data-bs-toggle="modal" data-bs-target="#editservicios{{$admin_servicio->slug}}" class="dropdown-item d-flex align-items-center"><i class="bi bi-pencil text-secondary me-2"></i>Editar</button>
+                                                <button type="button" data-bs-toggle="modal" data-bs-target="#editservicios{{$admin_servicio->slug}}" data-id="{{$admin_servicio->slug}}" class="dropdown-item d-flex align-items-center"><i class="bi bi-pencil text-secondary me-2"></i>Editar</button>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
@@ -230,12 +230,49 @@
                 $(this).find('.select2').select2({
                     dropdownParent: $(this)
                 });
+                // Ejecutar el filtro cuando se abre el modal
+                ejecutarFiltrosProveedor($(this));
             });
             
             // Inicializar Select2 fuera de modales
             $('.select2').filter(function() {
                 return $(this).closest('.modal').length === 0;
             }).select2();
+
+            // Función para ejecutar filtros de proveedor
+            function ejecutarFiltrosProveedor(context) {
+                var tipoSelect = context.find('[id*="tipos__servicio_id"]');
+                tipoSelect.trigger('change');
+            }
+
+            //filtro para poder mostrar los proveedores dependiendo del tipo de bien seleccionado
+            $(document).on('change', '#tipos__servicio_id', function() {
+                var valor_servicio = $(this).val();  
+                if(valor_servicio == 'Servicio Publico'){
+                    $('#proveedor__id').attr('disabled', false);
+                    $('#view_proveedor_id').show();
+                }else{
+                    $('#proveedor__id').attr('disabled', true);
+                    $('#proveedor__id').prop('selectedIndex', 0).change();
+                    $('#view_proveedor_id').hide();
+                }
+            });
+
+            //filtro para poder mostrar los proveedores dependiendo del tipo de bien seleccionado en el formulario editar
+            $(document).on('change', '[id^="tipos__servicio_id_edit_"]', function() {
+                var valor_servicio = $(this).val();
+                var slug = $(this).attr('id').replace('tipos__servicio_id_edit_', '');
+                console.log('Cambio detectado en edit:', slug, valor_servicio); // Debug
+                if(valor_servicio == 'Servicio Publico'){
+                    $('#proveedor__id_edit_' + slug).attr('disabled', false);
+                    $('#view_proveedor_id_edit_' + slug).show();
+                }else{
+                    $('#proveedor__id_edit_' + slug).attr('disabled', true);
+                    $('#proveedor__id_edit_' + slug).prop('selectedIndex', 0).change();
+                    $('#view_proveedor_id_edit_' + slug).hide();
+                }
+            });
+
         });
     </script>
 

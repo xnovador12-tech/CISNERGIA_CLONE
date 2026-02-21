@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use Illuminate\Http\Request;
 
 class admin_RolesController extends Controller
@@ -11,7 +12,8 @@ class admin_RolesController extends Controller
      */
     public function index()
     {
-        //
+        $roles = Role::all();
+        return view('ADMINISTRADOR.PRINCIPAL.configuraciones.roles.index', compact('roles'));
     }
 
     /**

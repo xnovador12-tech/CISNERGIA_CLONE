@@ -3,43 +3,39 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Tipo;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 class CategoryTableSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $category = new Category();
-        $category->name = "Monocristalinos";
-        $category->slug = Str::slug($category->name);
-        $category->estado = "Activo";
-        $category->tipo_id = 3;
-        $category->save();
+        $categorias = [
+            'Kits' => ['Monocristalinos', 'Policristalinos', 'Híbridos', 'Templado'],
+            'Panel Solar' => ['Monocristalino PERC', 'Monocristalino TOPCon', 'Bifacial'],
+            'Inversor' => ['On-Grid (String)', 'Híbrido', 'Microinversor', 'Off-Grid'],
+            'Batería' => ['Litio LFP', 'Litio NMC', 'Plomo-Ácido'],
+            'Estructura' => ['Techo Inclinado', 'Techo Plano', 'Piso/Suelo'],
+            'Cable y Conector' => ['Cable Solar', 'Conector MC4', 'Protección Eléctrica'],
+        ];
 
-        $category = new Category();
-        $category->name = "Policristalinos";
-        $category->slug = Str::slug($category->name);
-        $category->estado = "Activo";
-        $category->tipo_id = 3;
-        $category->save();
+        foreach ($categorias as $tipoName => $cats) {
+            $tipo = Tipo::where('name', $tipoName)->first();
+            if (!$tipo) continue;
 
-        $category = new Category();
-        $category->name = "Híbridos";
-        $category->slug = Str::slug($category->name);
-        $category->estado = "Activo";
-        $category->tipo_id = 3;
-        $category->save();
-
-        $category = new Category();
-        $category->name = "Templado";
-        $category->slug = Str::slug($category->name);
-        $category->estado = "Activo";
-        $category->tipo_id = 3;
-        $category->save();
+            foreach ($cats as $catName) {
+                Category::updateOrCreate(
+                    ['slug' => Str::slug($catName)],
+                    [
+                        'name' => $catName,
+                        'slug' => Str::slug($catName),
+                        'estado' => 'Activo',
+                        'tipo_id' => $tipo->id,
+                    ]
+                );
+            }
+        }
     }
 }

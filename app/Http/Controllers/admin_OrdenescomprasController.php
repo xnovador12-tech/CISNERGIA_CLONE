@@ -171,6 +171,11 @@ class admin_OrdenescomprasController extends Controller
         $admin_ordencompra->fecha_pago = $request->input('fecha_pago');
         $admin_ordencompra->save();
 
+        if($request->input('comprobante') != '' && $request->input('nro_comprobante') != '' && $request->input('forma_pago') != '' && $request->input('plazo_pago') != ''){
+            $admin_ordencompra->estado_proceso = 'Completado';
+            $admin_ordencompra->save();
+        }
+        
         Detallecompra::where('ordencompra_id', $admin_ordencompra->id)->delete();
 
         $tipo_producto = $request->input('tipo_producto');

@@ -8,42 +8,25 @@ use Illuminate\Support\Str;
 
 class TipoTableSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
-        $tipo = new Tipo();
-        $tipo->name = "Accesorios";
-        $tipo->slug = Str::slug($tipo->name);
-        $tipo->estado = "Activo";
-        // $tipo->definicion = "Bienes";
-        // $tipo->clasificacion = "Compras";
-        $tipo->save();
+        $tipos = [
+            'Accesorios',
+            'Repuestos',
+            'Kits',
+            'Modulo Solar',
+            'Panel Solar',
+            'Inversor',
+            'Batería',
+            'Estructura',
+            'Cable y Conector',
+        ];
 
-        $tipo = new Tipo();
-        $tipo->name = "Repuestos";
-        $tipo->slug = Str::slug($tipo->name);
-        $tipo->estado = "Activo";
-        // $tipo->definicion = "Bienes";
-        // $tipo->clasificacion = "Compras";
-        $tipo->save();
-
-        $tipo = new Tipo();
-        $tipo->name = "Kits";
-        $tipo->slug = Str::slug($tipo->name);
-        $tipo->estado = "Activo";
-        // $tipo->definicion = "Bienes";
-        // $tipo->clasificacion = "Producto Terminado";
-        $tipo->save();
-
-        $tipo = new Tipo();
-        $tipo->name = "Modulo Solar";
-        $tipo->slug = Str::slug($tipo->name);
-        $tipo->estado = "Activo";
-        $tipo->save();
-        
+        foreach ($tipos as $nombre) {
+            Tipo::updateOrCreate(
+                ['slug' => Str::slug($nombre)],
+                ['name' => $nombre, 'slug' => Str::slug($nombre), 'estado' => 'Activo']
+            );
+        }
     }
 }

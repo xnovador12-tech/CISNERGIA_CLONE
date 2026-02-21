@@ -186,7 +186,7 @@
                             <p class="text-secondary mb-2 small text-uppercase fw-bold" id="title_opcional">Datos adicionales</p>
 
                             <div class="row mt-2">
-                                <div class="col-12 col-md-2 col-lg-2" id="act_vidautil">
+                                <div class="col-12 col-md-2 col-lg-2">
                                     <div class="mb-3">
                                         <label for="vidautil__id" class="">Vida útil</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -198,7 +198,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-3 col-lg-3" id="pt_costo">
+                                <div class="col-12 col-md-3 col-lg-3">
                                     <div class="mb-3">
                                         <label for="costo__id" class="">Costo</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -210,7 +210,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-3 col-lg-3" id="act_depreciacion">
+                                <div class="col-12 col-md-3 col-lg-3">
                                     <div class="mb-3">
                                         <label for="depreciacion__id" class="">Depreciación</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -222,7 +222,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-3 col-lg-3" id="act_tipo_adquisicion">
+                                <div class="col-12 col-md-3 col-lg-3">
                                     <div class="mb-3">
                                         <label for="tipo_adquisicion_id" class="">Tipo de adquisición</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -237,7 +237,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-3 col-lg-3" id="pt_precio">
+                                <div class="col-12 col-md-3 col-lg-3">
                                     <div class="mb-3">
                                         <label for="precio__id" class="">Precio</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -343,97 +343,19 @@
     $(document).ready(function() {
             valor_id_prod = $("#valir_prod").val();
             var __tipo = $("#tipos__bien_id").val();
-                
-                if (__tipo == 1)
-                {
-                    $("#title_opcional").hide();
-                    $("#act_vidautil").show();
-                    $("#act_costo").show();
-                    $("#act_depreciacion").show();
-                    $("#act_tipo_adquisicion").show();
-                    $("#pt_precio").show();
-                    $("#pt_costo").show();
-                    $("#pt_imgopcional").hide();
-                    $("#proveedores").show();
-                    $("#etiquetas").show();
-
-                    $.get('/busqueda_proved_edit', {valor_tip: 2, valor_id_prod:valor_id_prod}, function(bienes) {
-                        $('#mostrar_prov').empty();
-                        $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
-                        $.each(bienes, function(index, value) {
-                            if(index != '' && value[1] == ''){
-                                $('#mostrar_prov').append("<option value='"+index+"'>"+value[0]+"</option>");
-                            }else{
-                                $('#mostrar_prov').append("<option selected value='"+index+"'>"+value[0]+"</option>");
-                            }
-                            
-                        });
-                    });
-                }
-                if (__tipo == 2)
-                {
-                    $("#title_opcional").show();
-                    $("#act_vidautil").show();
-                    $("#act_costo").show();
-                    $("#act_depreciacion").show();
-                    $("#act_tipo_adquisicion").show();
-                    $("#pt_precio").show();
-                    $("#pt_costo").show();
-                    $("#pt_imgopcional").hide();
-                    $("#proveedores").show();
-                    $("#etiquetas").show();
-
-                    $.get('/busqueda_proved_edit', {valor_tip: 3, valor_id_prod:valor_id_prod}, function(bienes) {
-                        $('#mostrar_prov').empty();
-                        $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
-                        $.each(bienes, function(index, value) {
-                            if(index != '' && value[1] == ''){
-                                $('#mostrar_prov').append("<option value='"+index+"'>"+value[0]+"</option>");
-                            }else{
-                                $('#mostrar_prov').append("<option selected value='"+index+"'>"+value[0]+"</option>");
-                            }
-                            
-                        });
-                    });
-                }
-
-                if (__tipo == 3 || __tipo == 4)
-                {
-                    $("#title_opcional").hide();
-                    $("#act_vidautil").show();
-                    $("#act_costo").show();
-                    $("#act_depreciacion").show();
-                    $("#act_tipo_adquisicion").show();
-                    $("#pt_precio").show();
-                    $("#pt_costo").show();
-                    $("#pt_imgopcional").show();
-                    $("#show").hide();
-                    $("#proveedores").show();
-                    $("#etiquetas").show();
-
-                    $.get('/busqueda_proved_edit', {valor_tip: __tipo, valor_id_prod:valor_id_prod}, function(bienes) {
-                        $('#mostrar_prov').empty();
-                        $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
-                        $.each(bienes, function(index, value) {
-                            if(index != '' && value[1] == ''){
-                                $('#mostrar_prov').append("<option value='"+index+"'>"+value[0]+"</option>");
-                            }else{
-                                $('#mostrar_prov').append("<option selected value='"+index+"'>"+value[0]+"</option>");
-                            }
-                            
-                        });
-                    });
-                }
+            $.get('/busqueda_proved_edit', {valor_tip: __tipo, valor_id_prod:valor_id_prod}, function(bienes) {
+                $('#mostrar_prov').empty();
+                $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
+                $.each(bienes, function(index, value) {
+                    console.log(value);
+                    if(index != '' && value[1] == ''){
+                        $('#mostrar_prov').append("<option value='"+index+"'>"+value[0]+"</option>");
+                    }else{
+                        $('#mostrar_prov').append("<option selected value='"+index+"'>"+value[0]+"</option>");
+                    }
+                });
+            });
     });
-
-    $("#title_opcional").hide();
-    $("#mp_tempconservacion").hide();
-    $("#pt_precio").hide();
-    $("#pt_costo").hide();
-    $("#pt_imgopcional").hide();
-    $("#etiquetas").hide();
-    $("#proveedores").hide();
-    
 </script>
 <script>
     let multiple__imagenes = document.getElementById("multiple__imagenes");

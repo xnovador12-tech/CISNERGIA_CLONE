@@ -117,7 +117,7 @@
                                                 <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
                                             @endforeach
                                         </select>
-                                        <input type="text" class="form-control form-control-sm" name="tipo_id" id="id_tipo" required>
+                                        <input hidden type="text" class="form-control form-control-sm" name="tipo_id" id="id_tipo" required>
                                         @error('tipo_id')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -194,7 +194,7 @@
                             <p class="text-secondary mb-2 small text-uppercase fw-bold" id="title_opcional">Datos adicionales</p>
 
                             <div class="row" >
-                                <div class="col-12 col-md-2 col-lg-2" id="act_vidautil">
+                                <div class="col-12 col-md-2 col-lg-2">
                                     <div class="mb-3">
                                         <label for="vidautil__id" class="">Vida útil</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -206,7 +206,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-2 col-lg-2" id="act_costo">
+                                <div class="col-12 col-md-2 col-lg-2">
                                     <div class="mb-3">
                                         <label for="costo__id" class="">Costo</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -218,7 +218,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-3 col-lg-3" id="act_depreciacion">
+                                <div class="col-12 col-md-3 col-lg-3">
                                     <div class="mb-3">
                                         <label for="depreciacion__id" class="">Depreciación</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -230,7 +230,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-3 col-lg-3" id="act_tipo_adquisicion">
+                                <div class="col-12 col-md-3 col-lg-3">
                                     <div class="mb-3">
                                         <label for="tipo_adquisicion_id" class="">Tipo de adquisición</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -245,7 +245,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-2 col-lg-2" id="pt_precio">
+                                <div class="col-12 col-md-2 col-lg-2">
                                     <div class="mb-3">
                                         <label for="precio__id" class="">Precio</label>
                                         <div class="input-group input-group-sm mb-3">
@@ -259,7 +259,7 @@
                                 </div>
                             </div>
 
-                            <div class="mb-3" id="pt_imgopcional">
+                            <div class="mb-3">
                                 <p class="text-muted mb-2 small text-uppercase fw-bold">Cargue más imágenes (opcional)</p> 
                                 <div class="card imagecardfiles" style="min-height: 200px">
                                     <div class="card-body">
@@ -355,90 +355,15 @@
             $("#id_tipo").val(valor_bienes);
             var __tipo = $("#id_tipo").val();
             console.log(__tipo);
-                if (__tipo == 1)
-                {
-                    $("#title_opcional").hide();
-                    $("#act_vidautil").show();
-                    $("#act_costo").show();
-                    $("#act_depreciacion").show();
-                    $("#act_tipo_adquisicion").show();
-                    $("#pt_precio").show();
-                    $("#pt_costo").show();
-                    $("#pt_imgopcional").hide();
-                    $("#proveedores").show();
-                    $("#etiquetas").show();
-
-                    $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {
-                        $('#mostrar_prov').empty();
-                        $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
-                        $.each(bienes, function(index, value) {
-                            $('#mostrar_prov').append("<option value='"+index+"'>"+value[0]+"</option>");
-                            
-                        });
+                $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {
+                    $('#mostrar_prov').empty();
+                    $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
+                    $.each(bienes, function(index, value) {
+                        $('#mostrar_prov').append("<option value='"+index+"'>"+value[0]+"</option>");
                     });
-                }
-                if (__tipo == 2)
-                {
-                    $("#title_opcional").show();
-                    $("#act_vidautil").show();
-                    $("#act_costo").show();
-                    $("#act_depreciacion").show();
-                    $("#act_tipo_adquisicion").show();
-                    $("#pt_precio").show();
-                    $("#pt_costo").show();
-                    $("#pt_imgopcional").hide();
-                    $("#proveedores").show();
-                    $("#etiquetas").show();
-
-                    $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {
-                         $('#mostrar_prov').empty();
-                        $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
-                        $.each(bienes, function(index, value) {
-                            $('#mostrar_prov').append("<option value='"+index+"'>"+value[0]+"</option>");
-                            
-                        });
-                    });
-                }
-
-                if (__tipo == 3 || __tipo == 4 )
-                {
-                    $("#title_opcional").hide();
-                    $("#act_vidautil").show();
-                    $("#act_costo").show();
-                    $("#act_depreciacion").show();
-                    $("#act_tipo_adquisicion").show();
-                    $("#pt_precio").show();
-                    $("#pt_costo").show();
-                    $("#pt_imgopcional").show();
-                    $("#show").hide();
-                    $("#proveedores").show();
-                    $("#etiquetas").show();
-
-                    $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {
-                        $('#mostrar_prov').empty();
-                        $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
-                        $.each(bienes, function(index, value) {
-                            $('#mostrar_prov').append("<option value='"+index+"'>"+value[0]+"</option>");
-                            
-                        });
-                    });
-
-                }
+                });
         });
     });
-
-    $("#title_opcional").hide();
-    $("#act_vidautil").hide();
-    $("#act_costo").hide();
-    $("#act_depreciacion").hide();
-    $("#act_tipo_adquisicion").hide();
-    $("#pt_precio").hide();
-    $("#pt_costo").hide();
-    $("#pt_imgopcional").hide();
-    $("#id_tipo").hide();
-    $("#etiquetas").hide();
-    $("#proveedores").hide();
-    
 </script>
 <script>
     let multiple__imagenes = document.getElementById("multiple__imagenes");

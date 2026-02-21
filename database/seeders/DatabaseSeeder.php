@@ -15,12 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        // Ubigeo (Departamentos, Provincias, Distritos) - DEBE IR PRIMERO
+        $this->call(UbigeoSeeder::class);
 
         $this->call(IdentificacionTableSeeder::class);
         $this->call(TipoTableSeeder::class);
@@ -36,9 +32,12 @@ class DatabaseSeeder extends Seeder
         $this->call(ComprobanteTableSeeder::class);
         $this->call(MarcaTableSeeder::class);
         $this->call(AlmacenTableSeeder::class);
-        $this->call(ClienteSeeder::class);
-        $this->call(ProductoSeeder::class);
-        $this->call(InventarioSeeder::class);
 
+        // Marcas y Productos (necesario antes del CRM para las cotizaciones)
+        $this->call(MarcaTableSeeder::class);
+        $this->call(ProductoSeeder::class);
+
+        // CRM Module Seeders
+        $this->call(CrmSeeder::class);
     }
 }

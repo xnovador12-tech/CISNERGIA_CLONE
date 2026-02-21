@@ -88,8 +88,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{ route('admin-crm-prospectos.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin-crm-prospectos*']) ? 'active-item' : null }} menu">
+                            <a href="{{ route('admin.crm.prospectos.index') }}"
+                                class="nav-link px-3 {{ request()->is(['admin/crm/prospectos*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-person-plus me-2"></i>
                                 </span>
@@ -98,8 +98,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{ route('admin-crm-oportunidades.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin-crm-oportunidades*']) ? 'active-item' : null }} menu">
+                            <a href="{{ route('admin.crm.oportunidades.index') }}"
+                                class="nav-link px-3 {{ request()->is(['admin/crm/oportunidades*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-bullseye me-2"></i>
                                 </span>
@@ -108,8 +108,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{ route('admin-crm-cotizaciones.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin-crm-cotizaciones*']) ? 'active-item' : null }} menu">
+                            <a href="{{ route('admin.crm.cotizaciones.index') }}"
+                                class="nav-link px-3 {{ request()->is(['admin/crm/cotizaciones*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-file-earmark-text me-2"></i>
                                 </span>
@@ -118,52 +118,32 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{ route('admin-crm-clientes.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin-crm-clientes*']) ? 'active-item' : null }} menu">
-                                <span class="fw-bold">
-                                    <i class="bi bi-people me-2"></i>
-                                </span>
-                                <span>Clientes</span>
-                            </a>
-                        </li>
-
-                        <li class="mx-2 my-1">
-                            <a href="{{ route('admin-crm-agenda.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin-crm-agenda*']) ? 'active-item' : null }} menu">
+                            <a href="{{ route('admin.crm.actividades.index') }}"
+                                class="nav-link px-3 {{ request()->is(['admin/crm/actividades*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-calendar-check me-2"></i>
                                 </span>
-                                <span>Agenda</span>
+                                <span>Actividades</span>
                             </a>
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{ route('admin-crm-postventa.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin-crm-postventa*']) ? 'active-item' : null }} menu">
+                            <a href="{{ route('admin.crm.tickets.index') }}"
+                                class="nav-link px-3 {{ request()->is(['admin/crm/tickets*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-headset me-2"></i>
                                 </span>
-                                <span>Postventa</span>
+                                <span>Tickets</span>
                             </a>
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{ route('admin-crm-fidelizacion.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin-crm-fidelizacion*']) ? 'active-item' : null }} menu">
+                            <a href="{{ route('admin.crm.mantenimientos.index') }}"
+                                class="nav-link px-3 {{ request()->is(['admin/crm/mantenimientos*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
-                                    <i class="bi bi-star me-2"></i>
+                                    <i class="bi bi-tools me-2"></i>
                                 </span>
-                                <span>Fidelización</span>
-                            </a>
-                        </li>
-
-                        <li class="mx-2 my-1">
-                            <a href="{{ route('admin-crm-marketing.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin-crm-marketing*']) ? 'active-item' : null }} menu">
-                                <span class="fw-bold">
-                                    <i class="bi bi-megaphone me-2"></i>
-                                </span>
-                                <span>Marketing</span>
+                                <span>Mantenimientos</span>
                             </a>
                         </li>
 
@@ -225,8 +205,8 @@
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-inventario.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-inventario*']) ? 'active-item' : null }} menu">
+                            <a href="{{route('admin-inventarios.index')}}"
+                                class="nav-link px-3 {{ request()->is(['admin-inventarios*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-box-seam me-2"></i>
                                 </span>
@@ -385,16 +365,16 @@
                 </div>
                 <div class="dropdown align-self-center">
                     <a class="dropdown-toggle text-decoration-none link-dark" href="#" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
-                    {{Auth::user()->persona->name.' '.Auth::user()->persona->surnames}}
+                    {{Auth::user()?->persona?->name.' '.Auth::user()?->persona?->surnames}}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 py-0" aria-labelledby="dropdownMenuButton2" style="width: 285px; font-size: 15px; border-radius: 20px; overflow: hidden">
                         <img src="/images/header_control.png" class="header_user" style="border-radius: 20px 20px 0 0" alt="">
                         <div class="contenido">
                             <div class="avatar_dropdown ps-3">
-                                <img src="/images/users/{{ Auth::user()->persona->avatar }}" alt="">
+                                <img src="/images/users/{{ Auth::user()?->persona?->avatar }}" alt="">
                             </div>
                             <div class="info_user ps-3">
-                                <p class="fw-bold mb-0">{{Auth::user()->persona->name.' '.Auth::user()->persona->surnames}}</p>
+                                <p class="fw-bold mb-0">{{Auth::user()?->persona?->name.' '.Auth::user()?->persona?->surnames}}</p>
                                 <p class="fw-light small text-muted mb-0">{{Auth::user()->email}}</p>
                             </div>
                         </div>

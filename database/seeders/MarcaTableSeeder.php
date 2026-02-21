@@ -2,32 +2,26 @@
 
 namespace Database\Seeders;
 
+use App\Models\Marca;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MarcaTableSeeder extends Seeder
 {
     public function run(): void
     {
         $marcas = [
-            ['name' => 'Generica', 'slug' => 'generica', 'estado' => 'activo'],
-            ['name' => 'Jinko Solar', 'slug' => 'jinko-solar', 'estado' => 'activo'],
-            ['name' => 'Huawei', 'slug' => 'huawei', 'estado' => 'activo'],
-            ['name' => 'Longi', 'slug' => 'longi', 'estado' => 'activo'],
-            ['name' => 'Growatt', 'slug' => 'growatt', 'estado' => 'activo'],
-            ['name' => 'Victron Energy', 'slug' => 'victron-energy', 'estado' => 'activo'],
+            'JA Solar', 'Jinko Solar', 'Trina Solar', 'LONGi', 'Canadian Solar', 'Risen',
+            'Growatt', 'Huawei', 'Sungrow', 'Goodwe', 'Deye', 'Fronius', 'SMA',
+            'Pylontech', 'BYD', 'Tesla',
+            'Genérico',
         ];
 
-        foreach ($marcas as $marca) {
-            DB::table('marcas')->insert([
-                'name' => $marca['name'],
-                'slug' => $marca['slug'],
-                'estado' => $marca['estado'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        foreach ($marcas as $nombre) {
+            Marca::updateOrCreate(
+                ['slug' => Str::slug($nombre)],
+                ['name' => $nombre, 'slug' => Str::slug($nombre), 'estado' => 'Activo']
+            );
         }
-        
-        $this->command->info('✅ Marcas creadas exitosamente');
     }
 }

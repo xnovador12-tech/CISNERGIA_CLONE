@@ -41,7 +41,7 @@
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3" id="view_proveedor_id">
                                 <label for="proveedor__id" class="">Proveedor<span class="text-danger">*</span></label>
                                 <select class="form-select form-select-sm select2 @error('proveedor_id') is-invalid @enderror" required name="proveedor_id" id="proveedor__id" >
                                     <option value="{{ old('proveedor_id') }}" selected="selected" disabled>{{ old('proveedor_id') }}</option>

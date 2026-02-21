@@ -36,14 +36,14 @@ class LoginController extends Controller
     protected function redirectTo()
     {
         // Redirigir según el rol del usuario
-        if(Auth::user()->role_id){
-            if(Auth::user()->role_id == '1'){
+        if (Auth::user()->role_id) {
+            if (Auth::user()->role_id == '1') {
                 return '/admin-configuraciones';
             }
-            if(Auth::user()->role_id == '2'){
+            if (Auth::user()->role_id == '2') {
                 return '/admin-configuraciones';
             }
-            if(Auth::user()->role_id == '3'){
+            if (Auth::user()->role_id == '3') {
                 return '/admin-configuraciones';
             }
         }
@@ -51,7 +51,7 @@ class LoginController extends Controller
         // Redirección por defecto
         return '/';
     }
-    
+
     /**
      * Create a new controller instance.
      *
