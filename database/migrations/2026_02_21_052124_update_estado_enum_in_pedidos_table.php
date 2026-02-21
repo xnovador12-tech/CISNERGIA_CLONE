@@ -29,6 +29,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        DB::table('pedidos')
+            ->where('estado', 'proceso')
+            ->update(['estado' => 'preparacion']);
+
         DB::statement("ALTER TABLE pedidos MODIFY COLUMN estado ENUM('pendiente', 'confirmado', 'preparacion', 'despacho', 'entregado', 'cancelado') DEFAULT 'pendiente'");
     }
 };

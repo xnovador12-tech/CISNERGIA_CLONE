@@ -27,6 +27,7 @@ class Cliente extends Model
         'direccion',
         'tipo_persona',
         // Campos CRM
+        'user_id',
         'prospecto_id',
         'segmento',
         'scoring',
@@ -115,7 +116,36 @@ class Cliente extends Model
         return $this->ruc ?? $this->dni ?? '-';
     }
 
+    /**
+     * Nombre compatible con vistas (name)
+     */
+    public function getNameAttribute(): string
+    {
+        if (!empty($this->nombre) || !empty($this->razon_social)) {
+            return $this->nombre_completo;
+        }
+        
+        if ($this->user && $this->user->persona) {
+            return $this->user->name;
+        }
+
+        return $this->razon_social ?? $this->email ?? 'Cliente #' . $this->id;
+    }
+
+    /**
+     * Correo compatible con vistas (correo)
+     */
+    public function getCorreoAttribute(): string
+    {
+        return $this->email ?? $this->user->email ?? '-';
+    }
+
     // ==================== RELACIONES ====================
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function distrito()
     {

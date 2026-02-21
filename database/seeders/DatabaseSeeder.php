@@ -36,6 +36,8 @@ class DatabaseSeeder extends Seeder
         // Marcas y Productos (necesario antes del CRM para las cotizaciones)
         $this->call(MarcaTableSeeder::class);
         $this->call(ProductoSeeder::class);
+        $this->call(InventarioSeeder::class);
+        $this->call(ClienteSeeder::class);
 
         // CRM Module Seeders
         $this->call(CrmSeeder::class);

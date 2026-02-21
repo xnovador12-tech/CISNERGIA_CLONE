@@ -14,7 +14,6 @@ class Pedido extends Model
     protected $fillable = [
         'codigo',
         'slug',
-        'cotizacion_id',
         'cliente_id',
         'user_id',
         'subtotal',
@@ -49,11 +48,6 @@ class Pedido extends Model
     }
 
     // Relaciones
-    public function cotizacion()
-    {
-        return $this->belongsTo(Cotizacion::class, 'cotizacion_id');
-    }
-
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'cliente_id');

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('codigo')->unique();
             $table->string('slug')->unique();
-            $table->foreignId('cotizacion_id')->nullable()->constrained('cotizaciones')->onDelete('set null'); // Enlace con Cotización
             $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->decimal('subtotal', 11, 2)->default(0);
