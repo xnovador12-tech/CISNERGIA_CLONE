@@ -42,7 +42,7 @@
                                          <option value="">Seleccione un cliente</option>
                                          @foreach($clientes as $cliente)
                                              <option value="{{ $cliente->id }}" {{ (isset($pedido) && $pedido->cliente_id == $cliente->id) || old('cliente_id') == $cliente->id ? 'selected' : '' }}>
-                                                 {{ $cliente->name }} - {{ $cliente->documento }}
+                                                 {{ $cliente->nombre }} {{ $cliente->apellidos }} - {{ $cliente->ruc ?? $cliente->dni ?? 'Sin documento' }}
                                              </option>
                                          @endforeach
                                      </select>

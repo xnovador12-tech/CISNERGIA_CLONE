@@ -3,15 +3,16 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
+     *
+     * NOTA: NO usar WithoutModelEvents aquí.
+     * Los modelos CRM (Prospecto, Oportunidad, Cliente, etc.) dependen
+     * de boot() events para auto-generar codigo y slug.
      */
     public function run(): void
     {
@@ -33,13 +34,11 @@ class DatabaseSeeder extends Seeder
         $this->call(MarcaTableSeeder::class);
         $this->call(AlmacenTableSeeder::class);
 
-        // Marcas y Productos (necesario antes del CRM para las cotizaciones)
-        $this->call(MarcaTableSeeder::class);
+        // Productos (necesario antes del CRM para las cotizaciones)
         $this->call(ProductoSeeder::class);
         $this->call(InventarioSeeder::class);
-        $this->call(ClienteSeeder::class);
 
-        // CRM Module Seeders
+        // CRM Module Seeders (incluye ClienteSeeder internamente)
         $this->call(CrmSeeder::class);
     }
 }

@@ -26,25 +26,13 @@ class Cliente extends Model
         'celular',
         'direccion',
         'tipo_persona',
-        // Campos CRM
-        'user_id',
+        'origen',
+        'estado',
         'prospecto_id',
         'segmento',
-        'scoring',
-        'valor_tiempo_vida',
-        'total_compras',
-        'cantidad_compras',
-        'ticket_promedio',
         'fecha_primera_compra',
-        'fecha_ultima_compra',
-        'dias_sin_comprar',
-        'estado_rfm',
-        'preferencias_comunicacion',
-        'horario_contacto_preferido',
-        'acepta_marketing',
-        'nps_score',
-        'fecha_ultimo_nps',
         'vendedor_id',
+        'user_id',
         'sede_id',
         'distrito_id',
         'observaciones',
@@ -52,13 +40,6 @@ class Cliente extends Model
 
     protected $casts = [
         'fecha_primera_compra' => 'date',
-        'fecha_ultima_compra' => 'date',
-        'fecha_ultimo_nps' => 'date',
-        'valor_tiempo_vida' => 'decimal:2',
-        'total_compras' => 'decimal:2',
-        'ticket_promedio' => 'decimal:2',
-        'preferencias_comunicacion' => 'array',
-        'acepta_marketing' => 'boolean',
     ];
 
     /**
@@ -72,19 +53,22 @@ class Cliente extends Model
             if (empty($cliente->codigo)) {
                 $cliente->codigo = self::generarCodigo();
             }
+            // Slug = codigo slugificado (CLI-2026-00001 → cli-2026-00001)
             if (empty($cliente->slug)) {
-                $cliente->slug = Str::slug($cliente->nombre . '-' . $cliente->codigo);
+                $cliente->slug = Str::slug($cliente->codigo);
             }
         });
     }
 
     /**
-     * Generar código único
+     * Generar código único (no depende de created_at)
      */
     public static function generarCodigo(): string
     {
         $year = date('Y');
-        $ultimo = self::whereYear('created_at', $year)->max('id') ?? 0;
+        $ultimo = self::withTrashed()
+            ->where('codigo', 'like', "CLI-{$year}-%")
+            ->count();
         $numero = str_pad($ultimo + 1, 5, '0', STR_PAD_LEFT);
         return "CLI-{$year}-{$numero}";
     }
@@ -116,36 +100,7 @@ class Cliente extends Model
         return $this->ruc ?? $this->dni ?? '-';
     }
 
-    /**
-     * Nombre compatible con vistas (name)
-     */
-    public function getNameAttribute(): string
-    {
-        if (!empty($this->nombre) || !empty($this->razon_social)) {
-            return $this->nombre_completo;
-        }
-        
-        if ($this->user && $this->user->persona) {
-            return $this->user->name;
-        }
-
-        return $this->razon_social ?? $this->email ?? 'Cliente #' . $this->id;
-    }
-
-    /**
-     * Correo compatible con vistas (correo)
-     */
-    public function getCorreoAttribute(): string
-    {
-        return $this->email ?? $this->user->email ?? '-';
-    }
-
     // ==================== RELACIONES ====================
-
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
 
     public function distrito()
     {
@@ -167,15 +122,14 @@ class Cliente extends Model
         return $this->belongsTo(Prospecto::class);
     }
 
-    // Relaciones CRM
     public function oportunidades()
     {
-        return $this->hasMany(Oportunidad::class);
+        return $this->hasMany(Oportunidad::class, 'prospecto_id', 'prospecto_id');
     }
 
     public function cotizaciones()
     {
-        return $this->hasMany(CotizacionCrm::class);
+        return $this->hasMany(CotizacionCrm::class, 'prospecto_id', 'prospecto_id');
     }
 
     public function actividades()
@@ -198,147 +152,14 @@ class Cliente extends Model
         return $this->hasMany(Sale::class);
     }
 
-    public function creadoPor()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function actualizadoPor()
-    {
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
     // ==================== SCOPES ====================
-
-    public function scopeActivos($query)
-    {
-        return $query->whereNotNull('fecha_ultima_compra');
-    }
 
     public function scopePorSegmento($query, $segmento)
     {
         return $query->where('segmento', $segmento);
     }
 
-    public function scopeConComprasRecientes($query, $dias = 90)
-    {
-        return $query->where('fecha_ultima_compra', '>=', now()->subDays($dias));
-    }
-
-    public function scopeSinCompras($query, $dias = 180)
-    {
-        return $query->where('fecha_ultima_compra', '<', now()->subDays($dias));
-    }
-
-    public function scopeTopClientes($query, $limite = 10)
-    {
-        return $query->orderByDesc('valor_tiempo_vida')->limit($limite);
-    }
-
-    // ==================== MÉTODOS CRM ====================
-
-    /**
-     * Obtener puntos disponibles
-     */
-    public function getPuntosDisponiblesAttribute(): int
-    {
-        return $this->puntosFidelizacion?->puntos_disponibles ?? 0;
-    }
-
-    /**
-     * Obtener nivel de membresía
-     */
-    public function getNivelMembresiaAttribute(): ?NivelMembresia
-    {
-        return $this->puntosFidelizacion?->nivel;
-    }
-
-    /**
-     * Calcular métricas de compra
-     */
-    public function actualizarMetricasCompra(): void
-    {
-        $ventas = $this->ventas;
-        
-        $this->cantidad_compras = $ventas->count();
-        $this->total_compras = $ventas->sum('total');
-        $this->ticket_promedio = $this->cantidad_compras > 0 
-            ? $this->total_compras / $this->cantidad_compras 
-            : 0;
-        
-        $primeraVenta = $ventas->sortBy('created_at')->first();
-        $ultimaVenta = $ventas->sortByDesc('created_at')->first();
-        
-        $this->fecha_primera_compra = $primeraVenta?->created_at?->toDateString();
-        $this->fecha_ultima_compra = $ultimaVenta?->created_at?->toDateString();
-        
-        if ($this->fecha_ultima_compra) {
-            $this->dias_sin_comprar = now()->diffInDays($this->fecha_ultima_compra);
-        }
-
-        // Calcular estado RFM
-        $this->calcularEstadoRfm();
-        
-        $this->save();
-    }
-
-    /**
-     * Calcular estado RFM (Recency, Frequency, Monetary)
-     */
-    protected function calcularEstadoRfm(): void
-    {
-        // Recencia: días desde última compra
-        $recencia = $this->dias_sin_comprar ?? 9999;
-        
-        // Frecuencia: cantidad de compras
-        $frecuencia = $this->cantidad_compras ?? 0;
-        
-        // Monetario: total comprado
-        $monetario = $this->total_compras ?? 0;
-
-        // Clasificación simplificada
-        $this->estado_rfm = match(true) {
-            $recencia <= 30 && $frecuencia >= 3 && $monetario >= 10000 => 'vip',
-            $recencia <= 60 && $frecuencia >= 2 => 'activo',
-            $recencia <= 90 => 'regular',
-            $recencia <= 180 => 'inactivo',
-            default => 'perdido',
-        };
-    }
-
-    /**
-     * Calcular valor de tiempo de vida (LTV)
-     */
-    public function calcularValorTiempoVida(): float
-    {
-        if ($this->cantidad_compras < 2 || !$this->fecha_primera_compra) {
-            return $this->total_compras ?? 0;
-        }
-
-        $mesesComoCliente = $this->fecha_primera_compra->diffInMonths(now());
-        
-        if ($mesesComoCliente < 1) {
-            return $this->total_compras ?? 0;
-        }
-
-        $comprasMensuales = $this->cantidad_compras / $mesesComoCliente;
-        $vidaEstimadaMeses = 36; // 3 años de vida estimada
-        
-        $this->valor_tiempo_vida = $this->ticket_promedio * $comprasMensuales * $vidaEstimadaMeses;
-        $this->save();
-
-        return $this->valor_tiempo_vida;
-    }
-
-    /**
-     * Registrar NPS
-     */
-    public function registrarNps(int $score): void
-    {
-        $this->nps_score = $score;
-        $this->fecha_ultimo_nps = now();
-        $this->save();
-    }
+    // ==================== MÉTODOS ====================
 
     /**
      * Verificar si tiene tickets abiertos

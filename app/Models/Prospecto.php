@@ -262,19 +262,27 @@ class Prospecto extends Model
      */
     public function convertirACliente(): ?Cliente
     {
+        // Prevenir duplicados: si ya tiene cliente, retornar el existente
+        if ($this->cliente) {
+            return $this->cliente;
+        }
+
         $cliente = Cliente::create([
-            'nombre' => $this->nombre,
-            'apellidos' => $this->apellidos,
-            'razon_social' => $this->razon_social,
-            'ruc' => $this->ruc,
-            'dni' => $this->dni,
-            'email' => $this->email,
-            'telefono' => $this->telefono,
-            'celular' => $this->celular,
-            'direccion' => $this->direccion,
-            'prospecto_id' => $this->id,
-            'segmento' => $this->segmento,
-            'user_id' => $this->user_id ?? auth()->id(),
+            'nombre'        => $this->nombre,
+            'apellidos'     => $this->apellidos,
+            'razon_social'  => $this->razon_social,
+            'ruc'           => $this->ruc,
+            'dni'           => $this->dni,
+            'email'         => $this->email,
+            'telefono'      => $this->telefono,
+            'celular'       => $this->celular,
+            'direccion'     => $this->direccion,
+            'tipo_persona'  => $this->tipo_persona,
+            'prospecto_id'  => $this->id,
+            'segmento'      => $this->segmento,
+            'distrito_id'   => $this->distrito_id,
+            'vendedor_id'   => $this->user_id ?? auth()->id(),
+            'fecha_primera_compra' => now(),
         ]);
 
         $this->update(['estado' => 'convertido']);

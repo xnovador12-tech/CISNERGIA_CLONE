@@ -13,7 +13,7 @@
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ route('admin-dashboard.index') }}">Principal</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ route('admin-ventas.index') }}">Ventas</a></li>
-                        <li class="breadcrumb-item link" aria-current="page">Ver Venta</li>
+                        <li class="breadcrumb-item link" aria-current="page">{{ $venta->codigo }}</li>
                     </ol>
                 </div>
             </div>
@@ -23,6 +23,7 @@
     <div class="container-fluid">
         <div class="row g-3">
             <div class="col-md-8">
+                {{-- Información de la Venta --}}
                 <div class="card border-0 shadow-sm" data-aos="fade-up">
                     <div class="card-header bg-success text-white">
                         <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Información de la Venta</h5>
@@ -41,31 +42,62 @@
                                         <span class="badge bg-danger">Anulada</span>
                                     @endif
                                 </p>
+                                <p class="mb-1"><strong>Tipo de Venta:</strong>
+                                    <span class="badge bg-{{ $venta->tipo_venta === 'ecommerce' ? 'info' : ($venta->tipo_venta === 'pos' ? 'dark' : 'primary') }}">
+                                        {{ ucfirst($venta->tipo_venta) }}
+                                    </span>
+                                </p>
                             </div>
                             <div class="col-md-6">
                                 <p class="mb-1"><strong>Comprobante:</strong> {{ $venta->tipocomprobante->name ?? 'Sin comprobante' }}</p>
                                 <p class="mb-1"><strong>Número:</strong> {{ $venta->numero_comprobante ?? 'Sin número' }}</p>
                                 <p class="mb-1"><strong>Medio de Pago:</strong> {{ $venta->mediopago->name ?? 'N/A' }}</p>
+                                <p class="mb-1"><strong>Vendedor:</strong> {{ $venta->usuario->name ?? 'N/A' }}</p>
                             </div>
                         </div>
 
                         <hr>
 
+                        {{-- Datos del Cliente --}}
                         <h6 class="text-uppercase fw-bold mb-3">Cliente</h6>
                         <div class="row mb-3">
-                            <div class="col-md-12">
-                                <p class="mb-1"><strong>Nombre:</strong> {{ $venta->cliente->name ?? 'N/A' }}</p>
-                                <p class="mb-1"><strong>Documento:</strong> {{ $venta->cliente->documento ?? 'N/A' }}</p>
-                                <p class="mb-1"><strong>Correo:</strong> {{ $venta->cliente->correo ?? 'N/A' }}</p>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Nombre:</strong>
+                                    @if($venta->cliente)
+                                        {{ $venta->cliente->nombre }} {{ $venta->cliente->apellidos }}
+                                        @if($venta->cliente->razon_social)
+                                            <br><small class="text-muted">{{ $venta->cliente->razon_social }}</small>
+                                        @endif
+                                    @else
+                                        N/A
+                                    @endif
+                                </p>
+                                <p class="mb-1"><strong>Documento:</strong>
+                                    @if($venta->cliente)
+                                        @if($venta->cliente->tipo_persona === 'juridica')
+                                            RUC: {{ $venta->cliente->ruc ?? 'N/A' }}
+                                        @else
+                                            DNI: {{ $venta->cliente->dni ?? 'N/A' }}
+                                        @endif
+                                    @else
+                                        N/A
+                                    @endif
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Correo:</strong> {{ $venta->cliente->email ?? 'N/A' }}</p>
+                                <p class="mb-1"><strong>Teléfono:</strong> {{ $venta->cliente->celular ?? $venta->cliente->telefono ?? 'N/A' }}</p>
                             </div>
                         </div>
 
+                        {{-- Pedido Relacionado --}}
                         @if($venta->pedido)
                         <hr>
                         <h6 class="text-uppercase fw-bold mb-3">Pedido Relacionado</h6>
                         <p class="mb-1"><strong>Código:</strong> <a href="{{ route('admin-pedidos.show', $venta->pedido) }}">{{ $venta->pedido->codigo }}</a></p>
                         @endif
 
+                        {{-- Observaciones --}}
                         @if($venta->observaciones)
                         <hr>
                         <h6 class="text-uppercase fw-bold mb-2">Observaciones</h6>
@@ -74,44 +106,68 @@
                     </div>
                 </div>
 
-                <!-- Detalles de la Venta -->
+                {{-- Detalles de la Venta --}}
                 @if($venta->detalles->count() > 0)
                 <div class="card border-0 shadow-sm mt-3" data-aos="fade-up">
                     <div class="card-header bg-secondary text-white">
                         <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Detalles de la Venta</h5>
                     </div>
                     <div class="card-body">
-                        <table class="table table-sm">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th>N°</th>
-                                    <th>Producto</th>
-                                    <th class="text-center">Cant.</th>
-                                    <th class="text-end">Precio</th>
-                                    <th class="text-end">Desc.</th>
-                                    <th class="text-end">Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php $contador = 1; @endphp
-                                @foreach($venta->detalles as $detalle)
-                                <tr>
-                                    <td>{{ $contador++ }}</td>
-                                    <td>{{ $detalle->productos }}</td>
-                                    <td class="text-center">{{ $detalle->cantidad }}</td>
-                                    <td class="text-end">S/ {{ number_format($detalle->precio, 2) }}</td>
-                                    <td class="text-end">{{ $detalle->descuento }}%</td>
-                                    <td class="text-end">S/ {{ number_format($detalle->precio_descuento * $detalle->cantidad, 2) }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th style="width: 40px;">N°</th>
+                                        <th>Producto / Servicio</th>
+                                        <th class="text-center" style="width: 80px;">Cant.</th>
+                                        <th class="text-end" style="width: 110px;">Precio Unit.</th>
+                                        <th class="text-end" style="width: 90px;">Desc.</th>
+                                        <th class="text-end" style="width: 120px;">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($venta->detalles as $index => $detalle)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>
+                                            <span class="fw-semibold">{{ $detalle->descripcion }}</span>
+                                            @if($detalle->tipo !== 'producto')
+                                                <span class="badge bg-info bg-opacity-10 text-info ms-1">{{ ucfirst($detalle->tipo) }}</span>
+                                            @endif
+                                            @if($detalle->garantia_años)
+                                                <br><small class="text-muted"><i class="bi bi-shield-check me-1"></i>Garantía: {{ $detalle->garantia_años }} años</small>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">{{ number_format($detalle->cantidad, $detalle->cantidad == intval($detalle->cantidad) ? 0 : 2) }}</td>
+                                        <td class="text-end">S/ {{ number_format($detalle->precio_unitario, 2) }}</td>
+                                        <td class="text-end">
+                                            @if($detalle->descuento_porcentaje > 0)
+                                                {{ number_format($detalle->descuento_porcentaje, 0) }}%
+                                            @elseif($detalle->descuento_monto > 0)
+                                                S/ {{ number_format($detalle->descuento_monto, 2) }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                        <td class="text-end fw-semibold">S/ {{ number_format($detalle->subtotal, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot class="border-top-2">
+                                    <tr class="fw-bold">
+                                        <td colspan="5" class="text-end">Total Ítems:</td>
+                                        <td class="text-end text-success">S/ {{ number_format($venta->detalles->sum('subtotal'), 2) }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 @endif
             </div>
 
             <div class="col-md-4">
+                {{-- Resumen de Montos --}}
                 <div class="card border-0 shadow-sm" data-aos="fade-up">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>Resumen</h5>
@@ -137,8 +193,9 @@
                     </div>
                 </div>
 
+                {{-- Acciones --}}
                 <div class="card border-0 shadow-sm mt-3" data-aos="fade-up">
-                    <div class="card-header bg-info text-white">
+                    <div class="card-header" style="background-color: #1C3146; color: white;">
                         <h5 class="mb-0"><i class="bi bi-tools me-2"></i>Acciones</h5>
                     </div>
                     <div class="card-body">

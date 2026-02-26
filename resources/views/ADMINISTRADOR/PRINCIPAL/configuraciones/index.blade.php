@@ -115,7 +115,7 @@
                         <ul class="list-unstyled">
                             <li class="text-primary menu_item">
                                 <i class="bi bi-person-check me-2"></i>
-                                <a href="{{ route('admin-clientes.index') }}" class="link-primary text-decoration-none">Clientes</a>
+                                <a href="{{ route('admin.crm.clientes.index') }}" class="link-primary text-decoration-none">Clientes</a>
                             </li>
                             <li class="text-primary menu_item">
                                 <i class="bi bi-map me-2"></i>

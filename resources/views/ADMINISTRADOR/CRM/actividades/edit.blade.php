@@ -2,13 +2,14 @@
 @section('title', 'Editar Actividad')
 
 @section('content')
+    <!-- Encabezado -->
     <div class="header_section">
         <div class="bg-transparent mb-3" style="height: 67px"></div>
         <div class="container-fluid">
             <div class="" data-aos="fade-right">
                 <h1 class="titulo h2 text-uppercase fw-bold mb-0">EDITAR ACTIVIDAD</h1>
-                <div class=""
-                    style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+                <div style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);"
+                    aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ route('admin-dashboard.index') }}">Principal</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="#">CRM</a></li>
@@ -20,185 +21,156 @@
         </div>
     </div>
 
-    <div class="container-fluid">
-        <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
-            <div class="card-body p-4">
-                <form action="{{ route('admin.crm.actividades.update', $actividad) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    
+    <form action="{{ route('admin.crm.actividades.update', $actividad) }}" method="POST" class="needs-validation" novalidate>
+        @csrf
+        @method('PUT')
+        <div class="container-fluid">
+            <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
+                <div class="card-body">
+
+                    {{-- Info --}}
+                    <div class="card border-0 rounded-0 border-start border-3 border-info mb-4" style="box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; background-color: #f6f6f6">
+                        <div class="card-body py-2">
+                            <i class="bi bi-info-circle text-info me-2"></i>
+                            <small class="text-muted">
+                                Editando actividad <span class="badge bg-secondary">{{ $actividad->codigo }}</span>
+                                — Los campos con <span class="text-danger">*</span> son obligatorios.
+                            </small>
+                        </div>
+                    </div>
+
+                    @if($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+                        </div>
+                    @endif
+
                     <div class="row g-3">
-                        {{-- Tipo de Actividad --}}
-                        <div class="col-md-6">
-                            <label for="tipo" class="form-label fw-bold">Tipo de Actividad <span class="text-danger">*</span></label>
-                            <select name="tipo" id="tipo" class="form-select @error('tipo') is-invalid @enderror" required>
+                        {{-- ===================== INFORMACIÓN DE LA ACTIVIDAD ===================== --}}
+                        <div class="col-12">
+                            <p class="text-secondary mb-2 small text-uppercase fw-bold">Información de la Actividad</p>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Tipo de Actividad <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="tipo" required data-placeholder="Seleccionar...">
                                 <option value="">Seleccionar...</option>
                                 <option value="llamada" {{ old('tipo', $actividad->tipo) == 'llamada' ? 'selected' : '' }}>📞 Llamada</option>
                                 <option value="email" {{ old('tipo', $actividad->tipo) == 'email' ? 'selected' : '' }}>📧 Email</option>
                                 <option value="reunion" {{ old('tipo', $actividad->tipo) == 'reunion' ? 'selected' : '' }}>👥 Reunión</option>
                                 <option value="visita_tecnica" {{ old('tipo', $actividad->tipo) == 'visita_tecnica' ? 'selected' : '' }}>🏗️ Visita Técnica</option>
-                                <option value="videollamada" {{ old('tipo', $actividad->tipo) == 'videollamada' ? 'selected' : '' }}>🎥 Videollamada</option>
                                 <option value="whatsapp" {{ old('tipo', $actividad->tipo) == 'whatsapp' ? 'selected' : '' }}>💬 WhatsApp</option>
-                                <option value="tarea" {{ old('tipo', $actividad->tipo) == 'tarea' ? 'selected' : '' }}>✅ Tarea</option>
-                                <option value="nota" {{ old('tipo', $actividad->tipo) == 'nota' ? 'selected' : '' }}>📝 Nota</option>
                             </select>
-                            @error('tipo')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
 
-                        {{-- Estado --}}
-                        <div class="col-md-6">
-                            <label for="estado" class="form-label fw-bold">Estado <span class="text-danger">*</span></label>
-                            <select name="estado" id="estado" class="form-select @error('estado') is-invalid @enderror" required>
+                        <div class="col-md-3">
+                            <label class="form-label">Estado <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="estado" required data-placeholder="Seleccionar...">
                                 <option value="programada" {{ old('estado', $actividad->estado) == 'programada' ? 'selected' : '' }}>Programada</option>
-                                <option value="en_progreso" {{ old('estado', $actividad->estado) == 'en_progreso' ? 'selected' : '' }}>En Progreso</option>
                                 <option value="completada" {{ old('estado', $actividad->estado) == 'completada' ? 'selected' : '' }}>Completada</option>
                                 <option value="cancelada" {{ old('estado', $actividad->estado) == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
                                 <option value="reprogramada" {{ old('estado', $actividad->estado) == 'reprogramada' ? 'selected' : '' }}>Reprogramada</option>
                                 <option value="no_realizada" {{ old('estado', $actividad->estado) == 'no_realizada' ? 'selected' : '' }}>No Realizada</option>
                             </select>
-                            @error('estado')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
 
-                        {{-- Título --}}
-                        <div class="col-md-12">
-                            <label for="titulo" class="form-label fw-bold">Título <span class="text-danger">*</span></label>
-                            <input type="text" name="titulo" id="titulo" class="form-control @error('titulo') is-invalid @enderror" 
-                                   value="{{ old('titulo', $actividad->titulo) }}" placeholder="Ej: Reunión de presentación de propuesta" required>
-                            @error('titulo')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Descripción --}}
-                        <div class="col-md-12">
-                            <label for="descripcion" class="form-label fw-bold">Descripción</label>
-                            <textarea name="descripcion" id="descripcion" rows="4" class="form-control @error('descripcion') is-invalid @enderror" 
-                                      placeholder="Detalles adicionales de la actividad">{{ old('descripcion', $actividad->descripcion) }}</textarea>
-                            @error('descripcion')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Fecha Programada --}}
-                        <div class="col-md-6">
-                            <label for="fecha_programada" class="form-label fw-bold">Fecha y Hora <span class="text-danger">*</span></label>
-                            <input type="datetime-local" name="fecha_programada" id="fecha_programada" 
-                                   class="form-control @error('fecha_programada') is-invalid @enderror" 
-                                   value="{{ old('fecha_programada', $actividad->fecha_programada->format('Y-m-d\TH:i')) }}" required>
-                            @error('fecha_programada')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Duración --}}
-                        <div class="col-md-6">
-                            <label for="duracion_minutos" class="form-label fw-bold">Duración (minutos)</label>
-                            <input type="number" name="duracion_minutos" id="duracion_minutos" 
-                                   class="form-control @error('duracion_minutos') is-invalid @enderror" 
-                                   value="{{ old('duracion_minutos', $actividad->duracion_minutos) }}" min="0">
-                            @error('duracion_minutos')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Prioridad --}}
-                        <div class="col-md-6">
-                            <label for="prioridad" class="form-label fw-bold">Prioridad</label>
-                            <select name="prioridad" id="prioridad" class="form-select @error('prioridad') is-invalid @enderror">
+                        <div class="col-md-3">
+                            <label class="form-label">Prioridad</label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="prioridad" data-placeholder="Seleccionar...">
                                 <option value="baja" {{ old('prioridad', $actividad->prioridad) == 'baja' ? 'selected' : '' }}>🟢 Baja</option>
                                 <option value="media" {{ old('prioridad', $actividad->prioridad) == 'media' ? 'selected' : '' }}>🟡 Media</option>
                                 <option value="alta" {{ old('prioridad', $actividad->prioridad) == 'alta' ? 'selected' : '' }}>🔴 Alta</option>
                             </select>
-                            @error('prioridad')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
 
-                        {{-- Asignado a --}}
-                        <div class="col-md-6">
-                            <label for="user_id" class="form-label fw-bold">Asignar a <span class="text-danger">*</span></label>
-                            <select name="user_id" id="user_id" class="form-select @error('user_id') is-invalid @enderror" required>
+                        <div class="col-md-3">
+                            <label class="form-label">Asignar a <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" required data-placeholder="Seleccionar responsable...">
                                 @foreach($usuarios as $usuario)
                                     <option value="{{ $usuario->id }}" {{ old('user_id', $actividad->user_id) == $usuario->id ? 'selected' : '' }}>
                                         {{ $usuario->persona?->name ?? $usuario->email }} {{ $usuario->persona?->surnames ?? '' }}
                                     </option>
                                 @endforeach
                             </select>
-                            @error('user_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
 
-                        {{-- Relacionar con --}}
                         <div class="col-md-12">
-                            <hr>
-                            <h6 class="fw-bold mb-3">Relacionar con entidad (opcional)</h6>
+                            <label class="form-label">Título <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm @error('titulo') is-invalid @enderror" name="titulo" value="{{ old('titulo', $actividad->titulo) }}" required placeholder="Ej: Reunión de presentación de propuesta">
+                            @error('titulo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        {{-- ===================== PROGRAMACIÓN ===================== --}}
+                        <div class="col-12 mt-3">
+                            <p class="text-secondary mb-2 small text-uppercase fw-bold">Programación</p>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="activable_type" class="form-label fw-bold">Tipo de Entidad</label>
-                            <select name="activable_type" id="activable_type" class="form-select @error('activable_type') is-invalid @enderror">
-                                <option value="">Ninguna</option>
-                                <option value="App\Models\Prospecto" {{ old('activable_type', $actividad->activable_type) == 'App\Models\Prospecto' ? 'selected' : '' }}>Prospecto</option>
-                                <option value="App\Models\Oportunidad" {{ old('activable_type', $actividad->activable_type) == 'App\Models\Oportunidad' ? 'selected' : '' }}>Oportunidad</option>
+                            <label class="form-label">Fecha y Hora <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control form-control-sm @error('fecha_programada') is-invalid @enderror" name="fecha_programada" value="{{ old('fecha_programada', $actividad->fecha_programada->format('Y-m-d\TH:i')) }}" required>
+                            @error('fecha_programada')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Recordatorio</label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="recordatorio_minutos" data-placeholder="Sin recordatorio">
+                                <option value="">Sin recordatorio</option>
+                                <option value="15" {{ old('recordatorio_minutos', $actividad->recordatorio_minutos_antes) == '15' ? 'selected' : '' }}>15 minutos antes</option>
+                                <option value="30" {{ old('recordatorio_minutos', $actividad->recordatorio_minutos_antes) == '30' ? 'selected' : '' }}>30 minutos antes</option>
+                                <option value="60" {{ old('recordatorio_minutos', $actividad->recordatorio_minutos_antes) == '60' ? 'selected' : '' }}>1 hora antes</option>
+                                <option value="1440" {{ old('recordatorio_minutos', $actividad->recordatorio_minutos_antes) == '1440' ? 'selected' : '' }}>1 día antes</option>
                             </select>
-                            @error('activable_type')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">Ubicación</label>
+                            <input type="text" class="form-control form-control-sm" name="ubicacion" value="{{ old('ubicacion', $actividad->ubicacion) }}" placeholder="Ej: Oficina principal, Google Meet, etc.">
+                        </div>
+
+                        {{-- ===================== RELACIÓN CON ENTIDAD ===================== --}}
+                        <div class="col-12 mt-3">
+                            <p class="text-secondary mb-2 small text-uppercase fw-bold">Relacionar con Entidad (opcional)</p>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="activable_id" class="form-label fw-bold">Entidad</label>
-                            <select name="activable_id" id="activable_id" class="form-select @error('activable_id') is-invalid @enderror">
+                            <label class="form-label">Tipo de Entidad</label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="activable_type" id="activable_type" data-placeholder="Ninguna">
+                                <option value="">Ninguna</option>
+                                <option value="App\Models\Prospecto" {{ old('activable_type', $actividad->actividadable_type) == 'App\Models\Prospecto' ? 'selected' : '' }}>Prospecto</option>
+                                <option value="App\Models\Oportunidad" {{ old('activable_type', $actividad->actividadable_type) == 'App\Models\Oportunidad' ? 'selected' : '' }}>Oportunidad</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Entidad</label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="activable_id" id="activable_id" data-placeholder="Seleccionar...">
                                 <option value="">Seleccionar...</option>
                             </select>
-                            @error('activable_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
 
-                        {{-- Ubicación --}}
-                        <div class="col-md-12">
-                            <label for="ubicacion" class="form-label fw-bold">Ubicación</label>
-                            <input type="text" name="ubicacion" id="ubicacion" class="form-control @error('ubicacion') is-invalid @enderror" 
-                                   value="{{ old('ubicacion', $actividad->ubicacion) }}" placeholder="Ej: Oficina principal, Google Meet, etc.">
-                            @error('ubicacion')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        {{-- ===================== DESCRIPCIÓN ===================== --}}
+                        <div class="col-12 mt-3">
+                            <p class="text-secondary mb-2 small text-uppercase fw-bold">Descripción</p>
                         </div>
 
-                        {{-- Recordatorio --}}
-                        <div class="col-md-6">
-                            <label for="recordatorio_minutos" class="form-label fw-bold">Recordatorio (minutos antes)</label>
-                            <select name="recordatorio_minutos" id="recordatorio_minutos" class="form-select @error('recordatorio_minutos') is-invalid @enderror">
-                                <option value="">Sin recordatorio</option>
-                                <option value="15" {{ old('recordatorio_minutos', $actividad->recordatorio_minutos) == '15' ? 'selected' : '' }}>15 minutos</option>
-                                <option value="30" {{ old('recordatorio_minutos', $actividad->recordatorio_minutos) == '30' ? 'selected' : '' }}>30 minutos</option>
-                                <option value="60" {{ old('recordatorio_minutos', $actividad->recordatorio_minutos) == '60' ? 'selected' : '' }}>1 hora</option>
-                                <option value="1440" {{ old('recordatorio_minutos', $actividad->recordatorio_minutos) == '1440' ? 'selected' : '' }}>1 día</option>
-                            </select>
-                            @error('recordatorio_minutos')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div class="col-12">
+                            <textarea class="form-control form-control-sm" name="descripcion" rows="3" placeholder="Detalles adicionales de la actividad...">{{ old('descripcion', $actividad->descripcion) }}</textarea>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="mt-4 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary text-uppercase">
-                            <i class="bi bi-save me-2"></i>Actualizar Actividad
-                        </button>
-                        <a href="{{ route('admin.crm.actividades.show', $actividad) }}" class="btn btn-secondary text-uppercase">
-                            <i class="bi bi-x-circle me-2"></i>Cancelar
-                        </a>
-                    </div>
-                </form>
+            {{-- Botones --}}
+            <div class="pt-3 pb-5 d-flex justify-content-end gap-2">
+                <a href="{{ route('admin.crm.actividades.show', $actividad) }}" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-x-circle me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary px-5 text-white">
+                    <i class="bi bi-save me-2"></i>Guardar Cambios
+                </button>
             </div>
         </div>
-    </div>
+    </form>
 @endsection
 
 @section('js')
@@ -206,12 +178,18 @@
 $(document).ready(function() {
     const prospectos = @json($prospectos);
     const oportunidades = @json($oportunidades);
-    const entidadIdInicial = "{{ old('activable_id', $actividad->activable_id ?? '') }}";
+    const entidadIdInicial = "{{ old('activable_id', $actividad->actividadable_id ?? '') }}";
 
     // Cambiar opciones según tipo de entidad
     $('#activable_type').on('change', function() {
         const tipo = $(this).val();
         const selectEntidad = $('#activable_id');
+
+        // Destruir select2 antes de modificar opciones
+        if (selectEntidad.hasClass('select2-hidden-accessible')) {
+            selectEntidad.select2('destroy');
+        }
+
         selectEntidad.empty().append('<option value="">Seleccionar...</option>');
 
         if (tipo === 'App\\Models\\Prospecto') {
@@ -228,6 +206,14 @@ $(document).ready(function() {
         if (entidadIdInicial && selectEntidad.find(`option[value="${entidadIdInicial}"]`).length) {
             selectEntidad.val(entidadIdInicial);
         }
+
+        // Reinicializar select2
+        selectEntidad.select2({
+            theme: "bootstrap-5",
+            width: '100%',
+            placeholder: 'Seleccionar...',
+            allowClear: true
+        });
     });
 
     // Cargar inicial si hay tipo seleccionado
@@ -237,4 +223,3 @@ $(document).ready(function() {
 });
 </script>
 @endsection
-

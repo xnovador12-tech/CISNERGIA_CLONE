@@ -84,7 +84,10 @@ class admin_CrmOportunidadesController extends Controller
      */
     public function create(Request $request)
     {
-        $prospectos = Prospecto::activos()
+        // Incluir prospectos convertidos: un cliente puede tener nuevas oportunidades
+        // (ampliación, mantenimiento, segundo proyecto, etc.)
+        // Solo se excluyen los descartados
+        $prospectos = Prospecto::where('estado', '!=', 'descartado')
             ->orderBy('nombre')
             ->get();
         
@@ -243,13 +246,9 @@ class admin_CrmOportunidadesController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:200',
             'prospecto_id' => 'nullable|exists:prospectos,id',
-            'cliente_id' => 'nullable|exists:clientes,id',
             'tipo_proyecto' => 'required|in:residencial,comercial,industrial,agricola',
             'tipo_oportunidad' => 'required|in:producto,servicio,mixto',
-            'etapa' => 'required|in:calificacion,evaluacion,propuesta_tecnica,negociacion,ganada,perdida',
             'monto_estimado' => 'required|numeric|min:0',
-            'monto_final' => 'nullable|numeric|min:0',
-            'probabilidad' => 'nullable|integer|min:0|max:100',
             // Servicio
             'tipo_servicio' => 'nullable|in:instalacion,mantenimiento_preventivo,mantenimiento_correctivo,ampliacion,otro',
             'descripcion_servicio' => 'nullable|string',
@@ -259,18 +258,17 @@ class admin_CrmOportunidadesController extends Controller
             'resultado_visita' => 'nullable|string',
             // Fechas y notas
             'fecha_cierre_estimada' => 'nullable|date',
-            'fecha_cierre_real' => 'nullable|date',
             'descripcion' => 'nullable|string',
             'observaciones' => 'nullable|string',
             'user_id' => 'nullable|exists:users,id',
-            'motivo_perdida' => 'nullable|string|max:100',
-            'detalle_perdida' => 'nullable|string',
-            'competidor_ganador' => 'nullable|string|max:100',
             // Productos de interés
             'items' => 'nullable|array',
             'items.*.producto_id' => 'required_with:items|exists:productos,id',
             'items.*.cantidad' => 'required_with:items|numeric|min:0.01',
             'items.*.notas' => 'nullable|string|max:500',
+            // Campos del pipeline (etapa, probabilidad, monto_final, fecha_cierre_real,
+            // motivo_perdida, competidor_ganador, detalle_perdida) se gestionan
+            // exclusivamente desde las acciones del show (avanzar, ganada, perdida)
         ]);
 
         $validated['requiere_visita_tecnica'] = $request->has('requiere_visita_tecnica');
@@ -329,14 +327,15 @@ class admin_CrmOportunidadesController extends Controller
     public function marcarGanada(Request $request, Oportunidad $oportunidad)
     {
         $validated = $request->validate([
-            'monto_final' => 'nullable|numeric|min:0',
+            'monto_final' => 'required|numeric|min:0',
+            'fecha_cierre_real' => 'required|date',
         ]);
 
-        $oportunidad->marcarGanada($validated['monto_final'] ?? null);
+        $oportunidad->marcarGanada($validated['monto_final'], $validated['fecha_cierre_real']);
 
         return redirect()
             ->route('admin.crm.oportunidades.show', $oportunidad)
-            ->with('success', '🎉 ¡Oportunidad ganada! El prospecto ha sido convertido a cliente.');
+            ->with('success', 'Oportunidad ganada. El prospecto ha sido convertido a cliente.');
     }
 
     /**
@@ -379,11 +378,11 @@ class admin_CrmOportunidadesController extends Controller
     public function registrarActividad(Request $request, Oportunidad $oportunidad)
     {
         $validated = $request->validate([
-            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,videollamada,whatsapp,tarea,nota',
+            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,whatsapp',
             'titulo' => 'required|string|max:200',
             'descripcion' => 'nullable|string',
             'fecha_programada' => 'required|date',
-            'prioridad' => 'nullable|in:alta,media,baja,urgente',
+            'prioridad' => 'nullable|in:alta,media,baja',
             'user_id' => 'nullable|exists:users,id',
         ]);
 
@@ -514,7 +513,7 @@ class admin_CrmOportunidadesController extends Controller
 
         return redirect()
             ->route('admin.crm.oportunidades.show', $oportunidad)
-            ->with('success', '🎉 ¡Prospecto convertido a cliente exitosamente! Código: ' . $cliente->codigo);
+            ->with('success', 'Prospecto convertido a cliente exitosamente. Codigo: ' . $cliente->codigo);
     }
 
     /**

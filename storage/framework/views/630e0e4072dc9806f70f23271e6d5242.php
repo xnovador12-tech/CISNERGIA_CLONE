@@ -134,15 +134,15 @@ unset($__errorArgs, $__bag); ?>" name="tipo_oportunidad" id="tipo_oportunidad" r
 
                         <div class="col-md-6">
                             <label class="form-label">Cliente</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="cliente_id" data-placeholder="Seleccionar cliente...">
-                                <option value="">Ninguno</option>
-                                <?php $__currentLoopData = $clientes ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cliente): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($cliente->id); ?>" <?php echo e(old('cliente_id', $oportunidad->cliente_id) == $cliente->id ? 'selected' : ''); ?>>
-                                        <?php echo e($cliente->codigo ?? ''); ?> - <?php echo e($cliente->nombre); ?>
+                            <?php if($oportunidad->cliente): ?>
+                                <div class="form-control form-control-sm bg-light">
+                                    <i class="bi bi-person-check text-success me-1"></i><?php echo e($oportunidad->cliente->codigo); ?> - <?php echo e($oportunidad->cliente->nombre); ?>
 
-                                    </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </select>
+                                </div>
+                            <?php else: ?>
+                                <div class="form-control form-control-sm bg-light text-muted">Sin cliente asignado</div>
+                            <?php endif; ?>
+                            <small class="text-muted"><i class="bi bi-lock me-1"></i>Se asigna al marcar ganada</small>
                         </div>
 
                         
@@ -190,12 +190,12 @@ unset($__errorArgs, $__bag); ?>" name="tipo_oportunidad" id="tipo_oportunidad" r
                         <div class="col-12 mt-4"><h6 class="text-primary border-bottom pb-2"><i class="bi bi-currency-dollar me-2"></i>Pipeline y Valores</h6></div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Etapa <span class="text-danger">*</span></label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="etapa" required data-placeholder="Seleccionar etapa...">
-                                <?php $__currentLoopData = \App\Models\Oportunidad::ETAPAS; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $info): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($key); ?>" <?php echo e(old('etapa', $oportunidad->etapa) == $key ? 'selected' : ''); ?>><?php echo e($info['nombre']); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </select>
+                            <label class="form-label">Etapa</label>
+                            <?php $etapaInfo = \App\Models\Oportunidad::ETAPAS[$oportunidad->etapa] ?? ['nombre' => ucfirst($oportunidad->etapa), 'color' => 'secondary']; ?>
+                            <div class="form-control form-control-sm bg-light">
+                                <span class="badge bg-<?php echo e($etapaInfo['color']); ?>"><?php echo e($etapaInfo['nombre']); ?></span>
+                            </div>
+                            <small class="text-muted"><i class="bi bi-lock me-1"></i>Se gestiona desde el detalle</small>
                         </div>
 
                         <div class="col-md-3">
@@ -211,13 +211,15 @@ unset($__errorArgs, $__bag); ?>" name="tipo_oportunidad" id="tipo_oportunidad" r
                             <label class="form-label">Monto Final (S/)</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text">S/</span>
-                                <input type="number" class="form-control form-control-sm" name="monto_final" value="<?php echo e(old('monto_final', $oportunidad->monto_final)); ?>" step="0.01">
+                                <input type="number" class="form-control form-control-sm bg-light" value="<?php echo e($oportunidad->monto_final); ?>" step="0.01" readonly>
                             </div>
+                            <small class="text-muted"><i class="bi bi-lock me-1"></i>Se define al marcar ganada</small>
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label">Probabilidad (%)</label>
-                            <input type="number" class="form-control form-control-sm" name="probabilidad" value="<?php echo e(old('probabilidad', $oportunidad->probabilidad)); ?>" min="0" max="100">
+                            <input type="number" class="form-control form-control-sm bg-light" value="<?php echo e($oportunidad->probabilidad); ?>" readonly>
+                            <small class="text-muted"><i class="bi bi-lock me-1"></i>Se ajusta con la etapa</small>
                         </div>
 
                         
@@ -230,7 +232,8 @@ unset($__errorArgs, $__bag); ?>" name="tipo_oportunidad" id="tipo_oportunidad" r
 
                         <div class="col-md-4">
                             <label class="form-label">Fecha Cierre Real</label>
-                            <input type="date" class="form-control form-control-sm" name="fecha_cierre_real" value="<?php echo e(old('fecha_cierre_real', $oportunidad->fecha_cierre_real?->format('Y-m-d'))); ?>">
+                            <input type="date" class="form-control form-control-sm bg-light" value="<?php echo e($oportunidad->fecha_cierre_real?->format('Y-m-d')); ?>" readonly>
+                            <small class="text-muted"><i class="bi bi-lock me-1"></i>Se define al marcar ganada</small>
                         </div>
 
                         <div class="col-md-4">
@@ -301,23 +304,19 @@ unset($__errorArgs, $__bag); ?>" name="tipo_oportunidad" id="tipo_oportunidad" r
 
                         <div class="col-md-4">
                             <label class="form-label">Motivo</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="motivo_perdida" data-placeholder="Seleccionar motivo...">
-                                <option value="">Seleccionar</option>
-                                <?php $__currentLoopData = ['Precio alto', 'Competencia', 'Sin presupuesto', 'Cambio de prioridades', 'Sin respuesta', 'Otro']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $motivo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($motivo); ?>" <?php echo e(old('motivo_perdida', $oportunidad->motivo_perdida) == $motivo ? 'selected' : ''); ?>><?php echo e($motivo); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </select>
+                            <input type="text" class="form-control form-control-sm bg-light" value="<?php echo e($oportunidad->motivo_perdida); ?>" readonly>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">Competidor Ganador</label>
-                            <input type="text" class="form-control form-control-sm" name="competidor_ganador" value="<?php echo e(old('competidor_ganador', $oportunidad->competidor_ganador)); ?>">
+                            <input type="text" class="form-control form-control-sm bg-light" value="<?php echo e($oportunidad->competidor_ganador); ?>" readonly>
                         </div>
 
                         <div class="col-md-12">
                             <label class="form-label">Detalle de Pérdida</label>
-                            <textarea class="form-control form-control-sm" name="detalle_perdida" rows="2"><?php echo e(old('detalle_perdida', $oportunidad->detalle_perdida)); ?></textarea>
+                            <textarea class="form-control form-control-sm bg-light" rows="2" readonly><?php echo e($oportunidad->detalle_perdida); ?></textarea>
                         </div>
+                        <small class="text-muted"><i class="bi bi-lock me-1"></i>Estos datos se registran al marcar como perdida desde el detalle</small>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -342,7 +341,7 @@ unset($__errorArgs, $__bag); ?>" name="tipo_oportunidad" id="tipo_oportunidad" r
                         <i class="bi bi-x-circle me-2"></i>Cancelar
                     </a>
                     <button type="submit" class="btn btn-primary px-5 text-white">
-                        <i class="bi bi-save me-2"></i>Actualizar
+                        <i class="bi bi-save me-2"></i>Guardar Cambios
                     </button>
                 </div>
             </div>

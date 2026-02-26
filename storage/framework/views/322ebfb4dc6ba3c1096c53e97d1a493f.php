@@ -60,7 +60,7 @@
                         </li>
                         <li class="mx-2 my-1">
                             <a href="<?php echo e(route('admin-configuraciones.index')); ?>"
-                                class="nav-link px-3 menu <?php echo e(request()->is(['admin-configuraciones*', 'admin-usuarios*', 'admin-empresa*', 'admin-perfil*', 'admin-categorias*', 'admin-etiquetas*', 'admin-clientes*', 'admin-equipo*']) ? 'active-item' : null); ?>">
+                                class="nav-link px-3 menu <?php echo e(request()->is(['admin-configuraciones*', 'admin-usuarios*', 'admin-empresa*', 'admin-perfil*', 'admin-categorias*', 'admin-etiquetas*', 'admin-equipo*']) ? 'active-item' : null); ?>">
                                 <span class="fw-bold">
                                     <i class="bi bi-gear me-2"></i>
                                 </span>
@@ -128,6 +128,16 @@
                         </li>
 
                         <li class="mx-2 my-1">
+                            <a href="<?php echo e(route('admin.crm.clientes.index')); ?>"
+                                class="nav-link px-3 <?php echo e(request()->is(['admin/crm/clientes*']) ? 'active-item' : null); ?> menu">
+                                <span class="fw-bold">
+                                    <i class="bi bi-people me-2"></i>
+                                </span>
+                                <span>Clientes</span>
+                            </a>
+                        </li>
+
+                        <li class="mx-2 my-1">
                             <a href="<?php echo e(route('admin.crm.tickets.index')); ?>"
                                 class="nav-link px-3 <?php echo e(request()->is(['admin/crm/tickets*']) ? 'active-item' : null); ?> menu">
                                 <span class="fw-bold">
@@ -174,17 +184,7 @@
                             </a>
                         </li>
 
-                        <li class="mx-2 my-1">
-                            <a href="<?php echo e(route('admin-seguimiento.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-seguimiento*']) ? 'active-item' : null); ?> menu">
-                                <span class="fw-bold">
-                                    <i class="bi bi-graph-up me-2"></i>
-                                </span>
-                                <span>
-                                    Seguimiento
-                                </span>
-                            </a>
-                        </li>
+
 
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3">COMPRAS</div>
@@ -358,21 +358,35 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="ms-auto d-flex">
-                    <button class="btn btn-sm btn-primary rounded-pill align-self-center me-3" type="button"
-                        id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell-fill text-white"></i>
-                        <span class="ms-1 badge bg-secondary">
-                            1
-                        </span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end scroll___carrito shadow border-0"
-                        aria-labelledby="dropdownMenuButton1" style="width: 285px; font-size: 15px;">
-                        <li class="dropdown-item py-2">
-                            <i class="bi bi-exclamation-circle me-2"></i>
-                            <span class="text-muted">No hay notificaciones nuevas</span>
-                        </li>
-                    </ul>
-                </div>
+                    <div class="dropdown align-self-center me-3">
+                        <button class="btn btn-sm btn-primary rounded-pill position-relative" type="button"
+                            id="btnNotificaciones" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                            <i class="bi bi-bell-fill text-white"></i>
+                            <span class="badge bg-danger rounded-pill ms-1 d-none" id="badgeNotificaciones">0</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end shadow border-0 p-0"
+                            aria-labelledby="btnNotificaciones" style="width: 380px; border-radius: 12px; overflow: hidden;">
+                            
+                            <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-dark text-white">
+                                <span class="fw-bold small"><i class="bi bi-bell me-1"></i>Notificaciones</span>
+                                <span class="small" id="notifResumen"></span>
+                            </div>
+                            
+                            <div id="notifContenido" style="max-height: 420px; overflow-y: auto;">
+                                <div class="text-center py-4 text-muted" id="notifVacio">
+                                    <i class="bi bi-check-circle fs-3 d-block mb-1 text-success"></i>
+                                    <small>Sin notificaciones pendientes</small>
+                                </div>
+                                <div class="d-none" id="notifLista"></div>
+                            </div>
+                            
+                            <div class="border-top px-3 py-2 text-center bg-light">
+                                <a href="<?php echo e(route('admin.crm.actividades.index')); ?>" class="text-decoration-none small text-primary fw-bold">
+                                    <i class="bi bi-list-task me-1"></i>Ver todas las actividades
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 <div class="dropdown align-self-center">
                     <a class="dropdown-toggle text-decoration-none link-dark" href="#" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
                     <?php echo e(Auth::user()?->persona?->name.' '.Auth::user()?->persona?->surnames); ?>
@@ -556,6 +570,125 @@
             });
         </script>
     <!-- fin de la carga del descuento para aplicar -->
+
+    
+    <script>
+    $(document).ready(function() {
+        var notifUrl = "<?php echo e(route('admin.crm.actividades.notificaciones')); ?>";
+        var descartarUrl = "<?php echo e(route('admin.crm.actividades.notificaciones.descartar')); ?>";
+        var csrfToken = "<?php echo e(csrf_token()); ?>";
+        var notifIntervalo = 60000; // 1 minuto
+
+        // Colores por categoría
+        var coloresMap = {
+            'danger': { border: '#dc3545', bg: 'rgba(220,53,69,0.08)' },
+            'warning': { border: '#ffc107', bg: 'rgba(255,193,7,0.08)' },
+            'info': { border: '#0dcaf0', bg: 'rgba(13,202,240,0.08)' }
+        };
+
+        function cargarNotificaciones() {
+            $.ajax({
+                url: notifUrl,
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var $badge = $('#badgeNotificaciones');
+                    var $lista = $('#notifLista');
+                    var $vacio = $('#notifVacio');
+                    var $resumen = $('#notifResumen');
+
+                    // Badge
+                    if (data.total > 0) {
+                        $badge.text(data.total > 99 ? '99+' : data.total).removeClass('d-none');
+                    } else {
+                        $badge.addClass('d-none');
+                    }
+
+                    // Resumen en header
+                    var badges = [];
+                    if (data.vencidas > 0) badges.push('<span class="badge bg-danger">' + data.vencidas + ' vencida' + (data.vencidas > 1 ? 's' : '') + '</span>');
+                    if (data.proximas > 0) badges.push('<span class="badge bg-warning text-dark">' + data.proximas + ' por iniciar</span>');
+                    if (data.recordatorios > 0) badges.push('<span class="badge bg-info">' + data.recordatorios + ' recordatorio' + (data.recordatorios > 1 ? 's' : '') + '</span>');
+                    $resumen.html(badges.length > 0 ? badges.join(' ') : '<span class="badge bg-success">Al día</span>');
+
+                    // Lista
+                    if (data.items.length === 0) {
+                        $vacio.show();
+                        $lista.addClass('d-none').empty();
+                        return;
+                    }
+
+                    $vacio.hide();
+                    var html = '';
+
+                    $.each(data.items, function(i, item) {
+                        var colors = coloresMap[item.color] || coloresMap['info'];
+
+                        html += '<div class="px-3 py-2 border-bottom" style="border-left: 4px solid ' + colors.border + ' !important; background: ' + colors.bg + ';">';
+
+                        // Fila 1: badge motivo + tipo actividad
+                        html += '<div class="d-flex justify-content-between align-items-center mb-1">';
+                        html += '<span class="small"><i class="bi ' + item.icono + ' me-1"></i>' + item.tipo_actividad + '</span>';
+                        html += '<span class="badge bg-' + item.color + '" style="font-size: 0.65rem;">' + item.etiqueta + '</span>';
+                        html += '</div>';
+
+                        // Fila 2: fecha programada
+                        html += '<div class="text-muted" style="font-size: 0.75rem;">';
+                        html += '<i class="bi bi-calendar3 me-1"></i>' + item.fecha + ' · ' + item.tiempo;
+                        html += '</div>';
+
+                        // Fila 3: botón Ver detalle
+                        html += '<div class="mt-1">';
+                        if (item.descartable) {
+                            html += '<button type="button" class="btn btn-sm btn-outline-primary w-100 btn-ver-detalle" ';
+                            html += 'data-id="' + item.id + '" data-categoria="' + item.categoria + '" data-url="' + item.url + '" style="font-size: 0.72rem;">';
+                            html += '<i class="bi bi-eye me-1"></i>Ver detalle</button>';
+                        } else {
+                            html += '<a href="' + item.url + '" class="btn btn-sm btn-outline-primary w-100" style="font-size: 0.72rem;">';
+                            html += '<i class="bi bi-eye me-1"></i>Ver detalle</a>';
+                        }
+                        html += '</div>';
+                        html += '</div>';
+                    });
+
+                    $lista.html(html).removeClass('d-none');
+                },
+                error: function() {}
+            });
+        }
+
+        // Ver detalle: descartar notificación y navegar al show
+        $(document).on('click', '.btn-ver-detalle', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var $btn = $(this);
+            var actividadId = $btn.data('id');
+            var categoria = $btn.data('categoria');
+            var url = $btn.data('url');
+
+            $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-1"></i>Abriendo...');
+
+            $.ajax({
+                url: descartarUrl,
+                method: 'POST',
+                data: {
+                    _token: csrfToken,
+                    actividad_id: actividadId,
+                    categoria: categoria
+                },
+                complete: function() {
+                    // Navegar siempre, haya funcionado o no el descarte
+                    window.location.href = url;
+                }
+            });
+        });
+
+        // Carga inicial + polling cada minuto
+        cargarNotificaciones();
+        setInterval(cargarNotificaciones, notifIntervalo);
+    });
+    </script>
+    
      
     <?php echo $__env->yieldContent('js'); ?>
     <?php echo $__env->yieldPushContent('scripts'); ?>

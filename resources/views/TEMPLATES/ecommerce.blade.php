@@ -56,7 +56,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item py-2 rounded-2" href="{{ route('wishlist.index') }}">
+                                    <a class="dropdown-item py-2 rounded-2" href="#">
                                         <i class="bi bi-heart me-2 text-danger"></i>Mis favoritos
                                     </a>
                                 </li>
@@ -311,7 +311,7 @@
                     <!-- Favoritos -->
                     <div class="border-start">
 
-                        <a href="{{ route('wishlist.index') }}"
+                        <a href="#"
                             class="bg-transparent border-0 icon__boton position-relative d-none d-lg-flex align-items-center justify-content-center px-3 py-2 rounded hover-bg"
                             style="text-decoration: none; transition: background 0.2s;">
                             <i class="bi bi-heart fs-4 text-secondary"></i>

@@ -220,7 +220,7 @@
                         </tr>
                     </thead>
                         <tbody>
-                            @forelse($prospectos as $index => $prospecto)
+                            @foreach($prospectos as $index => $prospecto)
                                 <tr>
                                     <td class="fw-normal text-center align-middle">{{ $index + 1 }}</td>
                                     <td class="fw-normal text-center align-middle">
@@ -353,19 +353,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="9" class="text-center py-4">
-                                        <div class="text-muted">
-                                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                            No hay prospectos registrados
-                                        </div>
-                                        <a href="{{ route('admin.crm.prospectos.create') }}" class="btn btn-primary btn-sm mt-2">
-                                            <i class="bi bi-plus-circle me-1"></i>Crear primer prospecto
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
             </div>
@@ -381,7 +369,8 @@
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
                     paginate: { first: '«', previous: '‹', next: '›', last: '»' },
-                    info: 'Mostrando página _PAGE_ de _PAGES_'
+                    info: 'Mostrando página _PAGE_ de _PAGES_',
+                    emptyTable: '<div class="text-center py-4"><div class="text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay prospectos registrados</div><a href="{{ route("admin.crm.prospectos.create") }}" class="btn btn-primary btn-sm mt-2"><i class="bi bi-plus-circle me-1"></i>Crear primer prospecto</a></div>'
                 },
                 pageLength: 10,
                 order: [[0, 'asc']],

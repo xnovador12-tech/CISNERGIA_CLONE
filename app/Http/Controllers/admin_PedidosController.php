@@ -44,7 +44,7 @@ class admin_PedidosController extends Controller
 
     public function create()
     {
-        $clientes = Cliente::with('user.persona')->get();
+        $clientes = Cliente::with('vendedor.persona')->get();
         $productos = Producto::all();
         $servicios = Servicio::all();
         $almacenes = Almacen::all();

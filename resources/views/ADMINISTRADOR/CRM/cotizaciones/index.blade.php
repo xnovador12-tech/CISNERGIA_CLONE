@@ -254,28 +254,6 @@
                                                     </a>
                                                 </li>
                                             @endif
-                                            @if($cotizacion->estado === 'borrador')
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <form action="{{ route('admin.crm.cotizaciones.enviar', $cotizacion) }}" method="POST" class="form-enviar">
-                                                        @csrf
-                                                        <button type="submit" class="dropdown-item text-primary">
-                                                            <i class="bi bi-send me-2"></i>Enviar al Cliente
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                            @endif
-                                            @if($cotizacion->estado === 'enviada')
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <form action="{{ route('admin.crm.cotizaciones.aprobar', $cotizacion) }}" method="POST" class="form-aprobar">
-                                                        @csrf
-                                                        <button type="submit" class="dropdown-item text-success">
-                                                            <i class="bi bi-check-circle me-2"></i>Marcar Aprobada
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                            @endif
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <form action="{{ route('admin.crm.cotizaciones.destroy', $cotizacion) }}"
@@ -335,42 +313,6 @@ $(document).ready(function() {
         table.search($(this).val()).draw();
     });
 
-    // ==================== SWEETALERT: ENVIAR ====================
-    $('.form-enviar').on('submit', function(e) {
-        e.preventDefault();
-        var form = this;
-        Swal.fire({
-            title: '¿Enviar cotización?',
-            html: 'Se marcará como <strong class="text-primary">Enviada</strong> y se registrará la fecha de envío.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#0d6efd',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="bi bi-send me-1"></i> Sí, enviar',
-            cancelButtonText: 'Cancelar'
-        }).then(function(result) {
-            if (result.isConfirmed) { form.submit(); }
-        });
-    });
-
-    // ==================== SWEETALERT: APROBAR ====================
-    $('.form-aprobar').on('submit', function(e) {
-        e.preventDefault();
-        var form = this;
-        Swal.fire({
-            title: '¿Aprobar cotización?',
-            html: 'Se marcará como <strong class="text-success">Aceptada</strong> y se actualizará la oportunidad vinculada.',
-            icon: 'success',
-            showCancelButton: true,
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Sí, aprobar',
-            cancelButtonText: 'Cancelar'
-        }).then(function(result) {
-            if (result.isConfirmed) { form.submit(); }
-        });
-    });
-
     // ==================== SWEETALERT: ELIMINAR ====================
     $('.form-delete').on('submit', function(e) {
         e.preventDefault();
@@ -380,8 +322,8 @@ $(document).ready(function() {
             html: 'Se eliminará permanentemente esta cotización y todos sus ítems.<br><strong class="text-danger">Esta acción no se puede deshacer.</strong>',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-trash me-1"></i> Sí, eliminar',
             cancelButtonText: 'Cancelar'
         }).then(function(result) {

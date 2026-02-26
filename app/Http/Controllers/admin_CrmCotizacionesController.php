@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\CotizacionCrm;
 use App\Models\DetalleCotizacionCrm;
 use App\Models\Oportunidad;
+use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\Tipo;
 use App\Models\Category;
 use App\Models\User;
+use App\Services\CotizacionApprovalService;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -162,7 +164,14 @@ class admin_CrmCotizacionesController extends Controller
 
         $detallesPorCategoria = $cotizacion->detalles->groupBy('categoria');
 
-        return view('ADMINISTRADOR.CRM.cotizaciones.show', compact('cotizacion', 'detallesPorCategoria'));
+        // Si la cotización está aceptada, buscar el pedido generado
+        $pedidoGenerado = null;
+        if ($cotizacion->estado === 'aceptada') {
+            $pedidoGenerado = Pedido::where('observaciones', 'LIKE', "%{$cotizacion->codigo}%")
+                ->first();
+        }
+
+        return view('ADMINISTRADOR.CRM.cotizaciones.show', compact('cotizacion', 'detallesPorCategoria', 'pedidoGenerado'));
     }
 
     /**
@@ -308,13 +317,19 @@ class admin_CrmCotizacionesController extends Controller
     }
 
     /**
-     * Aprobar cotización
+     * Aprobar cotización → Flujo completo:
+     * Cotización aceptada → Prospecto convertido → Cliente creado → Oportunidad ganada → Pedido generado
      */
     public function aprobar(CotizacionCrm $cotizacion)
     {
-        $cotizacion->aceptar();
+        $service = new CotizacionApprovalService();
+        $resultado = $service->aprobar($cotizacion);
 
-        return back()->with('success', 'Cotización aprobada exitosamente.');
+        if ($resultado['success']) {
+            return back()->with('success', $resultado['message']);
+        }
+
+        return back()->with('error', $resultado['message']);
     }
 
     /**
@@ -326,9 +341,10 @@ class admin_CrmCotizacionesController extends Controller
             'motivo_rechazo' => 'required|string|max:500',
         ]);
 
-        $cotizacion->rechazar($request->motivo_rechazo);
+        $service = new CotizacionApprovalService();
+        $resultado = $service->rechazar($cotizacion, $request->motivo_rechazo);
 
-        return back()->with('success', 'Cotización rechazada.');
+        return back()->with('success', $resultado['message']);
     }
 
     /**

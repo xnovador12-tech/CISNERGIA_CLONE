@@ -115,15 +115,26 @@
                                 <strong>{{ $venta->codigo }}</strong><br>
                                 <small class="text-muted">{{ $venta->created_at->format('d/m/Y') }}</small>
                             </td>
-                            <td class="fw-normal text-center align-middle">{{ $venta->cliente->name ?? 'N/A' }}</td>
+                            <td class="fw-normal text-center align-middle">
+                                @if($venta->cliente)
+                                    {{ $venta->cliente->nombre }} {{ $venta->cliente->apellidos }}
+                                    @if($venta->cliente->razon_social)
+                                        <br><small class="text-muted">{{ $venta->cliente->razon_social }}</small>
+                                    @endif
+                                @else
+                                    N/A
+                                @endif
+                            </td>
                             <td class="fw-normal text-center align-middle">
                                 <span class="badge bg-info">{{ $venta->sede->name ?? 'Sin sede' }}</span>
                             </td>
                             <td class="fw-normal text-center align-middle">
                                 @if($venta->tipo_venta == 'pos')
-                                    <span class="badge bg-primary">POS</span>
+                                    <span class="badge bg-dark">POS</span>
+                                @elseif($venta->tipo_venta == 'ecommerce')
+                                    <span class="badge bg-info">E-commerce</span>
                                 @else
-                                    <span class="badge bg-secondary">Pedido</span>
+                                    <span class="badge bg-primary">Pedido</span>
                                 @endif
                             </td>
                             <td class="fw-normal text-center align-middle">

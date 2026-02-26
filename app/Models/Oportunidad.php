@@ -302,11 +302,11 @@ class Oportunidad extends Model
     /**
      * Marcar como ganada
      */
-    public function marcarGanada(?float $montoFinal = null): void
+    public function marcarGanada(?float $montoFinal = null, ?string $fechaCierreReal = null): void
     {
         $this->etapa = 'ganada';
         $this->probabilidad = 100;
-        $this->fecha_cierre_real = now();
+        $this->fecha_cierre_real = $fechaCierreReal ? \Carbon\Carbon::parse($fechaCierreReal) : now();
         $this->monto_final = $montoFinal ?? $this->monto_estimado;
         $this->save();
 

@@ -397,7 +397,7 @@ class admin_CrmTicketsController extends Controller
         
         $ticket->mensajes()->create([
             'user_id' => auth()->id(),
-            'mensaje' => "âš ï¸ TICKET ESCALADO\nMotivo: {$motivo}\nNueva prioridad: {$ticket->prioridad}",
+            'mensaje' => "TICKET ESCALADO\nMotivo: {$motivo}\nNueva prioridad: {$ticket->prioridad}",
             'es_interno' => true,
         ]);
 

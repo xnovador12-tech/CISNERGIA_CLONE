@@ -1,5 +1,11 @@
 <?php $__env->startSection('title', 'Cotización ' . $cotizacion->codigo); ?>
 
+<?php $__env->startSection('css'); ?>
+<style>
+    .resumen-valor { font-size: 0.95rem; }
+</style>
+<?php $__env->stopSection(); ?>
+
 <?php $__env->startSection('content'); ?>
     <div class="header_section">
         <div class="bg-transparent mb-3" style="height: 67px"></div>
@@ -49,42 +55,31 @@
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div>
                                 <?php
-                                    $estadoColors = [
-                                        'borrador' => 'secondary', 'enviada' => 'primary', 'vista' => 'info',
-                                        'en_revision' => 'warning', 'aceptada' => 'success', 'rechazada' => 'danger',
-                                        'vencida' => 'dark', 'cancelada' => 'dark'
+                                    $estadoConfig = [
+                                        'borrador' => ['color' => 'secondary', 'icono' => 'bi-pencil-square'],
+                                        'enviada' => ['color' => 'primary', 'icono' => 'bi-send'],
+                                        'aceptada' => ['color' => 'success', 'icono' => 'bi-check-circle'],
+                                        'rechazada' => ['color' => 'danger', 'icono' => 'bi-x-circle']
                                     ];
+                                    $ec = $estadoConfig[$cotizacion->estado] ?? ['color' => 'secondary', 'icono' => 'bi-circle'];
                                 ?>
-                                <span class="badge bg-<?php echo e($estadoColors[$cotizacion->estado] ?? 'secondary'); ?> fs-6 px-3 py-2">
-                                    <i class="bi bi-circle-fill me-1"></i><?php echo e(ucfirst(str_replace('_', ' ', $cotizacion->estado))); ?>
+                                <span class="badge bg-<?php echo e($ec['color']); ?> fs-6 px-3 py-2">
+                                    <i class="bi <?php echo e($ec['icono']); ?> me-1"></i><?php echo e(ucfirst(str_replace('_', ' ', $cotizacion->estado))); ?>
 
                                 </span>
                                 <?php if($cotizacion->version > 1): ?>
                                     <span class="badge bg-info ms-2">Versión <?php echo e($cotizacion->version); ?></span>
                                 <?php endif; ?>
                             </div>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <a href="<?php echo e(route('admin.crm.cotizaciones.pdf', $cotizacion)); ?>" class="btn btn-danger btn-sm">
-                                    <i class="bi bi-file-pdf me-1"></i>PDF
-                                </a>
-                                <?php if(!in_array($cotizacion->estado, ['aceptada', 'rechazada', 'cancelada'])): ?>
-                                    <a href="<?php echo e(route('admin.crm.cotizaciones.edit', $cotizacion)); ?>" class="btn btn-warning btn-sm">
-                                        <i class="bi bi-pencil me-1"></i>Editar
+                            <div class="d-flex gap-2">
+                                <?php if($cotizacion->oportunidad): ?>
+                                    <a href="<?php echo e(route('admin.crm.oportunidades.show', $cotizacion->oportunidad->slug)); ?>" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-briefcase me-1"></i>Ver Oportunidad
                                     </a>
                                 <?php endif; ?>
-                                <?php if($cotizacion->estado === 'borrador'): ?>
-                                    <button type="button" class="btn btn-primary btn-sm btn-enviar">
-                                        <i class="bi bi-send me-1"></i>Enviar
-                                    </button>
-                                <?php endif; ?>
-                                <button type="button" class="btn btn-outline-secondary btn-sm btn-duplicar">
-                                    <i class="bi bi-copy me-1"></i>Duplicar
-                                </button>
-                                <?php if(!in_array($cotizacion->estado, ['aceptada'])): ?>
-                                    <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar">
-                                        <i class="bi bi-trash me-1"></i>Eliminar
-                                    </button>
-                                <?php endif; ?>
+                                <a href="<?php echo e(route('admin.crm.cotizaciones.index')); ?>" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i>Volver
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -233,14 +228,6 @@
                     </div>
                 <?php endif; ?>
 
-                <?php if($cotizacion->motivo_rechazo): ?>
-                    <div class="card border-4 border-top border-danger shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
-                        <div class="card-body">
-                            <h6 class="text-danger"><i class="bi bi-x-circle me-2"></i>Motivo de Rechazo</h6>
-                            <p class="mb-0"><?php echo e($cotizacion->motivo_rechazo); ?></p>
-                        </div>
-                    </div>
-                <?php endif; ?>
             </div>
 
             
@@ -252,29 +239,32 @@
                         <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Resumen de Inversión</h5>
                     </div>
                     <div class="card-body">
-                        <table class="table table-sm table-borderless mb-0">
-                            <tr>
-                                <td>Subtotal:</td>
-                                <td class="text-end">S/ <?php echo e(number_format($cotizacion->subtotal ?? 0, 2)); ?></td>
-                            </tr>
-                            <?php if($cotizacion->descuento_monto > 0): ?>
-                                <tr class="text-danger">
-                                    <td>Descuento (<?php echo e(number_format($cotizacion->descuento_porcentaje, 1)); ?>%):</td>
-                                    <td class="text-end">- S/ <?php echo e(number_format($cotizacion->descuento_monto, 2)); ?></td>
-                                </tr>
-                            <?php endif; ?>
-                            <tr>
-                                <td>
-                                    IGV (18%)
-                                    <?php if(!$cotizacion->incluye_igv): ?> <small class="text-muted">(no incluido)</small> <?php endif; ?>
-                                </td>
-                                <td class="text-end">S/ <?php echo e(number_format($cotizacion->igv ?? 0, 2)); ?></td>
-                            </tr>
-                            <tr class="border-top">
-                                <td><h5 class="mb-0 fw-bold">TOTAL:</h5></td>
-                                <td class="text-end"><h5 class="mb-0 text-primary fw-bold">S/ <?php echo e(number_format($cotizacion->total ?? 0, 2)); ?></h5></td>
-                            </tr>
-                        </table>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Subtotal:</span>
+                            <span class="resumen-valor">S/ <?php echo e(number_format($cotizacion->subtotal ?? 0, 2)); ?></span>
+                        </div>
+                        <?php if($cotizacion->descuento_monto > 0): ?>
+                            <div class="d-flex justify-content-between mb-2 text-danger">
+                                <span>Descuento (<?php echo e(number_format($cotizacion->descuento_porcentaje, 1)); ?>%):</span>
+                                <span class="resumen-valor">- S/ <?php echo e(number_format($cotizacion->descuento_monto, 2)); ?></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Base Imponible:</span>
+                                <span class="resumen-valor">S/ <?php echo e(number_format(($cotizacion->subtotal ?? 0) - ($cotizacion->descuento_monto ?? 0), 2)); ?></span>
+                            </div>
+                        <?php endif; ?>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">
+                                IGV (18%)
+                                <?php if(!$cotizacion->incluye_igv): ?> <small>(no incluido)</small> <?php endif; ?>
+                            </span>
+                            <span class="resumen-valor">S/ <?php echo e(number_format($cotizacion->igv ?? 0, 2)); ?></span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span class="h6 mb-0 fw-bold">TOTAL:</span>
+                            <span class="h5 mb-0 text-primary fw-bold">S/ <?php echo e(number_format($cotizacion->total ?? 0, 2)); ?></span>
+                        </div>
 
                         
                         <?php if($cotizacion->detalles->count() > 0): ?>
@@ -317,12 +307,6 @@
                                 <span><?php echo e($cotizacion->fecha_envio->format('d/m/Y H:i')); ?></span>
                             </div>
                         <?php endif; ?>
-                        <?php if($cotizacion->fecha_vista): ?>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Vista:</span>
-                                <span><?php echo e($cotizacion->fecha_vista->format('d/m/Y H:i')); ?></span>
-                            </div>
-                        <?php endif; ?>
                         <?php if($cotizacion->fecha_respuesta): ?>
                             <div class="d-flex justify-content-between">
                                 <span class="text-muted">Respuesta:</span>
@@ -333,26 +317,143 @@
                 </div>
 
                 
-                <?php if(in_array($cotizacion->estado, ['enviada', 'vista', 'en_revision'])): ?>
-                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
-                        <div class="card-header bg-transparent">
-                            <h5 class="mb-0"><i class="bi bi-check2-square me-2"></i>Decisión del Cliente</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-grid gap-2">
-                                <button type="button" class="btn btn-success w-100 btn-aprobar">
-                                    <i class="bi bi-check-circle me-2"></i>Marcar como Aprobada
-                                </button>
-                                <button type="button" class="btn btn-outline-danger w-100 btn-rechazar">
-                                    <i class="bi bi-x-circle me-2"></i>Marcar como Rechazada
-                                </button>
+                <?php
+                    $estadosFlow = [
+                        'borrador' => ['nombre' => 'Borrador', 'color' => 'secondary', 'icono' => 'bi-pencil-square'],
+                        'enviada' => ['nombre' => 'Enviada', 'color' => 'primary', 'icono' => 'bi-send'],
+                        'aceptada' => ['nombre' => 'Aceptada', 'color' => 'success', 'icono' => 'bi-check-circle'],
+                    ];
+                    $estadoActualInfo = $estadosFlow[$cotizacion->estado] ?? ['nombre' => ucfirst($cotizacion->estado), 'color' => 'secondary', 'icono' => 'bi-circle'];
+                    $siguienteEstado = match($cotizacion->estado) {
+                        'borrador' => $estadosFlow['enviada'],
+                        'enviada' => $estadosFlow['aceptada'],
+                        default => null,
+                    };
+                ?>
+
+                <?php if(!in_array($cotizacion->estado, ['aceptada', 'rechazada'])): ?>
+                <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
+                    <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>Cambiar Estado</h6></div>
+                    <div class="card-body">
+                        
+                        <?php if($siguienteEstado): ?>
+                            <div class="d-flex align-items-center justify-content-center gap-2 mb-3 py-2 bg-light rounded">
+                                <span class="badge bg-<?php echo e($estadoActualInfo['color']); ?>"><i class="bi <?php echo e($estadoActualInfo['icono']); ?> me-1"></i><?php echo e($estadoActualInfo['nombre']); ?></span>
+                                <i class="bi bi-arrow-right text-muted"></i>
+                                <span class="badge bg-<?php echo e($siguienteEstado['color']); ?>"><i class="bi <?php echo e($siguienteEstado['icono']); ?> me-1"></i><?php echo e($siguienteEstado['nombre']); ?></span>
                             </div>
+                        <?php endif; ?>
+
+                        <div class="d-grid gap-2">
+                            <?php if($cotizacion->estado === 'borrador'): ?>
+                                <button type="button" class="btn btn-outline-primary btn-sm w-100 btn-enviar">
+                                    <i class="bi bi-send me-2"></i>Enviar Cotización
+                                </button>
+                            <?php endif; ?>
+                            <?php if($cotizacion->estado === 'enviada'): ?>
+                                <button type="button" class="btn btn-outline-success btn-sm w-100 btn-aprobar">
+                                    <i class="bi bi-check-circle me-2"></i>Marcar Aprobada
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm w-100 btn-rechazar">
+                                    <i class="bi bi-x-circle me-2"></i>Marcar Rechazada
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
+                </div>
+
+                <?php elseif($cotizacion->estado === 'aceptada'): ?>
+                
+                <div class="card border-4 shadow-sm mb-4" style="border-radius: 20px; border-top: 4px solid #198754 !important;" data-aos="fade-up">
+                    <div class="card-header bg-success text-white" style="border-radius: 16px 16px 0 0;">
+                        <h6 class="mb-0"><i class="bi bi-check-circle me-2"></i>Cotización Aprobada</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-calendar-check me-1"></i>
+                            Aprobada el <?php echo e($cotizacion->fecha_respuesta?->format('d/m/Y H:i') ?? '-'); ?>
+
+                        </p>
+
+                        <?php if(isset($pedidoGenerado) && $pedidoGenerado): ?>
+                            <hr class="my-2">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge bg-primary"><i class="bi bi-box-seam me-1"></i>Pedido Generado</span>
+                                <span class="badge bg-<?php echo e($pedidoGenerado->estado === 'pendiente' ? 'warning text-dark' : ($pedidoGenerado->estado === 'entregado' ? 'success' : 'info')); ?>">
+                                    <?php echo e(ucfirst($pedidoGenerado->estado)); ?>
+
+                                </span>
+                            </div>
+                            <div class="small mb-2">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Código:</span>
+                                    <span class="fw-bold"><?php echo e($pedidoGenerado->codigo); ?></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Total:</span>
+                                    <span class="fw-bold">S/ <?php echo e(number_format($pedidoGenerado->total, 2)); ?></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Finanzas:</span>
+                                    <span><?php echo $pedidoGenerado->aprobacion_finanzas ? '<i class="bi bi-check-circle-fill text-success"></i> Aprobado' : '<i class="bi bi-clock text-warning"></i> Pendiente'; ?></span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Stock:</span>
+                                    <span><?php echo $pedidoGenerado->aprobacion_stock ? '<i class="bi bi-check-circle-fill text-success"></i> Reservado' : '<i class="bi bi-clock text-warning"></i> Pendiente'; ?></span>
+                                </div>
+                            </div>
+                            <a href="<?php echo e(route('admin-pedidos.show', $pedidoGenerado)); ?>" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>Ver Pedido
+                            </a>
+                        <?php else: ?>
+                            <p class="text-muted small mb-0">
+                                <i class="bi bi-info-circle me-1"></i>No se encontró un pedido vinculado a esta cotización.
+                            </p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <?php elseif($cotizacion->estado === 'rechazada'): ?>
+                <div class="card border-4 shadow-sm mb-4" style="border-radius: 20px; border-top: 4px solid #dc3545 !important;" data-aos="fade-up">
+                    <div class="card-header bg-danger text-white" style="border-radius: 16px 16px 0 0;"><h6 class="mb-0"><i class="bi bi-x-circle me-2"></i>Cotización Rechazada</h6></div>
+                    <div class="card-body">
+                        <?php if($cotizacion->motivo_rechazo): ?>
+                            <p class="mb-0"><strong>Motivo:</strong> <?php echo e($cotizacion->motivo_rechazo); ?></p>
+                        <?php else: ?>
+                            <p class="text-muted mb-0">Sin motivo registrado.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
                 <?php endif; ?>
 
                 
-                <div class="card border-0 shadow-sm" style="border-radius: 10px" data-aos="fade-up">
+                <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
+                    <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Acciones Rápidas</h6></div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="<?php echo e(route('admin.crm.cotizaciones.pdf', $cotizacion)); ?>" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-file-pdf me-2"></i>Descargar PDF
+                            </a>
+                            <?php if(!in_array($cotizacion->estado, ['aceptada', 'rechazada'])): ?>
+                            <a href="<?php echo e(route('admin.crm.cotizaciones.edit', $cotizacion)); ?>" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-pencil me-2"></i>Editar Cotización
+                            </a>
+                            <?php endif; ?>
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-duplicar">
+                                <i class="bi bi-copy me-2"></i>Duplicar
+                            </button>
+                            <?php if(!in_array($cotizacion->estado, ['aceptada'])): ?>
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar">
+                                <i class="bi bi-trash me-2"></i>Eliminar
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
+                    <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Auditoría</h6></div>
                     <div class="card-body small text-muted">
                         <div class="d-flex justify-content-between mb-1">
                             <span>Vendedor:</span>
@@ -395,8 +496,8 @@ $(document).ready(function() {
                    <small class="text-muted">Esta acción cambiará el estado y registrará la fecha de envío.</small>`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#0d6efd',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-send me-1"></i> Sí, enviar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
@@ -410,12 +511,17 @@ $(document).ready(function() {
     $('.btn-aprobar').on('click', function() {
         Swal.fire({
             title: '¿Aprobar cotización?',
-            html: `Se marcará como <strong class="text-success">Aceptada</strong> la cotización <strong><?php echo e($cotizacion->codigo); ?></strong> por un total de <strong class="text-primary">S/ <?php echo e(number_format($cotizacion->total, 2)); ?></strong>.<br><br>
-                   <small class="text-muted">Esto actualizará el monto final de la oportunidad vinculada.</small>`,
+            html: `Se aprobará la cotización <strong><?php echo e($cotizacion->codigo); ?></strong> por un total de <strong class="text-primary">S/ <?php echo e(number_format($cotizacion->total, 2)); ?></strong>.<br><br>
+                   <div class="text-start small">
+                       <p class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Cotización → <strong>Aceptada</strong></p>
+                       <p class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Prospecto → <strong>Convertido a Cliente</strong></p>
+                       <p class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Oportunidad → <strong>Ganada</strong></p>
+                       <p class="mb-0"><i class="bi bi-check2 text-success me-1"></i> Pedido → <strong>Creado automáticamente</strong></p>
+                   </div>`,
             icon: 'success',
             showCancelButton: true,
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Sí, aprobar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
@@ -444,8 +550,8 @@ $(document).ready(function() {
                 }
             },
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-x-circle me-1"></i> Sí, rechazar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
@@ -464,8 +570,8 @@ $(document).ready(function() {
                    <small class="text-muted">La nueva cotización se abrirá en modo edición.</small>`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#6c757d',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-copy me-1"></i> Sí, duplicar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
@@ -483,8 +589,8 @@ $(document).ready(function() {
                    <strong class="text-danger">Esta acción no se puede deshacer.</strong>`,
             icon: 'error',
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-trash me-1"></i> Sí, eliminar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {

@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\CotizacionCrm;
 use App\Models\Cliente;
+use App\Models\DetallePedido;
 use App\Models\Oportunidad;
+use App\Models\Pedido;
 use App\Models\Prospecto;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -12,10 +14,18 @@ use Illuminate\Support\Str;
 class CotizacionApprovalService
 {
     /**
-     * Aprobar cotización: convertir prospecto a cliente + marcar oportunidad como ganada.
-     * La venta se crea manualmente después por el admin.
+     * Aprobar cotización: flujo completo de conversión.
      *
-     * @return array ['success' => bool, 'message' => string, 'cliente' => Cliente|null]
+     * 1. Cotización → aceptada
+     * 2. Oportunidad → ganada
+     * 3. Prospecto → convertido (si aún no lo es)
+     * 4. Cliente → creado (si aún no existe)
+     * 5. Pedido → creado (estado pendiente, requiere aprobación de finanzas y stock)
+     *
+     * La venta (Sale) se genera después desde el módulo de Pedidos
+     * cuando se aprueba finanzas y se ejecuta generarComprobante().
+     *
+     * @return array ['success' => bool, 'message' => string, 'cliente' => Cliente|null, 'pedido' => Pedido|null]
      */
     public function aprobar(CotizacionCrm $cotizacion): array
     {
@@ -23,25 +33,36 @@ class CotizacionApprovalService
         if (!in_array($cotizacion->estado, ['borrador', 'enviada'])) {
             return [
                 'success' => false,
-                'message' => 'Esta cotización no puede ser aprobada en su estado actual.',
+                'message' => 'Esta cotización no puede ser aprobada en su estado actual (' . $cotizacion->estado . ').',
                 'cliente' => null,
+                'pedido'  => null,
+            ];
+        }
+
+        // Validar que tenga ítems
+        if ($cotizacion->detalles()->count() === 0) {
+            return [
+                'success' => false,
+                'message' => 'La cotización no tiene ítems. Agregue productos o servicios antes de aprobar.',
+                'cliente' => null,
+                'pedido'  => null,
             ];
         }
 
         return DB::transaction(function () use ($cotizacion) {
 
-            // 1. Marcar cotización como aceptada
+            // ── 1. Marcar cotización como aceptada ──
             $cotizacion->update([
                 'estado'          => 'aceptada',
                 'fecha_respuesta' => now(),
             ]);
 
-            // 2. Obtener oportunidad y prospecto
+            // ── 2. Obtener oportunidad y prospecto ──
             $oportunidad = $cotizacion->oportunidad;
-            $prospecto = $oportunidad->prospecto ?? $cotizacion->prospecto;
-            $cliente = null;
+            $prospecto   = $oportunidad->prospecto ?? $cotizacion->prospecto;
+            $cliente     = null;
 
-            // 3. Convertir prospecto a cliente (si aún no lo es)
+            // ── 3. Convertir prospecto a cliente (si aún no lo es) ──
             if ($prospecto && $prospecto->estado !== 'convertido') {
                 $cliente = $this->convertirACliente($prospecto);
 
@@ -49,67 +70,138 @@ class CotizacionApprovalService
                 $oportunidad->update(['cliente_id' => $cliente->id]);
                 $cotizacion->update(['cliente_id' => $cliente->id]);
             } else {
-                // Si ya es cliente, obtener el cliente existente
+                // Si ya es cliente, obtener el existente
                 $cliente = $oportunidad->cliente
                     ?? Cliente::where('prospecto_id', $prospecto?->id)->first();
             }
 
-            // 4. Marcar oportunidad como ganada
+            if (!$cliente) {
+                throw new \Exception('No se pudo crear o encontrar el cliente.');
+            }
+
+            // ── 4. Marcar oportunidad como ganada ──
             if ($oportunidad && $oportunidad->etapa !== 'ganada') {
                 $oportunidad->update([
-                    'etapa'            => 'ganada',
-                    'probabilidad'     => 100,
-                    'monto_final'      => $cotizacion->total,
-                    'valor_ponderado'  => $cotizacion->total,
+                    'etapa'             => 'ganada',
+                    'probabilidad'      => 100,
+                    'monto_final'       => $cotizacion->total,
+                    'valor_ponderado'   => $cotizacion->total,
                     'fecha_cierre_real' => now(),
                 ]);
             }
 
+            // ── 5. Crear pedido automático (estado pendiente) ──
+            $pedido = $this->crearPedido($cotizacion, $oportunidad, $cliente);
+
+            // ── Mensaje de resultado ──
+            $nombreCliente = $cliente->razon_social
+                ?? ($cliente->nombre . ' ' . $cliente->apellidos);
+
+            $message = "Cotización {$cotizacion->codigo} aprobada exitosamente. "
+                . "Se generó el pedido {$pedido->codigo} para {$nombreCliente}. "
+                . "Pendiente: aprobación de Finanzas y Stock para facturar.";
+
             return [
                 'success' => true,
-                'message' => $prospecto && $prospecto->wasChanged('estado')
-                    ? "Cotización aprobada. {$prospecto->nombre} ha sido convertido a cliente. Recuerde registrar la venta."
-                    : 'Cotización aprobada. Oportunidad marcada como ganada. Recuerde registrar la venta.',
+                'message' => $message,
                 'cliente' => $cliente,
+                'pedido'  => $pedido,
             ];
         });
     }
 
     /**
-     * Convertir un prospecto en cliente
+     * Crear pedido desde cotización aprobada.
+     * Estado: pendiente (requiere aprobación de finanzas y stock).
+     * Los ítems se copian directamente de los detalles de la cotización.
+     */
+    private function crearPedido(CotizacionCrm $cotizacion, Oportunidad $oportunidad, Cliente $cliente): Pedido
+    {
+        // Generar código secuencial
+        $ultimoPedido = Pedido::latest('id')->first();
+        $numero = $ultimoPedido ? $ultimoPedido->id + 1 : 1;
+        $codigo = 'PED-' . date('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
+
+        // Crear pedido
+        $pedido = Pedido::create([
+            'codigo'                => $codigo,
+            'slug'                  => Str::slug($codigo),
+            'cliente_id'            => $cliente->id,
+            'user_id'               => $cotizacion->user_id ?? auth()->id(),
+            'subtotal'              => $cotizacion->subtotal,
+            'descuento'             => $cotizacion->descuento_monto ?? 0,
+            'igv'                   => $cotizacion->igv,
+            'total'                 => $cotizacion->total,
+            'estado'                => 'pendiente',
+            'aprobacion_finanzas'   => false,
+            'aprobacion_stock'      => false,
+            'direccion_instalacion' => $cliente->direccion,
+            'distrito_id'           => $cliente->distrito_id,
+            'fecha_entrega_estimada' => now()->addDays($cotizacion->tiempo_ejecucion_dias ?? 7),
+            'origen'                => 'cotizacion',
+            'observaciones'         => "Generado automáticamente desde cotización {$cotizacion->codigo}."
+                . " Oportunidad: {$oportunidad->codigo}."
+                . " Proyecto: {$oportunidad->nombre}.",
+        ]);
+
+        // Copiar ítems de la cotización al pedido
+        foreach ($cotizacion->detalles as $detalle) {
+            $descuento = ($detalle->precio_unitario * $detalle->cantidad) * (($detalle->descuento_porcentaje ?? 0) / 100);
+
+            DetallePedido::create([
+                'pedido_id'      => $pedido->id,
+                'producto_id'    => $detalle->producto_id,
+                'servicio_id'    => null,
+                'tipo'           => $detalle->categoria ?? 'producto',
+                'descripcion'    => $detalle->descripcion,
+                'cantidad'       => (int) $detalle->cantidad,
+                'precio_unitario' => $detalle->precio_unitario,
+                'descuento'      => $descuento,
+                'subtotal'       => ($detalle->precio_unitario * $detalle->cantidad) - $descuento,
+            ]);
+        }
+
+        return $pedido;
+    }
+
+    /**
+     * Convertir un prospecto en cliente.
      */
     private function convertirACliente(Prospecto $prospecto): Cliente
     {
+        // Prevenir duplicados
+        $existente = Cliente::where('prospecto_id', $prospecto->id)->first();
+        if ($existente) {
+            $prospecto->update(['estado' => 'convertido']);
+            return $existente;
+        }
+
         $cliente = Cliente::create([
-            'nombre'        => $prospecto->nombre,
-            'apellidos'     => $prospecto->apellidos,
-            'razon_social'  => $prospecto->razon_social,
-            'ruc'           => $prospecto->ruc,
-            'dni'           => $prospecto->dni,
-            'email'         => $prospecto->email,
-            'telefono'      => $prospecto->telefono,
-            'celular'       => $prospecto->celular,
-            'direccion'     => $prospecto->direccion,
-            'tipo_persona'  => $prospecto->tipo_persona,
-            'prospecto_id'  => $prospecto->id,
-            'segmento'      => $prospecto->segmento,
-            'scoring'       => $prospecto->scoring,
-            'distrito_id'   => $prospecto->distrito_id,
-            'vendedor_id'   => $prospecto->user_id,
-            'sede_id'       => $prospecto->sede_id,
+            'nombre'               => $prospecto->nombre,
+            'apellidos'            => $prospecto->apellidos,
+            'razon_social'         => $prospecto->razon_social,
+            'ruc'                  => $prospecto->ruc,
+            'dni'                  => $prospecto->dni,
+            'email'                => $prospecto->email,
+            'telefono'             => $prospecto->telefono,
+            'celular'              => $prospecto->celular,
+            'direccion'            => $prospecto->direccion,
+            'tipo_persona'         => $prospecto->tipo_persona,
+            'prospecto_id'         => $prospecto->id,
+            'segmento'             => $prospecto->segmento,
+            'distrito_id'          => $prospecto->distrito_id,
+            'vendedor_id'          => $prospecto->user_id ?? auth()->id(),
             'fecha_primera_compra' => now(),
         ]);
 
         // Marcar prospecto como convertido
-        $prospecto->update([
-            'estado' => 'convertido',
-        ]);
+        $prospecto->update(['estado' => 'convertido']);
 
         return $cliente;
     }
 
     /**
-     * Rechazar cotización
+     * Rechazar cotización.
      */
     public function rechazar(CotizacionCrm $cotizacion, string $motivo): array
     {

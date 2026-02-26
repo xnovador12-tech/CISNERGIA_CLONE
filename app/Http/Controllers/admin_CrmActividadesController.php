@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActividadCrm;
+use App\Models\NotificacionCrmLeida;
 use App\Models\Prospecto;
 use App\Models\Oportunidad;
 use App\Models\User;
@@ -61,11 +62,17 @@ class admin_CrmActividadesController extends Controller
         $actividades = $query->get();
 
         // Estadísticas
+        $completadasMes = ActividadCrm::completadas()->whereMonth('fecha_realizada', now()->month)->whereYear('fecha_realizada', now()->year)->count();
+        $cerradasMes = ActividadCrm::whereIn('estado', ['completada', 'cancelada', 'no_realizada'])
+            ->whereMonth('updated_at', now()->month)->whereYear('updated_at', now()->year)->count();
+
         $stats = [
-            'hoy' => ActividadCrm::programadasHoy()->count(),
-            'llamadas' => ActividadCrm::where('tipo', 'llamada')->pendientes()->count(),
-            'reuniones' => ActividadCrm::where('tipo', 'reunion')->pendientes()->count(),
-            'visitas' => ActividadCrm::where('tipo', 'visita_tecnica')->pendientes()->count(),
+            'pendientes' => ActividadCrm::where('estado', 'programada')->count(),
+            'completadas_mes' => $completadasMes,
+            'vencidas' => ActividadCrm::vencidas()->count(),
+            'tasa_cumplimiento' => $cerradasMes > 0
+                ? round(($completadasMes / $cerradasMes) * 100, 1)
+                : 0,
         ];
 
         $usuarios = User::all();
@@ -97,7 +104,6 @@ class admin_CrmActividadesController extends Controller
         }
 
         $actividades = $query->orderBy('fecha_programada')
-            ->orderBy('hora_inicio')
             ->get()
             ->groupBy(fn($a) => $a->fecha_programada->format('Y-m-d'));
 
@@ -123,7 +129,7 @@ class admin_CrmActividadesController extends Controller
         $actividades = ActividadCrm::with(['activable'])
             ->whereDate('fecha_programada', $fecha)
             ->where('user_id', $usuarioId)
-            ->orderBy('hora_inicio')
+            ->orderBy('fecha_programada')
             ->get();
 
         // Actividades vencidas sin completar
@@ -171,24 +177,15 @@ class admin_CrmActividadesController extends Controller
      */
     public function store(Request $request)
     {
-        // DEBUG: Ver qué llega del formulario ANTES de validar
-        \Log::info('REQUEST COMPLETO', [
-            'all' => $request->all(),
-            'user_id_from_request' => $request->input('user_id'),
-            'has_user_id' => $request->has('user_id'),
-            'filled_user_id' => $request->filled('user_id'),
-        ]);
-
         $validated = $request->validate([
-            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,videollamada,whatsapp,tarea,nota',
+            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,whatsapp',
             'titulo' => 'required|string|max:200',
             'descripcion' => 'nullable|string',
             'fecha_programada' => 'required|date',
-            'duracion_minutos' => 'nullable|integer|min:0|max:480',
             'prioridad' => 'nullable|in:alta,media,baja',
             'ubicacion' => 'nullable|string|max:255',
             'recordatorio_minutos' => 'nullable|integer|min:5',
-            'estado' => 'nullable|in:programada,en_progreso,completada,cancelada,reprogramada,no_realizada',
+            'estado' => 'nullable|in:programada,completada,cancelada,reprogramada,no_realizada',
             'user_id' => 'required|exists:users,id',
             'activable_type' => 'nullable|string',
             'activable_id' => 'nullable|integer',
@@ -218,21 +215,7 @@ class admin_CrmActividadesController extends Controller
         // SIEMPRE asignar created_by con el usuario actual
         $validated['created_by'] = auth()->id();
 
-        // DEBUG: Ver qué valores se están pasando
-        \Log::info('Creando actividad', [
-            'user_id' => $validated['user_id'],
-            'created_by' => $validated['created_by'],
-            'auth_id' => auth()->id(),
-        ]);
-
         $actividad = ActividadCrm::create($validated);
-
-        // DEBUG: Ver qué se guardó realmente
-        \Log::info('Actividad creada', [
-            'id' => $actividad->id,
-            'user_id' => $actividad->user_id,
-            'created_by' => $actividad->created_by
-        ]);
 
         return redirect()
             ->route('admin.crm.actividades.show', $actividad)
@@ -246,10 +229,9 @@ class admin_CrmActividadesController extends Controller
     {
         $actividad->load([
             'usuario.persona', 
-            'activable', 
+            'actividadable', 
             'asignadoA.persona', 
-            'creadoPor.persona', 
-            'actividadable'
+            'creadoPor.persona',
         ]);
 
         return view('ADMINISTRADOR.CRM.actividades.show', compact('actividad'));
@@ -278,13 +260,12 @@ class admin_CrmActividadesController extends Controller
     public function update(Request $request, ActividadCrm $actividad)
     {
         $validated = $request->validate([
-            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,videollamada,whatsapp,tarea,nota',
+            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,whatsapp',
             'titulo' => 'required|string|max:200',
             'descripcion' => 'nullable|string',
             'fecha_programada' => 'required|date',
-            'duracion_minutos' => 'nullable|integer|min:0|max:480',
             'prioridad' => 'nullable|in:alta,media,baja',
-            'estado' => 'nullable|in:programada,en_progreso,completada,cancelada,reprogramada,no_realizada',
+            'estado' => 'nullable|in:programada,completada,cancelada,reprogramada,no_realizada',
             'ubicacion' => 'nullable|string|max:255',
             'recordatorio_minutos' => 'nullable|integer|min:5',
             'user_id' => 'required|exists:users,id',
@@ -337,13 +318,9 @@ class admin_CrmActividadesController extends Controller
             'resultado' => 'nullable|string',
         ]);
 
-        $actividad->update([
-            'estado' => 'completada',
-            'fecha_realizada' => now(),
-            'resultado' => $validated['resultado'] ?? 'Actividad completada',
-        ]);
+        $actividad->completar($validated['resultado'] ?? 'Actividad completada');
 
-        return back()->with('success', 'âœ… Actividad completada exitosamente.');
+        return back()->with('success', 'Actividad completada exitosamente.');
     }
 
     /**
@@ -355,12 +332,9 @@ class admin_CrmActividadesController extends Controller
             'motivo_cancelacion' => 'nullable|string|max:255',
         ]);
 
-        $actividad->update([
-            'estado' => 'cancelada',
-            'motivo_cancelacion' => $validated['motivo_cancelacion'] ?? 'Sin motivo especificado',
-        ]);
+        $actividad->cancelar($validated['motivo_cancelacion'] ?? 'Sin motivo especificado');
 
-        return back()->with('info', 'âŒ Actividad cancelada.');
+        return back()->with('info', 'Actividad cancelada.');
     }
 
     /**
@@ -370,22 +344,13 @@ class admin_CrmActividadesController extends Controller
     {
         $validated = $request->validate([
             'fecha_programada' => 'required|date|after_or_equal:today',
-            'hora_inicio' => 'nullable|date_format:H:i',
             'motivo_reprogramacion' => 'nullable|string|max:255',
         ]);
 
-        $descripcionAnterior = $actividad->descripcion ?? '';
-        $nuevaDescripcion = $descripcionAnterior . "\n\n[Reprogramada el " . now()->format('d/m/Y H:i') . "]";
-        if ($validated['motivo_reprogramacion']) {
-            $nuevaDescripcion .= "\nMotivo: " . $validated['motivo_reprogramacion'];
-        }
-
-        $actividad->update([
-            'fecha_programada' => $validated['fecha_programada'],
-            'hora_inicio' => $validated['hora_inicio'],
-            'estado' => 'programada',
-            'descripcion' => $nuevaDescripcion,
-        ]);
+        $actividad->reprogramar(
+            new \DateTime($validated['fecha_programada']),
+            $validated['motivo_reprogramacion'] ?? null
+        );
 
         return back()->with('success', 'Actividad reprogramada exitosamente.');
     }
@@ -396,21 +361,19 @@ class admin_CrmActividadesController extends Controller
     public function crearSeguimiento(Request $request, ActividadCrm $actividad)
     {
         $validated = $request->validate([
-            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,videollamada,whatsapp,tarea,nota',
+            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,whatsapp',
             'titulo' => 'required|string|max:200',
             'fecha_programada' => 'required|date|after_or_equal:today',
-            'hora_inicio' => 'nullable|date_format:H:i',
             'descripcion' => 'nullable|string',
         ]);
 
         $seguimiento = ActividadCrm::create([
-            'activable_type' => $actividad->activable_type,
-            'activable_id' => $actividad->activable_id,
+            'actividadable_type' => $actividad->actividadable_type,
+            'actividadable_id' => $actividad->actividadable_id,
             'tipo' => $validated['tipo'],
             'titulo' => $validated['titulo'],
             'descripcion' => $validated['descripcion'] ?? "Seguimiento de: {$actividad->titulo}",
             'fecha_programada' => $validated['fecha_programada'],
-            'hora_inicio' => $validated['hora_inicio'],
             'estado' => 'programada',
             'prioridad' => $actividad->prioridad,
             'user_id' => auth()->id(),
@@ -445,24 +408,16 @@ class admin_CrmActividadesController extends Controller
                 'email' => '#8B5CF6',
                 'reunion' => '#10B981',
                 'visita_tecnica' => '#F59E0B',
-                'videollamada' => '#6366F1',
                 'whatsapp' => '#22C55E',
-                'tarea' => '#64748B',
-                'nota' => '#94A3B8',
             ];
 
-            $start = $actividad->fecha_programada->format('Y-m-d');
-            if ($actividad->hora_inicio) {
-                $start .= 'T' . $actividad->hora_inicio;
-            }
+            $start = $actividad->fecha_programada->toIso8601String();
 
             return [
                 'id' => $actividad->id,
                 'title' => $actividad->titulo,
                 'start' => $start,
-                'end' => $actividad->hora_fin 
-                    ? $actividad->fecha_programada->format('Y-m-d') . 'T' . $actividad->hora_fin
-                    : null,
+                'end' => null,
                 'color' => $colores[$actividad->tipo] ?? '#64748B',
                 'textColor' => '#FFFFFF',
                 'extendedProps' => [
@@ -485,7 +440,6 @@ class admin_CrmActividadesController extends Controller
     {
         $validated = $request->validate([
             'fecha_programada' => 'required|date',
-            'hora_inicio' => 'nullable|date_format:H:i',
         ]);
 
         $actividad->update($validated);
@@ -513,20 +467,154 @@ class admin_CrmActividadesController extends Controller
     }
 
     /**
-     * Recordatorios próximos (para notificaciones)
+     * Notificaciones para campana del navbar (polling AJAX)
+     * 3 categorías:
+     *   - Recordatorio: se dispara según recordatorio_minutos_antes (descartable)
+     *   - Próxima a iniciar: se dispara 5 min antes siempre (descartable)
+     *   - Vencida: persiste hasta que se atienda la actividad (NO descartable)
+     *
+     * Roles admin (Cuantica/Administrador): ven TODAS
+     * Otros roles: solo las asignadas al usuario logueado
      */
-    public function recordatoriosProximos()
+    public function notificacionesCampana()
     {
+        $user = auth()->user();
         $ahora = now();
-        
-        $actividades = ActividadCrm::with(['activable', 'usuario'])
-            ->where('recordatorio_activo', true)
-            ->where('estado', 'programada')
-            ->whereRaw('DATE_SUB(CONCAT(fecha_programada, " ", COALESCE(hora_inicio, "09:00")), INTERVAL recordatorio_minutos_antes MINUTE) <= ?', [$ahora])
-            ->whereRaw('CONCAT(fecha_programada, " ", COALESCE(hora_inicio, "09:00")) > ?', [$ahora])
-            ->get();
+        $rolesAdmin = ['cuantica', 'administrador'];
+        $esAdmin = in_array(strtolower($user->role->slug ?? ''), $rolesAdmin);
 
-        return response()->json($actividades);
+        // IDs de notificaciones ya descartadas por este usuario
+        $descartadas = NotificacionCrmLeida::where('user_id', $user->id)
+            ->get()
+            ->groupBy('tipo')
+            ->mapWithKeys(fn($items, $tipo) => [$tipo => $items->pluck('actividad_crm_id')->toArray()]);
+
+        $descartadasRecordatorio = $descartadas->get('recordatorio', []);
+        $descartadasProxima = $descartadas->get('proxima', []);
+
+        $notificaciones = collect();
+
+        // ============================================================
+        // 1. RECORDATORIO: según recordatorio_minutos_antes del usuario
+        //    Solo si recordatorio_activo = true
+        // ============================================================
+        $queryRecordatorio = ActividadCrm::with(['actividadable', 'responsable.persona'])
+            ->where('estado', 'programada')
+            ->where('recordatorio_activo', true)
+            ->whereRaw('DATE_SUB(fecha_programada, INTERVAL recordatorio_minutos_antes MINUTE) <= ?', [$ahora])
+            ->where('fecha_programada', '>', $ahora);
+
+        if (!$esAdmin) {
+            $queryRecordatorio->where('user_id', $user->id);
+        }
+        if (!empty($descartadasRecordatorio)) {
+            $queryRecordatorio->whereNotIn('id', $descartadasRecordatorio);
+        }
+
+        foreach ($queryRecordatorio->orderBy('fecha_programada')->take(10)->get() as $act) {
+            $notificaciones->push($this->formatearNotificacion($act, 'info', 'Recordatorio', 'recordatorio'));
+        }
+
+        // ============================================================
+        // 2. PRÓXIMA A INICIAR: 5 minutos antes, siempre (sistema)
+        // ============================================================
+        $queryProxima = ActividadCrm::with(['actividadable', 'responsable.persona'])
+            ->where('estado', 'programada')
+            ->where('fecha_programada', '<=', $ahora->copy()->addMinutes(5))
+            ->where('fecha_programada', '>', $ahora);
+
+        if (!$esAdmin) {
+            $queryProxima->where('user_id', $user->id);
+        }
+        if (!empty($descartadasProxima)) {
+            $queryProxima->whereNotIn('id', $descartadasProxima);
+        }
+
+        foreach ($queryProxima->orderBy('fecha_programada')->take(10)->get() as $act) {
+            // Evitar duplicar si ya aparece como recordatorio
+            if ($notificaciones->where('id', $act->id)->isEmpty()) {
+                $notificaciones->push($this->formatearNotificacion($act, 'warning', 'Por iniciar', 'proxima'));
+            }
+        }
+
+        // ============================================================
+        // 3. VENCIDAS: programadas con fecha pasada (NO descartables)
+        // ============================================================
+        $queryVencidas = ActividadCrm::with(['actividadable', 'responsable.persona'])
+            ->where('estado', 'programada')
+            ->where('fecha_programada', '<', $ahora);
+
+        if (!$esAdmin) {
+            $queryVencidas->where('user_id', $user->id);
+        }
+
+        foreach ($queryVencidas->orderByDesc('fecha_programada')->take(10)->get() as $act) {
+            $notificaciones->push($this->formatearNotificacion($act, 'danger', 'Vencida', 'vencida'));
+        }
+
+        // Contadores por categoría
+        $conteo = $notificaciones->countBy('categoria');
+
+        return response()->json([
+            'total' => $notificaciones->count(),
+            'recordatorios' => $conteo->get('recordatorio', 0),
+            'proximas' => $conteo->get('proxima', 0),
+            'vencidas' => $conteo->get('vencida', 0),
+            'items' => $notificaciones->take(20)->values(),
+            'es_admin' => $esAdmin,
+        ]);
+    }
+
+    /**
+     * Formatear una actividad como notificación
+     */
+    private function formatearNotificacion(ActividadCrm $act, string $color, string $etiqueta, string $categoria): array
+    {
+        $relacionado = null;
+        if ($act->actividadable) {
+            $relacionado = [
+                'tipo' => class_basename($act->actividadable_type),
+                'nombre' => $act->actividadable->nombre_completo ?? $act->actividadable->nombre ?? 'N/A',
+            ];
+        }
+
+        return [
+            'id' => $act->id,
+            'slug' => $act->slug,
+            'titulo' => $act->titulo,
+            'tipo_actividad' => $act->tipo_info['nombre'],
+            'icono' => $act->tipo_info['icono'],
+            'color' => $color,
+            'etiqueta' => $etiqueta,
+            'categoria' => $categoria,
+            'descartable' => $categoria !== 'vencida',
+            'fecha' => $act->fecha_programada->format('d/m/Y H:i'),
+            'tiempo' => $act->fecha_programada->diffForHumans(),
+            'prioridad' => ucfirst($act->prioridad),
+            'responsable' => $act->responsable?->persona?->name ?? $act->responsable?->email ?? '',
+            'relacionado' => $relacionado,
+            'url' => route('admin.crm.actividades.show', $act->slug),
+        ];
+    }
+
+    /**
+     * Descartar una notificación (AJAX)
+     * Solo para recordatorio y proxima, NO para vencidas
+     */
+    public function descartarNotificacion(Request $request)
+    {
+        $validated = $request->validate([
+            'actividad_id' => 'required|exists:actividades_crm,id',
+            'categoria' => 'required|in:recordatorio,proxima',
+        ]);
+
+        NotificacionCrmLeida::firstOrCreate([
+            'user_id' => auth()->id(),
+            'actividad_crm_id' => $validated['actividad_id'],
+            'tipo' => $validated['categoria'],
+        ]);
+
+        return response()->json(['success' => true]);
     }
 }
 
