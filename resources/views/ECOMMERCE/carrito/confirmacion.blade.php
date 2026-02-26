@@ -51,7 +51,7 @@
                             </div>
                             <div class="col-md-6">
                                 <p class="mb-1"><strong>Cliente:</strong></p>
-                                <p class="text-muted mb-0">{{ $pedido->cliente->name }}</p>
+                                <p class="text-muted mb-0">{{ $pedido->cliente->nombre_completo }}</p>
                             </div>
                             <div class="col-md-6">
                                 <p class="mb-1"><strong>Teléfono:</strong></p>

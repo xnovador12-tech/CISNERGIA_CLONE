@@ -37,7 +37,7 @@
                                     <select name="cliente_id" class="form-select" required>
                                         @foreach($clientes as $cliente)
                                             <option value="{{ $cliente->id }}" {{ $pedido->cliente_id == $cliente->id ? 'selected' : '' }}>
-                                                {{ $cliente->name }} - {{ $cliente->documento }}
+                                                {{ $cliente->nombre }} {{ $cliente->apellidos }} - {{ $cliente->ruc ?? $cliente->dni ?? 'Sin documento' }}
                                             </option>
                                         @endforeach
                                     </select>

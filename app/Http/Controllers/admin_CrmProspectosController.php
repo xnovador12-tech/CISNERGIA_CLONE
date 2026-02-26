@@ -246,46 +246,17 @@ class admin_CrmProspectosController extends Controller
     /**
      * Crear oportunidad desde prospecto
      */
-    public function crearOportunidad(Request $request, Prospecto $prospecto)
-    {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:200',
-            'tipo_proyecto' => 'required|in:on_grid,off_grid,hibrido,bombeo_solar',
-            'monto_estimado' => 'required|numeric|min:0',
-            'fecha_cierre_estimada' => 'required|date|after:today',
-        ]);
-
-        $oportunidad = $prospecto->oportunidades()->create([
-            'nombre' => $validated['nombre'],
-            'tipo_proyecto' => $validated['tipo_proyecto'],
-            'monto_estimado' => $validated['monto_estimado'],
-            'fecha_cierre_estimada' => $validated['fecha_cierre_estimada'],
-            'etapa' => 'calificacion',
-            'probabilidad' => 10,
-            'user_id' => auth()->id(),
-        ]);
-
-        // Actualizar estado del prospecto
-        if ($prospecto->estado === 'nuevo') {
-            $prospecto->update(['estado' => 'contactado']);
-        }
-
-        return redirect()
-            ->route('admin.crm.oportunidades.show', $oportunidad)
-            ->with('success', 'Oportunidad creada exitosamente.');
-    }
-
     /**
      * Registrar actividad para prospecto
      */
     public function registrarActividad(Request $request, Prospecto $prospecto)
     {
         $validated = $request->validate([
-            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,videollamada,whatsapp,tarea,nota',
+            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,whatsapp',
             'titulo' => 'required|string|max:200',
             'descripcion' => 'nullable|string',
             'fecha_programada' => 'required|date',
-            'prioridad' => 'nullable|in:alta,media,baja,urgente',
+            'prioridad' => 'nullable|in:alta,media,baja',
             'estado' => 'nullable|in:programada,en_progreso,completada,cancelada,reprogramada,no_realizada',
             'user_id' => 'nullable|exists:users,id',
         ]);

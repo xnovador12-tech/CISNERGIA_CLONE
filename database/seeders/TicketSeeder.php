@@ -12,57 +12,20 @@ use Illuminate\Support\Str;
 class TicketSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Crea tickets de soporte para clientes existentes.
+     *
+     * Dependencia: ClienteSeeder (debe ejecutarse antes).
+     * Los clientes ya existen porque fueron creados desde oportunidades ganadas.
      */
     public function run(): void
     {
         $agente = User::first();
-        
-        // Crear algunos clientes si no existen
+
         $clientes = Cliente::all();
         if ($clientes->isEmpty()) {
-            $clientes = collect([
-                Cliente::create([
-                    'codigo' => 'CLI-2026-00001',
-                    'slug' => 'juan-perez-cli-2026-00001',
-                    'nombre' => 'Juan',
-                    'apellidos' => 'Pérez Rodríguez',
-                    'dni' => '45612378',
-                    'email' => 'juan.perez@gmail.com',
-                    'celular' => '987123456',
-                    'direccion' => 'Av. Primavera 234, San Borja',
-                    'tipo_persona' => 'natural',
-                    'segmento' => 'residencial',
-                    'user_id' => $agente?->id ?? 1,
-                ]),
-                Cliente::create([
-                    'codigo' => 'CLI-2026-00002',
-                    'slug' => 'empresa-abc-cli-2026-00002',
-                    'nombre' => 'Mario',
-                    'apellidos' => 'Gonzales Torres',
-                    'razon_social' => 'Empresa ABC S.A.C.',
-                    'ruc' => '20567812345',
-                    'email' => 'mgonzales@empresaabc.com',
-                    'telefono' => '012345678',
-                    'direccion' => 'Av. Industrial 567, Ate',
-                    'tipo_persona' => 'juridica',
-                    'segmento' => 'comercial',
-                    'user_id' => $agente?->id ?? 1,
-                ]),
-                Cliente::create([
-                    'codigo' => 'CLI-2026-00003',
-                    'slug' => 'maria-garcia-cli-2026-00003',
-                    'nombre' => 'María',
-                    'apellidos' => 'García López',
-                    'dni' => '78912345',
-                    'email' => 'maria.garcia@hotmail.com',
-                    'celular' => '956789012',
-                    'direccion' => 'Jr. Los Pinos 890, La Molina',
-                    'tipo_persona' => 'natural',
-                    'segmento' => 'residencial',
-                    'user_id' => $agente?->id ?? 1,
-                ]),
-            ]);
+            $this->command->warn('⚠️ No hay clientes. Se omitió TicketSeeder.');
+            $this->command->warn('   Ejecuta ClienteSeeder primero.');
+            return;
         }
 
         $tickets = [
@@ -157,10 +120,10 @@ class TicketSeeder extends Seeder
             $codigo = 'TK-' . date('Y') . '-' . str_pad($index + 1, 4, '0', STR_PAD_LEFT);
             $slaHoras = Ticket::SLA_POR_PRIORIDAD[$data['prioridad']] ?? 48;
             $fechaApertura = now()->subDays(rand(0, 15))->subHours(rand(0, 12));
-            
+
             $mensajes = $data['mensajes'] ?? [];
             unset($data['mensajes']);
-            
+
             $ticket = Ticket::updateOrCreate(
                 ['codigo' => $codigo],
                 array_merge($data, [

@@ -27,8 +27,6 @@ class ActividadCrmSeeder extends Seeder
                 'titulo' => 'Llamada de primer contacto',
                 'descripcion' => 'Presentación de servicios CISNERGIA y captación de necesidades.',
                 'resultado' => 'Cliente interesado, solicita cotización para sistema residencial.',
-                'resultado_llamada' => 'contestada',
-                'duracion_minutos' => 15,
                 'estado' => 'completada',
             ],
             [
@@ -36,7 +34,6 @@ class ActividadCrmSeeder extends Seeder
                 'titulo' => 'Envío de información comercial',
                 'descripcion' => 'Envío de brochure, casos de éxito y calculadora de ahorro.',
                 'resultado' => 'Email entregado, cliente confirmó recepción.',
-                'asunto_email' => 'Información sobre Energía Solar - CISNERGIA',
                 'estado' => 'completada',
             ],
             [
@@ -51,8 +48,7 @@ class ActividadCrmSeeder extends Seeder
                 'titulo' => 'Visita técnica para evaluación',
                 'descripcion' => 'Medición de área disponible, análisis de orientación y sombras, revisión de instalación eléctrica.',
                 'resultado' => 'Área óptima: 60m2, orientación norte, sin sombras. Medidor monofásico, requiere cambio a trifásico.',
-                'direccion_completa' => 'Av. La Molina 1234, La Molina, Lima',
-                'duracion_minutos' => 90,
+                'ubicacion' => 'Av. La Molina 1234, La Molina, Lima',
                 'estado' => 'completada',
             ],
             [
@@ -60,15 +56,13 @@ class ActividadCrmSeeder extends Seeder
                 'titulo' => 'Presentación de propuesta técnica',
                 'descripcion' => 'Revisión de cotización, explicación técnica y financiera del proyecto.',
                 'resultado' => 'Cliente acepta propuesta con algunas modificaciones. Solicita incluir monitoreo remoto.',
-                'duracion_minutos' => 60,
                 'estado' => 'completada',
             ],
             [
-                'tipo' => 'videollamada',
+                'tipo' => 'reunion',
                 'titulo' => 'Negociación de condiciones',
-                'descripcion' => 'Revisión de términos comerciales y definición de fechas.',
+                'descripcion' => 'Revisión de términos comerciales y definición de fechas (virtual vía Google Meet).',
                 'resultado' => 'Acordado 5% descuento adicional. Instalación programada para próximo mes.',
-                'duracion_minutos' => 45,
                 'estado' => 'completada',
             ],
         ];
@@ -103,7 +97,6 @@ class ActividadCrmSeeder extends Seeder
                 'tipo' => 'email',
                 'titulo' => 'Envío de propuesta actualizada',
                 'descripcion' => 'Enviar nueva cotización con descuento especial.',
-                'asunto_email' => 'Propuesta Actualizada - Sistema Solar CISNERGIA',
                 'prioridad' => 'media',
                 'estado' => 'programada',
                 'dias_futuro' => 2,

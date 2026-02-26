@@ -78,7 +78,7 @@
             <!-- Columna Principal -->
             <div class="col-lg-8">
                 <!-- Información del Prospecto -->
-                <div class="card border-0 shadow-sm mb-4" data-aos="fade-in">
+                <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                         <div>
                             <span class="badge bg-secondary fs-6 me-2"><?php echo e($prospecto->codigo); ?></span>
@@ -96,16 +96,9 @@
 
                             </span>
                         </div>
-                        <div class="d-flex gap-2">
-                            <a href="<?php echo e(route('admin.crm.prospectos.edit', ['prospecto' => $prospecto, 'redirect_to' => 'show'])); ?>" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-pencil me-1"></i>Editar
-                            </a>
-                            <?php if($prospecto->estado === 'calificado' && !$prospecto->es_cliente): ?>
-                                <a href="<?php echo e(route('admin.crm.oportunidades.create', $oportunidadParams)); ?>" class="btn btn-sm btn-success">
-                                    <i class="bi bi-arrow-right-circle me-1"></i>Crear Oportunidad
-                                </a>
-                            <?php endif; ?>
-                        </div>
+                        <a href="<?php echo e(route('admin.crm.prospectos.index')); ?>" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Volver
+                        </a>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -172,7 +165,7 @@
 
                 <!-- Observaciones -->
                 <?php if($prospecto->observaciones): ?>
-                    <div class="card border-0 shadow-sm mb-4" data-aos="fade-in">
+                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                         <div class="card-header bg-transparent">
                             <h6 class="mb-0"><i class="bi bi-journal-text me-2"></i>Observaciones</h6>
                         </div>
@@ -183,10 +176,10 @@
                 <?php endif; ?>
 
                 <!-- Oportunidades del Prospecto -->
-                <div class="card border-0 shadow-sm mb-4" data-aos="fade-in">
+                <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                         <h6 class="mb-0"><i class="bi bi-graph-up-arrow me-2"></i>Oportunidades</h6>
-                        <?php if($prospecto->estado === 'calificado' && !$prospecto->es_cliente): ?>
+                        <?php if(in_array($prospecto->estado, ['calificado', 'convertido'])): ?>
                             <a href="<?php echo e(route('admin.crm.oportunidades.create', $oportunidadParams)); ?>" class="btn btn-sm btn-success">
                                 <i class="bi bi-plus-circle me-1"></i>Nueva
                             </a>
@@ -219,7 +212,7 @@
 
                 <!-- Productos de Interés - Wishlist E-commerce -->
                 <?php if(isset($wishlistItems) && $wishlistItems->count() > 0): ?>
-                    <div class="card border-0 shadow-sm mb-4" data-aos="fade-in">
+                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                         <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                             <h6 class="mb-0"><i class="bi bi-heart text-danger me-2"></i>Productos de Interés (E-commerce)</h6>
                             <span class="badge bg-danger"><?php echo e($wishlistItems->count()); ?> productos</span>
@@ -271,7 +264,7 @@
                         </div>
                     </div>
                 <?php elseif($prospecto->registered_user_id): ?>
-                    <div class="card border-0 shadow-sm mb-4" data-aos="fade-in">
+                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                         <div class="card-header bg-transparent">
                             <h6 class="mb-0"><i class="bi bi-heart text-danger me-2"></i>Productos de Interés (E-commerce)</h6>
                         </div>
@@ -283,33 +276,54 @@
                 <?php endif; ?>
 
                 <!-- Actividades -->
-                <div class="card border-0 shadow-sm" data-aos="fade-in">
+                <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Historial de Actividades</h6>
+                        <h6 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Actividades</h6>
                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalActividad">
                             <i class="bi bi-plus me-1"></i>Nueva Actividad
                         </button>
                     </div>
                     <div class="card-body">
                         <?php $__empty_1 = true; $__currentLoopData = $prospecto->actividades ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $actividad): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                            <div class="timeline-item">
-                                <div class="d-flex justify-content-between">
+                            <div class="border-bottom pb-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <span class="badge bg-<?php echo e($actividad->tipo == 'llamada' ? 'primary' : ($actividad->tipo == 'reunion' ? 'success' : 'info')); ?> me-2">
-                                            <?php echo e(ucfirst($actividad->tipo)); ?>
-
-                                        </span>
-                                        <strong><?php echo e($actividad->titulo); ?></strong>
+                                        <?php
+                                            $tipoIcons = [
+                                                'llamada' => 'bi-telephone', 'email' => 'bi-envelope', 'reunion' => 'bi-people',
+                                                'visita_tecnica' => 'bi-geo-alt', 'whatsapp' => 'bi-whatsapp'
+                                            ];
+                                            $estadoColors = [
+                                                'programada' => 'warning', 'en_progreso' => 'info', 'completada' => 'success',
+                                                'cancelada' => 'danger', 'reprogramada' => 'secondary', 'no_realizada' => 'dark'
+                                            ];
+                                        ?>
+                                        <i class="bi <?php echo e($tipoIcons[$actividad->tipo] ?? 'bi-circle'); ?> me-2 text-primary"></i>
+                                        <strong class="small"><?php echo e(Str::limit($actividad->titulo, 35)); ?></strong>
+                                        <span class="badge bg-<?php echo e($estadoColors[$actividad->estado] ?? 'secondary'); ?> ms-1"><?php echo e(ucfirst(str_replace('_', ' ', $actividad->estado))); ?></span>
                                     </div>
-                                    <small class="text-muted"><?php echo e($actividad->fecha_programada->format('d/m/Y H:i')); ?></small>
+                                    <div class="text-end">
+                                        <small class="text-muted"><?php echo e($actividad->fecha_programada?->format('d/m/Y H:i')); ?></small>
+                                        <a href="<?php echo e(route('admin.crm.actividades.show', $actividad)); ?>" class="btn btn-sm btn-outline-success ms-1"><i class="bi bi-eye"></i></a>
+                                    </div>
                                 </div>
-                                <?php if($actividad->descripcion): ?>
-                                    <p class="text-muted small mb-0 mt-1"><?php echo e($actividad->descripcion); ?></p>
+                                <?php if($actividad->estado === 'completada' && $actividad->resultado): ?>
+                                    <div class="ms-4 mt-1">
+                                        <a class="text-primary text-decoration-none small" data-bs-toggle="collapse" href="#resultado-<?php echo e($actividad->id); ?>" role="button" aria-expanded="false">
+                                            <i class="bi bi-chat-left-text me-1"></i><?php echo e(Str::limit($actividad->resultado, 80)); ?>
+
+                                        </a>
+                                        <?php if(strlen($actividad->resultado) > 80): ?>
+                                            <div class="collapse mt-1" id="resultado-<?php echo e($actividad->id); ?>">
+                                                <div class="p-2 bg-light rounded small text-muted" style="white-space: pre-line;"><?php echo e($actividad->resultado); ?></div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <p class="text-muted text-center py-3">
-                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
                                 No hay actividades registradas
                             </p>
                         <?php endif; ?>
@@ -319,33 +333,92 @@
 
             <!-- Columna Lateral -->
             <div class="col-lg-4">
-                <!-- Cambiar Estado -->
-                <div class="card border-0 shadow-sm mb-4" data-aos="fade-in">
-                    <div class="card-header bg-transparent">
-                        <h6 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>Cambiar Estado</h6>
-                    </div>
+                
+                <?php
+                    $estadosFlow = [
+                        'nuevo' => ['nombre' => 'Nuevo', 'color' => 'secondary', 'icono' => 'bi-person-plus'],
+                        'contactado' => ['nombre' => 'Contactado', 'color' => 'primary', 'icono' => 'bi-telephone'],
+                        'calificado' => ['nombre' => 'Calificado', 'color' => 'success', 'icono' => 'bi-star'],
+                    ];
+                    $estadosKeys = array_keys($estadosFlow);
+                    $indiceActual = array_search($prospecto->estado, $estadosKeys);
+                    $siguienteEstado = ($indiceActual !== false && $indiceActual < count($estadosKeys) - 1)
+                        ? $estadosFlow[$estadosKeys[$indiceActual + 1]] : null;
+                    $estadoActualInfo = $estadosFlow[$prospecto->estado] ?? ['nombre' => ucfirst($prospecto->estado), 'color' => 'secondary', 'icono' => 'bi-circle'];
+                    $siguienteKey = ($indiceActual !== false && $indiceActual < count($estadosKeys) - 1) ? $estadosKeys[$indiceActual + 1] : null;
+                ?>
+
+                <?php if(!in_array($prospecto->estado, ['descartado', 'convertido'])): ?>
+                <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
+                    <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>Cambiar Estado</h6></div>
                     <div class="card-body">
-                        <form action="<?php echo e(route('admin.crm.prospectos.actualizar-estado', $prospecto)); ?>" method="POST" id="form-actualizar-estado">
-                            <?php echo csrf_field(); ?>
-                            <?php echo method_field('PATCH'); ?>
-                            <select name="estado" id="select-estado-prospecto" class="form-select form-select-sm select2_bootstrap w-100 mb-2" data-placeholder="Seleccionar estado...">
-                                <?php $__currentLoopData = ['nuevo' => 'Nuevo', 'contactado' => 'Contactado', 'calificado' => 'Calificado', 'descartado' => 'Descartado']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($key); ?>" <?php echo e($prospecto->estado == $key ? 'selected' : ''); ?>><?php echo e($label); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </select>
-                            <div id="motivo_descarte_show" style="<?php echo e($prospecto->estado == 'descartado' ? '' : 'display:none'); ?>">
-                                <input type="text" name="motivo_descarte" class="form-control form-control-sm mb-2" placeholder="Motivo de descarte..." value="<?php echo e($prospecto->motivo_descarte); ?>">
+                        
+                        <?php if($siguienteEstado): ?>
+                            <div class="d-flex align-items-center justify-content-center gap-2 mb-3 py-2 bg-light rounded">
+                                <span class="badge bg-<?php echo e($estadoActualInfo['color']); ?>"><i class="bi <?php echo e($estadoActualInfo['icono']); ?> me-1"></i><?php echo e($estadoActualInfo['nombre']); ?></span>
+                                <i class="bi bi-arrow-right text-muted"></i>
+                                <span class="badge bg-<?php echo e($siguienteEstado['color']); ?>"><i class="bi <?php echo e($siguienteEstado['icono']); ?> me-1"></i><?php echo e($siguienteEstado['nombre']); ?></span>
                             </div>
-                            <hr class="my-2">
-                            <button type="button" class="btn btn-sm btn-primary w-100 btn-actualizar-estado">
-                                <i class="bi bi-check-circle me-1"></i>Actualizar Estado
-                            </button>
-                        </form>
+                        <?php else: ?>
+                            <div class="text-center mb-3 py-2 bg-light rounded">
+                                <small class="text-muted"><i class="bi bi-flag-fill text-success me-1"></i>Calificado — Puede crear oportunidad o descartar</small>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="d-grid gap-2">
+                            <?php if($siguienteKey): ?>
+                            <form action="<?php echo e(route('admin.crm.prospectos.actualizar-estado', $prospecto)); ?>" method="POST" id="form-avanzar">
+                                <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
+                                <input type="hidden" name="estado" value="<?php echo e($siguienteKey); ?>">
+                                <button type="button" class="btn btn-outline-primary btn-sm w-100 btn-avanzar">
+                                    <i class="bi bi-arrow-right me-2"></i>Avanzar a <?php echo e($siguienteEstado['nombre']); ?>
+
+                                </button>
+                            </form>
+                            <?php endif; ?>
+
+                            <?php if($prospecto->estado === 'calificado'): ?>
+                            <a href="<?php echo e(route('admin.crm.oportunidades.create', $oportunidadParams)); ?>" class="btn btn-success btn-sm w-100">
+                                <i class="bi bi-bullseye me-2"></i>Crear Oportunidad
+                            </a>
+                            <?php endif; ?>
+
+                            <form action="<?php echo e(route('admin.crm.prospectos.actualizar-estado', $prospecto)); ?>" method="POST" id="form-descartar">
+                                <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
+                                <input type="hidden" name="estado" value="descartado">
+                                <input type="hidden" name="motivo_descarte" id="input-motivo-descarte">
+                                <button type="button" class="btn btn-outline-danger btn-sm w-100 btn-descartar">
+                                    <i class="bi bi-x-circle me-2"></i>Marcar Descartado
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
+                <?php elseif($prospecto->estado === 'descartado'): ?>
+                <div class="card border-4 shadow-sm mb-4" style="border-radius: 20px; border-top: 4px solid #dc3545 !important;" data-aos="fade-up">
+                    <div class="card-header bg-danger text-white" style="border-radius: 16px 16px 0 0;"><h6 class="mb-0"><i class="bi bi-x-circle me-2"></i>Prospecto Descartado</h6></div>
+                    <div class="card-body">
+                        <?php if($prospecto->motivo_descarte): ?>
+                            <p class="mb-0"><strong>Motivo:</strong> <?php echo e($prospecto->motivo_descarte); ?></p>
+                        <?php else: ?>
+                            <p class="text-muted mb-0">Sin motivo registrado.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php elseif($prospecto->estado === 'convertido'): ?>
+                <div class="card border-4 shadow-sm mb-4" style="border-radius: 20px; border-top: 4px solid #198754 !important;" data-aos="fade-up">
+                    <div class="card-header bg-success text-white" style="border-radius: 16px 16px 0 0;"><h6 class="mb-0"><i class="bi bi-check-circle me-2"></i>Prospecto Convertido</h6></div>
+                    <div class="card-body">
+                        <p class="text-muted mb-2">Este prospecto ya fue convertido a cliente.</p>
+                        <a href="<?php echo e(route('admin.crm.oportunidades.create', $oportunidadParams)); ?>" class="btn btn-success btn-sm w-100">
+                            <i class="bi bi-plus-circle me-2"></i>Nueva Oportunidad
+                        </a>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <!-- Clasificación -->
-                <div class="card border-0 shadow-sm mb-4" data-aos="fade-in">
+                <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                     <div class="card-header bg-transparent">
                         <h6 class="mb-0"><i class="bi bi-tags me-2"></i>Clasificación</h6>
                     </div>
@@ -401,12 +474,15 @@
                 </div>
 
                 <!-- Acciones Rápidas -->
-                <div class="card border-0 shadow-sm mb-4" data-aos="fade-in">
+                <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                     <div class="card-header bg-transparent">
                         <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Acciones Rápidas</h6>
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
+                            <a href="<?php echo e(route('admin.crm.prospectos.edit', ['prospecto' => $prospecto, 'redirect_to' => 'show'])); ?>" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-pencil me-2"></i>Editar Prospecto
+                            </a>
                             <?php if($prospecto->email): ?>
                             <a href="mailto:<?php echo e($prospecto->email); ?>" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-envelope me-2"></i>Enviar Email
@@ -427,7 +503,7 @@
                 </div>
 
                 <!-- Fechas -->
-                <div class="card border-0 shadow-sm" data-aos="fade-in">
+                <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
                     <div class="card-header bg-transparent">
                         <h6 class="mb-0"><i class="bi bi-calendar me-2"></i>Fechas</h6>
                     </div>
@@ -498,10 +574,7 @@
                                     <option value="email">📧 Email</option>
                                     <option value="reunion">👥 Reunión</option>
                                     <option value="visita_tecnica">🏗️ Visita Técnica</option>
-                                    <option value="videollamada">🎥 Videollamada</option>
                                     <option value="whatsapp">💬 WhatsApp</option>
-                                    <option value="tarea">✅ Tarea</option>
-                                    <option value="nota">📝 Nota</option>
                                 </select>
                             </div>
 
@@ -512,7 +585,6 @@
                                     <option value="baja">🟢 Baja</option>
                                     <option value="media" selected>🟡 Media</option>
                                     <option value="alta">🔴 Alta</option>
-                                    <option value="urgente">🚨 Urgente</option>
                                 </select>
                             </div>
 
@@ -564,11 +636,6 @@
 <script>
 $(document).ready(function() {
 
-    // ==================== TOGGLE MOTIVO DESCARTE ====================
-    $('#select-estado-prospecto').on('change', function() {
-        $('#motivo_descarte_show').toggle($(this).val() === 'descartado');
-    }).trigger('change');
-
     // ==================== SELECT2 EN MODAL ====================
     $('#modalActividad').on('shown.bs.modal', function() {
         $('.select2-modal').select2({
@@ -578,31 +645,47 @@ $(document).ready(function() {
         });
     });
 
-    // ==================== ACTUALIZAR ESTADO ====================
-    var estadoTextos = {
-        'nuevo': { icon: 'info', color: '#6c757d', label: 'Nuevo' },
-        'contactado': { icon: 'info', color: '#0d6efd', label: 'Contactado' },
-        'calificado': { icon: 'success', color: '#198754', label: 'Calificado' },
-        'descartado': { icon: 'error', color: '#dc3545', label: 'Descartado' }
-    };
-
-    $('.btn-actualizar-estado').on('click', function() {
-        var estadoSeleccionado = $('#select-estado-prospecto').val();
-        var info = estadoTextos[estadoSeleccionado] || { icon: 'question', color: '#0d6efd', label: estadoSeleccionado };
-        var textoExtra = estadoSeleccionado === 'descartado' ? '<br><br><small class="text-danger">El prospecto quedará marcado como descartado.</small>' : '';
+    // ==================== AVANZAR ESTADO ====================
+    $('.btn-avanzar').on('click', function() {
+        var form = $(this).closest('form');
+        var estadoDestino = form.find('input[name="estado"]').val();
+        var nombres = { 'contactado': 'Contactado', 'calificado': 'Calificado' };
 
         Swal.fire({
-            title: '¿Actualizar estado?',
-            html: `El prospecto <strong><?php echo e($prospecto->nombre_completo); ?></strong> cambiará a estado <strong>${info.label}</strong>.${textoExtra}`,
-            icon: info.icon,
+            title: '¿Avanzar estado?',
+            html: `El prospecto <strong><?php echo e($prospecto->nombre_completo); ?></strong> pasará a <strong>${nombres[estadoDestino] || estadoDestino}</strong>.`,
+            icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: info.color,
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Sí, actualizar',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-arrow-right me-1"></i> Sí, avanzar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                $('#form-actualizar-estado').submit();
+                form.submit();
+            }
+        });
+    });
+
+    // ==================== MARCAR DESCARTADO ====================
+    $('.btn-descartar').on('click', function() {
+        Swal.fire({
+            title: '¿Descartar prospecto?',
+            html: `<p>El prospecto <strong><?php echo e($prospecto->nombre_completo); ?></strong> será marcado como descartado.</p>
+                   <textarea id="swal-motivo" class="form-control" rows="2" placeholder="Motivo de descarte (opcional)..."></textarea>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-x-circle me-1"></i> Sí, descartar',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                return document.getElementById('swal-motivo').value;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#input-motivo-descarte').val(result.value);
+                $('#form-descartar').submit();
             }
         });
     });

@@ -271,8 +271,8 @@ $(document).ready(function() {
                    <small class="text-muted">Se registrará la fecha de resolución.</small>`,
             icon: 'success',
             showCancelButton: true,
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Sí, resolver',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
@@ -290,8 +290,8 @@ $(document).ready(function() {
                    <small class="text-muted">Se incrementará la prioridad y se notificará al supervisor.</small>`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ffc107',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-arrow-up-circle me-1"></i> Sí, escalar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {

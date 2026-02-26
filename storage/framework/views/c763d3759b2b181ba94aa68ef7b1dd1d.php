@@ -220,7 +220,7 @@
                         </tr>
                     </thead>
                         <tbody>
-                            <?php $__empty_1 = true; $__currentLoopData = $prospectos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $prospecto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <?php $__currentLoopData = $prospectos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $prospecto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
                                     <td class="fw-normal text-center align-middle"><?php echo e($index + 1); ?></td>
                                     <td class="fw-normal text-center align-middle">
@@ -363,19 +363,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                <tr>
-                                    <td colspan="9" class="text-center py-4">
-                                        <div class="text-muted">
-                                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                            No hay prospectos registrados
-                                        </div>
-                                        <a href="<?php echo e(route('admin.crm.prospectos.create')); ?>" class="btn btn-primary btn-sm mt-2">
-                                            <i class="bi bi-plus-circle me-1"></i>Crear primer prospecto
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
             </div>
@@ -391,7 +379,8 @@
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
                     paginate: { first: '«', previous: '‹', next: '›', last: '»' },
-                    info: 'Mostrando página _PAGE_ de _PAGES_'
+                    info: 'Mostrando página _PAGE_ de _PAGES_',
+                    emptyTable: '<div class="text-center py-4"><div class="text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay prospectos registrados</div><a href="<?php echo e(route("admin.crm.prospectos.create")); ?>" class="btn btn-primary btn-sm mt-2"><i class="bi bi-plus-circle me-1"></i>Crear primer prospecto</a></div>'
                 },
                 pageLength: 10,
                 order: [[0, 'asc']],

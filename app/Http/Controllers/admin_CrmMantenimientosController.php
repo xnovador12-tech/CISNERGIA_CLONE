@@ -359,7 +359,7 @@ class admin_CrmMantenimientosController extends Controller
 
         return redirect()
             ->route('admin.crm.mantenimientos.index')
-            ->with('success', 'âœ… Mantenimiento completado exitosamente.');
+            ->with('success', 'Mantenimiento completado exitosamente.');
     }
 
     /**

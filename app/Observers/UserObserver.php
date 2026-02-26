@@ -34,18 +34,15 @@ class UserObserver
         $persona = $user->persona;
 
         Prospecto::create([
-            'nombre'              => $persona?->name ?? 'Sin nombre',
-            'apellidos'           => $persona?->surnames,
-            'email'               => $user->email ?? $persona?->email_pnatural,
-            'celular'             => $persona?->celular,
-            'direccion'           => $persona?->direccion,
-            'tipo_persona'        => $persona?->tipo_persona ?? 'natural',
-            'origen'              => 'ecommerce',
-            'origen_detalle'      => 'Registro automático desde e-commerce',
-            'estado'              => 'nuevo',
-            'scoring'             => 'C', // Scoring bajo hasta que demuestre interés
-            'sede_id'             => $persona?->sede_id,
-            'registered_user_id'  => $user->id,
+            'nombre'                => $persona?->name ?? 'Sin nombre',
+            'apellidos'             => $persona?->surnames,
+            'email'                 => $user->email ?? $persona?->email_pnatural,
+            'celular'               => $persona?->celular,
+            'direccion'             => $persona?->direccion,
+            'tipo_persona'          => $persona?->tipo_persona ?? 'natural',
+            'origen'                => 'ecommerce',
+            'estado'                => 'nuevo',
+            'registered_user_id'    => $user->id,
             'fecha_primer_contacto' => now(),
         ]);
     }

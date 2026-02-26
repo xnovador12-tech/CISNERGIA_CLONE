@@ -25,7 +25,7 @@
     <form action="{{ route('admin.crm.prospectos.store') }}" method="POST" class="needs-validation" novalidate>
         @csrf
         <div class="container-fluid">
-            <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-in">
+            <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
                 <div class="card-body">
 
                     {{-- Info --}}

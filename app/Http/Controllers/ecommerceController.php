@@ -215,7 +215,7 @@ class ecommerceController extends Controller
             'nombre' => 'required|string|max:255',
             'email' => 'required|email',
             'telefono' => 'required|string|max:20',
-            'documento' => 'required|string|max:20',
+            'documento' => 'required|string|min:8|max:11',
             'direccion' => 'required|string',
             'distrito_id' => 'required|exists:distritos,id',
             'metodo_pago' => 'required|string',
@@ -229,14 +229,23 @@ class ecommerceController extends Controller
 
         DB::beginTransaction();
         try {
+            // Determinar si el documento es DNI (8 dígitos) o RUC (11 dígitos)
+            $documento = $request->documento;
+            $esDni = strlen($documento) <= 8;
+
             // Crear o buscar cliente
             $cliente = Cliente::firstOrCreate(
                 ['email' => $request->email],
                 [
-                    'name' => $request->nombre,
-                    'telefono' => $request->telefono,
-                    'documento' => $request->documento,
-                    'direccion' => $request->direccion,
+                    'nombre'      => $request->nombre,
+                    'telefono'    => $request->telefono,
+                    'dni'         => $esDni ? $documento : null,
+                    'ruc'         => !$esDni ? $documento : null,
+                    'tipo_persona' => $esDni ? 'natural' : 'juridica',
+                    'direccion'   => $request->direccion,
+                    'distrito_id' => $request->distrito_id,
+                    'origen'      => 'ecommerce',
+                    'user_id'     => auth()->check() ? auth()->id() : null,
                 ]
             );
 

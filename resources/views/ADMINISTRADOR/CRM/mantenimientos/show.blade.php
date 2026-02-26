@@ -488,8 +488,8 @@ $(document).ready(function() {
                    <small class="text-muted">Se notificará al técnico asignado.</small>`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#0d6efd',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-check me-1"></i> Sí, confirmar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
@@ -507,8 +507,8 @@ $(document).ready(function() {
                    <small class="text-muted">Se registrará la hora de inicio.</small>`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#ffc107',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-play-circle me-1"></i> Sí, iniciar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {

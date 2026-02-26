@@ -59,10 +59,10 @@
                 <div class="col-lg-8">
 
                     
-                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-in">
+                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <p class="text-secondary mb-0 small text-uppercase fw-bold">Datos Generales</p>
+                                <p class="text-secondary mb-0 small text-uppercase fw-bold">Información General</p>
                                 <span class="badge bg-secondary"><?php echo e($cotizacion->codigo); ?></span>
                             </div>
                             <div class="row g-3">
@@ -154,7 +154,7 @@ unset($__errorArgs, $__bag); ?>
                     </div>
 
                     
-                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-in">
+                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                         <div class="card-body">
                             <p class="text-secondary mb-3 small text-uppercase fw-bold">Detalle de Ítems</p>
 
@@ -190,7 +190,7 @@ unset($__errorArgs, $__bag); ?>
                     </div>
 
                     
-                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-in">
+                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                         <div class="card-body">
                             <p class="text-secondary mb-3 small text-uppercase fw-bold">Notas y Condiciones</p>
                             <div class="row g-3">
@@ -219,7 +219,7 @@ unset($__errorArgs, $__bag); ?>
 
                 
                 <div class="col-lg-4">
-                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-in">
+                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                         <div class="card-body">
                             <p class="text-secondary mb-3 small text-uppercase fw-bold"><i class="bi bi-calculator me-1"></i>Resumen</p>
 
@@ -269,11 +269,11 @@ unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
+                        <button type="submit" class="btn btn-primary px-5 text-white">
                             <i class="bi bi-save me-2"></i>Guardar Cambios
                         </button>
-                        <a href="<?php echo e(route('admin.crm.cotizaciones.show', $cotizacion)); ?>" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left me-2"></i>Cancelar
+                        <a href="<?php echo e(route('admin.crm.cotizaciones.show', $cotizacion)); ?>" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
                         </a>
                     </div>
                 </div>

@@ -129,8 +129,8 @@
                             <!-- Cliente -->
                             <div class="col-md-6">
                                 <h6 class="text-uppercase fw-bold mb-3">Cliente</h6>
-                                <p class="mb-1"><strong>Nombre:</strong> {{ $pedido->cliente->name ?? 'N/A' }}</p>
-                                <p class="mb-1"><strong>Documento:</strong> {{ $pedido->cliente->documento ?? 'N/A' }}</p>
+                                <p class="mb-1"><strong>Nombre:</strong> {{ $pedido->cliente->nombre ?? '' }} {{ $pedido->cliente->apellidos ?? '' }}</p>
+                                <p class="mb-1"><strong>Documento:</strong> {{ $pedido->cliente->ruc ?? $pedido->cliente->dni ?? 'N/A' }}</p>
                                 <p class="mb-1"><strong>Correo:</strong> {{ $pedido->cliente->correo ?? 'N/A' }}</p>
                                 <p class="mb-1"><strong>Teléfono:</strong> {{ $pedido->cliente->telefono ?? 'N/A' }}</p>
                             </div>
@@ -310,7 +310,7 @@
                         <hr>
                         <h6 class="fw-bold">Resumen del Pedido:</h6>
                         <table class="table table-sm">
-                            <tr><td>Cliente:</td><td class="fw-bold">{{ $pedido->cliente->name ?? 'N/A' }}</td></tr>
+                            <tr><td>Cliente:</td><td class="fw-bold">{{ $pedido->cliente->nombre ?? '' }} {{ $pedido->cliente->apellidos ?? '' }}</td></tr>
                             <tr><td>Subtotal:</td><td>S/ {{ number_format($pedido->subtotal, 2) }}</td></tr>
                             <tr><td>IGV:</td><td>S/ {{ number_format($pedido->igv, 2) }}</td></tr>
                             <tr class="table-primary"><td class="fw-bold">TOTAL:</td><td class="fw-bold">S/ {{ number_format($pedido->total, 2) }}</td></tr>

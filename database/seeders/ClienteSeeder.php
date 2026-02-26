@@ -2,128 +2,105 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Cliente;
-use App\Models\User;
-use App\Models\Persona;
+use App\Models\Oportunidad;
+use Illuminate\Database\Seeder;
 
 class ClienteSeeder extends Seeder
 {
+    /**
+     * Crea clientes a partir de oportunidades GANADAS.
+     *
+     * Flujo real del negocio:
+     *   Prospecto → Oportunidad (ganada) → Cliente
+     *
+     * Los datos del cliente se heredan del prospecto vinculado a la oportunidad.
+     * Esto garantiza trazabilidad completa en el CRM.
+     *
+     * Dependencias: ProspectoSeeder, OportunidadSeeder (deben ejecutarse antes)
+     */
     public function run(): void
     {
-        // Cliente 1: Juan Perez (Persona Natural)
-        $persona1 = Persona::create([
-            'name' => 'Juan',
-            'slug' => 'juan-perez-martinez',
-            'surnames' => 'Perez Martinez',
-            'email_pnatural' => 'juan.perez@email.com',
-            'celular' => '987654321',
-            'identificacion' => 'DNI',
-            'nro_identificacion' => '12345678',
-            'direccion' => 'Av. Los Olivos 123, San Isidro',
-            'tipo_persona' => 'natural',
-            'sede_id' => 1,
-        ]);
+        $ganadas = Oportunidad::where('etapa', 'ganada')
+            ->with('prospecto')
+            ->orderBy('fecha_cierre_real')
+            ->get();
 
-        $user1 = User::create([
-            'persona_id' => $persona1->id,
-            'email' => 'juan.perez@email.com',
-            'password' => bcrypt('password'),
-            'role_id' => 3,
-        ]);
+        if ($ganadas->isEmpty()) {
+            $this->command->warn('⚠️ No hay oportunidades ganadas. Se omitió ClienteSeeder.');
+            $this->command->warn('   Ejecuta OportunidadSeeder primero.');
+            return;
+        }
 
-        Cliente::create(['user_id' => $user1->id]);
+        $sede = \App\Models\Sede::first();
 
-        // Cliente 2: Empresa Solar SAC (Persona Jurídica)
-        $persona2 = Persona::create([
-            'name' => 'Empresa Solar SAC',
-            'slug' => 'empresa-solar-sac',
-            'email_pnatural' => 'contacto@empresasolar.com',
-            'celular' => '014567890',
-            'identificacion' => 'RUC',
-            'nro_identificacion' => '20123456789',
-            'direccion' => 'Jr. Comercio 456, Miraflores',
-            'tipo_persona' => 'juridica',
-            'sede_id' => 1,
-        ]);
+        foreach ($ganadas as $index => $oportunidad) {
+            $prospecto = $oportunidad->prospecto;
 
-        $user2 = User::create([
-            'persona_id' => $persona2->id,
-            'email' => 'contacto@empresasolar.com',
-            'password' => bcrypt('password'),
-            'role_id' => 3,
-        ]);
+            if (!$prospecto) {
+                $this->command->warn("  ⚠️ Oportunidad {$oportunidad->codigo} sin prospecto. Omitida.");
+                continue;
+            }
 
-        Cliente::create(['user_id' => $user2->id]);
+            // Determinar origen del cliente según origen del prospecto
+            $origen = $prospecto->origen === 'ecommerce' ? 'ecommerce' : 'directo';
 
-        // Cliente 3: Maria Rodriguez (Persona Natural)
-        $persona3 = Persona::create([
-            'name' => 'Maria',
-            'slug' => 'maria-rodriguez-lopez',
-            'surnames' => 'Rodriguez Lopez',
-            'email_pnatural' => 'maria.rodriguez@email.com',
-            'celular' => '912345678',
-            'identificacion' => 'DNI',
-            'nro_identificacion' => '87654321',
-            'direccion' => 'Calle Las Flores 789, Surco',
-            'tipo_persona' => 'natural',
-            'sede_id' => 1,
-        ]);
+            // Determinar segmento: priorizar tipo_proyecto de la oportunidad
+            $segmento = $oportunidad->tipo_proyecto ?? $prospecto->segmento ?? 'residencial';
 
-        $user3 = User::create([
-            'persona_id' => $persona3->id,
-            'email' => 'maria.rodriguez@email.com',
-            'password' => bcrypt('password'),
-            'role_id' => 3,
-        ]);
+            // Determinar estado (último cliente inactivo para variedad en demo)
+            $estado = ($index === $ganadas->count() - 1 && $ganadas->count() > 3)
+                ? 'inactivo'
+                : 'activo';
 
-        Cliente::create(['user_id' => $user3->id]);
+            $cliente = Cliente::create([
+                // Datos personales (heredados del prospecto)
+                'nombre'       => $prospecto->nombre,
+                'apellidos'    => $prospecto->apellidos,
+                'razon_social' => $prospecto->razon_social,
+                'tipo_persona' => $prospecto->tipo_persona,
+                'ruc'          => $prospecto->ruc,
+                'dni'          => $prospecto->dni,
 
-        // Cliente 4: Constructora Lima EIRL
-        $persona4 = Persona::create([
-            'name' => 'Constructora Lima EIRL',
-            'slug' => 'constructora-lima-eirl',
-            'email_pnatural' => 'ventas@constructoralima.com',
-            'celular' => '016789012',
-            'identificacion' => 'RUC',
-            'nro_identificacion' => '20987654321',
-            'direccion' => 'Av. Industrial 321, Ate',
-            'tipo_persona' => 'juridica',
-            'sede_id' => 1,
-        ]);
+                // Contacto
+                'email'    => $prospecto->email,
+                'telefono' => $prospecto->telefono,
+                'celular'  => $prospecto->celular,
 
-        $user4 = User::create([
-            'persona_id' => $persona4->id,
-            'email' => 'ventas@constructoralima.com',
-            'password' => bcrypt('password'),
-            'role_id' => 3,
-        ]);
+                // Ubicación
+                'direccion'   => $prospecto->direccion,
+                'distrito_id' => $prospecto->distrito_id ?? null,
 
-        Cliente::create(['user_id' => $user4->id]);
+                // Clasificación
+                'origen'   => $origen,
+                'segmento' => $segmento,
+                'estado'   => $estado,
 
-        // Cliente 5: Carlos Gomez (Persona Natural)
-        $persona5 = Persona::create([
-            'name' => 'Carlos',
-            'slug' => 'carlos-gomez-diaz',
-            'surnames' => 'Gomez Diaz',
-            'email_pnatural' => 'carlos.gomez@email.com',
-            'celular' => '923456789',
-            'identificacion' => 'DNI',
-            'nro_identificacion' => '45678912',
-            'direccion' => 'Urb. Los Pinos 555, La Molina',
-            'tipo_persona' => 'natural',
-            'sede_id' => 1,
-        ]);
+                // Trazabilidad CRM
+                'prospecto_id' => $prospecto->id,
+                'vendedor_id'  => $oportunidad->user_id,
+                'user_id'      => $oportunidad->user_id,
 
-        $user5 = User::create([
-            'persona_id' => $persona5->id,
-            'email' => 'carlos.gomez@email.com',
-            'password' => bcrypt('password'),
-            'role_id' => 3,
-        ]);
+                // Fechas
+                'fecha_primera_compra' => $oportunidad->fecha_cierre_real,
 
-        Cliente::create(['user_id' => $user5->id]);
+                // Adicional
+                'sede_id'       => $sede?->id,
+                'observaciones' => "Convertido desde oportunidad {$oportunidad->codigo}. Proyecto: {$oportunidad->nombre}.",
+            ]);
 
-        $this->command->info('✅ 5 Clientes creados exitosamente');
+            $tipoLabel = $prospecto->tipo_persona === 'juridica'
+                ? ($prospecto->razon_social ?? $prospecto->nombre)
+                : "{$prospecto->nombre} {$prospecto->apellidos}";
+
+            $this->command->info("  👤 {$cliente->codigo} → {$tipoLabel} [{$segmento}, {$origen}, {$estado}]");
+        }
+
+        $total = Cliente::count();
+        $activos = Cliente::where('estado', 'activo')->count();
+        $ecommerce = Cliente::where('origen', 'ecommerce')->count();
+
+        $this->command->info("✅ {$total} clientes creados ({$activos} activos, {$ecommerce} e-commerce)");
+        $this->command->info("   Todos vinculados a oportunidades ganadas con prospecto trazable.");
     }
 }

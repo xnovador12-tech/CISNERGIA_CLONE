@@ -13,7 +13,6 @@ use App\Http\Controllers\admin_CategoriasController;
 use App\Http\Controllers\admin_EtiquetasController;
 use App\Http\Controllers\admin_ProveedoresController;
 use App\Http\Controllers\admin_ProductosController;
-use App\Http\Controllers\admin_ClientesController;
 use App\Http\Controllers\admin_CoberturasController;
 use App\Http\Controllers\admin_DescuentosController;
 use App\Http\Controllers\admin_CuponesController;
@@ -31,6 +30,7 @@ use App\Http\Controllers\admin_CrmProspectosController;
 use App\Http\Controllers\admin_CrmOportunidadesController;
 use App\Http\Controllers\admin_CrmCotizacionesController;
 use App\Http\Controllers\admin_CrmActividadesController;
+use App\Http\Controllers\admin_CrmClientesController;
 use App\Http\Controllers\admin_CrmTicketsController;
 
 use App\Http\Controllers\admin_CrmMantenimientosController;
@@ -92,8 +92,6 @@ Route::get('/dtlle_kits', [admin_KitsController::class, 'getdtlle_kits']);
 Route::get('/images/{id}/delete', [admin_KitsController::class, 'deleteImage']);
 Route::put('/admin-kits/estado/{admin_kit}', [admin_KitsController::class, 'estado']);
 
-Route::resource('admin-clientes', admin_ClientesController::class);
-Route::put('/admin-clientes/estado/{admin_cliente}', [admin_ClientesController::class, 'estado']);
 
 Route::resource('admin-descuentos', admin_DescuentosController::class);
 Route::put('/admin-descuentos/estado/{admin_descuento}', [admin_DescuentosController::class, 'estado']);
@@ -154,7 +152,6 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     // -------------------------------------------------
     Route::resource('prospectos', admin_CrmProspectosController::class);
     Route::post('prospectos/{prospecto}/convertir-cliente', [admin_CrmProspectosController::class, 'convertirACliente'])->name('prospectos.convertir');
-    Route::post('prospectos/{prospecto}/crear-oportunidad', [admin_CrmProspectosController::class, 'crearOportunidad'])->name('prospectos.crear-oportunidad');
     Route::post('prospectos/{prospecto}/actividad', [admin_CrmProspectosController::class, 'registrarActividad'])->name('prospectos.actividad');
     Route::patch('prospectos/{prospecto}/estado', [admin_CrmProspectosController::class, 'actualizarEstado'])->name('prospectos.actualizar-estado');
     Route::get('prospectos-exportar', [admin_CrmProspectosController::class, 'exportar'])->name('prospectos.exportar');
@@ -204,7 +201,14 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     Route::get('actividades-eventos', [admin_CrmActividadesController::class, 'eventosCalendario'])->name('actividades.eventos');
     Route::patch('actividades/{actividad}/fecha', [admin_CrmActividadesController::class, 'actualizarFecha'])->name('actividades.actualizar-fecha');
     Route::get('actividades-pendientes', [admin_CrmActividadesController::class, 'misPendientes'])->name('actividades.pendientes');
-    Route::get('actividades-recordatorios', [admin_CrmActividadesController::class, 'recordatoriosProximos'])->name('actividades.recordatorios');
+    Route::get('actividades-notificaciones', [admin_CrmActividadesController::class, 'notificacionesCampana'])->name('actividades.notificaciones');
+    Route::post('actividades-notificaciones/descartar', [admin_CrmActividadesController::class, 'descartarNotificacion'])->name('actividades.notificaciones.descartar');
+
+    // -------------------------------------------------
+    // CLIENTES
+    // -------------------------------------------------
+    Route::resource('clientes', admin_CrmClientesController::class)->except(['create', 'store']);
+    Route::post('clientes/{cliente}/cambiar-estado', [admin_CrmClientesController::class, 'cambiarEstado'])->name('clientes.cambiar-estado');
 
     // -------------------------------------------------
     // TICKETS (Soporte)
@@ -237,14 +241,6 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
 
 
 Route::get('admin-reportes', [admin_ReportesController::class, 'index'])->name('admin-reportes.index');
-
-// ==================== WISHLIST / FAVORITOS ====================
-Route::middleware('auth')->prefix('wishlist')->name('wishlist.')->group(function () {
-    Route::get('/', [App\Http\Controllers\WishListController::class, 'index'])->name('index');
-    Route::post('/toggle', [App\Http\Controllers\WishListController::class, 'toggle'])->name('toggle');
-    Route::delete('/{id}', [App\Http\Controllers\WishListController::class, 'destroy'])->name('destroy');
-    Route::post('/check', [App\Http\Controllers\WishListController::class, 'check'])->name('check');
-});
 
 Auth::routes();
 

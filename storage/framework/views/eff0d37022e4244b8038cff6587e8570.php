@@ -1,8 +1,6 @@
-@extends('TEMPLATES.ecommerce')
+<?php $__env->startSection('title', 'Mis Favoritos'); ?>
 
-@section('title', 'Mis Favoritos')
-
-@section('css')
+<?php $__env->startSection('css'); ?>
 <style>
     .wishlist-card {
         border: 1px solid #e9ecef;
@@ -45,17 +43,17 @@
         color: #dee2e6;
     }
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
 <!-- BREADCRUMB -->
 <section class="py-3 bg-light">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ url('/') }}" class="text-decoration-none">Inicio</a></li>
-                <li class="breadcrumb-item"><a href="{{-- route('productos.index') --}}" class="text-decoration-none">Productos</a></li>
+                <li class="breadcrumb-item"><a href="<?php echo e(url('/')); ?>" class="text-decoration-none">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="" class="text-decoration-none">Productos</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Mis Favoritos</li>
             </ol>
         </nav>
@@ -69,69 +67,73 @@
             <div>
                 <h4 class="fw-bold mb-1">Mis Favoritos</h4>
                 <p class="text-muted mb-0">
-                    {{ $favoritos->count() }} {{ $favoritos->count() === 1 ? 'producto' : 'productos' }} en tu lista
+                    <?php echo e($favoritos->count()); ?> <?php echo e($favoritos->count() === 1 ? 'producto' : 'productos'); ?> en tu lista
                 </p>
             </div>
-            @if($favoritos->count() > 0)
-                <a href="{{-- route('productos.index') --}}" class="btn btn-outline-primary btn-sm">
+            <?php if($favoritos->count() > 0): ?>
+                <a href="" class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-plus-lg me-1"></i>Seguir comprando
                 </a>
-            @endif
+            <?php endif; ?>
         </div>
 
-        @if($favoritos->count() > 0)
+        <?php if($favoritos->count() > 0): ?>
             <div class="row g-3">
-                @foreach($favoritos as $fav)
-                    <div class="col-12" id="fav-item-{{ $fav->id }}">
+                <?php $__currentLoopData = $favoritos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $fav): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <div class="col-12" id="fav-item-<?php echo e($fav->id); ?>">
                         <div class="wishlist-card bg-white p-3">
                             <div class="d-flex align-items-center gap-3">
-                                {{-- Imagen --}}
+                                
                                 <div class="flex-shrink-0">
-                                    @if($fav->producto->images && $fav->producto->images->count() > 0)
-                                        <img src="{{ asset('storage/' . $fav->producto->images->first()->url) }}"
-                                             alt="{{ $fav->producto->nombre }}" class="wishlist-img">
-                                    @else
+                                    <?php if($fav->producto->images && $fav->producto->images->count() > 0): ?>
+                                        <img src="<?php echo e(asset('storage/' . $fav->producto->images->first()->url)); ?>"
+                                             alt="<?php echo e($fav->producto->nombre); ?>" class="wishlist-img">
+                                    <?php else: ?>
                                         <div class="wishlist-img d-flex align-items-center justify-content-center bg-light rounded">
                                             <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
 
-                                {{-- Info --}}
+                                
                                 <div class="flex-grow-1 min-width-0">
                                     <h6 class="fw-bold mb-1 text-truncate">
-                                        <a href="{{-- route('productos.show', $fav->producto->slug ?? $fav->producto->id) --}}"
+                                        <a href=""
                                            class="text-decoration-none text-dark">
-                                            {{ $fav->producto->nombre }}
+                                            <?php echo e($fav->producto->nombre); ?>
+
                                         </a>
                                     </h6>
-                                    @if($fav->producto->marca)
-                                        <small class="text-muted">{{ $fav->producto->marca->name ?? '' }}</small>
-                                    @endif
+                                    <?php if($fav->producto->marca): ?>
+                                        <small class="text-muted"><?php echo e($fav->producto->marca->name ?? ''); ?></small>
+                                    <?php endif; ?>
                                     <div class="mt-2">
-                                        @if($fav->producto->precio_descuento && $fav->producto->precio_descuento < $fav->producto->precio)
+                                        <?php if($fav->producto->precio_descuento && $fav->producto->precio_descuento < $fav->producto->precio): ?>
                                             <span class="text-decoration-line-through text-muted small me-2">
-                                                S/ {{ number_format($fav->producto->precio, 2) }}
+                                                S/ <?php echo e(number_format($fav->producto->precio, 2)); ?>
+
                                             </span>
                                             <span class="fw-bold text-danger fs-5">
-                                                S/ {{ number_format($fav->producto->precio_descuento, 2) }}
+                                                S/ <?php echo e(number_format($fav->producto->precio_descuento, 2)); ?>
+
                                             </span>
-                                        @else
+                                        <?php else: ?>
                                             <span class="fw-bold text-primary fs-5">
-                                                S/ {{ number_format($fav->producto->precio, 2) }}
+                                                S/ <?php echo e(number_format($fav->producto->precio, 2)); ?>
+
                                             </span>
-                                        @endif
+                                        <?php endif; ?>
                                     </div>
                                 </div>
 
-                                {{-- Acciones --}}
+                                
                                 <div class="flex-shrink-0 d-flex align-items-center gap-2">
-                                    <a href="{{-- route('productos.show', $fav->producto->slug ?? $fav->producto->id) --}}"
+                                    <a href=""
                                        class="btn btn-primary btn-sm px-3">
                                         <i class="bi bi-eye me-1"></i>Ver
                                     </a>
                                     <button type="button" class="btn-remove-fav"
-                                            onclick="eliminarFavorito({{ $fav->id }}, {{ $fav->producto_id }})"
+                                            onclick="eliminarFavorito(<?php echo e($fav->id); ?>, <?php echo e($fav->producto_id); ?>)"
                                             title="Quitar de favoritos">
                                         <i class="bi bi-heart-fill"></i>
                                     </button>
@@ -139,42 +141,43 @@
                             </div>
                         </div>
                     </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
 
-            {{-- Resumen --}}
+            
             <div class="mt-4 p-3 bg-light rounded-3 d-flex align-items-center justify-content-between">
                 <div>
                     <span class="text-muted">Total estimado de tus favoritos:</span>
                     <span class="fw-bold fs-5 text-primary ms-2">
-                        S/ {{ number_format($favoritos->sum(fn($f) => $f->producto->precio_descuento ?? $f->producto->precio), 2) }}
+                        S/ <?php echo e(number_format($favoritos->sum(fn($f) => $f->producto->precio_descuento ?? $f->producto->precio), 2)); ?>
+
                     </span>
                 </div>
             </div>
 
-        @else
-            {{-- Estado vacío --}}
+        <?php else: ?>
+            
             <div class="empty-wishlist bg-white rounded-3 shadow-sm">
                 <i class="bi bi-heart"></i>
                 <h5 class="mt-3 fw-bold text-dark">Tu lista de favoritos está vacía</h5>
                 <p class="text-muted mb-4">Explora nuestros productos y agrega los que más te gusten.</p>
-                <a href="{{-- route('productos.index') --}}" class="btn btn-primary">
+                <a href="" class="btn btn-primary">
                     <i class="bi bi-search me-2"></i>Explorar Productos
                 </a>
             </div>
-        @endif
+        <?php endif; ?>
     </div>
 </section>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('js')
+<?php $__env->startSection('js'); ?>
 <script>
     function eliminarFavorito(favId, productoId) {
-        fetch('{{ route("wishlist.toggle") }}', {
+        fetch('<?php echo e(route("wishlist.toggle")); ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                 'Accept': 'application/json'
             },
             body: JSON.stringify({ producto_id: productoId })
@@ -198,4 +201,6 @@
         .catch(error => console.error('Error:', error));
     }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('TEMPLATES.ecommerce', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\ADMIN\Documents\GitHub\project_cisnergia\resources\views/ECOMMERCE/wishlist/index.blade.php ENDPATH**/ ?>

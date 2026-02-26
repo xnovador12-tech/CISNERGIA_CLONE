@@ -88,11 +88,7 @@
     <!-- Tabla de Ventas -->
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px" data-aos="fade-up">
-            <div class="card-header bg-transparent">
-                <a href="<?php echo e(route('admin-ventas.create')); ?>" class="btn btn-success text-uppercase text-white btn-sm">
-                    <i class="bi bi-plus-circle-fill me-2"></i>Registrar Venta
-                </a>
-            </div>
+
             <div class="card-body">
                 <table id="display" class="table table-hover align-middle nowrap" cellspacing="0" style="width:100%">
                     <thead class="bg-dark text-white border-0">
@@ -118,15 +114,27 @@
                                 <strong><?php echo e($venta->codigo); ?></strong><br>
                                 <small class="text-muted"><?php echo e($venta->created_at->format('d/m/Y')); ?></small>
                             </td>
-                            <td class="fw-normal text-center align-middle"><?php echo e($venta->cliente->name ?? 'N/A'); ?></td>
+                            <td class="fw-normal text-center align-middle">
+                                <?php if($venta->cliente): ?>
+                                    <?php echo e($venta->cliente->nombre); ?> <?php echo e($venta->cliente->apellidos); ?>
+
+                                    <?php if($venta->cliente->razon_social): ?>
+                                        <br><small class="text-muted"><?php echo e($venta->cliente->razon_social); ?></small>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    N/A
+                                <?php endif; ?>
+                            </td>
                             <td class="fw-normal text-center align-middle">
                                 <span class="badge bg-info"><?php echo e($venta->sede->name ?? 'Sin sede'); ?></span>
                             </td>
                             <td class="fw-normal text-center align-middle">
                                 <?php if($venta->tipo_venta == 'pos'): ?>
-                                    <span class="badge bg-primary">POS</span>
+                                    <span class="badge bg-dark">POS</span>
+                                <?php elseif($venta->tipo_venta == 'ecommerce'): ?>
+                                    <span class="badge bg-info">E-commerce</span>
                                 <?php else: ?>
-                                    <span class="badge bg-secondary">Pedido</span>
+                                    <span class="badge bg-primary">Pedido</span>
                                 <?php endif; ?>
                             </td>
                             <td class="fw-normal text-center align-middle">

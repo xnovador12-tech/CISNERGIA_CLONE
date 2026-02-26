@@ -105,14 +105,14 @@
 
                         <div class="col-md-6">
                             <label class="form-label">Cliente</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="cliente_id" data-placeholder="Seleccionar cliente...">
-                                <option value="">Ninguno</option>
-                                @foreach($clientes ?? [] as $cliente)
-                                    <option value="{{ $cliente->id }}" {{ old('cliente_id', $oportunidad->cliente_id) == $cliente->id ? 'selected' : '' }}>
-                                        {{ $cliente->codigo ?? '' }} - {{ $cliente->nombre }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            @if($oportunidad->cliente)
+                                <div class="form-control form-control-sm bg-light">
+                                    <i class="bi bi-person-check text-success me-1"></i>{{ $oportunidad->cliente->codigo }} - {{ $oportunidad->cliente->nombre }}
+                                </div>
+                            @else
+                                <div class="form-control form-control-sm bg-light text-muted">Sin cliente asignado</div>
+                            @endif
+                            <small class="text-muted"><i class="bi bi-lock me-1"></i>Se asigna al marcar ganada</small>
                         </div>
 
                         {{-- DETALLE SERVICIO (servicio/mixto) --}}
@@ -160,12 +160,12 @@
                         <div class="col-12 mt-4"><h6 class="text-primary border-bottom pb-2"><i class="bi bi-currency-dollar me-2"></i>Pipeline y Valores</h6></div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Etapa <span class="text-danger">*</span></label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="etapa" required data-placeholder="Seleccionar etapa...">
-                                @foreach(\App\Models\Oportunidad::ETAPAS as $key => $info)
-                                    <option value="{{ $key }}" {{ old('etapa', $oportunidad->etapa) == $key ? 'selected' : '' }}>{{ $info['nombre'] }}</option>
-                                @endforeach
-                            </select>
+                            <label class="form-label">Etapa</label>
+                            @php $etapaInfo = \App\Models\Oportunidad::ETAPAS[$oportunidad->etapa] ?? ['nombre' => ucfirst($oportunidad->etapa), 'color' => 'secondary']; @endphp
+                            <div class="form-control form-control-sm bg-light">
+                                <span class="badge bg-{{ $etapaInfo['color'] }}">{{ $etapaInfo['nombre'] }}</span>
+                            </div>
+                            <small class="text-muted"><i class="bi bi-lock me-1"></i>Se gestiona desde el detalle</small>
                         </div>
 
                         <div class="col-md-3">
@@ -181,13 +181,15 @@
                             <label class="form-label">Monto Final (S/)</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text">S/</span>
-                                <input type="number" class="form-control form-control-sm" name="monto_final" value="{{ old('monto_final', $oportunidad->monto_final) }}" step="0.01">
+                                <input type="number" class="form-control form-control-sm bg-light" value="{{ $oportunidad->monto_final }}" step="0.01" readonly>
                             </div>
+                            <small class="text-muted"><i class="bi bi-lock me-1"></i>Se define al marcar ganada</small>
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label">Probabilidad (%)</label>
-                            <input type="number" class="form-control form-control-sm" name="probabilidad" value="{{ old('probabilidad', $oportunidad->probabilidad) }}" min="0" max="100">
+                            <input type="number" class="form-control form-control-sm bg-light" value="{{ $oportunidad->probabilidad }}" readonly>
+                            <small class="text-muted"><i class="bi bi-lock me-1"></i>Se ajusta con la etapa</small>
                         </div>
 
                         {{-- FECHAS --}}
@@ -200,7 +202,8 @@
 
                         <div class="col-md-4">
                             <label class="form-label">Fecha Cierre Real</label>
-                            <input type="date" class="form-control form-control-sm" name="fecha_cierre_real" value="{{ old('fecha_cierre_real', $oportunidad->fecha_cierre_real?->format('Y-m-d')) }}">
+                            <input type="date" class="form-control form-control-sm bg-light" value="{{ $oportunidad->fecha_cierre_real?->format('Y-m-d') }}" readonly>
+                            <small class="text-muted"><i class="bi bi-lock me-1"></i>Se define al marcar ganada</small>
                         </div>
 
                         <div class="col-md-4">
@@ -265,28 +268,24 @@
                         </div>
 
                         @if($oportunidad->etapa === 'perdida')
-                        {{-- MOTIVO DE PÉRDIDA --}}
+                        {{-- MOTIVO DE PÉRDIDA (solo lectura) --}}
                         <div class="col-12 mt-4"><h6 class="text-danger border-bottom pb-2"><i class="bi bi-x-circle me-2"></i>Motivo de Pérdida</h6></div>
 
                         <div class="col-md-4">
                             <label class="form-label">Motivo</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="motivo_perdida" data-placeholder="Seleccionar motivo...">
-                                <option value="">Seleccionar</option>
-                                @foreach(['Precio alto', 'Competencia', 'Sin presupuesto', 'Cambio de prioridades', 'Sin respuesta', 'Otro'] as $motivo)
-                                    <option value="{{ $motivo }}" {{ old('motivo_perdida', $oportunidad->motivo_perdida) == $motivo ? 'selected' : '' }}>{{ $motivo }}</option>
-                                @endforeach
-                            </select>
+                            <input type="text" class="form-control form-control-sm bg-light" value="{{ $oportunidad->motivo_perdida }}" readonly>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">Competidor Ganador</label>
-                            <input type="text" class="form-control form-control-sm" name="competidor_ganador" value="{{ old('competidor_ganador', $oportunidad->competidor_ganador) }}">
+                            <input type="text" class="form-control form-control-sm bg-light" value="{{ $oportunidad->competidor_ganador }}" readonly>
                         </div>
 
                         <div class="col-md-12">
                             <label class="form-label">Detalle de Pérdida</label>
-                            <textarea class="form-control form-control-sm" name="detalle_perdida" rows="2">{{ old('detalle_perdida', $oportunidad->detalle_perdida) }}</textarea>
+                            <textarea class="form-control form-control-sm bg-light" rows="2" readonly>{{ $oportunidad->detalle_perdida }}</textarea>
                         </div>
+                        <small class="text-muted"><i class="bi bi-lock me-1"></i>Estos datos se registran al marcar como perdida desde el detalle</small>
                         @endif
                     </div>
                 </div>
@@ -310,7 +309,7 @@
                         <i class="bi bi-x-circle me-2"></i>Cancelar
                     </a>
                     <button type="submit" class="btn btn-primary px-5 text-white">
-                        <i class="bi bi-save me-2"></i>Actualizar
+                        <i class="bi bi-save me-2"></i>Guardar Cambios
                     </button>
                 </div>
             </div>

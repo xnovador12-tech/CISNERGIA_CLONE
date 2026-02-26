@@ -67,11 +67,11 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <p class="text-muted mb-1 small">Actividades Hoy</p>
-                                <h3 class="mb-0 fw-bold text-primary"><?php echo e($stats['hoy'] ?? 0); ?></h3>
+                                <p class="text-muted mb-1 small">Pendientes</p>
+                                <h3 class="mb-0 fw-bold text-primary"><?php echo e($stats['pendientes'] ?? 0); ?></h3>
                             </div>
                             <div class="bg-primary bg-opacity-10 p-3 rounded-3">
-                                <i class="bi bi-calendar-check fs-3 text-primary"></i>
+                                <i class="bi bi-clock-history fs-3 text-primary"></i>
                             </div>
                         </div>
                     </div>
@@ -82,41 +82,41 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <p class="text-muted mb-1 small">Llamadas Pendientes</p>
-                                <h3 class="mb-0 fw-bold text-warning"><?php echo e($stats['llamadas'] ?? 0); ?></h3>
-                            </div>
-                            <div class="bg-warning bg-opacity-10 p-3 rounded-3">
-                                <i class="bi bi-telephone fs-3 text-warning"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-muted mb-1 small">Reuniones</p>
-                                <h3 class="mb-0 fw-bold text-info"><?php echo e($stats['reuniones'] ?? 0); ?></h3>
-                            </div>
-                            <div class="bg-info bg-opacity-10 p-3 rounded-3">
-                                <i class="bi bi-people fs-3 text-info"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-muted mb-1 small">Visitas Técnicas</p>
-                                <h3 class="mb-0 fw-bold text-success"><?php echo e($stats['visitas'] ?? 0); ?></h3>
+                                <p class="text-muted mb-1 small">Completadas (Mes)</p>
+                                <h3 class="mb-0 fw-bold text-success"><?php echo e($stats['completadas_mes'] ?? 0); ?></h3>
                             </div>
                             <div class="bg-success bg-opacity-10 p-3 rounded-3">
-                                <i class="bi bi-geo-alt fs-3 text-success"></i>
+                                <i class="bi bi-check-circle fs-3 text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1 small">Vencidas</p>
+                                <h3 class="mb-0 fw-bold text-danger"><?php echo e($stats['vencidas'] ?? 0); ?></h3>
+                            </div>
+                            <div class="bg-danger bg-opacity-10 p-3 rounded-3">
+                                <i class="bi bi-exclamation-triangle fs-3 text-danger"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1 small">Tasa Cumplimiento</p>
+                                <h3 class="mb-0 fw-bold text-warning"><?php echo e($stats['tasa_cumplimiento'] ?? 0); ?>%</h3>
+                            </div>
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-3">
+                                <i class="bi bi-graph-up fs-3 text-warning"></i>
                             </div>
                         </div>
                     </div>
@@ -147,7 +147,8 @@
     <?php endif; ?>
 
     <div class="container-fluid">
-        <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px; min-height: 500px" data-aos="fade-up">
+        <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px"
+            data-aos="fade-up" data-aos-anchor-placement="top-bottom">
             <div class="card-header bg-transparent">
                 <div class="row justify-content-between align-items-center">
                     <div class="col-12 col-md-4 mb-2 mb-md-0">
@@ -155,49 +156,42 @@
                             <i class="bi bi-plus-circle-fill me-2"></i>Nueva Actividad
                         </a>
                     </div>
-                    <div class="col-12 col-md-8 d-flex flex-wrap justify-content-md-end gap-2 mt-2 mt-md-0">
-                        
-                        <div class="d-flex align-items-center">
-                            <label class="me-2 mb-0 text-nowrap small">Período:</label>
-                            <select id="filtroPeriodo" class="form-select form-select-sm" style="width: auto;">
-                                <option value="">Todos</option>
-                                <option value="hoy">Hoy</option>
-                                <option value="semana">Esta semana</option>
-                                <option value="mes">Este mes</option>
-                                <option value="vencidas">Vencidas</option>
-                            </select>
-                        </div>
-                        
-                        <div class="d-flex align-items-center">
-                            <label class="me-2 mb-0 text-nowrap small">Tipo:</label>
-                            <select id="filtroTipo" class="form-select form-select-sm" style="width: auto;">
-                                <option value="">Todos</option>
-                                <option value="llamada">Llamada</option>
-                                <option value="email">Email</option>
-                                <option value="reunion">Reunión</option>
-                                <option value="visita_tecnica">Visita Técnica</option>
-                                <option value="videollamada">Videollamada</option>
-                                <option value="whatsapp">WhatsApp</option>
-                                <option value="tarea">Tarea</option>
-                            </select>
-                        </div>
-                        
-                        <div class="d-flex align-items-center">
-                            <label class="me-2 mb-0 text-nowrap small">Estado:</label>
-                            <select id="filtroEstado" class="form-select form-select-sm" style="width: auto;">
-                                <option value="">Todos</option>
-                                <option value="programada">Programada</option>
-                                <option value="en_progreso">En Progreso</option>
-                                <option value="completada">Completada</option>
-                                <option value="cancelada">Cancelada</option>
-                                <option value="reprogramada">Reprogramada</option>
-                                <option value="no_realizada">No Realizada</option>
-                            </select>
-                        </div>
-                    </div>
                 </div>
             </div>
             <div class="card-body">
+                
+                <div class="row g-2 mb-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="filtro-tipo" class="form-label small text-muted mb-1">Tipo</label>
+                        <select id="filtro-tipo" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Tipos">
+                            <option value="">Todos los Tipos</option>
+                            <?php $__currentLoopData = \App\Models\ActividadCrm::TIPOS; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $info): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($info['nombre']); ?>"><?php echo e($info['nombre']); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filtro-estado" class="form-label small text-muted mb-1">Estado</label>
+                        <select id="filtro-estado" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Estados">
+                            <option value="">Todos los Estados</option>
+                            <option value="Programada">Programada</option>
+                            <option value="Completada">Completada</option>
+                            <option value="Cancelada">Cancelada</option>
+                            <option value="Reprogramada">Reprogramada</option>
+                            <option value="No Realizada">No Realizada</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filtro-prioridad" class="form-label small text-muted mb-1">Prioridad</label>
+                        <select id="filtro-prioridad" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todas las Prioridades">
+                            <option value="">Todas las Prioridades</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Media">Media</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="mb-2 col-12 col-md-6">
                     <span class="text-uppercase">Total de registros: <span class="fw-bold"><?php echo e($actividades->count()); ?></span></span>
                 </div>
@@ -205,63 +199,80 @@
                     <thead class="bg-dark text-white border-0">
                         <tr>
                             <th class="h6 small text-center text-uppercase fw-bold">N°</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Código</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Tipo</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Título</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Relacionado</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Fecha y Hora</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Asignado</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Responsable</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Fecha</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Prioridad</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Estado</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
                     </thead>
                         <tbody>
-                            <?php $__empty_1 = true; $__currentLoopData = $actividades; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $actividad): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                <tr data-tipo="<?php echo e($actividad->tipo); ?>" 
-                                    data-fecha="<?php echo e($actividad->fecha_programada->format('Y-m-d')); ?>"
-                                    data-estado="<?php echo e($actividad->estado); ?>">
+                            <?php $__currentLoopData = $actividades; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $actividad): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php
+                                    $tipoInfo = $actividad->tipo_info;
+                                    $estadoColors = ['programada' => 'warning', 'completada' => 'success', 'cancelada' => 'danger', 'reprogramada' => 'primary', 'no_realizada' => 'secondary'];
+                                    $estadoNombres = ['programada' => 'Programada', 'completada' => 'Completada', 'cancelada' => 'Cancelada', 'reprogramada' => 'Reprogramada', 'no_realizada' => 'No Realizada'];
+                                    $prioridadIcons = ['alta' => '🔴', 'media' => '🟡', 'baja' => '🟢'];
+                                ?>
+                                <tr>
                                     <td class="fw-normal text-center align-middle"></td>
-                                    <td class="fw-normal text-center align-middle" data-search="<?php echo e($actividad->tipo); ?>">
-                                        <?php 
-                                            $tipoIcons = ['llamada' => 'telephone', 'reunion' => 'people', 'visita_tecnica' => 'geo-alt', 'email' => 'envelope', 'tarea' => 'check2-square', 'videollamada' => 'camera-video', 'whatsapp' => 'whatsapp'];
-                                            $tipoColors = ['llamada' => 'primary', 'reunion' => 'success', 'visita_tecnica' => 'warning', 'email' => 'info', 'tarea' => 'secondary', 'videollamada' => 'dark', 'whatsapp' => 'success'];
-                                        ?>
-                                        <span class="badge bg-<?php echo e($tipoColors[$actividad->tipo] ?? 'secondary'); ?>">
-                                            <i class="bi bi-<?php echo e($tipoIcons[$actividad->tipo] ?? 'calendar'); ?> me-1"></i><?php echo e(ucfirst(str_replace('_', ' ', $actividad->tipo))); ?>
+                                    <td class="fw-normal text-center align-middle">
+                                        <span class="badge bg-secondary"><?php echo e($actividad->codigo); ?></span>
+                                    </td>
+                                    <td class="fw-normal text-center align-middle">
+                                        <span class="badge bg-<?php echo e($tipoInfo['color']); ?>">
+                                            <i class="bi <?php echo e($tipoInfo['icono']); ?> me-1"></i><?php echo e($tipoInfo['nombre']); ?>
 
                                         </span>
                                     </td>
-                                    <td class="fw-normal text-start align-middle">
-                                        <strong><?php echo e(Str::limit($actividad->titulo, 40)); ?></strong>
+                                    <td class="fw-normal text-start align-middle" style="max-width: 280px;">
+                                        <div class="text-truncate" style="max-width: 280px;" title="<?php echo e($actividad->titulo); ?>">
+                                            <strong><?php echo e($actividad->titulo); ?></strong>
+                                        </div>
+                                        <?php if($actividad->descripcion): ?>
+                                            <div class="text-truncate text-muted" style="max-width: 280px; font-size: 0.8rem;" title="<?php echo e($actividad->descripcion); ?>">
+                                                <?php echo e($actividad->descripcion); ?>
+
+                                            </div>
+                                        <?php endif; ?>
                                     </td>
-                                    <td class="fw-normal text-center align-middle">
-                                        <?php if($actividad->activable): ?>
-                                            <small><?php echo e(class_basename($actividad->activable_type)); ?>: <?php echo e(Str::limit($actividad->activable->nombre_completo ?? $actividad->activable->nombre ?? 'N/A', 25)); ?></small>
+                                    <td class="fw-normal text-center align-middle" style="max-width: 180px;">
+                                        <?php if($actividad->actividadable): ?>
+                                            <?php
+                                                $entidadNombre = class_basename($actividad->actividadable_type);
+                                                $entidadLabel = $actividad->actividadable->nombre_completo ?? $actividad->actividadable->nombre ?? 'N/A';
+                                            ?>
+                                            <small>
+                                                <span class="badge bg-light text-dark"><?php echo e($entidadNombre); ?></span><br>
+                                                <span class="d-inline-block text-truncate" style="max-width: 160px;" title="<?php echo e($entidadLabel); ?>"><?php echo e($entidadLabel); ?></span>
+                                            </small>
                                         <?php else: ?>
                                             <small class="text-muted">Sin relación</small>
                                         <?php endif; ?>
+                                    </td>
+                                    <td class="fw-normal text-center align-middle">
+                                        <small><?php echo e($actividad->asignadoA?->persona?->name ?? $actividad->asignadoA?->email ?? 'Sin asignar'); ?></small>
                                     </td>
                                     <td class="fw-normal text-center align-middle" data-order="<?php echo e($actividad->fecha_programada->timestamp); ?>">
                                         <small>
                                             <?php echo e($actividad->fecha_programada->format('d/m/Y')); ?><br>
                                             <strong><?php echo e($actividad->fecha_programada->format('H:i')); ?></strong>
                                         </small>
+                                        <?php if($actividad->estado === 'programada' && $actividad->fecha_programada < now()): ?>
+                                            <br><span class="badge bg-danger mt-1" style="font-size: 0.65rem;">Vencida</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="fw-normal text-center align-middle">
-                                        <small><?php echo e($actividad->asignadoA->name ?? 'Sin asignar'); ?></small>
+                                        <?php echo e($prioridadIcons[$actividad->prioridad] ?? ''); ?> <?php echo e(ucfirst($actividad->prioridad)); ?>
+
                                     </td>
-                                    <td class="fw-normal text-center align-middle" data-search="<?php echo e($actividad->estado); ?>">
-                                        <?php 
-                                            $estadoColors = [
-                                                'programada' => 'warning', 
-                                                'en_progreso' => 'info',
-                                                'completada' => 'success', 
-                                                'cancelada' => 'danger', 
-                                                'reprogramada' => 'primary',
-                                                'no_realizada' => 'secondary'
-                                            ]; 
-                                        ?>
+                                    <td class="fw-normal text-center align-middle">
                                         <span class="badge bg-<?php echo e($estadoColors[$actividad->estado] ?? 'secondary'); ?>">
-                                            <?php echo e(ucfirst(str_replace('_', ' ', $actividad->estado))); ?>
+                                            <?php echo e($estadoNombres[$actividad->estado] ?? ucfirst($actividad->estado)); ?>
 
                                         </span>
                                     </td>
@@ -285,25 +296,6 @@
                                                         <i class="bi bi-pencil text-secondary me-2"></i>Editar
                                                     </a>
                                                 </li>
-                                                <?php if($actividad->estado === 'programada'): ?>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <form action="<?php echo e(route('admin.crm.actividades.completar', $actividad)); ?>" method="POST">
-                                                            <?php echo csrf_field(); ?>
-                                                            <button type="submit" class="dropdown-item d-flex align-items-center text-success">
-                                                                <i class="bi bi-check-circle me-2"></i>Completar
-                                                            </button>
-                                                        </form>
-                                                    </li>
-                                                    <li>
-                                                        <form action="<?php echo e(route('admin.crm.actividades.cancelar', $actividad)); ?>" method="POST">
-                                                            <?php echo csrf_field(); ?>
-                                                            <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
-                                                                <i class="bi bi-x-circle me-2"></i>Cancelar
-                                                            </button>
-                                                        </form>
-                                                    </li>
-                                                <?php endif; ?>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
                                                     <form action="<?php echo e(route('admin.crm.actividades.destroy', $actividad)); ?>"
@@ -320,19 +312,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                <tr>
-                                    <td colspan="8" class="text-center py-4">
-                                        <div class="text-muted">
-                                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                            No hay actividades registradas
-                                        </div>
-                                        <a href="<?php echo e(route('admin.crm.actividades.create')); ?>" class="btn btn-primary btn-sm mt-2">
-                                            <i class="bi bi-plus-circle me-1"></i>Crear primera actividad
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                 </table>
             </div>
@@ -343,111 +323,44 @@
 <?php $__env->startSection('js'); ?>
 <script>
 $(document).ready(function() {
-    // Fechas de referencia para filtros
-    var hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    
-    var inicioSemana = new Date(hoy);
-    inicioSemana.setDate(hoy.getDate() - hoy.getDay());
-    
-    var finSemana = new Date(inicioSemana);
-    finSemana.setDate(inicioSemana.getDate() + 6);
-    
-    var inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    var finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
-
-    // Variables para filtros activos
-    var filtroPeriodoActivo = '';
-    var filtroTipoActivo = '';
-    var filtroEstadoActivo = '';
-
-    // Función de filtrado personalizado
-    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-        var row = $(settings.aoData[dataIndex].nTr);
-        var fechaStr = row.data('fecha');
-        var tipo = row.data('tipo');
-        var estado = row.data('estado');
-        
-        // Filtro por período
-        if (filtroPeriodoActivo) {
-            var fechaRow = new Date(fechaStr + 'T00:00:00');
-            
-            switch(filtroPeriodoActivo) {
-                case 'hoy':
-                    if (fechaRow.toDateString() !== hoy.toDateString()) return false;
-                    break;
-                case 'semana':
-                    if (fechaRow < inicioSemana || fechaRow > finSemana) return false;
-                    break;
-                case 'mes':
-                    if (fechaRow < inicioMes || fechaRow > finMes) return false;
-                    break;
-                case 'vencidas':
-                    if (fechaRow >= hoy || estado === 'completada' || estado === 'cancelada') return false;
-                    break;
-            }
-        }
-
-        // Filtro por tipo
-        if (filtroTipoActivo && tipo !== filtroTipoActivo) {
-            return false;
-        }
-
-        // Filtro por estado
-        if (filtroEstadoActivo && estado !== filtroEstadoActivo) {
-            return false;
-        }
-
-        return true;
-    });
-
     // Inicializar DataTable
     var table = $('#tablaActividades').DataTable({
         responsive: true,
         language: {
             url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
-            paginate: {
-                first: '«',
-                previous: '‹',
-                next: '›',
-                last: '»'
-            },
-            info: 'Mostrando página _PAGE_ de _PAGES_'
+            paginate: { first: '«', previous: '‹', next: '›', last: '»' },
+            info: 'Mostrando página _PAGE_ de _PAGES_',
+            emptyTable: '<div class="text-center py-4"><div class="text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay actividades registradas</div><a href="<?php echo e(route("admin.crm.actividades.create")); ?>" class="btn btn-primary btn-sm mt-2"><i class="bi bi-plus-circle me-1"></i>Crear primera actividad</a></div>'
         },
         pageLength: 10,
-        order: [[4, 'desc']], // Ordenar por fecha descendente
+        order: [[6, 'desc']], // Ordenar por fecha descendente (col 6)
         columnDefs: [
-            { 
-                targets: 0,
-                orderable: false,
-                searchable: false,
-                render: function (data, type, row, meta) {
-                    return meta.row + 1 + meta.settings._iDisplayStart;
-                }
-            },
-            { orderable: false, targets: [7] }
+            { orderable: false, searchable: false, targets: [0, 9] }
         ],
         dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
              '<"row"<"col-sm-12"tr>>' +
-             '<"row align-items-center"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7 d-flex justify-content-end"p>>'
+             '<"row align-items-center"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7 d-flex justify-content-end"p>>',
+        drawCallback: function(settings) {
+            var api = this.api();
+            api.column(0, { search: 'applied', order: 'applied', page: 'current' }).nodes().each(function(cell, i) {
+                cell.innerHTML = api.page.info().start + i + 1;
+            });
+        }
     });
 
-    // Filtro por período
-    $('#filtroPeriodo').on('change', function() {
-        filtroPeriodoActivo = $(this).val();
-        table.draw();
+    // Filtro por Tipo (columna 2)
+    $('#filtro-tipo').on('change', function() {
+        table.column(2).search($(this).val()).draw();
     });
 
-    // Filtro por tipo
-    $('#filtroTipo').on('change', function() {
-        filtroTipoActivo = $(this).val();
-        table.draw();
+    // Filtro por Estado (columna 8)
+    $('#filtro-estado').on('change', function() {
+        table.column(8).search($(this).val()).draw();
     });
 
-    // Filtro por estado
-    $('#filtroEstado').on('change', function() {
-        filtroEstadoActivo = $(this).val();
-        table.draw();
+    // Filtro por Prioridad (columna 7)
+    $('#filtro-prioridad').on('change', function() {
+        table.column(7).search($(this).val()).draw();
     });
 
     // SweetAlert para eliminar
@@ -459,14 +372,12 @@ $(document).ready(function() {
             text: "¡No podrás revertir esto!",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '¡Sí, eliminar!',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
+            if (result.isConfirmed) { form.submit(); }
         });
     });
 });

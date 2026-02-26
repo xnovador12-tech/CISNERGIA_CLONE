@@ -180,10 +180,9 @@
                     <div class="col-md-3">
                         <label class="form-label small text-muted mb-1">&nbsp;</label>
                         <div class="form-check mt-1">
-                            <input class="form-check-input" type="checkbox" id="incluir-cerradas"
-                                   <?php echo e(request('incluir_cerradas') ? 'checked' : ''); ?>>
-                            <label class="form-check-label small" for="incluir-cerradas">
-                                <i class="bi bi-archive me-1"></i>Incluir Ganadas/Perdidas
+                            <input class="form-check-input" type="checkbox" id="ocultar-cerradas">
+                            <label class="form-check-label small" for="ocultar-cerradas">
+                                <i class="bi bi-eye-slash me-1"></i>Ocultar Ganadas/Perdidas
                             </label>
                         </div>
                     </div>
@@ -296,10 +295,10 @@
 <?php $__env->startSection('js'); ?>
 <script>
     $(document).ready(function() {
-        // ==================== FILTRO INCLUIR CERRADAS (registrar ANTES de inicializar DataTable) ====================
+        // ==================== FILTRO OCULTAR CERRADAS (registrar ANTES de inicializar DataTable) ====================
         $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
             if (settings.nTable.id !== 'tablaOportunidades') return true;
-            if ($('#incluir-cerradas').is(':checked')) return true;
+            if (!$('#ocultar-cerradas').is(':checked')) return true;
             // data[6] = texto de la columna Etapa
             var etapa = (data[6] || '').trim();
             return etapa !== 'Ganada' && etapa !== 'Perdida';
@@ -337,7 +336,7 @@
         $('#filtro-tipo-oportunidad').on('change', function() { table.column(4).search($(this).val()).draw(); });
 
         // Al cambiar el checkbox, redibujar la tabla
-        $('#incluir-cerradas').on('change', function() {
+        $('#ocultar-cerradas').on('change', function() {
             table.draw();
         });
 
@@ -350,8 +349,8 @@
                 text: "¡No podrás revertir esto!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
+                confirmButtonColor: '#1C3146',
+                cancelButtonColor: '#FF9C00',
                 confirmButtonText: '¡Sí, eliminar!',
                 cancelButtonText: 'Cancelar'
             }).then(function(result) {

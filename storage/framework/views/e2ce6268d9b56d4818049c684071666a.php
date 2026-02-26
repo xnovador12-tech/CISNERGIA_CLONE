@@ -55,7 +55,7 @@
 
                             </span>
                         </div>
-                        <a href="<?php echo e(route('admin.crm.oportunidades.edit', ['oportunidad' => $oportunidad, 'redirect_to' => 'show'])); ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Editar</a>
+                        <a href="<?php echo e(route('admin.crm.oportunidades.index')); ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Volver</a>
                     </div>
                     <div class="card-body">
                         <h4 class="fw-bold mb-3"><?php echo e($oportunidad->nombre); ?></h4>
@@ -228,7 +228,7 @@
                             <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
                                 <div>
                                     <span class="badge bg-secondary me-2"><?php echo e($cotizacion->codigo); ?></span>
-                                    <span class="badge bg-<?php echo e($cotizacion->estado == 'aprobada' ? 'success' : ($cotizacion->estado == 'rechazada' ? 'danger' : 'warning')); ?>"><?php echo e(ucfirst($cotizacion->estado)); ?></span>
+                                    <span class="badge bg-<?php echo e($cotizacion->estado == 'aceptada' ? 'success' : ($cotizacion->estado == 'rechazada' ? 'danger' : 'warning')); ?>"><?php echo e(ucfirst($cotizacion->estado)); ?></span>
                                 </div>
                                 <div>
                                     <span class="fw-bold text-primary">S/ <?php echo e(number_format($cotizacion->total, 0)); ?></span>
@@ -253,27 +253,41 @@
                     </div>
                     <div class="card-body">
                         <?php $__empty_1 = true; $__currentLoopData = $oportunidad->actividades ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $actividad): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
-                                <div>
-                                    <?php
-                                        $tipoIcons = [
-                                            'llamada' => 'bi-telephone', 'email' => 'bi-envelope', 'reunion' => 'bi-people',
-                                            'visita_tecnica' => 'bi-geo-alt', 'videollamada' => 'bi-camera-video',
-                                            'whatsapp' => 'bi-whatsapp', 'tarea' => 'bi-check2-square', 'nota' => 'bi-sticky'
-                                        ];
-                                        $estadoColors = [
-                                            'programada' => 'warning', 'en_progreso' => 'info', 'completada' => 'success',
-                                            'cancelada' => 'danger', 'reprogramada' => 'secondary', 'no_realizada' => 'dark'
-                                        ];
-                                    ?>
-                                    <i class="bi <?php echo e($tipoIcons[$actividad->tipo] ?? 'bi-circle'); ?> me-2 text-primary"></i>
-                                    <strong class="small"><?php echo e(Str::limit($actividad->titulo, 35)); ?></strong>
-                                    <span class="badge bg-<?php echo e($estadoColors[$actividad->estado] ?? 'secondary'); ?> ms-1"><?php echo e(ucfirst(str_replace('_', ' ', $actividad->estado))); ?></span>
+                            <div class="border-bottom pb-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <?php
+                                            $tipoIcons = [
+                                                'llamada' => 'bi-telephone', 'email' => 'bi-envelope', 'reunion' => 'bi-people',
+                                                'visita_tecnica' => 'bi-geo-alt', 'whatsapp' => 'bi-whatsapp'
+                                            ];
+                                            $estadoColors = [
+                                                'programada' => 'warning', 'en_progreso' => 'info', 'completada' => 'success',
+                                                'cancelada' => 'danger', 'reprogramada' => 'secondary', 'no_realizada' => 'dark'
+                                            ];
+                                        ?>
+                                        <i class="bi <?php echo e($tipoIcons[$actividad->tipo] ?? 'bi-circle'); ?> me-2 text-primary"></i>
+                                        <strong class="small"><?php echo e(Str::limit($actividad->titulo, 35)); ?></strong>
+                                        <span class="badge bg-<?php echo e($estadoColors[$actividad->estado] ?? 'secondary'); ?> ms-1"><?php echo e(ucfirst(str_replace('_', ' ', $actividad->estado))); ?></span>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted"><?php echo e($actividad->fecha_programada?->format('d/m/Y H:i')); ?></small>
+                                        <a href="<?php echo e(route('admin.crm.actividades.show', $actividad)); ?>" class="btn btn-sm btn-outline-success ms-1"><i class="bi bi-eye"></i></a>
+                                    </div>
                                 </div>
-                                <div class="text-end">
-                                    <small class="text-muted"><?php echo e($actividad->fecha_programada?->format('d/m/Y')); ?></small>
-                                    <a href="<?php echo e(route('admin.crm.actividades.show', $actividad)); ?>" class="btn btn-sm btn-outline-success ms-1"><i class="bi bi-eye"></i></a>
-                                </div>
+                                <?php if($actividad->estado === 'completada' && $actividad->resultado): ?>
+                                    <div class="ms-4 mt-1">
+                                        <a class="text-primary text-decoration-none small" data-bs-toggle="collapse" href="#resultado-<?php echo e($actividad->id); ?>" role="button" aria-expanded="false">
+                                            <i class="bi bi-chat-left-text me-1"></i><?php echo e(Str::limit($actividad->resultado, 80)); ?>
+
+                                        </a>
+                                        <?php if(strlen($actividad->resultado) > 80): ?>
+                                            <div class="collapse mt-1" id="resultado-<?php echo e($actividad->id); ?>">
+                                                <div class="p-2 bg-light rounded small text-muted" style="white-space: pre-line;"><?php echo e($actividad->resultado); ?></div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <p class="text-muted text-center py-3"><i class="bi bi-calendar-x fs-3 d-block mb-2"></i>No hay actividades registradas</p>
@@ -303,14 +317,14 @@
                 </div>
 
                 
-                <?php if(!in_array($oportunidad->etapa, ['ganada', 'perdida'])): ?>
                 <?php
                     $etapas = array_keys(\App\Models\Oportunidad::ETAPAS);
                     $indiceActual = array_search($oportunidad->etapa, $etapas);
                     $siguienteEtapa = ($indiceActual !== false && $indiceActual < count($etapas) - 2)
                         ? \App\Models\Oportunidad::ETAPAS[$etapas[$indiceActual + 1]] : null;
-                    $etapaActualInfo = \App\Models\Oportunidad::ETAPAS[$oportunidad->etapa];
+                    $etapaActualInfo = \App\Models\Oportunidad::ETAPAS[$oportunidad->etapa] ?? ['nombre' => ucfirst($oportunidad->etapa), 'color' => 'secondary'];
                 ?>
+                <?php if(!in_array($oportunidad->etapa, ['ganada', 'perdida'])): ?>
                 <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up" data-aos-delay="200">
                     <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Acciones</h6></div>
                     <div class="card-body">
@@ -337,11 +351,15 @@
                                 </button>
                             </form>
                             <?php endif; ?>
+                            <?php if($oportunidad->etapa === 'negociacion'): ?>
                             <form action="<?php echo e(route('admin.crm.oportunidades.ganada', $oportunidad)); ?>" method="POST" id="form-ganada"><?php echo csrf_field(); ?>
+                                <input type="hidden" name="fecha_cierre_real" id="input-fecha-cierre">
+                                <input type="hidden" name="monto_final" id="input-monto-final">
                                 <button type="button" class="btn btn-outline-success btn-sm w-100 btn-ganada">
                                     <i class="bi bi-trophy me-2"></i>Marcar Ganada
                                 </button>
                             </form>
+                            <?php endif; ?>
                             <form action="<?php echo e(route('admin.crm.oportunidades.perdida', $oportunidad)); ?>" method="POST" id="form-perdida"><?php echo csrf_field(); ?>
                                 <input type="hidden" name="motivo_perdida" id="input-motivo-perdida">
                                 <button type="button" class="btn btn-outline-danger btn-sm w-100 btn-perdida">
@@ -386,6 +404,28 @@
                     </div>
                 </div>
                 <?php endif; ?>
+
+                
+                <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up" data-aos-delay="250">
+                    <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Acciones Rápidas</h6></div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <?php if(!in_array($oportunidad->etapa, ['ganada', 'perdida'])): ?>
+                            <a href="<?php echo e(route('admin.crm.oportunidades.edit', ['oportunidad' => $oportunidad, 'redirect_to' => 'show'])); ?>" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-pencil me-2"></i>Editar Oportunidad
+                            </a>
+                            <?php endif; ?>
+                            <?php if($oportunidad->cotizaciones->count() > 0): ?>
+                            <a href="<?php echo e(route('admin.crm.cotizaciones.show', $oportunidad->cotizaciones->last())); ?>" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-file-text me-2"></i>Ver Última Cotización
+                            </a>
+                            <?php endif; ?>
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalActividad">
+                                <i class="bi bi-calendar-plus me-2"></i>Nueva Actividad
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 
                 <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up" data-aos-delay="300">
@@ -436,10 +476,7 @@
                                     <option value="email">📧 Email</option>
                                     <option value="reunion">👥 Reunión</option>
                                     <option value="visita_tecnica">🏗️ Visita Técnica</option>
-                                    <option value="videollamada">🎥 Videollamada</option>
                                     <option value="whatsapp">💬 WhatsApp</option>
-                                    <option value="tarea">✅ Tarea</option>
-                                    <option value="nota">📝 Nota</option>
                                 </select>
                             </div>
 
@@ -450,7 +487,6 @@
                                     <option value="baja">🟢 Baja</option>
                                     <option value="media" selected>🟡 Media</option>
                                     <option value="alta">🔴 Alta</option>
-                                    <option value="urgente">🚨 Urgente</option>
                                 </select>
                             </div>
 
@@ -512,16 +548,17 @@ $(document).ready(function() {
     });
 
     // ==================== AVANZAR ETAPA ====================
+    <?php if(!in_array($oportunidad->etapa, ['ganada', 'perdida']) && $siguienteEtapa): ?>
     $('.btn-avanzar').on('click', function() {
         Swal.fire({
             title: '¿Avanzar de etapa?',
-            html: `La oportunidad <strong><?php echo e($oportunidad->codigo); ?></strong> pasará de <strong><?php echo e($etapaActualInfo['nombre']); ?></strong> a <strong><?php echo e($siguienteEtapa['nombre'] ?? 'siguiente'); ?></strong>.
-                   <br><br><small class="text-muted">La probabilidad se ajustará a <?php echo e($siguienteEtapa['probabilidad'] ?? '-'); ?>%</small>`,
+            html: `La oportunidad <strong><?php echo e($oportunidad->codigo); ?></strong> pasará de <strong><?php echo e($etapaActualInfo['nombre']); ?></strong> a <strong><?php echo e($siguienteEtapa['nombre']); ?></strong>.
+                   <br><br><small class="text-muted">La probabilidad se ajustará a <?php echo e($siguienteEtapa['probabilidad']); ?>%</small>`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#0d6efd',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="bi bi-arrow-right me-1"></i> Sí, avanzar a <?php echo e($siguienteEtapa['nombre'] ?? 'siguiente'); ?>',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-arrow-right me-1"></i> Sí, avanzar a <?php echo e($siguienteEtapa['nombre']); ?>',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -529,27 +566,65 @@ $(document).ready(function() {
             }
         });
     });
+    <?php endif; ?>
 
     // ==================== MARCAR GANADA ====================
+    <?php if($oportunidad->etapa === 'negociacion'): ?>
+    <?php
+        $cotizacionAceptada = $oportunidad->cotizaciones->where('estado', 'aceptada')->first();
+        $montoDefault = $cotizacionAceptada ? $cotizacionAceptada->total : $oportunidad->monto_estimado;
+    ?>
     $('.btn-ganada').on('click', function() {
         Swal.fire({
             title: '🏆 ¿Marcar como Ganada?',
-            html: `La oportunidad <strong><?php echo e($oportunidad->codigo); ?></strong> se marcará como <strong class="text-success">GANADA</strong> por <strong class="text-primary">S/ <?php echo e(number_format($oportunidad->monto_estimado, 0)); ?></strong>.<br><br>
-                   <small class="text-muted">Se registrará la fecha de cierre real.</small>`,
+            html: `
+                <p class="mb-3">La oportunidad <strong><?php echo e($oportunidad->codigo); ?></strong> se marcará como <strong class="text-success">GANADA</strong>.</p>
+                <div class="text-start">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Fecha de Cierre Real <span class="text-danger">*</span></label>
+                        <input type="date" id="swal-fecha-cierre" class="form-control form-control-sm" value="<?php echo e(now()->format('Y-m-d')); ?>" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Monto Final (S/) <span class="text-danger">*</span></label>
+                        <input type="number" id="swal-monto-final" class="form-control form-control-sm" value="<?php echo e(number_format($montoDefault, 2, '.', '')); ?>" step="0.01" min="0" required>
+                        <?php if($cotizacionAceptada): ?>
+                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Tomado de cotización aceptada <?php echo e($cotizacionAceptada->codigo); ?></small>
+                        <?php else: ?>
+                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Tomado del monto estimado</small>
+                        <?php endif; ?>
+                    </div>
+                </div>`,
             icon: 'success',
             showCancelButton: true,
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-trophy me-1"></i> Sí, marcar Ganada',
-            cancelButtonText: 'Cancelar'
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const fecha = document.getElementById('swal-fecha-cierre').value;
+                const monto = document.getElementById('swal-monto-final').value;
+                if (!fecha) {
+                    Swal.showValidationMessage('Debe ingresar la fecha de cierre');
+                    return false;
+                }
+                if (!monto || parseFloat(monto) <= 0) {
+                    Swal.showValidationMessage('Debe ingresar un monto final válido');
+                    return false;
+                }
+                return { fecha, monto };
+            }
         }).then((result) => {
             if (result.isConfirmed) {
+                $('#input-fecha-cierre').val(result.value.fecha);
+                $('#input-monto-final').val(result.value.monto);
                 $('#form-ganada').submit();
             }
         });
     });
+    <?php endif; ?>
 
     // ==================== MARCAR PERDIDA ====================
+    <?php if(!in_array($oportunidad->etapa, ['ganada', 'perdida'])): ?>
     $('.btn-perdida').on('click', function() {
         Swal.fire({
             title: '¿Marcar como Perdida?',
@@ -565,8 +640,8 @@ $(document).ready(function() {
                 }
             },
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-x-circle me-1"></i> Sí, marcar Perdida',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
@@ -576,6 +651,7 @@ $(document).ready(function() {
             }
         });
     });
+    <?php endif; ?>
 
     // ==================== CONVERTIR A CLIENTE ====================
     $('.btn-convertir').on('click', function() {
@@ -585,8 +661,8 @@ $(document).ready(function() {
                    <small class="text-muted">Se creará un registro de cliente con toda la información del prospecto.</small>`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-person-check me-1"></i> Sí, convertir',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
