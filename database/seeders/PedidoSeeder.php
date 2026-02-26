@@ -106,7 +106,6 @@ class PedidoSeeder extends Seeder
         $pedidoId1 = DB::table('pedidos')->insertGetId([
             'codigo' => 'PED-2024-001',
             'slug' => 'ped-2024-001',
-            'cotizacion_id' => $cotizacionId,
             'cliente_id' => $clienteId,
             'user_id' => $userId,
             'subtotal' => 5000.00,
@@ -118,7 +117,7 @@ class PedidoSeeder extends Seeder
             'direccion_instalacion' => 'Calle Las Begonias 123',
             'fecha_entrega_estimada' => now()->addDays(5),
             'almacen_id' => $almacenId,
-            'origen' => 'manual',
+            'origen' => 'directo',
             'created_at' => now(), 'updated_at' => now()
         ]);
 
@@ -143,7 +142,7 @@ class PedidoSeeder extends Seeder
             'subtotal' => 1500.00,
             'igv' => 270.00,
             'total' => 1770.00,
-            'estado' => 'preparacion',
+            'estado' => 'proceso',
             'aprobacion_finanzas' => true,
             'aprobacion_stock' => true,
             'direccion_instalacion' => 'Av. Javier Prado 4500',

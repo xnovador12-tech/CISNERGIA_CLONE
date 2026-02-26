@@ -87,7 +87,7 @@ class PedidoCrmSeeder extends Seeder
                     'descripcion'    => $detalle->descripcion,
                     'cantidad'       => (int) $cantidad,
                     'precio_unitario' => $precioUnit,
-                    'descuento'      => $descuento,
+                    'descuento_monto' => $descuento,
                     'subtotal'       => $lineTotal,
                 ];
 
@@ -114,7 +114,7 @@ class PedidoCrmSeeder extends Seeder
                 'cliente_id'            => $cliente->id,
                 'user_id'               => $oportunidad->user_id,
                 'subtotal'              => round($baseImponible, 2),
-                'descuento'             => round($descuentoGlobal, 2),
+                'descuento_monto'       => round($descuentoGlobal, 2),
                 'igv'                   => $igv,
                 'total'                 => $total,
                 'estado'                => 'entregado',
@@ -123,9 +123,8 @@ class PedidoCrmSeeder extends Seeder
                 'direccion_instalacion' => $cliente->direccion,
                 'distrito_id'           => $cliente->distrito_id,
                 'fecha_entrega_estimada' => $fechaEntrega,
-                'tecnico_asignado_id'   => $tecnico?->id,
                 'almacen_id'            => $almacen?->id,
-                'origen'                => $cliente->origen === 'ecommerce' ? 'ecommerce' : 'manual',
+                'origen'                => $cliente->origen === 'ecommerce' ? 'ecommerce' : 'directo',
                 'observaciones'         => "Pedido generado desde oportunidad {$oportunidad->codigo}. Cotización: {$cotizacion->codigo}.",
             ]);
 

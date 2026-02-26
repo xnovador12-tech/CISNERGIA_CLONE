@@ -125,6 +125,52 @@ class admin_CrmClientesController extends Controller
     }
 
     /**
+     * Almacenar un nuevo cliente (AJAX)
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'tipo_identificacion' => 'required|in:DNI,RUC,CE,Pasaporte',
+            'documento'           => 'required|string|max:20',
+            'name'                => 'required|string|max:255',
+            'email'               => 'nullable|email|max:255',
+            'telefono'            => 'nullable|string|max:20',
+            'direccion'           => 'nullable|string|max:255',
+        ]);
+
+        $tipoPersona = $request->tipo_identificacion === 'RUC' ? 'juridica' : 'natural';
+        
+        $cliente = new Cliente();
+        $cliente->nombre = $request->name;
+        if ($tipoPersona === 'juridica') {
+            $cliente->razon_social = $request->name;
+            $cliente->ruc = $request->documento;
+        } else {
+            $cliente->dni = $request->documento;
+        }
+        
+        $cliente->email = $request->email;
+        $cliente->telefono = $request->telefono;
+        $cliente->direccion = $request->direccion;
+        $cliente->tipo_persona = $tipoPersona;
+        $cliente->vendedor_id = auth()->id();
+        $cliente->estado = 'activo';
+        $cliente->origen = 'directo'; // Pedido directo (valores permitidos: 'directo', 'ecommerce')
+        $cliente->segmento = 'comercial'; // Valor por defecto para nuevos clientes desde pedidos
+        $cliente->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cliente creado exitosamente',
+            'cliente' => [
+                'id' => $cliente->id,
+                'name' => $cliente->nombre_completo,
+                'documento' => $cliente->documento
+            ]
+        ]);
+    }
+
+    /**
      * Cambiar estado del cliente
      */
     public function cambiarEstado(Request $request, Cliente $cliente)

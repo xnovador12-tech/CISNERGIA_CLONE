@@ -107,10 +107,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $contador = 1; @endphp
+                        @php $contador = $ventas->count(); @endphp
                         @foreach($ventas as $venta)
                         <tr>
-                            <td class="fw-normal text-center align-middle">{{ $contador++ }}</td>
+                            <td class="fw-normal text-center align-middle">{{ $contador-- }}</td>
                             <td class="fw-normal text-center align-middle">
                                 <strong>{{ $venta->codigo }}</strong><br>
                                 <small class="text-muted">{{ $venta->created_at->format('d/m/Y') }}</small>

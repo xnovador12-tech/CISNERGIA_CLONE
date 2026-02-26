@@ -130,6 +130,7 @@ Route::resource('admin-salidas', admin_SalidasController::class);
 Route::resource('admin-inventarios', admin_InventarioController::class);
 
 // VENTAS
+Route::post('admin-clientes', [admin_CrmClientesController::class, 'store'])->name('admin-clientes.store');
 Route::resource('admin-pedidos', admin_PedidosController::class);
 Route::put('/admin-pedidos/estado/{admin_pedido}', [admin_PedidosController::class, 'estado'])->name('admin-pedidos.estado');
 Route::post('/admin-pedidos/aprobar-finanzas/{admin_pedido}', [admin_PedidosController::class, 'aprobarFinanzas'])->name('admin-pedidos.aprobar-finanzas');

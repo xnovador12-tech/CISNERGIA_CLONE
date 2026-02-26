@@ -37,7 +37,7 @@
                                     <select name="cliente_id" class="form-select" required>
                                         @foreach($clientes as $cliente)
                                             <option value="{{ $cliente->id }}" {{ $pedido->cliente_id == $cliente->id ? 'selected' : '' }}>
-                                                {{ $cliente->nombre }} {{ $cliente->apellidos }} - {{ $cliente->ruc ?? $cliente->dni ?? 'Sin documento' }}
+                                                {{ $cliente->nombre_completo }} - {{ $cliente->documento }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -60,18 +60,6 @@
                                     <input type="date" name="fecha_entrega_estimada" class="form-control" value="{{ $pedido->fecha_entrega_estimada ? $pedido->fecha_entrega_estimada->format('Y-m-d') : '' }}">
                                 </div>
 
-                                <div class="col-md-6">
-                                    <label class="form-label">Técnico Asignado</label>
-                                    <select name="tecnico_asignado_id" class="form-select">
-                                        <option value="">Sin asignar</option>
-                                        @foreach($tecnicos as $tecnico)
-                                            <option value="{{ $tecnico->id }}" {{ $pedido->tecnico_asignado_id == $tecnico->id ? 'selected' : '' }}>
-                                                {{ $tecnico->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
                                 <div class="col-md-12">
                                     <label class="form-label">Dirección de Instalación</label>
                                     <input type="text" name="direccion_instalacion" class="form-control" value="{{ $pedido->direccion_instalacion }}">
@@ -83,7 +71,7 @@
                                         <option value="">Seleccione distrito</option>
                                         @foreach($distritos as $distrito)
                                             <option value="{{ $distrito->id }}" {{ $pedido->distrito_id == $distrito->id ? 'selected' : '' }}>
-                                                {{ $distrito->name }}
+                                                {{ $distrito->nombre }}
                                             </option>
                                         @endforeach
                                     </select>

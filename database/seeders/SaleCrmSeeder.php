@@ -114,7 +114,7 @@ class SaleCrmSeeder extends Seeder
                 'tiposcomprobante_id' => $comprobante?->id,
                 'numero_comprobante'  => $numComprobante,
                 'subtotal'            => $pedido->subtotal,
-                'descuento'           => $pedido->descuento,
+                'descuento'           => $pedido->descuento_monto,
                 'igv'                 => $pedido->igv,
                 'total'               => $pedido->total,
                 'mediopago_id'        => $medioPago?->id,
@@ -150,7 +150,7 @@ class SaleCrmSeeder extends Seeder
                     'cantidad'             => $detalle->cantidad,
                     'precio_unitario'      => $detalle->precio_unitario,
                     'descuento_porcentaje' => 0,
-                    'descuento_monto'      => $detalle->descuento ?? 0,
+                    'descuento_monto'      => $detalle->descuento_monto ?? 0,
                     'subtotal'             => $detalle->subtotal,
                     'garantia_años'        => Str::contains(strtolower($detalle->descripcion), 'panel') ? 25
                         : (Str::contains(strtolower($detalle->descripcion), 'inversor') ? 10

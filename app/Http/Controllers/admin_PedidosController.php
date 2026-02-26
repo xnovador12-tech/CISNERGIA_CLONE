@@ -9,6 +9,7 @@ use App\Models\Producto;
 use App\Models\Servicio;
 use App\Models\Almacen;
 use App\Models\Distrito;
+use App\Models\Tipo;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -44,16 +45,14 @@ class admin_PedidosController extends Controller
 
     public function create()
     {
-        $clientes = Cliente::with('vendedor.persona')->get();
-        $productos = Producto::all();
+        $clientes = Cliente::with('vendedor.persona')->orderBy('nombre')->get();
+        $tipos    = Tipo::with('categories')->get();
+        $productos = Producto::with('marca')->get();
         $servicios = Servicio::all();
         $almacenes = Almacen::all();
-        $distritos = Distrito::all();
-        $tecnicos = User::whereHas('role', function($q) {
-            $q->where('name', 'Técnico');
-        })->get();
+        $distritos = Distrito::orderBy('nombre')->get();
         
-        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('clientes', 'productos', 'servicios', 'almacenes', 'distritos', 'tecnicos'));
+        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('clientes', 'tipos', 'productos', 'servicios', 'almacenes', 'distritos'));
     }
 
     public function store(Request $request)
@@ -61,9 +60,9 @@ class admin_PedidosController extends Controller
         $validated = $request->validate([
             'cliente_id' => 'required|exists:clientes,id',
             'fecha_entrega_estimada' => 'nullable|date',
+            'vigencia_dias' => 'required|in:15,30',
             'direccion_instalacion' => 'nullable|string',
             'distrito_id' => 'nullable|exists:distritos,id',
-            'tecnico_asignado_id' => 'nullable|exists:users,id',
             'almacen_id' => 'nullable|exists:almacenes,id',
             'observaciones' => 'nullable|string',
         ]);
@@ -79,7 +78,9 @@ class admin_PedidosController extends Controller
         $pedido->cliente_id = $request->cliente_id;
         $pedido->user_id = auth()->id();
         $pedido->subtotal = $request->subtotal ?? 0;
-        $pedido->descuento = $request->descuento ?? 0;
+        $pedido->descuento_porcentaje = $request->descuento_porcentaje ?? 0;
+        $pedido->descuento_monto = $request->descuento_monto ?? 0;
+        $pedido->incluye_igv = $request->boolean('incluye_igv');
         $pedido->igv = $request->igv ?? 0;
         $pedido->total = $request->total ?? 0;
         $pedido->estado = 'pendiente';
@@ -88,10 +89,10 @@ class admin_PedidosController extends Controller
         $pedido->direccion_instalacion = $request->direccion_instalacion;
         $pedido->distrito_id = $request->distrito_id;
         $pedido->fecha_entrega_estimada = $request->fecha_entrega_estimada;
-        $pedido->tecnico_asignado_id = $request->tecnico_asignado_id;
+        $pedido->vigencia_dias = $request->vigencia_dias ?? 15;
         $pedido->almacen_id = $request->almacen_id;
         $pedido->observaciones = $request->observaciones;
-        $pedido->origen = 'manual';
+        $pedido->origen = 'directo';
         $pedido->save();
 
         // Guardar detalles del pedido y Reservar Stock Automáticamente
@@ -106,8 +107,10 @@ class admin_PedidosController extends Controller
                     'tipo' => $detalleData['tipo'] ?? 'producto',
                     'descripcion' => $detalleData['descripcion'],
                     'cantidad' => $detalleData['cantidad'],
+                    'unidad' => $detalleData['unidad'] ?? 'und',
                     'precio_unitario' => $detalleData['precio_unitario'],
-                    'descuento' => $detalleData['descuento'] ?? 0,
+                    'descuento_porcentaje' => $detalleData['descuento_porcentaje'] ?? 0,
+                    'descuento_monto' => $detalleData['descuento_monto'] ?? 0,
                     'subtotal' => $detalleData['subtotal'],
                 ]);
 
@@ -153,23 +156,21 @@ class admin_PedidosController extends Controller
 
     public function show(Pedido $admin_pedido)
     {
-        $pedido = $admin_pedido->load(['cliente', 'usuario', 'tecnico', 'distrito', 'almacen', 'detalles.producto', 'detalles.servicio']);
+        $pedido = $admin_pedido->load(['cliente', 'usuario', 'distrito', 'almacen', 'detalles.producto', 'detalles.servicio']);
         return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.show', compact('pedido'));
     }
 
     public function edit(Pedido $admin_pedido)
     {
         $pedido = $admin_pedido->load('detalles');
-        $clientes = Cliente::all();
-        $productos = Producto::all();
+        $clientes = Cliente::orderBy('nombre')->get();
+        $tipos    = Tipo::with('categories')->get();
+        $productos = Producto::with('marca')->get();
         $servicios = Servicio::all();
         $almacenes = Almacen::all();
-        $distritos = Distrito::all();
-        $tecnicos = User::whereHas('role', function($q) {
-            $q->where('name', 'Técnico');
-        })->get();
+        $distritos = Distrito::orderBy('nombre')->get();
         
-        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('pedido', 'clientes', 'productos', 'servicios', 'almacenes', 'distritos', 'tecnicos'));
+        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('pedido', 'clientes', 'tipos', 'productos', 'servicios', 'almacenes', 'distritos'));
     }
 
     public function update(Request $request, Pedido $admin_pedido)
@@ -178,13 +179,14 @@ class admin_PedidosController extends Controller
             'cliente_id' => 'required|exists:clientes,id',
             'estado' => 'required|in:pendiente,proceso,entregado,cancelado',
             'fecha_entrega_estimada' => 'nullable|date',
+            'vigencia_dias' => 'required|in:15,30',
             'direccion_instalacion' => 'nullable|string',
             'distrito_id' => 'nullable|exists:distritos,id',
-            'tecnico_asignado_id' => 'nullable|exists:users,id',
             'almacen_id' => 'nullable|exists:almacenes,id',
             'observaciones' => 'nullable|string',
             'subtotal' => 'nullable|numeric',
-            'descuento' => 'nullable|numeric',
+            'descuento_porcentaje' => 'nullable|numeric',
+            'descuento_monto' => 'nullable|numeric',
             'igv' => 'nullable|numeric',
             'total' => 'nullable|numeric',
         ]);
@@ -221,8 +223,10 @@ class admin_PedidosController extends Controller
                     'tipo' => $detalleData['tipo'] ?? 'producto',
                     'descripcion' => $detalleData['descripcion'],
                     'cantidad' => $detalleData['cantidad'],
+                    'unidad' => $detalleData['unidad'] ?? 'und',
                     'precio_unitario' => $detalleData['precio_unitario'],
-                    'descuento' => $detalleData['descuento'] ?? 0,
+                    'descuento_porcentaje' => $detalleData['descuento_porcentaje'] ?? 0,
+                    'descuento_monto' => $detalleData['descuento_monto'] ?? 0,
                     'subtotal' => $detalleData['subtotal'],
                 ]);
 
@@ -433,6 +437,36 @@ class admin_PedidosController extends Controller
             'numero_comprobante' => 'nullable|string',
         ]);
 
+        // Generar número de comprobante automáticamente si no se proporciona
+        $numeroComprobante = $validated['numero_comprobante'];
+        
+        if (empty($numeroComprobante)) {
+            $tipoComprobante = \App\Models\Tiposcomprobante::find($validated['tiposcomprobante_id']);
+            
+            // Determinar prefijo según tipo de comprobante
+            $prefijo = match(strtolower($tipoComprobante->name)) {
+                'factura' => 'F001',
+                'boleta', 'boleta de venta' => 'B001',
+                'nota de crédito' => 'NC01',
+                'nota de débito' => 'ND01',
+                'guía de remisión' => 'GR01',
+                default => 'T001'
+            };
+
+            // Buscar el último comprobante con este prefijo
+            $ultimoComprobante = \App\Models\Sale::where('numero_comprobante', 'like', $prefijo . '%')
+                ->orderBy('numero_comprobante', 'desc')
+                ->first();
+
+            if ($ultimoComprobante && preg_match('/-(\d+)$/', $ultimoComprobante->numero_comprobante, $matches)) {
+                $siguienteNumero = intval($matches[1]) + 1;
+            } else {
+                $siguienteNumero = 1;
+            }
+
+            $numeroComprobante = $prefijo . '-' . str_pad($siguienteNumero, 8, '0', STR_PAD_LEFT);
+        }
+
         // Generar código único para la venta
         $ultimaVenta = \App\Models\Sale::latest('id')->first();
         $numero = $ultimaVenta ? $ultimaVenta->id + 1 : 1;
@@ -445,9 +479,9 @@ class admin_PedidosController extends Controller
             'pedido_id' => $admin_pedido->id,
             'cliente_id' => $admin_pedido->cliente_id,
             'tiposcomprobante_id' => $validated['tiposcomprobante_id'],
-            'numero_comprobante' => $validated['numero_comprobante'],
+            'numero_comprobante' => $numeroComprobante,
             'subtotal' => $admin_pedido->subtotal,
-            'descuento' => $admin_pedido->descuento,
+            'descuento' => $admin_pedido->descuento_monto,
             'igv' => $admin_pedido->igv,
             'total' => $admin_pedido->total,
             'mediopago_id' => $validated['mediopago_id'],
@@ -468,8 +502,8 @@ class admin_PedidosController extends Controller
                 'descripcion' => $detalle->descripcion,
                 'cantidad' => $detalle->cantidad,
                 'precio_unitario' => $detalle->precio_unitario,
-                'descuento_porcentaje' => 0,
-                'descuento_monto' => $detalle->descuento ?? 0,
+                'descuento_porcentaje' => $detalle->descuento_porcentaje ?? 0,
+                'descuento_monto' => $detalle->descuento_monto ?? 0,
                 'subtotal' => $detalle->subtotal,
             ]);
         }
@@ -502,7 +536,7 @@ class admin_PedidosController extends Controller
             'cliente_id' => $venta->cliente_id,
             'user_id' => $venta->user_id,
             'subtotal' => $venta->subtotal,
-            'descuento' => $venta->descuento,
+            'descuento_monto' => $venta->descuento,
             'igv' => $venta->igv,
             'total' => $venta->total,
             'estado' => 'confirmado',              // Ya pagado online
@@ -522,8 +556,10 @@ class admin_PedidosController extends Controller
                 'tipo' => $detalle->tipo ?? 'producto',
                 'descripcion' => $detalle->descripcion,
                 'cantidad' => $detalle->cantidad,
+                'unidad' => $detalle->unidad ?? 'und',
                 'precio_unitario' => $detalle->precio_unitario,
-                'descuento' => $detalle->descuento_monto ?? 0,
+                'descuento_porcentaje' => $detalle->descuento_porcentaje ?? 0,
+                'descuento_monto' => $detalle->descuento_monto ?? 0,
                 'subtotal' => $detalle->subtotal,
             ]);
         }
