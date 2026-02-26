@@ -18,15 +18,18 @@ class DetallePedido extends Model
         'tipo',
         'descripcion',
         'cantidad',
+        'unidad',
         'precio_unitario',
-        'descuento',
+        'descuento_porcentaje',
+        'descuento_monto',
         'subtotal'
     ];
 
     protected $casts = [
-        'cantidad' => 'integer',
+        'cantidad' => 'decimal:2',
         'precio_unitario' => 'decimal:2',
-        'descuento' => 'decimal:2',
+        'descuento_porcentaje' => 'decimal:2',
+        'descuento_monto' => 'decimal:2',
         'subtotal' => 'decimal:2',
     ];
 

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Migración unificada: sales + detail_sales
      */
     public function up(): void
     {
@@ -15,20 +15,26 @@ return new class extends Migration
             $table->id();
             $table->string('codigo')->unique();
             $table->string('slug')->unique();
+
+            // Relaciones principales
             $table->foreignId('pedido_id')->nullable()->constrained('pedidos')->onDelete('set null');
             $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('tiposcomprobante_id')->nullable()->constrained('tiposcomprobantes')->onDelete('set null');
             $table->string('numero_comprobante')->nullable();
+
+            // Montos
             $table->decimal('subtotal', 11, 2)->default(0);
             $table->decimal('descuento', 11, 2)->default(0);
             $table->decimal('igv', 11, 2)->default(0);
             $table->decimal('total', 11, 2)->default(0);
+
+            // Pago y estado
             $table->foreignId('mediopago_id')->nullable()->constrained('mediopagos')->onDelete('set null');
             $table->enum('estado', ['completada', 'parcial', 'anulada'])->default('completada');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('sede_id')->nullable()->constrained('sedes')->onDelete('set null');
             $table->enum('tipo_venta', ['pos', 'pedido', 'ecommerce'])->default('pos');
-            
+
             // Campos específicos para proyectos energéticos
             $table->string('tipo_proyecto')->nullable(); // residencial, comercial, industrial, agricola
             $table->decimal('potencia_kw', 11, 2)->nullable(); // Potencia total del sistema instalado
@@ -39,8 +45,30 @@ return new class extends Migration
             $table->string('entidad_financiera')->nullable();
             $table->decimal('consumo_mensual_kwh', 11, 2)->nullable(); // Consumo actual del cliente
             $table->string('numero_proyecto')->nullable(); // Código interno del proyecto
-            
+
             $table->text('observaciones')->nullable();
+
+            $table->timestamps();
+        });
+
+        Schema::create('detail_sales', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('sale_id')->constrained('sales')->onDelete('cascade');
+
+            // Producto o servicio
+            $table->foreignId('producto_id')->nullable()->constrained('productos')->onDelete('cascade');
+            $table->foreignId('servicio_id')->nullable()->constrained('servicios')->onDelete('cascade');
+            $table->string('tipo')->default('producto'); // producto, servicio, kit
+            $table->string('descripcion');
+
+            // Cantidades y precios
+            $table->decimal('cantidad', 11, 2)->default(1);
+            $table->decimal('precio_unitario', 11, 2)->default(0);
+            $table->decimal('descuento_porcentaje', 5, 2)->default(0);
+            $table->decimal('descuento_monto', 11, 2)->default(0);
+            $table->decimal('subtotal', 11, 2)->default(0);
+            $table->integer('garantia_años')->nullable(); // Garantía específica del item
+
             $table->timestamps();
         });
     }
@@ -50,6 +78,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('detail_sales');
         Schema::dropIfExists('sales');
     }
 };
