@@ -3,7 +3,7 @@
 @section('title', 'CATEGORIAS')
 
 @section('css')
-
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 @endsection
  
 @section('content')
@@ -109,6 +109,7 @@
 @endsection
 
 @section('js')
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!--sweet alert agregar-->
     @if(session('new_registration') == 'ok')
     <script>
@@ -212,5 +213,39 @@
             }, false)
             })
         })()
+    </script>
+
+    <script>
+        var contador_dx = 1;
+        $('#btnasignar_subc').click(function() {
+            valor_cat_p = $('#name_id').val();
+            valor_sub_s = $('#sub_categoria_id').val();
+
+            if (valor_cat_p != "" && valor_sub_s != "") {
+
+                var $divs = $(".contador_divs_receta").toArray().length;
+                var fila = '<tr class="selected contador_divs_receta" id="filamp' + contador_dx +
+                            '"><td class="align-middle fw-normal"><input type="text" hidden class="form-control form-control-sm" name="contadores[]" value="' + contador_dx +
+                            '">' + contador_dx + '</td><td class="align-middle fw-normal"><input type="text" class="form-control form-control-sm" name="valor_sub_s[]" value="' + valor_sub_s +
+                            '"></td><td class="align-middle"><button type="button" class="bg-transparent border-0 text-danger" onclick="eliminardtr(' +
+                    contador_dx +');"><i class="bi bi-trash"></i></button></td></tr>';
+
+                    contador_dx++;
+
+                    $('#sub_categoria_id').val("");
+
+                    $('#dt_sbcate').append(fila);
+
+
+            }
+        });
+        
+        function eliminardtr(indexmp) {
+            var contando_card = indexmp;
+            $("#filamp" + indexmp).remove();
+            var nuevo_cont_card = contando_card-1;
+            $('#acomulador_card').val(nuevo_cont_card);
+            
+        };
     </script>
 @endsection

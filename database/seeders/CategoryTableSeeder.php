@@ -13,12 +13,19 @@ class CategoryTableSeeder extends Seeder
     public function run(): void
     {
         $categorias = [
-            'Kits' => ['Monocristalinos', 'Policristalinos', 'Híbridos', 'Templado'],
-            'Panel Solar' => ['Monocristalino PERC', 'Monocristalino TOPCon', 'Bifacial'],
-            'Inversor' => ['On-Grid (String)', 'Híbrido', 'Microinversor', 'Off-Grid'],
-            'Batería' => ['Litio LFP', 'Litio NMC', 'Plomo-Ácido'],
-            'Estructura' => ['Techo Inclinado', 'Techo Plano', 'Piso/Suelo'],
-            'Cable y Conector' => ['Cable Solar', 'Conector MC4', 'Protección Eléctrica'],
+            'Kit Solares' => ['Kit Solares de Aislada', 'Kit Solares Conectados a Red', 'Kit Solares Hibridos', 'Kit Bombeo Agua Solar'],
+            'Paneles Solares' => ['Paneles Solares 12V', 'Paneles Solares 24V', 'Paneles Solares 48V', 'Paneles Solares Voltaje Medio (60V - 600V)', 'Paneles Solares Voltaje Medio (1000V - 1500V)', 'Paneles Solares Portátiles','Paneles Solares Flexibles','Accesorios de Paneles Solares'],
+            'Soportes Paneles Solares' => ['Soportes Cubierta Metálica', 'Soportes Pared o Fachada', 'Soportes Suelo', 'Soporte Elevado', 'Accesorios para Soporte'],
+            'Baterías' => ['Baterías Plomo Acido Abierto', 'Baterías AGM', 'Baterías de GEL', 'Baterias Estacionarias','Baterías de Litio','Accesorios de Baterías'],
+            'Inversores Solares' => ['Inversores 12V', 'Inversores 24V', 'Inversores 48V', 'Inversores Cargadores','Inversores Hibridos','Inversores Interconexion','Microinversor Solar','Convertidor de Corriente','Vatimetro','Accesorios de Inversores'],
+            'Controladores de Carga ' => ['Controladores de Carga PWM', 'Controladores de Carga MPPT', 'Accesorios'],
+            'Cargador de Baterías' => ['Cargador de Baterías 12V', 'Cargador de Baterías 24V'],
+            'Iluminación Solar' => ['Luminarias Solares'],
+            'Accesorios Eléctricos' => ['Enchufes', 'Tomacorriente Schuko', 'Aisladores Eléctricos', 'Cajas de Paso', 'Base Galvanizada', 'Rejillas de Ventilación', 'Canalizaciones', 'Repartidores de Corriente', 'Material Eléctrico','Materiales para Pozo a Tierra','Terminales Eléctricos'],
+            'Cables' => ['Cable Vulcanizado', 'Cable Unipolar', 'Cable Mellizo','Cable a Tierra','Cable Unifilar','Cable de Datos'],
+            'Protecciones Eléctricas' => ['Termomagnéticos', 'Interruptores Diferenciales', 'Fusibles','Portafusibles','Protector de Sobretensiones','Transformadores Electricos'],
+            'Tableros Eléctricos' => ['Tableros Adosables', 'Tableros Autosoportados', 'Kits de Material Eléctrico'],
+            'Automatización y Control' => ['Conmutadores de Transferencia', 'Contactores', 'Relés Encapsulados','Temporrizador On Delay','Pulsadores Eléctricos']
         ];
 
         foreach ($categorias as $tipoName => $cats) {

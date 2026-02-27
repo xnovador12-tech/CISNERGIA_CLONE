@@ -11,15 +11,21 @@ class TipoTableSeeder extends Seeder
     public function run()
     {
         $tipos = [
-            'Accesorios',
-            'Repuestos',
-            'Kits',
-            'Modulo Solar',
-            'Panel Solar',
-            'Inversor',
-            'Batería',
-            'Estructura',
-            'Cable y Conector',
+            'Kit Solares',
+            'Paneles Solares ',
+            'Soportes Paneles Solares',
+            'Baterías',
+            'Inversores Solares',
+            'Controladores de Carga ',
+            'Cargador de Baterías',
+            'Iluminación Solar',
+            'Accesorios Eléctricos',
+            'Cables',
+            'Protecciones Eléctricas',
+            'Tableros Eléctricos',
+            'Automatización y Control',
+            'Scooters Eléctricos',
+            'Motos Eléctricas'
         ];
 
         foreach ($tipos as $nombre) {

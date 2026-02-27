@@ -38,6 +38,20 @@ class admin_CategoriasController extends Controller
         $categoria->slug = Str::slug($request->input('name'));
         $categoria->tipo_id = $request->input('tipo_id');
         $categoria->save();
+
+        $contadores = $request->input('contadores');
+        
+        if(isset($contadores)){
+            foreach ($contadores as $key => $name) {
+                $admin_diag_s = new Subcategoy();
+                $admin_diag_s->slug = Str::slug($request->input('valor_sub_s')[$key]);
+                $admin_diag_s->name = $request->input('valor_sub_s')[$key];
+                $admin_diag_s->category_id = $categoria->id;
+                $admin_diag_s->estado = 'Activo';
+                $admin_diag_s->save();
+            }
+        }
+
         return redirect()->route('admin-categorias.index')->with('new_registration', 'ok');
     }
 
