@@ -35,7 +35,7 @@ class admin_ProveedoresController extends Controller
         $tiposdocumento = Identificacion::all();
         $tipos = Tipo::all();
         $ubigeos = DB::table('departamentos as dep')
-            ->select('dep.id as departamento_ids', 'dep.name as departamento_name')
+            ->select('dep.id as departamento_ids', 'dep.nombre as departamento_name')
             ->get();
         return view('ADMINISTRADOR.PRINCIPAL.configuraciones.proveedores.create', compact('tiposcuentas', 'bancos', 'tiposdocumento', 'tipos', 'ubigeos'));
     }

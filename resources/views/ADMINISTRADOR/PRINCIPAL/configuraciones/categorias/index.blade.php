@@ -78,7 +78,7 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow">                                                
                                             <li>
-                                                <button class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#editcategorias{{ $admin_categoria->slug }}"><i class="bi bi-pencil text-secondary me-2"></i>Editar</button>
+                                                <button class="dropdown-item d-flex align-items-center btn-edit-categoria" data-bs-toggle="modal" data-bs-target="#editcategorias{{ $admin_categoria->slug }}" data-slug="{{ $admin_categoria->slug }}"><i class="bi bi-pencil text-secondary me-2"></i>Editar</button>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
@@ -217,6 +217,53 @@
 
     <script>
         var contador_dx = 1;
+
+        $(document).on('click', '.btn-edit-categoria', function () {
+            const categoria = $(this).data('slug');
+            // Función para agregar sub-categorias a la tabla automaticamente
+            $.get('/detalle_subcategorias', {categoria_name:categoria}, function(subcat){
+                $('#dt_sbcate'+categoria).append("");
+                $.each(subcat, function(index, value){
+                    var $divs = $(".contador_divs_receta").toArray().length;
+                    var fila = '<tr class="selected contador_divs_receta" id="filamp' + contador_dx +
+                                '"><td class="align-middle fw-normal"><input type="text" hidden class="form-control form-control-sm" name="contadores[]" value="' + contador_dx +
+                                '">' + contador_dx + '</td><td class="align-middle fw-normal"><input type="text" class="form-control form-control-sm" name="valor_sub_s[]" value="' + value[0] +
+                                '"></td><td class="align-middle"><button type="button" class="bg-transparent border-0 text-danger" onclick="eliminardtr(' +
+                        contador_dx +');"><i class="bi bi-trash"></i></button></td></tr>';
+
+                        contador_dx++;
+
+                        $('#sub_categoria_id'+categoria).val("");
+
+                        $('#dt_sbcate'+categoria).append(fila);
+                });
+            });
+
+            $('#btnasignar_subc'+categoria).click(function() {
+                valor_cat_p = $('#name_id'+categoria).val();
+                valor_sub_s = $('#sub_categoria_id'+categoria).val();
+                console.log(valor_cat_p, valor_sub_s);
+                if (valor_cat_p != "" && valor_sub_s != "") {
+
+                    var $divs = $(".contador_divs_receta").toArray().length;
+                    var fila = '<tr class="selected contador_divs_receta" id="filamp' + contador_dx +
+                                '"><td class="align-middle fw-normal"><input type="text" hidden class="form-control form-control-sm" name="contadores[]" value="' + contador_dx +
+                                '">' + contador_dx + '</td><td class="align-middle fw-normal"><input type="text" class="form-control form-control-sm" name="valor_sub_s[]" value="' + valor_sub_s +
+                                '"></td><td class="align-middle"><button type="button" class="bg-transparent border-0 text-danger" onclick="eliminardtr(' +
+                        contador_dx +');"><i class="bi bi-trash"></i></button></td></tr>';
+
+                        contador_dx++;
+
+                        $('#sub_categoria_id'+categoria).val("");
+
+                        $('#dt_sbcate'+categoria).append(fila);
+
+
+                }
+            });
+        });  
+
+        // fin de funcion agregar sub-categorias a la tabla automaticamente
         $('#btnasignar_subc').click(function() {
             valor_cat_p = $('#name_id').val();
             valor_sub_s = $('#sub_categoria_id').val();

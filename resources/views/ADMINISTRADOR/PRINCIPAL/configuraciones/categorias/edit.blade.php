@@ -23,7 +23,7 @@
                         <div class="col-12 col-md-12 col-lg-12">
                             <div class="mb-3">
                                 <label for="name_id">Nombre<span class="text-danger">*</span></label>
-                                <input type="text" name="name" id="name_id" class="form-control" value="{{ $admin_categoria->name }}"  maxLength="100" required>
+                                <input type="text" name="name" id="name_id{{ $admin_categoria->slug }}" value="{{ $admin_categoria->name }}" class="form-control form-control-sm" value="{{ old('name') }}"  maxLength="100" required>
                                 @error('name')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
@@ -33,29 +33,40 @@
                             </div>
                             <div class="mb-3">
                                 <label for="tipos_id" class=" d-block">Tipos<span class="text-danger">*</span></label>
-                                <select class="form-select select2 @error('tipo_id') is-invalid @enderror" name="tipo_id" id="tipos_id" required>
-                                    <option value="{{ $admin_categoria->tipo_id }}" selected="selected" hidden="hidden">{{ $admin_categoria->tipo->name }}</option>
+                                <select class="form-select form-select-sm select2 @error('tipo_id') is-invalid @enderror" name="tipo_id" id="tipos_id" required>
+                                    <option value="{{ old('tipo_id') }}" selected="selected" hidden="hidden">{{ old('tipo_id') }}</option>
                                     @foreach($tipos as $tipo) 
-                                    <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
+                                    <option @if($admin_categoria->tipo_id == $tipo->id) selected @endif value="{{ $tipo->id }}">{{ $tipo->name }}</option>
                                     @endforeach
                                 </select>
                                 @error('tipo_id')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror    
                             </div>
-                            <div class="mb-3">
-                                <label for="estado_id">Estado<span class="text-danger">*</span></label>
-                                <select name="estado" id="estado_id" class="form-select text-uppercase" required>
-                                    <option value="{{ $admin_categoria->estado }}" selected="selected" hidden="hidden">{{ $admin_categoria->estado }}</option>
-                                    <option value="Activo">ACTIVO</option>
-                                    <option value="Inactivo">INACTIVO</option>
-                                </select>
-                                @error('estado')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                                <div class="invalid-feedback">
-                                    El campo no puede estar vacío
+                            <p class="fw-bold text-uppercase small text-secondary mb-1" style="font-size: 14px">Sub - Categorias</p>
+                            <div class="row g-2">
+                                <div class="col-6 col-md-7 col-lg-8 col-xl-8">
+                                    <label for="sub_categoria_id">Sub Categoria</label>
+                                    <input type="text" id="sub_categoria_id{{ $admin_categoria->slug }}" class="form-control form-control-sm">
                                 </div>
+                                <div class="col-12 col-md-4 col-lg-4 col-xl-4 d-flex align-items-end">
+                                    <button type="button" id="btnasignar_subc{{ $admin_categoria->slug }}" class="btn btn-grey btn-sm w-100 py-1 px-2">
+                                        <i class="bi bi-plus-circle"></i> Agregar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive mt-3" style="min-height: 150px">
+                                <table class="table table-sm table-hover w-100">
+                                    <thead>
+                                        <tr>
+                                            <th class="bg-primary text-white align-middle fw-bold text-uppercase small text-center" style="width: 5%">N°</th>
+                                            <th class="bg-primary text-white align-middle fw-bold text-uppercase small text-center" style="width: 30%">Descripción</th>
+                                            <th class="bg-primary text-white align-middle fw-bold text-uppercase small text-center" style="width: 5%"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dt_sbcate{{ $admin_categoria->slug }}" class="text-center">
+                                    </tbody>
+                                </table>
                             </div>
                         </div>    
                     </div>                           

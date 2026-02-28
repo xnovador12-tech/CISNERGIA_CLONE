@@ -72,6 +72,8 @@ Route::resource('admin-tipos', admin_TiposController::class);
 Route::put('/admin-tipos/estado/{admin_tipo}', [admin_TiposController::class, 'estado']);
 Route::resource('admin-categorias', admin_CategoriasController::class);
 Route::put('/admin-categorias/estado/{admin_categoria}', [admin_CategoriasController::class, 'estado']);
+Route::get('/detalle_subcategorias', [admin_CategoriasController::class, 'getDetalleSubcategorias']);
+
 Route::resource('admin-marcas', admin_MarcasController::class);
 Route::put('/admin-marcas/estado/{admin_marca}', [admin_MarcasController::class, 'estado']);
 Route::resource('admin-etiquetas', admin_EtiquetasController::class);

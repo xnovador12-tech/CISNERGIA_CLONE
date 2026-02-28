@@ -77,11 +77,10 @@
                                         <label for="giro_id" class="">Giro<span class="text-danger">*</span></label>
                                         <select class="form-select form-select-sm @error('giro') is-invalid @enderror" required name="giro" id="giro_id" >
                                             <option value="{{ old('giro') }}" selected="selected" hidden="hidden">{{ old('giro') }}</option>
-                                            <option value="GENERAL">GENERAL</option>
-                                            <option value="Agropecuario">Agropecuario</option>
-                                            <option value="Comercio">Comercio</option>
-                                            <option value="Produccion">Produccion</option>
-                                            <option value="Servicio">Servicio</option>
+                                            <option value="Fabricante">Fabricante</option>
+                                            <option value="Importador">Importador</option>
+                                            <option value="Distribuidor">Distribuidor</option>
+                                            <option value="Otro">Otro</option>
                                         </select>
                                         @error('giro')
                                             <small class="text-danger">{{ $message }}</small>

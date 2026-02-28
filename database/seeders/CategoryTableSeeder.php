@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Subcategory;
 use App\Models\Tipo;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -44,5 +45,40 @@ class CategoryTableSeeder extends Seeder
                 );
             }
         }
+
+        $subcategorias = [
+            "Baterías AGM" => ["Baterías AGM 6V", "Baterías AGM 12V"],
+            "Baterías de GEL" => ["Baterías de GEL 6V", "Baterías de GEL 12V"],
+            "Baterías de Litio" => ["Baterías de Litio 12V", "Baterías de Litio 24V", "Baterías de Litio 48V"],
+            "Accesorios de Baterías" => ["Cables para Baterías", "Gabinetes de Piso"],
+            "Inversores Cargadores" => ["Inversores Cargadores 12V", "Inversores Cargadores 24V", "Inversores Cargadores 48V"],
+            "Inversores Hibridos" => ["Inversores Hibridos Monofasicos", "Inversores Hibridos Trifasicos"],
+            "Inversores Interconexion" => ["Inversores Interconexion Monofasicos", "Inversores Interconexion Trifasicos"],
+            "Convertidor de Corriente" => ["Convertidor de Corriente 12V a 24V", "Convertidor de Corriente 24V a 12V", "Convertidor de Corriente 24V a 24V","Convertidor de Corriente 24V a 48V", "Convertidor de Corriente 48V a 12V"],
+            "Aisladores Eléctricos" => ["Aislador Portabarra"],
+            "Cajas de Paso" => ["Caja Estanca de Paso"],
+            "Canalizaciones" => ["Canaleta para Cable", "Bandeja para Cable"],
+            "Repartidores de Corriente" => ["Busbar", "Bornera Repartidora", "Pletina de Cobre"],
+            "Cables" => ["Cable Vulcanizado", "Cable Unipolar", "Cable Mellizo","Cable a Tierra","Cable Unifilar","Cable de Datos"],
+            "Proteciones Eléctricas" => ["Termomagnéticos AC", "Termomagnéticos DC", "Llaves de Fuerza"],
+            "Pulsadores Eléctricos" => ["Pulsadores de Emergencia", "Pulsadores NC"],
+            ];
+            
+            foreach ($subcategorias as $tipoName => $subt) {
+                $categ = Category::where('name', $tipoName)->first();
+                if (!$categ) continue;
+
+                foreach ($subt as $subName) {
+                    Subcategory::updateOrCreate(
+                        ['slug' => Str::slug($subName)],
+                        [
+                            'name' => $subName,
+                            'slug' => Str::slug($subName),
+                            'estado' => 'Activo',
+                            'category_id' => $categ->id,
+                        ]
+                    );
+                }
+            }
     }
 }
