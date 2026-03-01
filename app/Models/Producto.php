@@ -14,6 +14,7 @@ class Producto extends Model
         'slug',
         'name',
         'marca_id',
+        'modelo_id',
         'imagen',
         'descripcion',
         'tipo_material',
@@ -54,6 +55,11 @@ class Producto extends Model
     public function marca()
     {
         return $this->belongsTo(Marca::class);
+    }
+
+    public function modelo()
+    {
+        return $this->belongsTo(Modelo::class);
     }
 
     public function tag()

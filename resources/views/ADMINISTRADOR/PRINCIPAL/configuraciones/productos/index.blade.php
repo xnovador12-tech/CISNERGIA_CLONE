@@ -49,16 +49,17 @@
                     <span class="text-uppercase">Total de registros encontrados: <span
                             class="fw-bold">{{ $admin_productos->count() }}</span></span>
                 </div>
-                <table id="display" class="table table-hover align-middle nowrap" cellspacing="0" style="width:100%">
+                <table id="display" class="table table-hover align-middle nowrap text-center" cellspacing="0" style="width:100%">
                     <thead class="bg-dark text-white border-0">
                         <tr>
                             <th class="h6 small text-center text-uppercase fw-bold">N°</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Código</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Nombre</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Precio</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Categoría</th>
-                            <th class="h6 small text-center text-uppercase fw-bold">Medida</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Modelo</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Marca</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Tipo</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Categoría</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Precio</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Estado</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
@@ -72,14 +73,14 @@
                                 <td class="fw-normal text-center align-middle">{{ $contador }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_producto->codigo }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_producto->name }}</td>
-                                <td class="fw-normal text-center align-middle">S/
-                                    {{ number_format($admin_producto->precio, 2) }}</td>
+                                <td class="fw-normal text-center align-middle">{{ $admin_producto->modelo->nombre ?? '-' }}</td>
+                                <td class="fw-normal text-center align-middle">{{ $admin_producto->marca->name ?? '-' }}</td>
+                                <td class="fw-normal text-center align-middle">{{ $admin_producto->tipo->name ?? '-' }}</td>
                                 <td class="fw-normal text-center align-middle">
                                     {{ $admin_producto->categorie->name ?? '-' }}
                                 </td>
-                                <td class="fw-normal text-center align-middle">{{ $admin_producto->medida->nombre ?? '-' }}
-                                <td class="fw-normal text-center align-middle">{{ $admin_producto->marca->name ?? '-' }}
-                                </td>
+                                <td class="fw-normal text-center align-middle">S/
+                                    {{ number_format($admin_producto->precio, 2) }}</td>
                                 <td class="fw-normal align-middle text-center">
                                     <form method="POST" action="/admin-productos/estado/{{ $admin_producto->slug }}"
                                         class="form-update">

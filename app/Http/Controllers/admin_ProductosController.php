@@ -8,6 +8,7 @@ use App\Models\Etiqueta;
 use App\Models\Inventario;
 use App\Models\Marca;
 use App\Models\Medida;
+use App\Models\Modelo;
 use App\Models\Producto;
 use App\Models\Proveedor;
 use App\Models\Tipo;
@@ -44,17 +45,75 @@ class admin_ProductosController extends Controller
     public function create()
     {
         $now = Carbon::now();
-        $productos = Producto::orderBy('id','desc')->first();
-        $nubRow =$productos?$productos->id+1:1;
-        $codigo = 'PR-'.$now->format('Ymd').'-'.$nubRow;
-
         $marcas = Marca::all()->where('estado', 'Activo');
         $tipos = Tipo::all()->where('estado', 'Activo')->where('id','!=',3);
         $etiquetas = Etiqueta::all()->where('estado', 'Activo');
         $medidas = Medida::all()->where('estado', 'Activo');
+        $modelos = Modelo::all()->where('estado', 'Activo');
         $proveedores = Proveedor::where('estado', 'Activo')->get();
 
-        return view('ADMINISTRADOR.PRINCIPAL.configuraciones.productos.create',compact('productos','tipos','marcas','etiquetas','medidas','proveedores','codigo'));
+        return view('ADMINISTRADOR.PRINCIPAL.configuraciones.productos.create',compact('tipos','marcas','etiquetas','medidas','modelos','proveedores'));
+    }
+
+    public function getbusqueda_codigo_producto(Request $request){
+        if($request->ajax()){
+            $now = Carbon::now()->format('dmY');
+            $valor_tipo = Tipo::where('id',$request->tipo_val)->first();
+
+            if(Category::where('id',$request->cate_val)->exists()){
+                $valor_categoria = Category::where('id',$request->cate_val)->first();
+            }else{
+                $valor_categoria = '';
+            }
+
+            $cantidad_productos_tipo = Producto::where('tipo_id', $valor_tipo->id)->count();
+            $orden_registro_producto = $cantidad_productos_tipo + 1;
+
+            // validacion para igualar la palabra de tipo y categoria y excluir palabras comunes
+            $nombre_tipo = (string) ($valor_tipo->name ?? '');
+            $nombre_categoria = (string) ($valor_categoria->name ?? '');
+
+            $palabras_excluidas = ['de'];
+
+            $normalizar_palabras = function (string $texto) use ($palabras_excluidas): array {
+                $texto = Str::lower(Str::ascii($texto));
+                $texto = preg_replace('/[^a-z0-9\s]/', ' ', $texto);
+                $partes = preg_split('/\s+/', trim($texto));
+
+                return array_values(array_filter(
+                    $partes,
+                    fn($palabra) => $palabra !== '' && !in_array($palabra, $palabras_excluidas, true)
+                ));
+            };
+
+            $palabras_tipo = $normalizar_palabras($nombre_tipo);
+            $palabras_categoria_original = preg_split('/\s+/', trim($nombre_categoria));
+
+            $palabras_categoria_no_coinciden = array_values(array_filter(
+                $palabras_categoria_original,
+                function ($palabra) use ($palabras_tipo, $palabras_excluidas) {
+                    $palabra_normalizada = Str::lower(Str::ascii((string) $palabra));
+                    return $palabra_normalizada !== ''
+                        && !in_array($palabra_normalizada, $palabras_excluidas, true)
+                        && !in_array($palabra_normalizada, $palabras_tipo, true);
+                }
+            ));
+
+            $categoria_diferente = implode(' ', $palabras_categoria_no_coinciden);
+            // Fin de cogio de validacion de palabras iguales y exclusión de palabras comunes
+
+
+            $prefijo_tipo = Str::upper(Str::substr($nombre_tipo, 0, 3));
+            $prefijo_categoria = $categoria_diferente !== ''
+                ? Str::upper(Str::substr($categoria_diferente, 0, 3))
+                : ($nombre_categoria !== '' ? Str::upper(Str::substr($nombre_categoria, 0, 3)) : '000');
+
+            $valor_codigo = $prefijo_tipo.''.$prefijo_categoria.''.(substr((string) $now, -2)).'_'.$orden_registro_producto;
+
+            $Arraylist[1] = [Str::upper($valor_codigo)];
+
+            return response()->json($Arraylist);
+        }
     }
 
     public function getBusqueda_categoria_productos(Request $request){
@@ -119,11 +178,12 @@ class admin_ProductosController extends Controller
         $producto->costo = $request->input('costo');
         $producto->precio = $request->input('precio');
         $producto->precio_descuento = $request->input('precio_descuento');
-        $producto->tipo_id = '2';
+        $producto->tipo_id = $request->input('tipo_id');
         $producto->vida_util = $request->input('vida_util');
         $producto->depreciacion = $request->input('depreciacion');
         $producto->tipo_adquisicion = $request->input('tipo_adquisicion');
         $producto->marca_id = $request->input('marca_id');
+        $producto->modelo_id = $request->input('modelo_id');
         $producto->descripcion = $request->input('descripcion');
         $producto->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;
         $producto->estado = 'Inactivo';

@@ -64,6 +64,10 @@
                         <ul class="list-unstyled">
                             <li class="text-primary menu_item">
                                 <i class="bi bi-diagram-3 me-2"></i>
+                                <a href="{{ route('admin-modelos.index') }}" class="link-primary text-decoration-none">Modelos</a>
+                            </li>
+                            <li class="text-primary menu_item">
+                                <i class="bi bi-diagram-3 me-2"></i>
                                 <a href="{{ route('admin-tipos.index') }}" class="link-primary text-decoration-none">Tipos</a>
                             </li>
                             <li class="text-primary menu_item">

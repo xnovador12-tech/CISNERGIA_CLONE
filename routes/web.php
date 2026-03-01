@@ -34,6 +34,7 @@ use App\Http\Controllers\admin_CrmClientesController;
 use App\Http\Controllers\admin_CrmTicketsController;
 
 use App\Http\Controllers\admin_CrmMantenimientosController;
+use App\Http\Controllers\admin_ModeloController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -68,6 +69,9 @@ Route::resource('admin-usuarios', admin_UsuariosController::class);
 Route::put('/admin-usuarios/estado/{admin_usuario}', [admin_UsuariosController::class, 'estado']);
 Route::resource('admin-perfil', admin_PerfilController::class);
 
+Route::resource('admin-modelos', admin_ModeloController::class);
+Route::put('/admin-modelos/estado/{admin_modelo}', [admin_ModeloController::class, 'estado']);
+
 Route::resource('admin-tipos', admin_TiposController::class);
 Route::put('/admin-tipos/estado/{admin_tipo}', [admin_TiposController::class, 'estado']);
 Route::resource('admin-categorias', admin_CategoriasController::class);
@@ -88,6 +92,7 @@ Route::put('/admin-productos/estado/{admin_producto}', [admin_ProductosControlle
 Route::get('busqueda_categoria_productos', [admin_ProductosController::class, 'getBusqueda_categoria_productos']);
 Route::get('busqueda_proved', [admin_ProductosController::class, 'getBusquedaproved']);
 Route::get('busqueda_proved_edit', [admin_ProductosController::class, 'getbusqueda_proved_edit']);
+route::get('busqueda_codigo_producto', [admin_ProductosController::class, 'getbusqueda_codigo_producto']);
 
 Route::resource('admin-kits', admin_KitsController::class);
 Route::get('/dtlle_kits', [admin_KitsController::class, 'getdtlle_kits']);

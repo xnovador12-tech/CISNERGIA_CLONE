@@ -82,20 +82,20 @@
                             <div class="row">
                                 <div class="col-6 col-md-3 col-lg-2">
                                     <div class="mb-3">
-                                        <label for="codigo_id" class="">Código<span class="text-danger">*</span></label>
+                                        <label for="codigo_id" >Código<span class="text-danger">*</span></label>
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-3 col-lg-2">
                                     <div class="mb-3">
-                                        <input type="text" value="{{ $codigo }}" class="form-control form-control-sm bg-white" disabled id="codigo_id">
-                                        <input hidden value="{{ $codigo }}" name="codigo">
+                                        <input type="text" id="codigo_show_id" class="form-control form-control-sm bg-white" disabled>
+                                        <input hidden name="codigo" id="codigo_id">
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-12 col-md-6 col-lg-7">
                                     <div class="mb-3">
-                                        <label for="codigo_id" class="">Nombre<span class="text-danger">*</span></label>
+                                        <label for="name_id" class="">Nombre<span class="text-danger">*</span></label>
                                         <input type="text" name="name"  class="form-control form-control-sm @error('name') is-invalid @enderror" required>
                                         @error('name')
                                             <small class="text-danger">{{ $message }}</small>
@@ -111,7 +111,7 @@
                                 <div class="col-12 col-md-3 col-lg-3">
                                     <div class="mb-3">
                                         <label for="tipos__producto_id" class="">Tipo de bien<span class="text-danger">*</span></label>
-                                        <select class="form-select form-select-sm @error('tipo_id') is-invalid @enderror" id="tipos__producto_id" required>
+                                        <select class="form-select form-select-sm select2 @error('tipo_id') is-invalid @enderror" id="tipos__producto_id" required>
                                             <option value="{{old('tipo_id')}}" selected="selected" hidden="hidden">{{ old('tipo_id') }}</option>
                                             @foreach($tipos as $tipo)
                                                 <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
@@ -153,13 +153,28 @@
                                 <div class="col-12 col-md-3 col-lg-3">
                                     <div class="mb-3">
                                         <label for="marcas__id" class="">Marca</label>
-                                        <select class="form-select form-select-sm @error('marca') is-invalid @enderror" name="marca_id"  id="marcas__id">
+                                        <select class="form-select form-select-sm select2 @error('marca') is-invalid @enderror" name="marca_id"  id="marcas__id">
                                             <option value="{{ old('marca_id') }}" selected="selected" hidden="hidden">{{ old('marca_id') }}</option>
                                             @foreach($marcas as $marca)
                                                 <option value="{{ $marca->id }}">{{ $marca->name }}</option>
                                             @endforeach
                                         </select>
                                         @error('marca_id')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-3 col-lg-3">
+                                    <div class="mb-3">
+                                        <label for="modelos__id" class="">Modelo</label>
+                                        <select class="form-select form-select-sm select2 @error('modelo') is-invalid @enderror" name="modelo_id"  id="modelos__id">
+                                            <option value="{{ old('modelo_id') }}" selected="selected" hidden="hidden">{{ old('modelo_id') }}</option>
+                                            @foreach($modelos as $modelo)
+                                                <option value="{{ $modelo->id }}">{{ $modelo->nombre }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('modelo_id')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
@@ -354,14 +369,40 @@
 
             $("#id_tipo").val(valor_bienes);
             var __tipo = $("#id_tipo").val();
-            console.log(__tipo);
-                $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {
-                    $('#mostrar_prov').empty();
-                    $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
-                    $.each(bienes, function(index, value) {
-                        $('#mostrar_prov').append("<option value='"+index+"'>"+value[0]+"</option>");
+            $.get('/busqueda_proved', {valor_tip: __tipo}, function(bienes) {
+                $('#mostrar_prov').empty();
+                $('#mostrar_prov').append('<option>Seleccione una opcion</option>');
+                $.each(bienes, function(index, value) {
+                    $('#mostrar_prov').append("<option value='"+index+"'>"+value[0]+"</option>");
+                });
+            });
+
+            var __cate_val = $("#categorias__id").val();
+            $.get('/busqueda_codigo_producto', {tipo_val: __tipo, cate_val: __cate_val}, function(codigo_val) {
+                $('#codigo_show_id').val("");
+                $('#codigo_id').val("");
+                $.each(codigo_val, function(index, value) {
+                    console.log(value);
+                    $('#codigo_show_id').val(value[0]);
+                    $('#codigo_id').val(value[0]);
+                });
+            });
+        });
+
+        $('#categorias__id').on('change', function() {
+            var __tipo_val = $("#id_tipo").val();
+            var __cate_val = $(this).val();
+            if(__tipo_val && __cate_val){
+                $.get('/busqueda_codigo_producto', {tipo_val: __tipo_val, cate_val: __cate_val}, function(codigo_val) {
+                    $('#codigo_show_id').val("");
+                    $('#codigo_id').val("");
+                    $.each(codigo_val, function(index, value) {
+                        console.log(value);
+                        $('#codigo_show_id').val(value[0]);
+                        $('#codigo_id').val(value[0]);
                     });
                 });
+            }
         });
     });
 </script>

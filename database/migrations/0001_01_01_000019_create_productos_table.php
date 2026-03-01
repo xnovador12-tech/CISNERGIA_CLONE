@@ -31,6 +31,7 @@ class CreateProductosTable extends Migration
             $table->integer('porcentaje')->default(0);
             $table->string('tipo_afectacion')->default('0');
             $table->string('registrado_por')->nullable();
+            $table->foreignId('modelo_id')->constrained('modelos');
             $table->foreignId('tipo_id')->constrained('tipos');
             $table->foreignId('medida_id')->constrained('medidas');
             $table->foreignId('marca_id')->constrained('marcas');

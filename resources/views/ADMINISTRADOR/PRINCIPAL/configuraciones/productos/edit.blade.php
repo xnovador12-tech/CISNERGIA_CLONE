@@ -153,6 +153,20 @@
                                         @enderror
                                     </div>
                                 </div>
+                                <div class="col-12 col-md-3 col-lg-3">
+                                    <div class="mb-3">
+                                        <label for="modelos__id" class="">Modelo</label>
+                                        <select class="form-select form-select-sm select2 @error('modelo') is-invalid @enderror" name="modelo_id"  id="modelos__id">
+                                            <option value="{{ $admin_producto->modelo->id }}" selected="selected" hidden="hidden">{{ $admin_producto->modelo->nombre }}</option>
+                                            @foreach($modelos as $modelo)
+                                                <option value="{{ $modelo->id }}">{{ $modelo->nombre }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('modelo_id')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                    </div>
+                                </div>
 
                             </div>
                             <br>
