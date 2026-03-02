@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
         $this->call(AlmacenTableSeeder::class);
 
         // Productos (necesario antes del CRM para las cotizaciones)
+        $this->call(ModeloSeeder::class);
         $this->call(ProductoSeeder::class);
         $this->call(InventarioSeeder::class);
 

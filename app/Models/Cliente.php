@@ -152,6 +152,11 @@ class Cliente extends Model
         return $this->hasMany(Sale::class);
     }
 
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class);
+    }
+
     // ==================== SCOPES ====================
 
     public function scopePorSegmento($query, $segmento)

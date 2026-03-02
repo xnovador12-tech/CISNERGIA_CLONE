@@ -41,7 +41,9 @@ class admin_CrmClientesController extends Controller
             'sede',
             'prospecto',
             'oportunidades.cotizaciones',
+            'cotizaciones',
             'ventas',
+            'pedidos',
             'actividades.asignadoA.persona',
             'tickets',
             'mantenimientos',
@@ -69,8 +71,8 @@ class admin_CrmClientesController extends Controller
         $cliente->load(['distrito', 'vendedor', 'sede']);
 
         $distritos = Distrito::orderBy('nombre')->get();
-        $vendedores = User::whereHas('roles', function ($q) {
-            $q->whereIn('name', ['Cuantica', 'Administrador', 'Vendedor']);
+        $vendedores = User::whereHas('role', function ($q) {
+            $q->whereIn('name', ['Cuantica', 'Administrador']);
         })->with('persona')->get();
 
         return view('ADMINISTRADOR.CRM.clientes.edit', compact('cliente', 'distritos', 'vendedores'));

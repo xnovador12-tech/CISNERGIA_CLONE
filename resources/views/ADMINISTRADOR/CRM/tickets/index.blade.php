@@ -128,11 +128,13 @@
                     <div class="col-md-3">
                         <select id="filtro-categoria" class="form-select form-select-sm">
                             <option value="">Todas las Categorías</option>
-                            <option value="Soporte">Soporte</option>
-                            <option value="Instalacion">Instalación</option>
+                            <option value="Soporte">Soporte Técnico</option>
                             <option value="Mantenimiento">Mantenimiento</option>
-                            <option value="Facturacion">Facturación</option>
-                            <option value="Garantia">Garantía</option>
+                            <option value="Instalación">Instalación</option>
+                            <option value="Garantía">Garantía</option>
+                            <option value="Facturación">Facturación</option>
+                            <option value="Consulta">Consulta</option>
+                            <option value="Reclamo">Reclamo</option>
                             <option value="Otro">Otro</option>
                         </select>
                     </div>
@@ -169,7 +171,7 @@
                                     <td class="text-center"><span class="badge bg-secondary">{{ $ticket->codigo }}</span><br><small class="text-muted">{{ $ticket->created_at->format('d/m/Y H:i') }}</small></td>
                                     <td class="text-center">{{ $ticket->cliente->nombre ?? 'N/A' }}</td>
                                     <td class="text-start"><strong>{{ Str::limit($ticket->asunto, 40) }}</strong></td>
-                                    <td class="text-center"><span class="badge bg-light text-dark">{{ ucfirst($ticket->categoria) }}</span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark">{{ $ticket->categoria_label }}</span></td>
                                     <td class="text-center">
                                         @php $prioridadColors = ['baja' => 'success', 'media' => 'warning', 'alta' => 'danger', 'critica' => 'dark']; @endphp
                                         <span class="badge bg-{{ $prioridadColors[$ticket->prioridad] ?? 'secondary' }}">{{ ucfirst($ticket->prioridad) }}</span>
@@ -195,9 +197,31 @@
                                                 <li><a class="dropdown-item" href="{{ route('admin.crm.tickets.edit', $ticket) }}"><i class="bi bi-pencil text-secondary me-2"></i>Editar</a></li>
                                                 @if(!in_array($ticket->estado, ['resuelto', 'cerrado']))
                                                     <li><hr class="dropdown-divider"></li>
-                                                    <li><form action="{{ route('admin.crm.tickets.cambiar-estado', $ticket) }}" method="POST">@csrf @method('PATCH')<input type="hidden" name="estado" value="resuelto"><button class="dropdown-item text-success"><i class="bi bi-check-circle me-2"></i>Resolver</button></form></li>
-                                                    <li><form action="{{ route('admin.crm.tickets.escalar', $ticket) }}" method="POST">@csrf<button class="dropdown-item text-danger"><i class="bi bi-arrow-up-circle me-2"></i>Escalar</button></form></li>
+                                                    @if(!$ticket->es_mantenimiento || ($ticket->mantenimiento && in_array($ticket->mantenimiento->estado, ['completado', 'cancelado'])))
+                                                        <li>
+                                                            <form action="{{ route('admin.crm.tickets.cambiar-estado', $ticket) }}" method="POST" class="form-resolver">
+                                                                @csrf @method('PATCH')
+                                                                <input type="hidden" name="estado" value="resuelto">
+                                                                <button type="submit" class="dropdown-item text-success"><i class="bi bi-check-circle me-2"></i>Resolver</button>
+                                                            </form>
+                                                        </li>
+                                                    @else
+                                                        <li><span class="dropdown-item text-muted small disabled"><i class="bi bi-hourglass-split me-2"></i>Pendiente mantenimiento</span></li>
+                                                    @endif
+                                                    <li>
+                                                        <form action="{{ route('admin.crm.tickets.escalar', $ticket) }}" method="POST">
+                                                            @csrf
+                                                            <button class="dropdown-item text-warning"><i class="bi bi-arrow-up-circle me-2"></i>Escalar</button>
+                                                        </form>
+                                                    </li>
                                                 @endif
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form action="{{ route('admin.crm.tickets.destroy', $ticket) }}" method="POST" class="form-delete">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Eliminar</button>
+                                                    </form>
+                                                </li>
                                             </ul>
                                         </div>
                                     </td>
@@ -260,6 +284,56 @@ $(document).ready(function() {
     $('#filtro-sla').on('change', function() {
         var val = $(this).val();
         table.column(7).search(val).draw();
+    });
+});
+
+// SweetAlert para resolver con solución
+$('.form-resolver').submit(function(e) {
+    e.preventDefault();
+    const form = this;
+
+    Swal.fire({
+        title: 'Resolver Ticket',
+        html: `
+            <div class="text-start">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Tipo de solución</label>
+                    <select id="swal-tipo-solucion" class="form-select form-select-sm">
+                        <option value="">Seleccionar...</option>
+                        <option value="resuelto_remoto">Resuelto remoto</option>
+                        <option value="visita_tecnica">Visita técnica</option>
+                        <option value="cambio_equipo">Cambio de equipo</option>
+                        <option value="ajuste_configuracion">Ajuste de configuración</option>
+                        <option value="capacitacion">Capacitación</option>
+                        <option value="sin_solucion">Sin solución</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label fw-bold small">Descripción de la solución</label>
+                    <textarea id="swal-solucion" class="form-control form-control-sm" rows="3" placeholder="Describe cómo se resolvió el ticket..."></textarea>
+                </div>
+            </div>`,
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonColor: '#1C3146',
+        cancelButtonColor: '#FF9C00',
+        confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Resolver',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            const solucion = document.getElementById('swal-solucion').value;
+            if (!solucion.trim()) {
+                Swal.showValidationMessage('La descripción de la solución es requerida');
+                return false;
+            }
+            return { solucion, tipoSolucion: document.getElementById('swal-tipo-solucion').value };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $('<input>').attr({ type: 'hidden', name: 'solucion', value: result.value.solucion }).appendTo(form);
+            $('<input>').attr({ type: 'hidden', name: 'tipo_solucion', value: result.value.tipoSolucion }).appendTo(form);
+            form.submit();
+        }
     });
 });
 

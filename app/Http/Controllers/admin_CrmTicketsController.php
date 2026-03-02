@@ -4,11 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
-use App\Models\TicketMensaje;
 use App\Models\Cliente;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class admin_CrmTicketsController extends Controller
 {
@@ -17,7 +15,7 @@ class admin_CrmTicketsController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Ticket::with(['cliente', 'asignado', 'creador']);
+        $query = Ticket::with(['cliente', 'asignado', 'creador', 'mantenimiento']);
 
         // Filtros
         if ($request->filled('buscar')) {
@@ -119,17 +117,13 @@ class admin_CrmTicketsController extends Controller
             'cliente_id' => 'required|exists:clientes,id',
             'asunto' => 'required|string|max:200',
             'descripcion' => 'required|string',
-            'tipo' => 'required|in:consulta,reclamo,garantia,soporte_tecnico,mantenimiento,facturacion,otro',
-            'categoria' => 'nullable|in:paneles,inversor,baterias,estructura,cableado,monitoreo,produccion,instalacion,documentacion,otro',
+            'categoria' => 'required|in:soporte_paneles,soporte_inversores,soporte_baterias,soporte_monitoreo,soporte_estructura,mantenimiento,instalacion,garantia,facturacion,consulta,reclamo,otro',
             'prioridad' => 'required|in:baja,media,alta,critica',
             'canal' => 'required|in:web,email,telefono,whatsapp,presencial',
             'user_id' => 'nullable|exists:users,id',
-            'instalacion_id' => 'nullable|integer',
-            'adjuntos' => 'nullable|array',
-            'adjuntos.*' => 'file|max:10240', // 10MB máx
+            'notas_internas' => 'nullable|string|max:2000',
         ]);
 
-        $validated['user_id'] = auth()->id();
         $validated['estado'] = 'abierto';
         
         // Calcular SLA según prioridad
@@ -141,24 +135,9 @@ class admin_CrmTicketsController extends Controller
         };
         $validated['sla_vencimiento'] = now()->addHours($horasSla);
 
-        // Procesar adjuntos
-        $adjuntos = [];
-        if ($request->hasFile('adjuntos')) {
-            foreach ($request->file('adjuntos') as $archivo) {
-                $path = $archivo->store('tickets/adjuntos', 'public');
-                $adjuntos[] = [
-                    'nombre' => $archivo->getClientOriginalName(),
-                    'path' => $path,
-                    'tipo' => $archivo->getMimeType(),
-                    'tamano' => $archivo->getSize(),
-                ];
-            }
-        }
-        $validated['adjuntos'] = $adjuntos;
-
         $ticket = Ticket::create($validated);
 
-        // Registrar primera respuesta automática si hay asignado
+        // Si tiene agente asignado, registrar primera respuesta
         if ($ticket->user_id) {
             $ticket->update(['fecha_primera_respuesta' => now()]);
         }
@@ -177,7 +156,7 @@ class admin_CrmTicketsController extends Controller
             'cliente',
             'asignado',
             'creador',
-            'mensajes' => fn($q) => $q->with('usuario')->orderBy('created_at'),
+            'mantenimiento',
         ]);
 
         // Calcular tiempo transcurrido
@@ -218,10 +197,10 @@ class admin_CrmTicketsController extends Controller
         $validated = $request->validate([
             'asunto' => 'required|string|max:200',
             'descripcion' => 'required|string',
-            'tipo' => 'required|in:consulta,reclamo,garantia,soporte_tecnico,mantenimiento,facturacion,otro',
-            'categoria' => 'nullable|in:paneles,inversor,baterias,estructura,cableado,monitoreo,produccion,instalacion,documentacion,otro',
+            'categoria' => 'required|in:soporte_paneles,soporte_inversores,soporte_baterias,soporte_monitoreo,soporte_estructura,mantenimiento,instalacion,garantia,facturacion,consulta,reclamo,otro',
             'prioridad' => 'required|in:baja,media,alta,critica',
             'user_id' => 'nullable|exists:users,id',
+            'notas_internas' => 'nullable|string|max:2000',
         ]);
 
         // Si cambia prioridad, recalcular SLA
@@ -247,13 +226,6 @@ class admin_CrmTicketsController extends Controller
      */
     public function destroy(Ticket $ticket)
     {
-        // Eliminar adjuntos
-        if ($ticket->adjuntos) {
-            foreach ($ticket->adjuntos as $adjunto) {
-                Storage::disk('public')->delete($adjunto['path']);
-            }
-        }
-
         $ticket->delete();
 
         return redirect()
@@ -262,83 +234,50 @@ class admin_CrmTicketsController extends Controller
     }
 
     /**
-     * Agregar mensaje/respuesta al ticket
-     */
-    public function agregarMensaje(Request $request, Ticket $ticket)
-    {
-        $validated = $request->validate([
-            'mensaje' => 'required|string',
-            'es_interno' => 'boolean',
-            'adjuntos' => 'nullable|array',
-            'adjuntos.*' => 'file|max:10240',
-        ]);
-
-        // Procesar adjuntos
-        $adjuntos = [];
-        if ($request->hasFile('adjuntos')) {
-            foreach ($request->file('adjuntos') as $archivo) {
-                $path = $archivo->store('tickets/mensajes', 'public');
-                $adjuntos[] = [
-                    'nombre' => $archivo->getClientOriginalName(),
-                    'path' => $path,
-                    'tipo' => $archivo->getMimeType(),
-                ];
-            }
-        }
-
-        $mensaje = $ticket->mensajes()->create([
-            'user_id' => auth()->id(),
-            'mensaje' => $validated['mensaje'],
-            'es_interno' => $validated['es_interno'] ?? false,
-            'adjuntos' => $adjuntos,
-        ]);
-
-        // Actualizar primera respuesta si es la primera
-        if (!$ticket->fecha_primera_respuesta && !$mensaje->es_interno) {
-            $ticket->update(['fecha_primera_respuesta' => now()]);
-        }
-
-        // Cambiar estado a en_progreso si estaba abierto
-        if ($ticket->estado === 'abierto') {
-            $ticket->update(['estado' => 'en_progreso']);
-        }
-
-        return back()->with('success', 'Respuesta agregada exitosamente.');
-    }
-
-    /**
      * Cambiar estado del ticket
      */
     public function cambiarEstado(Request $request, Ticket $ticket)
     {
         $validated = $request->validate([
-            'estado' => 'required|in:abierto,en_progreso,pendiente,resuelto,cerrado',
+            'estado' => 'required|in:abierto,asignado,en_progreso,pendiente_cliente,pendiente_proveedor,resuelto,cerrado,reabierto',
             'comentario' => 'nullable|string|max:500',
+            'solucion' => 'nullable|string|max:2000',
+            'tipo_solucion' => 'nullable|in:resuelto_remoto,visita_tecnica,cambio_equipo,ajuste_configuracion,capacitacion,sin_solucion,otro',
+            'programar_mantenimiento' => 'nullable|boolean',
         ]);
 
         $estadoAnterior = $ticket->estado;
-        $ticket->estado = $validated['estado'];
 
-        // Si se resuelve, registrar fecha
-        if ($validated['estado'] === 'resuelto' && $estadoAnterior !== 'resuelto') {
-            $ticket->fecha_resolucion = now();
+        // FLUJO ESPECIAL: Programar mantenimiento (NO resuelve, pasa a en_progreso)
+        if ($ticket->es_mantenimiento && !empty($validated['programar_mantenimiento'])) {
+            $ticket->update(['estado' => 'en_progreso']);
+
+            return redirect()
+                ->route('admin.crm.mantenimientos.create', ['ticket_id' => $ticket->id])
+                ->with('success', "Ticket #{$ticket->codigo} en progreso. Complete los datos del mantenimiento.");
         }
 
-        // Si se cierra, registrar fecha
+        // BLOQUEO: No resolver manualmente si tiene mantenimiento pendiente
+        if ($validated['estado'] === 'resuelto' && $ticket->mantenimiento
+            && !in_array($ticket->mantenimiento->estado, ['completado', 'cancelado'])) {
+            return back()->with('error', 'Este ticket tiene un mantenimiento pendiente. Se resolverá automáticamente al completar el mantenimiento.');
+        }
+
+        // RESOLUCIÓN: Requiere solución
+        if ($validated['estado'] === 'resuelto' && $estadoAnterior !== 'resuelto') {
+            $ticket->fecha_resolucion = now();
+            $ticket->solucion = $validated['solucion'] ?? null;
+            $ticket->tipo_solucion = $validated['tipo_solucion'] ?? null;
+            $ticket->sla_cumplido = $ticket->sla_vencimiento ? now()->lte($ticket->sla_vencimiento) : null;
+        }
+
+        // CIERRE
         if ($validated['estado'] === 'cerrado' && $estadoAnterior !== 'cerrado') {
             $ticket->fecha_cierre = now();
         }
 
+        $ticket->estado = $validated['estado'];
         $ticket->save();
-
-        // Registrar comentario como nota interna
-        if (isset($validated['comentario']) && !empty($validated['comentario'])) {
-            $ticket->mensajes()->create([
-                'user_id' => auth()->id(),
-                'mensaje' => "Estado cambiado a {$validated['estado']}: {$validated['comentario']}",
-                'es_interno' => true,
-            ]);
-        }
 
         return back()->with('success', "Estado actualizado a: {$validated['estado']}");
     }
@@ -357,13 +296,7 @@ class admin_CrmTicketsController extends Controller
             'fecha_primera_respuesta' => $ticket->fecha_primera_respuesta ?? now(),
         ]);
 
-        // Registrar asignación
         $usuario = User::find($validated['user_id']);
-        $ticket->mensajes()->create([
-            'user_id' => auth()->id(),
-            'mensaje' => "Ticket asignado a: {$usuario->name}",
-            'es_interno' => true,
-        ]);
 
         return back()->with('success', "Ticket asignado a {$usuario->name}");
     }
@@ -390,95 +323,7 @@ class admin_CrmTicketsController extends Controller
 
         $ticket->save();
 
-        // Registrar escalamiento
-        $motivo = isset($validated['motivo_escalamiento']) && $validated['motivo_escalamiento'] 
-            ? $validated['motivo_escalamiento'] 
-            : 'Escalado sin motivo especificado';
-        
-        $ticket->mensajes()->create([
-            'user_id' => auth()->id(),
-            'mensaje' => "TICKET ESCALADO\nMotivo: {$motivo}\nNueva prioridad: {$ticket->prioridad}",
-            'es_interno' => true,
-        ]);
-
         return back()->with('warning', 'Ticket escalado exitosamente. Nueva prioridad: ' . ucfirst($ticket->prioridad));
-    }
-
-    /**
-     * Registrar calificación del cliente
-     */
-    public function calificar(Request $request, Ticket $ticket)
-    {
-        $validated = $request->validate([
-            'calificacion_cliente' => 'required|integer|min:1|max:5',
-            'comentario_cliente' => 'nullable|string|max:500',
-        ]);
-
-        $ticket->update([
-            'calificacion_cliente' => $validated['calificacion_cliente'],
-            'comentario_cliente' => $validated['comentario_cliente'],
-        ]);
-
-        return back()->with('success', 'Gracias por tu calificación.');
-    }
-
-    /**
-     * Dashboard de métricas de soporte
-     */
-    public function metricas(Request $request)
-    {
-        $periodo = $request->get('periodo', 'mes');
-        
-        $fechaInicio = match($periodo) {
-            'semana' => now()->startOfWeek(),
-            'mes' => now()->startOfMonth(),
-            'trimestre' => now()->startOfQuarter(),
-            'ano' => now()->startOfYear(),
-            default => now()->startOfMonth(),
-        };
-
-        // Métricas generales
-        $metricas = [
-            'total_tickets' => Ticket::where('created_at', '>=', $fechaInicio)->count(),
-            'resueltos' => Ticket::where('estado', 'resuelto')
-                ->where('fecha_resolucion', '>=', $fechaInicio)->count(),
-            'tiempo_respuesta_promedio' => $this->calcularTiempoRespuestaPromedio($fechaInicio),
-            'tiempo_resolucion_promedio' => $this->calcularTiempoResolucionPromedio($fechaInicio),
-            'satisfaccion_promedio' => Ticket::whereNotNull('calificacion_cliente')
-                ->where('created_at', '>=', $fechaInicio)
-                ->avg('calificacion_cliente'),
-            'tasa_resolucion_primer_contacto' => $this->calcularTasaFCR($fechaInicio),
-            'cumplimiento_sla' => $this->calcularCumplimientoSla($fechaInicio),
-        ];
-
-        // Por categoría
-        $porCategoria = Ticket::selectRaw('categoria, COUNT(*) as total')
-            ->where('created_at', '>=', $fechaInicio)
-            ->groupBy('categoria')
-            ->get();
-
-        // Por agente
-        $porAgente = Ticket::selectRaw('user_id, COUNT(*) as total, AVG(calificacion) as satisfaccion')
-            ->with('asignado')
-            ->where('created_at', '>=', $fechaInicio)
-            ->whereNotNull('user_id')
-            ->groupBy('user_id')
-            ->get();
-
-        // Tendencia diaria
-        $tendencia = Ticket::selectRaw('DATE(created_at) as fecha, COUNT(*) as creados')
-            ->where('created_at', '>=', $fechaInicio)
-            ->groupBy('fecha')
-            ->orderBy('fecha')
-            ->get();
-
-        return view('ADMINISTRADOR.CRM.tickets.metricas', compact(
-            'metricas',
-            'porCategoria',
-            'porAgente',
-            'tendencia',
-            'periodo'
-        ));
     }
 
     /**
@@ -504,72 +349,4 @@ class admin_CrmTicketsController extends Controller
 
         return round($totalHoras / $tickets->count(), 1);
     }
-
-    /**
-     * Calcular tiempo de resolución promedio en horas
-     */
-    protected function calcularTiempoResolucionPromedio($desde = null): float
-    {
-        $query = Ticket::whereNotNull('fecha_resolucion');
-        
-        if ($desde) {
-            $query->where('created_at', '>=', $desde);
-        }
-
-        $tickets = $query->get();
-
-        if ($tickets->isEmpty()) {
-            return 0;
-        }
-
-        $totalHoras = $tickets->sum(function ($ticket) {
-            return $ticket->created_at->diffInMinutes($ticket->fecha_resolucion) / 60;
-        });
-
-        return round($totalHoras / $tickets->count(), 1);
-    }
-
-    /**
-     * Calcular tasa de resolución en primer contacto
-     */
-    protected function calcularTasaFCR($desde = null): float
-    {
-        $queryTotal = Ticket::whereIn('estado', ['resuelto', 'cerrado']);
-        $queryFCR = Ticket::whereIn('estado', ['resuelto', 'cerrado'])
-            ->whereRaw('(SELECT COUNT(*) FROM ticket_mensajes WHERE ticket_id = tickets.id AND es_interno = 0) <= 2');
-
-        if ($desde) {
-            $queryTotal->where('created_at', '>=', $desde);
-            $queryFCR->where('created_at', '>=', $desde);
-        }
-
-        $total = $queryTotal->count();
-        $fcr = $queryFCR->count();
-
-        return $total > 0 ? round(($fcr / $total) * 100, 1) : 0;
-    }
-
-    /**
-     * Calcular cumplimiento de SLA
-     */
-    protected function calcularCumplimientoSla($desde = null): float
-    {
-        $queryTotal = Ticket::whereNotNull('sla_vencimiento')
-            ->whereIn('estado', ['resuelto', 'cerrado']);
-        
-        $queryCumplido = Ticket::whereNotNull('sla_vencimiento')
-            ->whereIn('estado', ['resuelto', 'cerrado'])
-            ->whereColumn('fecha_resolucion', '<=', 'sla_vencimiento');
-
-        if ($desde) {
-            $queryTotal->where('created_at', '>=', $desde);
-            $queryCumplido->where('created_at', '>=', $desde);
-        }
-
-        $total = $queryTotal->count();
-        $cumplido = $queryCumplido->count();
-
-        return $total > 0 ? round(($cumplido / $total) * 100, 1) : 100;
-    }
 }
-

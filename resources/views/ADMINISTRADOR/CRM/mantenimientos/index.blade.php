@@ -182,11 +182,30 @@
                                                 @if($mantenimiento->estado === 'en_progreso')
                                                     <li><a class="dropdown-item text-success" href="#" data-bs-toggle="modal" data-bs-target="#modalCompletar-{{ $mantenimiento->id }}"><i class="bi bi-check-circle me-2"></i>Completar</a></li>
                                                 @endif
-                                                {{-- @if(!in_array($mantenimiento->estado, ['completado', 'cancelado']))
+                                                @if(!in_array($mantenimiento->estado, ['completado', 'cancelado', 'en_progreso']))
                                                     <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item" href="{{ route('admin.crm.mantenimientos.reporte', $mantenimiento) }}"><i class="bi bi-file-pdf text-danger me-2"></i>Generar Reporte</a></li>
-                                                @endif --}}
-                                                {{-- TODO: descomentar cuando se cree la vista reporte-pdf.blade.php --}}
+                                                    <li>
+                                                        <a class="dropdown-item text-warning" href="#" data-bs-toggle="modal" data-bs-target="#modalReprogramar-{{ $mantenimiento->id }}">
+                                                            <i class="bi bi-calendar-event me-2"></i>Reprogramar
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                                @if(!in_array($mantenimiento->estado, ['completado', 'cancelado']))
+                                                    <li>
+                                                        <form action="{{ route('admin.crm.mantenimientos.cancelar', $mantenimiento) }}" method="POST" class="form-cancelar" data-codigo="{{ $mantenimiento->codigo }}">
+                                                            @csrf
+                                                            <button type="submit" class="dropdown-item text-danger"><i class="bi bi-x-circle me-2"></i>Cancelar</button>
+                                                        </form>
+                                                    </li>
+                                                @endif
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form action="{{ route('admin.crm.mantenimientos.destroy', $mantenimiento) }}" method="POST" class="form-delete">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Eliminar</button>
+                                                    </form>
+                                                </li>
                                             </ul>
                                         </div>
                                     </td>
@@ -300,14 +319,36 @@ $('.form-delete').submit(function(e) {
     const form = this;
 
     Swal.fire({
-        title: '¿Estás seguro?',
-        text: "¡No podrás revertir esto!",
+        title: '¿Eliminar mantenimiento?',
+        text: "Esta acción no se puede deshacer.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#1C3146',
+        confirmButtonColor: '#dc3545',
         cancelButtonColor: '#FF9C00',
         confirmButtonText: '¡Sí, eliminar!',
         cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+});
+
+// SweetAlert para cancelar mantenimiento
+$('.form-cancelar').submit(function(e) {
+    e.preventDefault();
+    const form = this;
+    const codigo = $(this).data('codigo');
+
+    Swal.fire({
+        title: '¿Cancelar mantenimiento?',
+        html: `El mantenimiento <strong>${codigo}</strong> será cancelado.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#FF9C00',
+        confirmButtonText: 'Sí, cancelar',
+        cancelButtonText: 'Volver'
     }).then((result) => {
         if (result.isConfirmed) {
             form.submit();
@@ -366,50 +407,91 @@ $(document).on('click', '.btn-iniciar-idx', function(e) {
         <div class="modal fade" id="modalCompletar-{{ $mantenimiento->id }}" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <form action="{{ route('admin.crm.mantenimientos.completar', $mantenimiento) }}" method="POST">
+                    <form action="{{ route('admin.crm.mantenimientos.completar', $mantenimiento) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="modal-header">
-                            <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Completar Mantenimiento - {{ $mantenimiento->codigo }}</h5>
+                            <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Completar - {{ $mantenimiento->codigo }}</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="alert alert-info mb-3">
                                 <small>
-                                    <strong>Cliente:</strong> {{ $mantenimiento->cliente->nombre ?? 'N/A' }}<br>
-                                    <strong>Tipo:</strong> {{ ucfirst($mantenimiento->tipo) }}<br>
-                                    <strong>Fecha Programada:</strong> {{ $mantenimiento->fecha_programada->format('d/m/Y') }}
+                                    <strong>Cliente:</strong> {{ $mantenimiento->cliente->nombre ?? 'N/A' }} |
+                                    <strong>Tipo:</strong> {{ ucfirst($mantenimiento->tipo) }} |
+                                    <strong>Fecha:</strong> {{ $mantenimiento->fecha_programada->format('d/m/Y') }}
                                 </small>
                             </div>
                             <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Hallazgos</label>
+                                    <textarea name="hallazgos" class="form-control" rows="2" placeholder="Hallazgos encontrados..."></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Recomendaciones</label>
+                                    <textarea name="recomendaciones" class="form-control" rows="2" placeholder="Recomendaciones..."></textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Duración Real (hrs)</label>
+                                    <input type="number" name="duracion_real_horas" class="form-control" min="1" max="24" value="{{ $mantenimiento->duracion_estimada_horas }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Mano de Obra (S/.)</label>
+                                    <input type="number" name="costo_mano_obra" class="form-control" step="0.01" min="0" value="0">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Materiales (S/.)</label>
+                                    <input type="number" name="costo_materiales" class="form-control" step="0.01" min="0" value="0">
+                                </div>
                                 <div class="col-12">
-                                    <label for="trabajo_realizado_{{ $mantenimiento->id }}" class="form-label fw-bold">Trabajo Realizado <span class="text-danger">*</span></label>
-                                    <textarea name="trabajo_realizado" id="trabajo_realizado_{{ $mantenimiento->id }}" class="form-control" rows="3" placeholder="Describa el trabajo realizado..." required></textarea>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="hallazgos_{{ $mantenimiento->id }}" class="form-label fw-bold">Hallazgos</label>
-                                    <textarea name="hallazgos" id="hallazgos_{{ $mantenimiento->id }}" class="form-control" rows="2" placeholder="Hallazgos encontrados..."></textarea>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="recomendaciones_{{ $mantenimiento->id }}" class="form-label fw-bold">Recomendaciones</label>
-                                    <textarea name="recomendaciones" id="recomendaciones_{{ $mantenimiento->id }}" class="form-control" rows="2" placeholder="Recomendaciones para el cliente..."></textarea>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="costo_mano_obra_{{ $mantenimiento->id }}" class="form-label fw-bold">Costo Mano de Obra (S/.)</label>
-                                    <input type="number" name="costo_mano_obra" id="costo_mano_obra_{{ $mantenimiento->id }}" class="form-control" step="0.01" min="0" value="0">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="costo_materiales_{{ $mantenimiento->id }}" class="form-label fw-bold">Costo Materiales (S/.)</label>
-                                    <input type="number" name="costo_materiales" id="costo_materiales_{{ $mantenimiento->id }}" class="form-control" step="0.01" min="0" value="0">
+                                    <label class="form-label fw-bold"><i class="bi bi-camera me-1"></i>Evidencias</label>
+                                    <input type="file" name="evidencias[]" class="form-control" multiple accept="image/*">
                                 </div>
                                 <div class="col-12">
-                                    <label for="observaciones_{{ $mantenimiento->id }}" class="form-label fw-bold">Observaciones</label>
-                                    <textarea name="observaciones" id="observaciones_{{ $mantenimiento->id }}" class="form-control" rows="2" placeholder="Observaciones adicionales..."></textarea>
+                                    <label class="form-label fw-bold">Observaciones</label>
+                                    <textarea name="observaciones" class="form-control" rows="2" placeholder="Observaciones adicionales..."></textarea>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                             <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-2"></i>Completar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+@endforeach
+
+{{-- Modales de Reprogramar Mantenimiento --}}
+@foreach($mantenimientos as $mantenimiento)
+    @if(!in_array($mantenimiento->estado, ['completado', 'cancelado', 'en_progreso']))
+        <div class="modal fade" id="modalReprogramar-{{ $mantenimiento->id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="{{ route('admin.crm.mantenimientos.reprogramar', $mantenimiento) }}" method="POST">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="bi bi-calendar-event me-2 text-warning"></i>Reprogramar - {{ $mantenimiento->codigo }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nueva Fecha <span class="text-danger">*</span></label>
+                                <input type="date" name="fecha_programada" class="form-control" required min="{{ date('Y-m-d') }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nueva Hora</label>
+                                <input type="time" name="hora_programada" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Motivo <span class="text-danger">*</span></label>
+                                <textarea name="motivo_reprogramacion" class="form-control" rows="3" placeholder="Motivo de la reprogramación..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                            <button type="submit" class="btn btn-warning"><i class="bi bi-calendar-event me-2"></i>Reprogramar</button>
                         </div>
                     </form>
                 </div>

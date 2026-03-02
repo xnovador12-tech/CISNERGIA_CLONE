@@ -92,14 +92,12 @@ Route::put('/admin-productos/estado/{admin_producto}', [admin_ProductosControlle
 Route::get('busqueda_categoria_productos', [admin_ProductosController::class, 'getBusqueda_categoria_productos']);
 Route::get('busqueda_proved', [admin_ProductosController::class, 'getBusquedaproved']);
 Route::get('busqueda_proved_edit', [admin_ProductosController::class, 'getbusqueda_proved_edit']);
-route::get('busqueda_codigo_producto', [admin_ProductosController::class, 'getbusqueda_codigo_producto']);
+Route::get('busqueda_codigo_producto', [admin_ProductosController::class, 'getbusqueda_codigo_producto']);
 
 Route::resource('admin-kits', admin_KitsController::class);
 Route::get('/dtlle_kits', [admin_KitsController::class, 'getdtlle_kits']);
 Route::get('/images/{id}/delete', [admin_KitsController::class, 'deleteImage']);
 Route::put('/admin-kits/estado/{admin_kit}', [admin_KitsController::class, 'estado']);
-
-
 Route::resource('admin-descuentos', admin_DescuentosController::class);
 Route::put('/admin-descuentos/estado/{admin_descuento}', [admin_DescuentosController::class, 'estado']);
 Route::get('/descuentos_productos/filtro', [admin_DescuentosController::class, 'getfiltro_producto']);
@@ -147,8 +145,6 @@ Route::post('/admin-pedidos/desde-ecommerce/{admin_venta}', [admin_PedidosContro
 
 Route::resource('admin-ventas', admin_VentasController::class);
 Route::put('/admin-ventas/estado/{admin_venta}', [admin_VentasController::class, 'estado']);
-
-
 // =====================================================
 // CRM ROUTES - Sistema de Gestión de Relaciones
 // =====================================================
@@ -188,7 +184,6 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     Route::get('cotizaciones/{cotizacion}/pdf', [admin_CrmCotizacionesController::class, 'generarPdf'])->name('cotizaciones.pdf');
     Route::get('cotizaciones/{cotizacion}/preview', [admin_CrmCotizacionesController::class, 'previsualizarPdf'])->name('cotizaciones.preview');
     Route::post('cotizaciones/{cotizacion}/recalcular', [admin_CrmCotizacionesController::class, 'recalcular'])->name('cotizaciones.recalcular');
-    // Route::get('cotizaciones-comparar', [admin_CrmCotizacionesController::class, 'comparar'])->name('cotizaciones.comparar'); // TODO: falta vista comparar.blade.php
 
     // Ítems de cotización
     Route::post('cotizaciones/{cotizacion}/items', [admin_CrmCotizacionesController::class, 'agregarItem'])->name('cotizaciones.agregarItem');
@@ -200,8 +195,6 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     // ACTIVIDADES (Agenda CRM)
     // -------------------------------------------------
     Route::resource('actividades', admin_CrmActividadesController::class)->parameters(['actividades' => 'actividad']);
-    // Route::get('actividades-calendario', [admin_CrmActividadesController::class, 'calendario'])->name('actividades.calendario'); // TODO: falta vista calendario.blade.php
-    // Route::get('actividades-agenda', [admin_CrmActividadesController::class, 'agenda'])->name('actividades.agenda'); // TODO: falta vista agenda.blade.php
     Route::post('actividades/{actividad}/completar', [admin_CrmActividadesController::class, 'completar'])->name('actividades.completar');
     Route::post('actividades/{actividad}/cancelar', [admin_CrmActividadesController::class, 'cancelar'])->name('actividades.cancelar');
     Route::post('actividades/{actividad}/reprogramar', [admin_CrmActividadesController::class, 'reprogramar'])->name('actividades.reprogramar');
@@ -222,31 +215,20 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     // TICKETS (Soporte)
     // -------------------------------------------------
     Route::resource('tickets', admin_CrmTicketsController::class);
-    Route::post('tickets/{ticket}/mensaje', [admin_CrmTicketsController::class, 'agregarMensaje'])->name('tickets.mensaje');
     Route::patch('tickets/{ticket}/estado', [admin_CrmTicketsController::class, 'cambiarEstado'])->name('tickets.cambiar-estado');
     Route::post('tickets/{ticket}/asignar', [admin_CrmTicketsController::class, 'asignar'])->name('tickets.asignar');
     Route::post('tickets/{ticket}/escalar', [admin_CrmTicketsController::class, 'escalar'])->name('tickets.escalar');
-    Route::post('tickets/{ticket}/calificar', [admin_CrmTicketsController::class, 'calificar'])->name('tickets.calificar');
-    // Route::get('tickets-metricas', [admin_CrmTicketsController::class, 'metricas'])->name('tickets.metricas'); // TODO: falta vista metricas.blade.php
 
     // -------------------------------------------------
     // MANTENIMIENTOS
     // -------------------------------------------------
     Route::resource('mantenimientos', admin_CrmMantenimientosController::class);
-    // Route::get('mantenimientos-calendario', [admin_CrmMantenimientosController::class, 'calendario'])->name('mantenimientos.calendario'); // TODO: falta vista calendario.blade.php
     Route::post('mantenimientos/{mantenimiento}/confirmar', [admin_CrmMantenimientosController::class, 'confirmar'])->name('mantenimientos.confirmar');
     Route::post('mantenimientos/{mantenimiento}/iniciar', [admin_CrmMantenimientosController::class, 'iniciar'])->name('mantenimientos.iniciar');
     Route::post('mantenimientos/{mantenimiento}/completar', [admin_CrmMantenimientosController::class, 'completar'])->name('mantenimientos.completar');
     Route::post('mantenimientos/{mantenimiento}/cancelar', [admin_CrmMantenimientosController::class, 'cancelar'])->name('mantenimientos.cancelar');
     Route::post('mantenimientos/{mantenimiento}/reprogramar', [admin_CrmMantenimientosController::class, 'reprogramar'])->name('mantenimientos.reprogramar');
-    Route::post('mantenimientos/{mantenimiento}/asignar-tecnico', [admin_CrmMantenimientosController::class, 'asignarTecnico'])->name('mantenimientos.asignar-tecnico');
-    // Route::get('mantenimientos/{mantenimiento}/reporte', [admin_CrmMantenimientosController::class, 'generarReporte'])->name('mantenimientos.reporte'); // TODO: falta vista reporte-pdf.blade.php
-    Route::post('mantenimientos-recurrente', [admin_CrmMantenimientosController::class, 'programarRecurrente'])->name('mantenimientos.recurrente');
-    Route::get('mantenimientos-eventos', [admin_CrmMantenimientosController::class, 'eventosCalendario'])->name('mantenimientos.eventos');
-    Route::get('mantenimientos-exportar', [admin_CrmMantenimientosController::class, 'exportar'])->name('mantenimientos.exportar');
 }); // Fin del grupo CRM
-
-
 
 Route::get('admin-reportes', [admin_ReportesController::class, 'index'])->name('admin-reportes.index');
 

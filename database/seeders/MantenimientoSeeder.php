@@ -53,8 +53,6 @@ class MantenimientoSeeder extends Seeder
                 'produccion_actual_kwh' => 620,
                 'produccion_esperada_kwh' => 650,
                 'eficiencia_porcentaje' => 95.4,
-                'calificacion' => 5,
-                'comentario_cliente' => 'Excelente servicio, muy profesionales.',
             ],
             [
                 'tipo' => 'correctivo',
@@ -76,7 +74,6 @@ class MantenimientoSeeder extends Seeder
                 'produccion_actual_kwh' => 1250,
                 'produccion_esperada_kwh' => 1300,
                 'eficiencia_porcentaje' => 96.2,
-                'calificacion' => 5,
             ],
             [
                 'tipo' => 'preventivo',
@@ -100,8 +97,6 @@ class MantenimientoSeeder extends Seeder
                 'eficiencia_porcentaje' => 96.2,
                 'hallazgos' => 'Algunos paneles presentan microfisuras por impacto de aves. Requiere monitoreo.',
                 'recomendaciones' => 'Instalar protección anti-aves en estructura. Programar termografía en 3 meses.',
-                'calificacion' => 4,
-                'comentario_cliente' => 'Buen trabajo, pero sugiero mejorar tiempo de llegada.',
             ],
             
             // Mantenimientos programados
@@ -188,7 +183,6 @@ class MantenimientoSeeder extends Seeder
                     'fecha_realizada' => $data['estado'] === 'completado' ? $fechaProgramada : null,
                     'direccion' => $cliente->direccion ?? 'Dirección por confirmar',
                     'tecnico_id' => $tecnico?->id,
-                    'user_id' => $tecnico?->id,
                     'fecha_proximo_mantenimiento' => $data['estado'] === 'completado' ? $fechaProgramada->copy()->addMonths(6) : null,
                 ])
             );

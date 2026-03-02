@@ -106,10 +106,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $contador = 1; ?>
+                        <?php $contador = $ventas->count(); ?>
                         <?php $__currentLoopData = $ventas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $venta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td class="fw-normal text-center align-middle"><?php echo e($contador++); ?></td>
+                            <td class="fw-normal text-center align-middle"><?php echo e($contador--); ?></td>
                             <td class="fw-normal text-center align-middle">
                                 <strong><?php echo e($venta->codigo); ?></strong><br>
                                 <small class="text-muted"><?php echo e($venta->created_at->format('d/m/Y')); ?></small>

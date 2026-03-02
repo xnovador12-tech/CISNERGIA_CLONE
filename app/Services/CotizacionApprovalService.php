@@ -129,15 +129,19 @@ class CotizacionApprovalService
             'cliente_id'            => $cliente->id,
             'user_id'               => $cotizacion->user_id ?? auth()->id(),
             'subtotal'              => $cotizacion->subtotal,
-            'descuento'             => $cotizacion->descuento_monto ?? 0,
+            'incluye_igv'           => $cotizacion->incluye_igv ?? false,
+            'descuento_porcentaje'  => $cotizacion->descuento_porcentaje ?? 0,
+            'descuento_monto'       => $cotizacion->descuento_monto ?? 0,
             'igv'                   => $cotizacion->igv,
             'total'                 => $cotizacion->total,
             'estado'                => 'pendiente',
+            'tipo'                  => $this->determinarTipoPedido($cotizacion),
             'aprobacion_finanzas'   => false,
             'aprobacion_stock'      => false,
             'direccion_instalacion' => $cliente->direccion,
             'distrito_id'           => $cliente->distrito_id,
             'fecha_entrega_estimada' => now()->addDays($cotizacion->tiempo_ejecucion_dias ?? 7),
+            'vigencia_dias'         => 15,
             'origen'                => 'cotizacion',
             'observaciones'         => "Generado automáticamente desde cotización {$cotizacion->codigo}."
                 . " Oportunidad: {$oportunidad->codigo}."
@@ -154,14 +158,30 @@ class CotizacionApprovalService
                 'servicio_id'    => null,
                 'tipo'           => $detalle->categoria ?? 'producto',
                 'descripcion'    => $detalle->descripcion,
-                'cantidad'       => (int) $detalle->cantidad,
+                'cantidad'       => $detalle->cantidad,
+                'unidad'         => $detalle->unidad ?? 'und',
                 'precio_unitario' => $detalle->precio_unitario,
-                'descuento'      => $descuento,
+                'descuento_porcentaje' => $detalle->descuento_porcentaje ?? 0,
+                'descuento_monto'      => $descuento,
                 'subtotal'       => ($detalle->precio_unitario * $detalle->cantidad) - $descuento,
             ]);
         }
 
         return $pedido;
+    }
+
+    /**
+     * Determinar tipo de pedido según los ítems de la cotización.
+     */
+    private function determinarTipoPedido(CotizacionCrm $cotizacion): string
+    {
+        $categorias = $cotizacion->detalles->pluck('categoria')->unique();
+
+        if ($categorias->contains('producto') && $categorias->contains('servicio')) {
+            return 'producto'; // Mixto → default producto
+        }
+
+        return $categorias->first() === 'servicio' ? 'servicio' : 'producto';
     }
 
     /**

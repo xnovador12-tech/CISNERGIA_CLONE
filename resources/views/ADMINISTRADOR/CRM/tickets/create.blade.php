@@ -22,7 +22,15 @@
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
             <div class="card-body p-4">
-                <form action="{{ route('admin.crm.tickets.store') }}" method="POST" enctype="multipart/form-data">
+                {{-- Info --}}
+                <div class="card border-0 rounded-0 border-start border-3 border-info mb-4" style="box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; background-color: #f6f6f6">
+                    <div class="card-body py-2">
+                        <i class="bi bi-info-circle text-info me-2"></i>
+                        <small class="text-muted">Los campos con <span class="text-danger">*</span> son obligatorios. El SLA se calcula automáticamente según la prioridad.</small>
+                    </div>
+                </div>
+
+                <form action="{{ route('admin.crm.tickets.store') }}" method="POST">
                     @csrf
                     
                     <div class="row g-3">
@@ -68,39 +76,31 @@
                             @enderror
                         </div>
 
-                        {{-- Tipo de Ticket --}}
+                        {{-- Categoría --}}
                         <div class="col-md-6">
-                            <label for="tipo" class="form-label fw-bold">Tipo de Ticket <span class="text-danger">*</span></label>
-                            <select name="tipo" id="tipo" class="form-select @error('tipo') is-invalid @enderror" required>
-                                <option value="">Seleccionar...</option>
-                                <option value="consulta" {{ old('tipo') == 'consulta' ? 'selected' : '' }}>❓ Consulta</option>
-                                <option value="reclamo" {{ old('tipo') == 'reclamo' ? 'selected' : '' }}>⚠️ Reclamo</option>
-                                <option value="garantia" {{ old('tipo') == 'garantia' ? 'selected' : '' }}>🛡️ Garantía</option>
-                                <option value="soporte_tecnico" {{ old('tipo') == 'soporte_tecnico' ? 'selected' : '' }}>🔧 Soporte Técnico</option>
-                                <option value="mantenimiento" {{ old('tipo') == 'mantenimiento' ? 'selected' : '' }}>🔩 Mantenimiento</option>
-                                <option value="facturacion" {{ old('tipo') == 'facturacion' ? 'selected' : '' }}>💰 Facturación</option>
-                                <option value="otro" {{ old('tipo') == 'otro' ? 'selected' : '' }}>📋 Otro</option>
-                            </select>
-                            @error('tipo')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Categoría (Componente) --}}
-                        <div class="col-md-6">
-                            <label for="categoria" class="form-label fw-bold">Categoría (Componente)</label>
-                            <select name="categoria" id="categoria" class="form-select @error('categoria') is-invalid @enderror">
-                                <option value="">Seleccionar (opcional)...</option>
-                                <option value="paneles" {{ old('categoria') == 'paneles' ? 'selected' : '' }}>☀️ Paneles Solares</option>
-                                <option value="inversor" {{ old('categoria') == 'inversor' ? 'selected' : '' }}>⚡ Inversor</option>
-                                <option value="baterias" {{ old('categoria') == 'baterias' ? 'selected' : '' }}>🔋 Baterías</option>
-                                <option value="estructura" {{ old('categoria') == 'estructura' ? 'selected' : '' }}>🏗️ Estructura</option>
-                                <option value="cableado" {{ old('categoria') == 'cableado' ? 'selected' : '' }}>🔌 Cableado</option>
-                                <option value="monitoreo" {{ old('categoria') == 'monitoreo' ? 'selected' : '' }}>📊 Monitoreo</option>
-                                <option value="produccion" {{ old('categoria') == 'produccion' ? 'selected' : '' }}>📈 Producción</option>
-                                <option value="instalacion" {{ old('categoria') == 'instalacion' ? 'selected' : '' }}>🔧 Instalación</option>
-                                <option value="documentacion" {{ old('categoria') == 'documentacion' ? 'selected' : '' }}>📄 Documentación</option>
-                                <option value="otro" {{ old('categoria') == 'otro' ? 'selected' : '' }}>📋 Otro</option>
+                            <label for="categoria" class="form-label fw-bold">Categoría <span class="text-danger">*</span></label>
+                            <select name="categoria" id="categoria" class="form-select @error('categoria') is-invalid @enderror" required>
+                                <option value="">Seleccionar categoría...</option>
+                                <optgroup label="🔧 Soporte Técnico">
+                                    <option value="soporte_paneles" {{ old('categoria') == 'soporte_paneles' ? 'selected' : '' }}>☀️ Paneles Solares</option>
+                                    <option value="soporte_inversores" {{ old('categoria') == 'soporte_inversores' ? 'selected' : '' }}>⚡ Inversores</option>
+                                    <option value="soporte_baterias" {{ old('categoria') == 'soporte_baterias' ? 'selected' : '' }}>🔋 Baterías</option>
+                                    <option value="soporte_monitoreo" {{ old('categoria') == 'soporte_monitoreo' ? 'selected' : '' }}>📊 Monitoreo</option>
+                                    <option value="soporte_estructura" {{ old('categoria') == 'soporte_estructura' ? 'selected' : '' }}>🏗️ Estructura / Cableado</option>
+                                </optgroup>
+                                <optgroup label="🛠️ Servicios">
+                                    <option value="mantenimiento" {{ old('categoria') == 'mantenimiento' ? 'selected' : '' }}>🔩 Mantenimiento</option>
+                                    <option value="instalacion" {{ old('categoria') == 'instalacion' ? 'selected' : '' }}>🔧 Instalación</option>
+                                    <option value="garantia" {{ old('categoria') == 'garantia' ? 'selected' : '' }}>🛡️ Garantía</option>
+                                </optgroup>
+                                <optgroup label="📋 Administrativo">
+                                    <option value="facturacion" {{ old('categoria') == 'facturacion' ? 'selected' : '' }}>💰 Facturación / Cobranza</option>
+                                    <option value="consulta" {{ old('categoria') == 'consulta' ? 'selected' : '' }}>❓ Consulta General</option>
+                                    <option value="reclamo" {{ old('categoria') == 'reclamo' ? 'selected' : '' }}>⚠️ Reclamo</option>
+                                </optgroup>
+                                <optgroup label="📌 Otro">
+                                    <option value="otro" {{ old('categoria') == 'otro' ? 'selected' : '' }}>📋 Otro</option>
+                                </optgroup>
                             </select>
                             @error('categoria')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -148,13 +148,11 @@
                             @enderror
                         </div>
 
-                        {{-- Adjuntos --}}
-                        <div class="col-md-6">
-                            <label for="adjuntos" class="form-label fw-bold">Archivos Adjuntos</label>
-                            <input type="file" name="adjuntos[]" id="adjuntos" class="form-control @error('adjuntos.*') is-invalid @enderror" 
-                                   multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
-                            <small class="text-muted">Máx. 10MB por archivo. Formatos: jpg, png, pdf, doc</small>
-                            @error('adjuntos.*')
+                        {{-- Notas Internas --}}
+                        <div class="col-12">
+                            <label for="notas_internas" class="form-label fw-bold"><i class="bi bi-lock me-1 text-warning"></i>Notas Internas</label>
+                            <textarea name="notas_internas" id="notas_internas" rows="3" class="form-control @error('notas_internas') is-invalid @enderror" placeholder="Notas privadas visibles solo para el equipo...">{{ old('notas_internas') }}</textarea>
+                            @error('notas_internas')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

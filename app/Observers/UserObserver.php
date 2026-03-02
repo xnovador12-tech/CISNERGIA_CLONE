@@ -39,7 +39,7 @@ class UserObserver
             'email'                 => $user->email ?? $persona?->email_pnatural,
             'celular'               => $persona?->celular,
             'direccion'             => $persona?->direccion,
-            'tipo_persona'          => $persona?->tipo_persona ?? 'natural',
+            'tipo_persona'          => 'natural', // Por defecto natural para registro ecommerce
             'origen'                => 'ecommerce',
             'estado'                => 'nuevo',
             'registered_user_id'    => $user->id,

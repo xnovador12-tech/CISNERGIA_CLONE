@@ -37,7 +37,6 @@ class CotizacionCrmSeeder extends Seeder
             ->get();
 
         if ($oportunidades->isEmpty()) {
-            $this->command->warn('⚠️ No hay oportunidades activas para generar cotizaciones.');
             return;
         }
 
@@ -130,7 +129,6 @@ class CotizacionCrmSeeder extends Seeder
                 $productosOportunidad = $oportunidad->productosInteres;
 
                 if ($productosOportunidad->isEmpty()) {
-                    $this->command->warn("  ⚠️ Oportunidad {$oportunidad->codigo} sin productos vinculados. Omitida.");
                     $cotizacion->delete();
                     continue;
                 }
@@ -205,9 +203,7 @@ class CotizacionCrmSeeder extends Seeder
 
             $totalCreadas++;
             $itemCount = $cotizacion->detalles()->count();
-            $this->command->info("  ✅ {$codigo} [{$estado}] → {$oportunidad->nombre} ({$itemCount} ítems, Total: S/ {$cotizacion->total})");
         }
 
-        $this->command->info("✅ {$totalCreadas} cotizaciones creadas con ítems consistentes desde oportunidades.");
     }
 }

@@ -199,15 +199,6 @@
                                     Orden de compra
                                 </span>
                             </a>
-                            <a href="<?php echo e(route('admin-ordenservicios.index')); ?>"
-                                class="nav-link px-3 <?php echo e(request()->is(['admin-ordenservicios*']) ? 'active-item' : null); ?> menu">
-                                <span class="fw-bold">
-                                    <i class="bi bi-basket me-2"></i>
-                                </span>
-                                <span>
-                                    Orden de servicio
-                                </span>
-                            </a>
                         </li>
 
                         <li>

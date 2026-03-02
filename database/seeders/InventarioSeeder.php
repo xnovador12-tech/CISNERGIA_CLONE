@@ -18,12 +18,10 @@ class InventarioSeeder extends Seeder
         $sede      = DB::table('sedes')->first();
 
         if ($productos->isEmpty()) {
-            $this->command->error('❌ No hay productos. Ejecuta primero ProductoSeeder.');
             return;
         }
 
         if (!$almacen) {
-            $this->command->error('❌ No hay almacenes. Ejecuta primero AlmacenTableSeeder.');
             return;
         }
 
@@ -53,6 +51,5 @@ class InventarioSeeder extends Seeder
             }
         }
 
-        $this->command->info("✅ Stock inicial creado: {$cantidadPorProducto} unidades por producto en almacén '{$almacen->name}'.");
     }
 }

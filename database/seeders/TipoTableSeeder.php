@@ -12,11 +12,11 @@ class TipoTableSeeder extends Seeder
     {
         $tipos = [
             'Kit Solares',
-            'Paneles Solares ',
+            'Paneles Solares',
             'Soportes Paneles Solares',
             'Baterías',
             'Inversores Solares',
-            'Controladores de Carga ',
+            'Controladores de Carga',
             'Cargador de Baterías',
             'Iluminación Solar',
             'Accesorios Eléctricos',
@@ -25,7 +25,7 @@ class TipoTableSeeder extends Seeder
             'Tableros Eléctricos',
             'Automatización y Control',
             'Scooters Eléctricos',
-            'Motos Eléctricas'
+            'Motos Eléctricas',
         ];
 
         foreach ($tipos as $nombre) {

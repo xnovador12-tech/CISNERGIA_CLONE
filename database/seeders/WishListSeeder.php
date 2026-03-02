@@ -22,26 +22,25 @@ class WishListSeeder extends Seeder
         $productos = Producto::where('estado', 'Activo')->get();
 
         if ($productos->isEmpty()) {
-            $this->command->warn('No hay productos activos para crear wishlists.');
             return;
         }
 
         // Clientes que ya visitaron la tienda online y tienen cuenta
         $clientesEcommerce = [
             [
-                'nombre' => 'Carlos Mendoza',
-                'email' => 'carlos.mendoza.ecom@gmail.com',
-                'prospecto_match' => 'Carlos',  // Buscar prospecto por nombre
+                'nombre' => 'Javier Rodríguez',
+                'email' => 'javier.rodriguez.ecom@gmail.com',
+                'prospecto_match' => 'Javier',  // Buscar prospecto por nombre
             ],
             [
-                'nombre' => 'Patricia Vega',
-                'email' => 'patricia.vega.ecom@gmail.com',
-                'prospecto_match' => 'Patricia',
+                'nombre' => 'Lucía Fernández',
+                'email' => 'lucia.fernandez.ecom@gmail.com',
+                'prospecto_match' => 'Lucía',
             ],
             [
-                'nombre' => 'Fernando Castillo',
-                'email' => 'fernando.castillo.ecom@gmail.com',
-                'prospecto_match' => 'Fernando',
+                'nombre' => 'Diego Quispe',
+                'email' => 'diego.quispe.ecom@gmail.com',
+                'prospecto_match' => 'Diego',
             ],
         ];
 
@@ -56,13 +55,17 @@ class WishListSeeder extends Seeder
             ]);
 
             // 2. Crear User (cuenta ecommerce del cliente)
-            $user = User::create([
-                'email' => $clienteData['email'],
-                'password' => Hash::make('cliente123'),
-                'estado' => 'Activo',
-                'role_id' => 2,
-                'persona_id' => $persona->id,
-            ]);
+            // withoutEvents evita que UserObserver cree un prospecto duplicado,
+            // ya que el ProspectoSeeder ya creó estos prospectos y los vinculamos manualmente abajo
+            $user = User::withoutEvents(function () use ($clienteData, $persona) {
+                return User::create([
+                    'email' => $clienteData['email'],
+                    'password' => Hash::make('cliente123'),
+                    'estado' => 'Activo',
+                    'role_id' => 6, // Cliente
+                    'persona_id' => $persona->id,
+                ]);
+            });
 
             // 3. Vincular al Prospecto correspondiente
             $prospecto = Prospecto::where('nombre', 'like', '%' . $clienteData['prospecto_match'] . '%')
@@ -74,9 +77,7 @@ class WishListSeeder extends Seeder
                 $prospecto->origen = 'ecommerce';
                 $prospecto->save();
 
-                $this->command->info("  → Prospecto '{$prospecto->nombre_completo}' vinculado a cuenta ecommerce #{$user->id} (origen → ecommerce)");
             } else {
-                $this->command->warn("  → No se encontró prospecto para '{$clienteData['prospecto_match']}'");
             }
 
             // 4. Crear Wish List (3-5 productos aleatorios por cliente)
@@ -93,9 +94,7 @@ class WishListSeeder extends Seeder
                 ]);
             }
 
-            $this->command->info("  → Wishlist: {$cantidad} productos para '{$clienteData['nombre']}'");
         }
 
-        $this->command->info("Total wish_lists: " . DB::table('wish_lists')->count());
     }
 }

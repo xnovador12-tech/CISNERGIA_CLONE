@@ -17,27 +17,20 @@ class Ticket extends Model
         'codigo',
         'slug',
         'cliente_id',
-        'venta_id',
         'asunto',
         'descripcion',
-        'tipo',
         'categoria',
         'prioridad',
         'sla_horas',
         'sla_vencimiento',
         'sla_cumplido',
         'estado',
-        'fecha_apertura',
         'fecha_primera_respuesta',
         'fecha_resolucion',
         'fecha_cierre',
         'solucion',
         'tipo_solucion',
-        'calificacion_cliente',
-        'comentario_cliente',
         'user_id',
-        'tecnico_id',
-        'sede_id',
         'canal',
         'notas_internas',
         'created_by',
@@ -45,7 +38,6 @@ class Ticket extends Model
     ];
 
     protected $casts = [
-        'fecha_apertura' => 'datetime',
         'fecha_primera_respuesta' => 'datetime',
         'fecha_resolucion' => 'datetime',
         'fecha_cierre' => 'datetime',
@@ -64,6 +56,44 @@ class Ticket extends Model
     ];
 
     /**
+     * Etiquetas legibles para las categorías unificadas
+     */
+    public const CATEGORIAS = [
+        // Soporte Técnico
+        'soporte_paneles' => 'Soporte - Paneles Solares',
+        'soporte_inversores' => 'Soporte - Inversores',
+        'soporte_baterias' => 'Soporte - Baterías',
+        'soporte_monitoreo' => 'Soporte - Monitoreo',
+        'soporte_estructura' => 'Soporte - Estructura/Cableado',
+        // Servicios
+        'mantenimiento' => 'Mantenimiento',
+        'instalacion' => 'Instalación',
+        'garantia' => 'Garantía',
+        // Administrativo
+        'facturacion' => 'Facturación / Cobranza',
+        'consulta' => 'Consulta General',
+        'reclamo' => 'Reclamo',
+        // Otro
+        'otro' => 'Otro',
+    ];
+
+    /**
+     * Obtener etiqueta legible de la categoría
+     */
+    public function getCategoriaLabelAttribute(): string
+    {
+        return self::CATEGORIAS[$this->categoria] ?? ucfirst($this->categoria);
+    }
+
+    /**
+     * Verificar si es un ticket de tipo mantenimiento
+     */
+    public function getEsMantenimientoAttribute(): bool
+    {
+        return $this->categoria === 'mantenimiento';
+    }
+
+    /**
      * Boot del modelo
      */
     protected static function boot()
@@ -77,13 +107,11 @@ class Ticket extends Model
             if (empty($ticket->slug)) {
                 $ticket->slug = Str::slug($ticket->codigo . '-' . Str::random(5));
             }
-            if (empty($ticket->fecha_apertura)) {
-                $ticket->fecha_apertura = now();
-            }
             if (empty($ticket->sla_horas)) {
                 $ticket->sla_horas = self::SLA_POR_PRIORIDAD[$ticket->prioridad] ?? 48;
             }
-            $ticket->sla_vencimiento = $ticket->fecha_apertura->addHours($ticket->sla_horas);
+            // SLA se calcula desde el momento de creación
+            $ticket->sla_vencimiento = now()->addHours($ticket->sla_horas);
             
             if (auth()->check()) {
                 $ticket->created_by = auth()->id();
@@ -149,34 +177,9 @@ class Ticket extends Model
         return $this->belongsTo(Cliente::class);
     }
 
-    public function venta()
+    public function mantenimiento()
     {
-        return $this->belongsTo(Sale::class, 'venta_id');
-    }
-
-    public function agente()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function usuario()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function tecnico()
-    {
-        return $this->belongsTo(User::class, 'tecnico_id');
-    }
-
-    public function sede()
-    {
-        return $this->belongsTo(Sede::class);
-    }
-
-    public function mensajes()
-    {
-        return $this->hasMany(TicketMensaje::class);
+        return $this->hasOne(Mantenimiento::class);
     }
 
     public function creadoPor()
@@ -227,12 +230,6 @@ class Ticket extends Model
                     ->where('sla_vencimiento', '<', now());
     }
 
-    public function scopeVencidosSla($query)
-    {
-        return $query->abiertos()
-                    ->where('sla_vencimiento', '<', now());
-    }
-
     public function scopePorVencer($query, $horas = 4)
     {
         return $query->abiertos()
@@ -241,7 +238,7 @@ class Ticket extends Model
 
     public function scopeDeHoy($query)
     {
-        return $query->whereDate('fecha_apertura', today());
+        return $query->whereDate('created_at', today());
     }
 
     // ==================== MÉTODOS ====================
@@ -277,21 +274,17 @@ class Ticket extends Model
         $this->solucion = $solucion;
         $this->tipo_solucion = $tipoSolucion;
         $this->fecha_resolucion = now();
-        $this->sla_cumplido = $this->fecha_resolucion <= $this->sla_vencimiento;
+        $this->sla_cumplido = $this->sla_vencimiento ? now()->lte($this->sla_vencimiento) : null;
         $this->save();
     }
 
     /**
      * Cerrar ticket
      */
-    public function cerrar(?int $calificacion = null, ?string $comentario = null): void
+    public function cerrar(): void
     {
         $this->estado = 'cerrado';
         $this->fecha_cierre = now();
-        if ($calificacion) {
-            $this->calificacion_cliente = $calificacion;
-            $this->comentario_cliente = $comentario;
-        }
         $this->save();
     }
 
@@ -301,25 +294,11 @@ class Ticket extends Model
     public function reabrir(): void
     {
         $this->estado = 'reabierto';
-        // Recalcular SLA
         $this->sla_vencimiento = now()->addHours($this->sla_horas);
         $this->sla_cumplido = null;
         $this->fecha_resolucion = null;
         $this->fecha_cierre = null;
         $this->save();
-    }
-
-    /**
-     * Agregar mensaje
-     */
-    public function agregarMensaje(string $mensaje, string $tipo = 'respuesta', bool $esCliente = false): TicketMensaje
-    {
-        return $this->mensajes()->create([
-            'mensaje' => $mensaje,
-            'tipo' => $tipo,
-            'es_cliente' => $esCliente,
-            'user_id' => auth()->id(),
-        ]);
     }
 
     /**

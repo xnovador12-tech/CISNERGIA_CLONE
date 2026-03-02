@@ -1,4 +1,3 @@
-
 <?php $__env->startSection('title', 'Nuevo Ticket'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -22,7 +21,15 @@
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
             <div class="card-body p-4">
-                <form action="<?php echo e(route('admin.crm.tickets.store')); ?>" method="POST" enctype="multipart/form-data">
+                
+                <div class="card border-0 rounded-0 border-start border-3 border-info mb-4" style="box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; background-color: #f6f6f6">
+                    <div class="card-body py-2">
+                        <i class="bi bi-info-circle text-info me-2"></i>
+                        <small class="text-muted">Los campos con <span class="text-danger">*</span> son obligatorios. El SLA se calcula automáticamente según la prioridad.</small>
+                    </div>
+                </div>
+
+                <form action="<?php echo e(route('admin.crm.tickets.store')); ?>" method="POST">
                     <?php echo csrf_field(); ?>
                     
                     <div class="row g-3">
@@ -113,39 +120,7 @@ unset($__errorArgs, $__bag); ?>
 
                         
                         <div class="col-md-6">
-                            <label for="tipo" class="form-label fw-bold">Tipo de Ticket <span class="text-danger">*</span></label>
-                            <select name="tipo" id="tipo" class="form-select <?php $__errorArgs = ['tipo'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" required>
-                                <option value="">Seleccionar...</option>
-                                <option value="consulta" <?php echo e(old('tipo') == 'consulta' ? 'selected' : ''); ?>>❓ Consulta</option>
-                                <option value="reclamo" <?php echo e(old('tipo') == 'reclamo' ? 'selected' : ''); ?>>⚠️ Reclamo</option>
-                                <option value="garantia" <?php echo e(old('tipo') == 'garantia' ? 'selected' : ''); ?>>🛡️ Garantía</option>
-                                <option value="soporte_tecnico" <?php echo e(old('tipo') == 'soporte_tecnico' ? 'selected' : ''); ?>>🔧 Soporte Técnico</option>
-                                <option value="mantenimiento" <?php echo e(old('tipo') == 'mantenimiento' ? 'selected' : ''); ?>>🔩 Mantenimiento</option>
-                                <option value="facturacion" <?php echo e(old('tipo') == 'facturacion' ? 'selected' : ''); ?>>💰 Facturación</option>
-                                <option value="otro" <?php echo e(old('tipo') == 'otro' ? 'selected' : ''); ?>>📋 Otro</option>
-                            </select>
-                            <?php $__errorArgs = ['tipo'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                <div class="invalid-feedback"><?php echo e($message); ?></div>
-                            <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                        </div>
-
-                        
-                        <div class="col-md-6">
-                            <label for="categoria" class="form-label fw-bold">Categoría (Componente)</label>
+                            <label for="categoria" class="form-label fw-bold">Categoría <span class="text-danger">*</span></label>
                             <select name="categoria" id="categoria" class="form-select <?php $__errorArgs = ['categoria'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -153,18 +128,28 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>">
-                                <option value="">Seleccionar (opcional)...</option>
-                                <option value="paneles" <?php echo e(old('categoria') == 'paneles' ? 'selected' : ''); ?>>☀️ Paneles Solares</option>
-                                <option value="inversor" <?php echo e(old('categoria') == 'inversor' ? 'selected' : ''); ?>>⚡ Inversor</option>
-                                <option value="baterias" <?php echo e(old('categoria') == 'baterias' ? 'selected' : ''); ?>>🔋 Baterías</option>
-                                <option value="estructura" <?php echo e(old('categoria') == 'estructura' ? 'selected' : ''); ?>>🏗️ Estructura</option>
-                                <option value="cableado" <?php echo e(old('categoria') == 'cableado' ? 'selected' : ''); ?>>🔌 Cableado</option>
-                                <option value="monitoreo" <?php echo e(old('categoria') == 'monitoreo' ? 'selected' : ''); ?>>📊 Monitoreo</option>
-                                <option value="produccion" <?php echo e(old('categoria') == 'produccion' ? 'selected' : ''); ?>>📈 Producción</option>
-                                <option value="instalacion" <?php echo e(old('categoria') == 'instalacion' ? 'selected' : ''); ?>>🔧 Instalación</option>
-                                <option value="documentacion" <?php echo e(old('categoria') == 'documentacion' ? 'selected' : ''); ?>>📄 Documentación</option>
-                                <option value="otro" <?php echo e(old('categoria') == 'otro' ? 'selected' : ''); ?>>📋 Otro</option>
+unset($__errorArgs, $__bag); ?>" required>
+                                <option value="">Seleccionar categoría...</option>
+                                <optgroup label="🔧 Soporte Técnico">
+                                    <option value="soporte_paneles" <?php echo e(old('categoria') == 'soporte_paneles' ? 'selected' : ''); ?>>☀️ Paneles Solares</option>
+                                    <option value="soporte_inversores" <?php echo e(old('categoria') == 'soporte_inversores' ? 'selected' : ''); ?>>⚡ Inversores</option>
+                                    <option value="soporte_baterias" <?php echo e(old('categoria') == 'soporte_baterias' ? 'selected' : ''); ?>>🔋 Baterías</option>
+                                    <option value="soporte_monitoreo" <?php echo e(old('categoria') == 'soporte_monitoreo' ? 'selected' : ''); ?>>📊 Monitoreo</option>
+                                    <option value="soporte_estructura" <?php echo e(old('categoria') == 'soporte_estructura' ? 'selected' : ''); ?>>🏗️ Estructura / Cableado</option>
+                                </optgroup>
+                                <optgroup label="🛠️ Servicios">
+                                    <option value="mantenimiento" <?php echo e(old('categoria') == 'mantenimiento' ? 'selected' : ''); ?>>🔩 Mantenimiento</option>
+                                    <option value="instalacion" <?php echo e(old('categoria') == 'instalacion' ? 'selected' : ''); ?>>🔧 Instalación</option>
+                                    <option value="garantia" <?php echo e(old('categoria') == 'garantia' ? 'selected' : ''); ?>>🛡️ Garantía</option>
+                                </optgroup>
+                                <optgroup label="📋 Administrativo">
+                                    <option value="facturacion" <?php echo e(old('categoria') == 'facturacion' ? 'selected' : ''); ?>>💰 Facturación / Cobranza</option>
+                                    <option value="consulta" <?php echo e(old('categoria') == 'consulta' ? 'selected' : ''); ?>>❓ Consulta General</option>
+                                    <option value="reclamo" <?php echo e(old('categoria') == 'reclamo' ? 'selected' : ''); ?>>⚠️ Reclamo</option>
+                                </optgroup>
+                                <optgroup label="📌 Otro">
+                                    <option value="otro" <?php echo e(old('categoria') == 'otro' ? 'selected' : ''); ?>>📋 Otro</option>
+                                </optgroup>
                             </select>
                             <?php $__errorArgs = ['categoria'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -263,19 +248,17 @@ unset($__errorArgs, $__bag); ?>
                         </div>
 
                         
-                        <div class="col-md-6">
-                            <label for="adjuntos" class="form-label fw-bold">Archivos Adjuntos</label>
-                            <input type="file" name="adjuntos[]" id="adjuntos" class="form-control <?php $__errorArgs = ['adjuntos.*'];
+                        <div class="col-12">
+                            <label for="notas_internas" class="form-label fw-bold"><i class="bi bi-lock me-1 text-warning"></i>Notas Internas</label>
+                            <textarea name="notas_internas" id="notas_internas" rows="3" class="form-control <?php $__errorArgs = ['notas_internas'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" 
-                                   multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
-                            <small class="text-muted">Máx. 10MB por archivo. Formatos: jpg, png, pdf, doc</small>
-                            <?php $__errorArgs = ['adjuntos.*'];
+unset($__errorArgs, $__bag); ?>" placeholder="Notas privadas visibles solo para el equipo..."><?php echo e(old('notas_internas')); ?></textarea>
+                            <?php $__errorArgs = ['notas_internas'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }

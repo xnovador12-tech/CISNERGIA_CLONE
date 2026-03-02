@@ -57,6 +57,18 @@
                 </div>
                 <div class="card-body">
 
+                    {{-- Info --}}
+                    <div class="card border-0 rounded-0 border-start border-3 border-info mb-4" style="box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; background-color: #f6f6f6">
+                        <div class="card-body py-2">
+                            <i class="bi bi-info-circle text-info me-2"></i>
+                            <small class="text-muted">
+                                Editando oportunidad <span class="badge bg-secondary">{{ $oportunidad->codigo }}</span>
+                                — Prospecto: <strong>{{ $oportunidad->prospecto->nombre_completo ?? 'N/A' }}</strong>
+                                — Los campos con <span class="text-danger">*</span> son obligatorios.
+                            </small>
+                        </div>
+                    </div>
+
                     @if($errors->any())
                         <div class="alert alert-danger">
                             <ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>

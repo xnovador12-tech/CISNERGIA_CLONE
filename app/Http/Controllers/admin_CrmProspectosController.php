@@ -273,22 +273,6 @@ class admin_CrmProspectosController extends Controller
     /**
      * Vista Kanban por estado
      */
-    public function kanban()
-    {
-        $estados = ['nuevo', 'contactado', 'calificado', 'descartado'];
-        
-        $prospectosPorEstado = [];
-        foreach ($estados as $estado) {
-            $prospectosPorEstado[$estado] = Prospecto::with('vendedor')
-                ->where('estado', $estado)
-                ->orderByDesc('created_at')
-                ->take(20)
-                ->get();
-        }
-
-        return view('ADMINISTRADOR.CRM.prospectos.kanban', compact('prospectosPorEstado', 'estados'));
-    }
-
     /**
      * Actualizar estado (AJAX o formulario)
      */

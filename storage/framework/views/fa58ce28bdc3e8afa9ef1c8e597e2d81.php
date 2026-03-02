@@ -62,6 +62,10 @@
                         <ul class="list-unstyled">
                             <li class="text-primary menu_item">
                                 <i class="bi bi-diagram-3 me-2"></i>
+                                <a href="<?php echo e(route('admin-modelos.index')); ?>" class="link-primary text-decoration-none">Modelos</a>
+                            </li>
+                            <li class="text-primary menu_item">
+                                <i class="bi bi-diagram-3 me-2"></i>
                                 <a href="<?php echo e(route('admin-tipos.index')); ?>" class="link-primary text-decoration-none">Tipos</a>
                             </li>
                             <li class="text-primary menu_item">
@@ -126,10 +130,6 @@
                             <li class="text-primary menu_item">
                                 <i class="bi bi-receipt me-2"></i>
                                 <a href="<?php echo e(route('admin-cupones.index')); ?>" class="link-primary text-decoration-none">Cupones</a>
-                            </li>
-                            <li class="text-primary menu_item">
-                                <i class="bi bi-tools me-2"></i>
-                                <a href="<?php echo e(route('admin-servicios.index')); ?>" class="link-primary text-decoration-none">Servicios</a>
                             </li>
                         </ul>
                     </div>

@@ -34,6 +34,10 @@
         $estadoColors = ['activo' => 'success', 'inactivo' => 'secondary', 'suspendido' => 'danger'];
         $origenColors = ['ecommerce' => 'info', 'directo' => 'primary'];
         $segmentoColors = ['residencial' => 'primary', 'comercial' => 'success', 'industrial' => 'warning', 'agricola' => 'info'];
+        $etapaColors = ['calificacion' => 'primary', 'evaluacion' => 'info', 'propuesta_tecnica' => 'warning', 'negociacion' => 'secondary', 'ganada' => 'success', 'perdida' => 'danger'];
+        $cotEstadoColors = ['borrador' => 'secondary', 'enviada' => 'primary', 'aceptada' => 'success', 'rechazada' => 'danger', 'vencida' => 'dark'];
+        $actEstadoColors = ['programada' => 'primary', 'completada' => 'success', 'cancelada' => 'danger', 'reprogramada' => 'warning', 'no_realizada' => 'secondary'];
+        $pedidoEstadoColors = ['pendiente' => 'warning', 'proceso' => 'info', 'entregado' => 'success', 'cancelado' => 'danger'];
     ?>
 
     <div class="container-fluid">
@@ -175,6 +179,12 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#tab-actividades" role="tab">
+                                    <i class="bi bi-calendar-check me-1"></i>Actividades
+                                    <span class="badge bg-success ms-1"><?php echo e($cliente->actividades->count()); ?></span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" data-bs-toggle="tab" href="#tab-soporte" role="tab">
                                     <i class="bi bi-life-preserver me-1"></i>Soporte
                                     <span class="badge bg-warning ms-1"><?php echo e($cliente->tickets->count() + $cliente->mantenimientos->count()); ?></span>
@@ -185,10 +195,13 @@
                     <div class="card-body">
                         <div class="tab-content">
 
-                            <!-- Tab: Ventas -->
+                            <!-- ════════ Tab: Ventas & Pedidos ════════ -->
                             <div class="tab-pane fade show active" id="tab-ventas" role="tabpanel">
-                                <?php if($cliente->ventas->count() > 0): ?>
-                                    <div class="table-responsive">
+
+                                
+                                <?php if($cliente->pedidos->count() > 0): ?>
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-box-seam me-1"></i>Pedidos</h6>
+                                    <div class="table-responsive mb-4">
                                         <table class="table table-sm table-hover">
                                             <thead class="table-light">
                                                 <tr>
@@ -196,28 +209,74 @@
                                                     <th>Fecha</th>
                                                     <th class="text-end">Total</th>
                                                     <th class="text-center">Estado</th>
+                                                    <th class="text-center" style="width: 50px;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php $__currentLoopData = $cliente->pedidos->sortByDesc('created_at'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pedido): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <tr>
+                                                        <td><strong><?php echo e($pedido->codigo); ?></strong></td>
+                                                        <td><?php echo e($pedido->created_at->format('d/m/Y')); ?></td>
+                                                        <td class="text-end fw-bold text-primary">S/ <?php echo e(number_format($pedido->total ?? 0, 2)); ?></td>
+                                                        <td class="text-center">
+                                                            <span class="badge bg-<?php echo e($pedidoEstadoColors[$pedido->estado] ?? 'secondary'); ?>">
+                                                                <?php echo e(ucfirst($pedido->estado)); ?>
+
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <a href="<?php echo e(route('admin-pedidos.show', $pedido)); ?>" class="btn btn-sm btn-outline-primary" style="padding: 0 6px;" title="Ver pedido">
+                                                                <i class="bi bi-eye" style="font-size: 0.7rem;"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <?php endif; ?>
+
+                                
+                                <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-1"></i>Comprobantes de Venta</h6>
+                                <?php if($cliente->ventas->count() > 0): ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Código</th>
+                                                    <th>Comprobante</th>
+                                                    <th>Fecha</th>
+                                                    <th class="text-end">Total</th>
+                                                    <th class="text-center">Estado</th>
+                                                    <th class="text-center" style="width: 50px;"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php $__currentLoopData = $cliente->ventas->sortByDesc('created_at'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $venta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                     <tr>
-                                                        <td><strong><?php echo e($venta->codigo ?? $venta->id); ?></strong></td>
+                                                        <td><strong><?php echo e($venta->codigo); ?></strong></td>
+                                                        <td><small><?php echo e($venta->numero_comprobante ?? '-'); ?></small></td>
                                                         <td><?php echo e($venta->created_at->format('d/m/Y')); ?></td>
                                                         <td class="text-end fw-bold text-primary">S/ <?php echo e(number_format($venta->total ?? 0, 2)); ?></td>
                                                         <td class="text-center">
-                                                            <span class="badge bg-<?php echo e(($venta->estado ?? '') === 'completada' ? 'success' : 'secondary'); ?>">
+                                                            <span class="badge bg-<?php echo e(($venta->estado ?? '') === 'completada' ? 'success' : (($venta->estado ?? '') === 'anulada' ? 'danger' : 'secondary')); ?>">
                                                                 <?php echo e(ucfirst($venta->estado ?? 'N/A')); ?>
 
                                                             </span>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <a href="<?php echo e(route('admin-ventas.show', $venta)); ?>" class="btn btn-sm btn-outline-primary" style="padding: 0 6px;" title="Ver venta">
+                                                                <i class="bi bi-eye" style="font-size: 0.7rem;"></i>
+                                                            </a>
                                                         </td>
                                                     </tr>
                                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </tbody>
                                             <tfoot>
                                                 <tr class="table-light">
-                                                    <td colspan="2" class="fw-bold">Total</td>
+                                                    <td colspan="3" class="fw-bold">Total</td>
                                                     <td class="text-end fw-bold text-success">S/ <?php echo e(number_format($cliente->ventas->sum('total'), 2)); ?></td>
-                                                    <td></td>
+                                                    <td colspan="2"></td>
                                                 </tr>
                                             </tfoot>
                                         </table>
@@ -230,7 +289,7 @@
                                 <?php endif; ?>
                             </div>
 
-                            <!-- Tab: Oportunidades & Cotizaciones -->
+                            <!-- ════════ Tab: Oportunidades & Cotizaciones ════════ -->
                             <div class="tab-pane fade" id="tab-oportunidades" role="tabpanel">
                                 <?php if($cliente->oportunidades->count() > 0): ?>
                                     <?php $__currentLoopData = $cliente->oportunidades->sortByDesc('created_at'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $oportunidad): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -243,11 +302,11 @@
                                                         <br>
                                                         <small class="text-muted">
                                                             Etapa:
-                                                            <span class="badge bg-<?php echo e($oportunidad->etapa === 'ganada' ? 'success' : ($oportunidad->etapa === 'perdida' ? 'danger' : 'primary')); ?>">
-                                                                <?php echo e(ucfirst($oportunidad->etapa)); ?>
+                                                            <span class="badge bg-<?php echo e($etapaColors[$oportunidad->etapa] ?? 'secondary'); ?>">
+                                                                <?php echo e(ucfirst(str_replace('_', ' ', $oportunidad->etapa))); ?>
 
                                                             </span>
-                                                            — Monto: <strong class="text-primary">S/ <?php echo e(number_format($oportunidad->monto_estimado, 2)); ?></strong>
+                                                            — Monto: <strong class="text-primary">S/ <?php echo e(number_format($oportunidad->monto_estimado ?? 0, 2)); ?></strong>
                                                         </small>
                                                     </div>
                                                     <a href="<?php echo e(route('admin.crm.oportunidades.show', $oportunidad)); ?>" class="btn btn-sm btn-outline-primary">
@@ -265,7 +324,7 @@
                                                                     <?php echo e($cotizacion->codigo); ?>
 
                                                                     — <strong>S/ <?php echo e(number_format($cotizacion->total ?? 0, 2)); ?></strong>
-                                                                    <span class="badge bg-<?php echo e(['borrador' => 'secondary', 'enviada' => 'primary', 'aceptada' => 'success', 'rechazada' => 'danger'][$cotizacion->estado] ?? 'secondary'); ?>">
+                                                                    <span class="badge bg-<?php echo e($cotEstadoColors[$cotizacion->estado] ?? 'secondary'); ?>">
                                                                         <?php echo e(ucfirst($cotizacion->estado)); ?>
 
                                                                     </span>
@@ -288,7 +347,63 @@
                                 <?php endif; ?>
                             </div>
 
-                            <!-- Tab: Soporte (Tickets + Mantenimientos) -->
+                            <!-- ════════ Tab: Actividades (NUEVO) ════════ -->
+                            <div class="tab-pane fade" id="tab-actividades" role="tabpanel">
+                                <?php if($cliente->actividades->count() > 0): ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Código</th>
+                                                    <th>Tipo</th>
+                                                    <th>Título</th>
+                                                    <th>Fecha Programada</th>
+                                                    <th class="text-center">Estado</th>
+                                                    <th>Asignado a</th>
+                                                    <th class="text-center" style="width: 50px;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php $__currentLoopData = $cliente->actividades->sortByDesc('fecha_programada'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $actividad): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <?php $tipoInfo = $actividad->tipo_info; ?>
+                                                    <tr>
+                                                        <td><strong><?php echo e($actividad->codigo); ?></strong></td>
+                                                        <td>
+                                                            <span class="badge bg-<?php echo e($tipoInfo['color']); ?>">
+                                                                <i class="bi <?php echo e($tipoInfo['icono']); ?> me-1"></i><?php echo e($tipoInfo['nombre']); ?>
+
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-truncate" style="max-width: 180px;" title="<?php echo e($actividad->titulo); ?>"><?php echo e($actividad->titulo); ?></td>
+                                                        <td><?php echo e($actividad->fecha_programada ? $actividad->fecha_programada->format('d/m/Y H:i') : '-'); ?></td>
+                                                        <td class="text-center">
+                                                            <span class="badge bg-<?php echo e($actEstadoColors[$actividad->estado] ?? 'secondary'); ?>">
+                                                                <?php echo e(ucfirst(str_replace('_', ' ', $actividad->estado))); ?>
+
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <small><?php echo e($actividad->asignadoA?->persona?->name ?? '-'); ?></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <a href="<?php echo e(route('admin.crm.actividades.show', $actividad)); ?>" class="btn btn-sm btn-outline-primary" style="padding: 0 6px;" title="Ver actividad">
+                                                                <i class="bi bi-eye" style="font-size: 0.7rem;"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="text-center py-4 text-muted">
+                                        <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                                        No hay actividades registradas para este cliente.
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- ════════ Tab: Soporte (Tickets + Mantenimientos) ════════ -->
                             <div class="tab-pane fade" id="tab-soporte" role="tabpanel">
                                 
                                 <h6 class="fw-bold mb-3"><i class="bi bi-ticket-perforated me-1"></i>Tickets</h6>
@@ -302,15 +417,16 @@
                                                     <th class="text-center">Prioridad</th>
                                                     <th class="text-center">Estado</th>
                                                     <th>Fecha</th>
+                                                    <th class="text-center" style="width: 50px;"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php $__currentLoopData = $cliente->tickets->sortByDesc('created_at'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $ticket): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                     <tr>
                                                         <td><strong><?php echo e($ticket->codigo ?? $ticket->id); ?></strong></td>
-                                                        <td><?php echo e(Str::limit($ticket->asunto ?? $ticket->titulo ?? '-', 40)); ?></td>
+                                                        <td class="text-truncate" style="max-width: 200px;"><?php echo e($ticket->asunto ?? $ticket->titulo ?? '-'); ?></td>
                                                         <td class="text-center">
-                                                            <?php $prioridadColors = ['alta' => 'danger', 'media' => 'warning', 'baja' => 'success']; ?>
+                                                            <?php $prioridadColors = ['alta' => 'danger', 'media' => 'warning', 'baja' => 'success', 'urgente' => 'dark', 'critica' => 'dark']; ?>
                                                             <span class="badge bg-<?php echo e($prioridadColors[$ticket->prioridad ?? ''] ?? 'secondary'); ?>">
                                                                 <?php echo e(ucfirst($ticket->prioridad ?? '-')); ?>
 
@@ -320,6 +436,11 @@
                                                             <span class="badge bg-secondary"><?php echo e(ucfirst(str_replace('_', ' ', $ticket->estado ?? '-'))); ?></span>
                                                         </td>
                                                         <td><?php echo e($ticket->created_at?->format('d/m/Y')); ?></td>
+                                                        <td class="text-center">
+                                                            <a href="<?php echo e(route('admin.crm.tickets.show', $ticket)); ?>" class="btn btn-sm btn-outline-primary" style="padding: 0 6px;" title="Ver ticket">
+                                                                <i class="bi bi-eye" style="font-size: 0.7rem;"></i>
+                                                            </a>
+                                                        </td>
                                                     </tr>
                                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </tbody>
@@ -343,17 +464,23 @@
                                                     <th>Tipo</th>
                                                     <th class="text-center">Estado</th>
                                                     <th>Fecha Programada</th>
+                                                    <th class="text-center" style="width: 50px;"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php $__currentLoopData = $cliente->mantenimientos->sortByDesc('created_at'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $mantenimiento): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                     <tr>
                                                         <td><strong><?php echo e($mantenimiento->codigo ?? $mantenimiento->id); ?></strong></td>
-                                                        <td><?php echo e(ucfirst($mantenimiento->tipo ?? '-')); ?></td>
+                                                        <td><?php echo e(ucfirst(str_replace('_', ' ', $mantenimiento->tipo ?? '-'))); ?></td>
                                                         <td class="text-center">
                                                             <span class="badge bg-secondary"><?php echo e(ucfirst(str_replace('_', ' ', $mantenimiento->estado ?? '-'))); ?></span>
                                                         </td>
                                                         <td><?php echo e($mantenimiento->fecha_programada ? \Carbon\Carbon::parse($mantenimiento->fecha_programada)->format('d/m/Y') : '-'); ?></td>
+                                                        <td class="text-center">
+                                                            <a href="<?php echo e(route('admin.crm.mantenimientos.show', $mantenimiento)); ?>" class="btn btn-sm btn-outline-primary" style="padding: 0 6px;" title="Ver mantenimiento">
+                                                                <i class="bi bi-eye" style="font-size: 0.7rem;"></i>
+                                                            </a>
+                                                        </td>
                                                     </tr>
                                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </tbody>
@@ -483,7 +610,7 @@
                             <small class="text-muted">Prospecto Origen</small>
                             <p class="mb-0">
                                 <a href="<?php echo e(route('admin.crm.prospectos.show', $cliente->prospecto)); ?>" class="text-decoration-none">
-                                    <?php echo e($cliente->prospecto->nombre_completo); ?>
+                                    <i class="bi bi-box-arrow-up-right me-1" style="font-size: 0.7rem;"></i><?php echo e($cliente->prospecto->nombre_completo); ?>
 
                                 </a>
                             </p>

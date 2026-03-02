@@ -31,6 +31,14 @@
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
             <div class="card-body p-4">
+                {{-- Info --}}
+                <div class="card border-0 rounded-0 border-start border-3 border-info mb-4" style="box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; background-color: #f6f6f6">
+                    <div class="card-body py-2">
+                        <i class="bi bi-info-circle text-info me-2"></i>
+                        <small class="text-muted">Editando mantenimiento <span class="badge bg-secondary">{{ $mantenimiento->codigo }}</span> — {{ $mantenimiento->cliente->nombre_completo ?? 'N/A' }}</small>
+                    </div>
+                </div>
+
                 <form action="{{ route('admin.crm.mantenimientos.update', $mantenimiento) }}" method="POST">
                     @csrf
                     @method('PUT')
@@ -261,6 +269,17 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                        </div>
+                    </div>
+
+                    {{-- Notas Internas --}}
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-lock me-2 text-warning"></i>Notas Internas</h6>
+                            <textarea name="notas_internas" id="notas_internas" rows="3" class="form-control @error('notas_internas') is-invalid @enderror" placeholder="Notas privadas visibles solo para el equipo...">{{ old('notas_internas', $mantenimiento->notas_internas) }}</textarea>
+                            @error('notas_internas')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 

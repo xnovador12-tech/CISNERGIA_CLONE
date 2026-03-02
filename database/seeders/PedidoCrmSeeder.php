@@ -32,7 +32,6 @@ class PedidoCrmSeeder extends Seeder
             ->get();
 
         if ($ganadas->isEmpty()) {
-            $this->command->warn('⚠️ No hay oportunidades ganadas. Se omitió PedidoCrmSeeder.');
             return;
         }
 
@@ -44,14 +43,12 @@ class PedidoCrmSeeder extends Seeder
         foreach ($ganadas as $index => $oportunidad) {
             $prospecto = $oportunidad->prospecto;
             if (!$prospecto) {
-                $this->command->warn("  ⚠️ Oportunidad {$oportunidad->codigo} sin prospecto. Omitida.");
                 continue;
             }
 
             // Buscar el cliente que fue creado desde esta oportunidad (via prospecto_id)
             $cliente = Cliente::where('prospecto_id', $prospecto->id)->first();
             if (!$cliente) {
-                $this->command->warn("  ⚠️ No se encontró cliente para prospecto {$prospecto->email}. Omitida.");
                 continue;
             }
 
@@ -66,7 +63,6 @@ class PedidoCrmSeeder extends Seeder
             }
 
             if (!$cotizacion || $cotizacion->detalles->isEmpty()) {
-                $this->command->warn("  ⚠️ Oportunidad {$oportunidad->codigo} sin cotización con detalles. Omitida.");
                 continue;
             }
 
@@ -137,9 +133,7 @@ class PedidoCrmSeeder extends Seeder
 
             $totalPedidos++;
             $itemCount = count($itemsData);
-            $this->command->info("  📦 {$codigo} → {$cliente->nombre} {$cliente->apellidos} ({$itemCount} ítems, Total: S/ {$total})");
         }
 
-        $this->command->info("✅ {$totalPedidos} pedidos creados desde oportunidades ganadas.");
     }
 }

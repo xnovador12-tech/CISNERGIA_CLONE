@@ -339,6 +339,36 @@
                         </div>
                     </div>
                 @endif
+
+                {{-- Notas Internas --}}
+                @if($mantenimiento->notas_internas)
+                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-lock me-2 text-warning"></i>Notas Internas</h6>
+                            <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                {!! nl2br(e($mantenimiento->notas_internas)) !!}
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Evidencias --}}
+                @if($mantenimiento->evidencias && count($mantenimiento->evidencias) > 0)
+                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-camera me-2"></i>Evidencias ({{ count($mantenimiento->evidencias) }})</h6>
+                            <div class="row g-2">
+                                @foreach($mantenimiento->evidencias as $foto)
+                                    <div class="col-4 col-md-3">
+                                        <a href="{{ asset('storage/' . $foto) }}" target="_blank">
+                                            <img src="{{ asset('storage/' . $foto) }}" class="img-fluid rounded shadow-sm" style="height: 100px; width: 100%; object-fit: cover;">
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             {{-- Columna Lateral --}}
@@ -378,10 +408,24 @@
 
                             @if(!in_array($mantenimiento->estado, ['completado', 'cancelado']))
                                 <hr>
+                                @if(!in_array($mantenimiento->estado, ['en_progreso']))
+                                    <button type="button" class="btn btn-outline-warning btn-sm w-100" data-bs-toggle="modal" data-bs-target="#modalReprogramar">
+                                        <i class="bi bi-calendar-event me-2"></i>Reprogramar
+                                    </button>
+                                @endif
                                 <button type="button" class="btn btn-outline-danger btn-sm w-100" data-bs-toggle="modal" data-bs-target="#modalCancelar">
                                     <i class="bi bi-x-circle me-2"></i>Cancelar
                                 </button>
                             @endif
+
+                            <hr>
+                            <form action="{{ route('admin.crm.mantenimientos.destroy', $mantenimiento) }}" method="POST" class="form-delete">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                    <i class="bi bi-trash me-2"></i>Eliminar
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -401,6 +445,26 @@
                         @endif
                     </div>
                 </div>
+
+                {{-- Técnico --}}
+                @if($mantenimiento->ticket)
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-left">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-ticket-detailed me-2"></i>Ticket Origen</h6>
+                        <a href="{{ route('admin.crm.tickets.show', $mantenimiento->ticket) }}" class="text-decoration-none">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-secondary">{{ $mantenimiento->ticket->codigo }}</span>
+                                <span class="small">{{ Str::limit($mantenimiento->ticket->asunto, 35) }}</span>
+                                <i class="bi bi-box-arrow-up-right small text-muted"></i>
+                            </div>
+                        </a>
+                        <p class="text-muted small mb-0 mt-2">
+                            <i class="bi bi-calendar me-1"></i>{{ $mantenimiento->ticket->created_at->format('d/m/Y') }}
+                            · <span class="badge bg-{{ ['resuelto' => 'success', 'cerrado' => 'secondary'][$mantenimiento->ticket->estado] ?? 'warning' }}">{{ ucfirst(str_replace('_', ' ', $mantenimiento->ticket->estado)) }}</span>
+                        </p>
+                    </div>
+                </div>
+                @endif
 
                 {{-- Técnico --}}
                 <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-left">
@@ -518,6 +582,24 @@ $(document).ready(function() {
         });
     });
 
+    // ==================== ELIMINAR ====================
+    $('.form-delete').submit(function(e) {
+        e.preventDefault();
+        const form = this;
+        Swal.fire({
+            title: '¿Eliminar mantenimiento?',
+            text: 'Esta acción no se puede deshacer.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '¡Sí, eliminar!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) form.submit();
+        });
+    });
+
 });
 </script>
 @endsection
@@ -527,7 +609,7 @@ $(document).ready(function() {
     <div class="modal fade" id="modalCompletarShow" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form action="{{ route('admin.crm.mantenimientos.completar', $mantenimiento) }}" method="POST">
+                <form action="{{ route('admin.crm.mantenimientos.completar', $mantenimiento) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title"><i class="bi bi-check-circle me-2 text-success"></i>Completar Mantenimiento</h5>
@@ -535,35 +617,85 @@ $(document).ready(function() {
                     </div>
                     <div class="modal-body">
                         <div class="row g-3">
-                            <div class="col-12">
-                                <label for="trabajo_realizado" class="form-label fw-bold">Trabajo Realizado <span class="text-danger">*</span></label>
-                                <textarea name="trabajo_realizado" id="trabajo_realizado" class="form-control" rows="3" placeholder="Describa detalladamente el trabajo realizado..." required></textarea>
-                            </div>
                             <div class="col-md-6">
                                 <label for="hallazgos" class="form-label fw-bold">Hallazgos</label>
-                                <textarea name="hallazgos" id="hallazgos" class="form-control" rows="2" placeholder="Hallazgos durante el mantenimiento..."></textarea>
+                                <textarea name="hallazgos" id="hallazgos" class="form-control" rows="3" placeholder="Hallazgos durante el mantenimiento..."></textarea>
                             </div>
                             <div class="col-md-6">
                                 <label for="recomendaciones" class="form-label fw-bold">Recomendaciones</label>
-                                <textarea name="recomendaciones" id="recomendaciones" class="form-control" rows="2" placeholder="Recomendaciones para el cliente..."></textarea>
+                                <textarea name="recomendaciones" id="recomendaciones" class="form-control" rows="3" placeholder="Recomendaciones para el cliente..."></textarea>
                             </div>
-                            <div class="col-md-6">
-                                <label for="costo_mano_obra" class="form-label fw-bold">Costo Mano de Obra (S/.)</label>
+                            <div class="col-md-4">
+                                <label for="duracion_real_horas" class="form-label fw-bold">Duración Real (hrs)</label>
+                                <input type="number" name="duracion_real_horas" id="duracion_real_horas" class="form-control" min="1" max="24" value="{{ $mantenimiento->duracion_estimada_horas }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="costo_mano_obra" class="form-label fw-bold">Mano de Obra (S/.)</label>
                                 <input type="number" name="costo_mano_obra" id="costo_mano_obra" class="form-control" step="0.01" min="0" value="{{ $mantenimiento->costo_mano_obra ?? 0 }}">
                             </div>
-                            <div class="col-md-6">
-                                <label for="costo_materiales" class="form-label fw-bold">Costo Materiales (S/.)</label>
+                            <div class="col-md-4">
+                                <label for="costo_materiales" class="form-label fw-bold">Materiales (S/.)</label>
                                 <input type="number" name="costo_materiales" id="costo_materiales" class="form-control" step="0.01" min="0" value="{{ $mantenimiento->costo_materiales ?? 0 }}">
                             </div>
                             <div class="col-12">
                                 <label for="observaciones" class="form-label fw-bold">Observaciones</label>
                                 <textarea name="observaciones" id="observaciones" class="form-control" rows="2" placeholder="Observaciones adicionales..."></textarea>
                             </div>
+                            <div class="col-12">
+                                <label for="evidencias" class="form-label fw-bold"><i class="bi bi-camera me-1"></i>Evidencias Fotográficas</label>
+                                <input type="file" name="evidencias[]" id="evidencias" class="form-control" multiple accept="image/*">
+                                <div class="form-text">Puede subir múltiples fotos. Máximo 5MB por imagen.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" name="requiere_seguimiento" id="requiere_seguimiento" value="1">
+                                    <label class="form-check-label" for="requiere_seguimiento">Requiere seguimiento</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="fecha_proximo_mantenimiento" class="form-label fw-bold">Próximo Mantenimiento</label>
+                                <input type="date" name="fecha_proximo_mantenimiento" id="fecha_proximo_mantenimiento" class="form-control">
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-2"></i>Completar Mantenimiento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endif
+
+{{-- Modal Reprogramar Mantenimiento --}}
+@if(!in_array($mantenimiento->estado, ['completado', 'cancelado', 'en_progreso']))
+    <div class="modal fade" id="modalReprogramar" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('admin.crm.mantenimientos.reprogramar', $mantenimiento) }}" method="POST">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-calendar-event me-2 text-warning"></i>Reprogramar Mantenimiento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="fecha_programada" class="form-label fw-bold">Nueva Fecha <span class="text-danger">*</span></label>
+                            <input type="date" name="fecha_programada" id="fecha_programada_reprog" class="form-control" required min="{{ date('Y-m-d') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="hora_programada" class="form-label fw-bold">Nueva Hora</label>
+                            <input type="time" name="hora_programada" id="hora_programada_reprog" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="motivo_reprogramacion" class="form-label fw-bold">Motivo <span class="text-danger">*</span></label>
+                            <textarea name="motivo_reprogramacion" id="motivo_reprogramacion" class="form-control" rows="3" placeholder="Indique el motivo de la reprogramación..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                        <button type="submit" class="btn btn-warning"><i class="bi bi-calendar-event me-2"></i>Reprogramar</button>
                     </div>
                 </form>
             </div>

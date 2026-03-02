@@ -40,8 +40,6 @@ class OportunidadSeeder extends Seeder
         ])->get()->keyBy('email');
 
         if ($prospectoMap->count() < 10) {
-            $this->command->warn('⚠️ Faltan prospectos. Encontrados: ' . $prospectoMap->count() . '/10');
-            $this->command->warn('   Ejecuta ProspectoSeeder primero.');
             return;
         }
 
@@ -367,10 +365,8 @@ class OportunidadSeeder extends Seeder
                 'perdida' => '❌',
                 default   => '📋',
             };
-            $this->command->info("  {$emoji} {$oportunidad->codigo} [{$data['etapa']}] → {$prospecto->nombre} {$prospecto->apellidos}");
         }
 
         $ganadas = collect($oportunidades)->where('data.etapa', 'ganada')->count();
-        $this->command->info("✅ " . count($oportunidades) . " oportunidades creadas ({$ganadas} ganadas → se convertirán en clientes)");
     }
 }

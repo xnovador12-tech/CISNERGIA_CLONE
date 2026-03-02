@@ -35,7 +35,6 @@ class SaleCrmSeeder extends Seeder
             ->get();
 
         if ($pedidos->isEmpty()) {
-            $this->command->warn('⚠️ No hay pedidos entregados sin venta. Se omitió SaleCrmSeeder.');
             return;
         }
 
@@ -50,7 +49,6 @@ class SaleCrmSeeder extends Seeder
         foreach ($pedidos as $index => $pedido) {
             $cliente = $pedido->cliente;
             if (!$cliente) {
-                $this->command->warn("  ⚠️ Pedido {$pedido->codigo} sin cliente. Omitido.");
                 continue;
             }
 
@@ -161,11 +159,8 @@ class SaleCrmSeeder extends Seeder
 
             $totalVentas++;
             $comprobanteLabel = $esJuridica ? 'Factura' : 'Boleta';
-            $this->command->info("  💰 {$codigoVenta} [{$comprobanteLabel} {$numComprobante}] → {$cliente->nombre} {$cliente->apellidos} (Total: S/ {$pedido->total})");
         }
 
         $montoTotal = Sale::sum('total');
-        $this->command->info("✅ {$totalVentas} ventas creadas. Monto total: S/ " . number_format($montoTotal, 2));
-        $this->command->info("   Trazabilidad completa: Oportunidad → Cotización → Pedido → Venta");
     }
 }

@@ -27,8 +27,6 @@ class ClienteSeeder extends Seeder
             ->get();
 
         if ($ganadas->isEmpty()) {
-            $this->command->warn('⚠️ No hay oportunidades ganadas. Se omitió ClienteSeeder.');
-            $this->command->warn('   Ejecuta OportunidadSeeder primero.');
             return;
         }
 
@@ -38,7 +36,6 @@ class ClienteSeeder extends Seeder
             $prospecto = $oportunidad->prospecto;
 
             if (!$prospecto) {
-                $this->command->warn("  ⚠️ Oportunidad {$oportunidad->codigo} sin prospecto. Omitida.");
                 continue;
             }
 
@@ -93,14 +90,11 @@ class ClienteSeeder extends Seeder
                 ? ($prospecto->razon_social ?? $prospecto->nombre)
                 : "{$prospecto->nombre} {$prospecto->apellidos}";
 
-            $this->command->info("  👤 {$cliente->codigo} → {$tipoLabel} [{$segmento}, {$origen}, {$estado}]");
         }
 
         $total = Cliente::count();
         $activos = Cliente::where('estado', 'activo')->count();
         $ecommerce = Cliente::where('origen', 'ecommerce')->count();
 
-        $this->command->info("✅ {$total} clientes creados ({$activos} activos, {$ecommerce} e-commerce)");
-        $this->command->info("   Todos vinculados a oportunidades ganadas con prospecto trazable.");
     }
 }

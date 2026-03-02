@@ -22,8 +22,28 @@
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
             <div class="card-body p-4">
+                {{-- Info / Ticket Origen --}}
+                @if(isset($ticket) && $ticket)
+                    <div class="card border-0 rounded-0 border-start border-3 border-warning mb-4" style="box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; background-color: #fff8e1">
+                        <div class="card-body py-2">
+                            <i class="bi bi-ticket-detailed text-warning me-2"></i>
+                            <small>Mantenimiento originado desde ticket <a href="{{ route('admin.crm.tickets.show', $ticket) }}" class="fw-bold text-decoration-none"><span class="badge bg-secondary">{{ $ticket->codigo }}</span></a> — {{ Str::limit($ticket->asunto, 60) }}</small>
+                        </div>
+                    </div>
+                @else
+                    <div class="card border-0 rounded-0 border-start border-3 border-info mb-4" style="box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; background-color: #f6f6f6">
+                        <div class="card-body py-2">
+                            <i class="bi bi-info-circle text-info me-2"></i>
+                            <small class="text-muted">Los campos con <span class="text-danger">*</span> son obligatorios. La duración y costos se pueden completar después.</small>
+                        </div>
+                    </div>
+                @endif
+
                 <form action="{{ route('admin.crm.mantenimientos.store') }}" method="POST">
                     @csrf
+                    @if(isset($ticket) && $ticket)
+                        <input type="hidden" name="ticket_id" value="{{ $ticket->id }}">
+                    @endif
                     
                     {{-- Sección: Cliente y Servicio --}}
                     <h5 class="fw-bold mb-3"><i class="bi bi-person me-2"></i>Cliente y Ubicación</h5>
@@ -61,7 +81,7 @@
                         <div class="col-md-12">
                             <label for="titulo" class="form-label fw-bold">Título del Mantenimiento <span class="text-danger">*</span></label>
                             <input type="text" name="titulo" id="titulo" class="form-control @error('titulo') is-invalid @enderror" 
-                                   value="{{ old('titulo') }}" placeholder="Ej: Mantenimiento preventivo trimestral" required>
+                                   value="{{ old('titulo', isset($ticket) ? 'Mantenimiento - ' . $ticket->asunto : '') }}" placeholder="Ej: Mantenimiento preventivo trimestral" required>
                             @error('titulo')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -185,7 +205,7 @@
                         <div class="col-md-12">
                             <label for="descripcion" class="form-label fw-bold">Descripción del Trabajo</label>
                             <textarea name="descripcion" id="descripcion" rows="4" class="form-control @error('descripcion') is-invalid @enderror" 
-                                      placeholder="Descripción detallada del trabajo a realizar...">{{ old('descripcion') }}</textarea>
+                                      placeholder="Descripción detallada del trabajo a realizar...">{{ old('descripcion', isset($ticket) ? $ticket->descripcion : '') }}</textarea>
                             @error('descripcion')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -196,6 +216,14 @@
                             <textarea name="observaciones" id="observaciones" rows="3" class="form-control @error('observaciones') is-invalid @enderror" 
                                       placeholder="Instrucciones especiales, accesos, precauciones...">{{ old('observaciones') }}</textarea>
                             @error('observaciones')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-12">
+                            <label for="notas_internas" class="form-label fw-bold"><i class="bi bi-lock me-1 text-warning"></i>Notas Internas</label>
+                            <textarea name="notas_internas" id="notas_internas" rows="2" class="form-control @error('notas_internas') is-invalid @enderror" 
+                                      placeholder="Notas privadas visibles solo para el equipo...">{{ old('notas_internas') }}</textarea>
+                            @error('notas_internas')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

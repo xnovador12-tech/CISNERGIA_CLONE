@@ -19,14 +19,16 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    @foreach(['success' => 'success', 'error' => 'danger', 'warning' => 'warning', 'info' => 'info'] as $key => $color)
+        @if(session($key))
+            <div class="container-fluid mb-3">
+                <div class="alert alert-{{ $color }} alert-dismissible fade show">
+                    <i class="bi bi-{{ $key === 'error' ? 'x-circle' : ($key === 'success' ? 'check-circle' : 'info-circle') }} me-2"></i>{{ session($key) }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             </div>
-        </div>
-    @endif
+        @endif
+    @endforeach
 
     <div class="container-fluid">
         <div class="row g-4">
@@ -38,7 +40,7 @@
                         <h5 class="mb-0 fw-bold">{{ $ticket->asunto }}</h5>
                         <div class="d-flex gap-2">
                             @php
-                                $estadoColors = ['abierto' => 'danger', 'en_progreso' => 'warning', 'pendiente_cliente' => 'info', 'resuelto' => 'success', 'cerrado' => 'secondary'];
+                                $estadoColors = ['abierto' => 'danger', 'asignado' => 'primary', 'en_progreso' => 'warning', 'pendiente_cliente' => 'info', 'pendiente_proveedor' => 'info', 'resuelto' => 'success', 'cerrado' => 'secondary', 'reabierto' => 'danger'];
                                 $prioridadColors = ['baja' => 'success', 'media' => 'warning', 'alta' => 'danger', 'critica' => 'dark'];
                             @endphp
                             <span class="badge bg-{{ $estadoColors[$ticket->estado] ?? 'secondary' }}">
@@ -57,7 +59,7 @@
                             </div>
                             <div class="col-md-6">
                                 <p class="text-muted mb-1 small">Categoría</p>
-                                <p class="mb-0">{{ ucfirst(str_replace('_', ' ', $ticket->categoria)) }}</p>
+                                <p class="mb-0">{{ $ticket->categoria_label }}</p>
                             </div>
                             <div class="col-md-6">
                                 <p class="text-muted mb-1 small">Creado</p>
@@ -86,69 +88,29 @@
                             {!! nl2br(e($ticket->descripcion)) !!}
                         </div>
 
-                        @if($ticket->adjuntos && count($ticket->adjuntos) > 0)
+                        {{-- Solución (si está resuelto) --}}
+                        @if($ticket->solucion)
                             <hr>
-                            <h6 class="fw-bold mb-3">Archivos Adjuntos</h6>
-                            <div class="d-flex flex-wrap gap-2">
-                                @foreach($ticket->adjuntos as $adjunto)
-                                    <a href="{{ Storage::url($adjunto['path']) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-paperclip me-1"></i>{{ $adjunto['nombre'] }}
-                                    </a>
-                                @endforeach
+                            <h6 class="fw-bold mb-3 text-success"><i class="bi bi-check-circle me-2"></i>Solución</h6>
+                            @if($ticket->tipo_solucion)
+                                <p class="mb-2">
+                                    <span class="badge bg-success bg-opacity-10 text-success">
+                                        {{ str_replace('_', ' ', ucfirst($ticket->tipo_solucion)) }}
+                                    </span>
+                                </p>
+                            @endif
+                            <div class="bg-success bg-opacity-10 p-3 rounded">
+                                {!! nl2br(e($ticket->solucion)) !!}
                             </div>
                         @endif
-                    </div>
-                </div>
 
-                {{-- Conversación --}}
-                <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
-                    <div class="card-header bg-transparent">
-                        <h5 class="mb-0 fw-bold"><i class="bi bi-chat-dots me-2"></i>Conversación</h5>
-                    </div>
-                    <div class="card-body">
-                        @forelse($ticket->mensajes as $mensaje)
-                            <div class="d-flex mb-3 {{ $mensaje->es_interno ? 'justify-content-end' : '' }}">
-                                <div class="card {{ $mensaje->es_interno ? 'bg-warning bg-opacity-10' : 'bg-light' }}" style="max-width: 80%">
-                                    <div class="card-body p-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="fw-bold small">
-                                                {{ $mensaje->usuario?->persona?->name ?? $mensaje->usuario?->name ?? 'Sistema' }}
-                                            </span>
-                                            <small class="text-muted">{{ $mensaje->created_at->format('d/m/Y H:i') }}</small>
-                                        </div>
-                                        <p class="mb-0">{!! nl2br(e($mensaje->mensaje)) !!}</p>
-                                        @if($mensaje->es_interno)
-                                            <small class="text-warning"><i class="bi bi-lock me-1"></i>Nota interna</small>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="text-center text-muted py-4">
-                                <i class="bi bi-chat fs-1 d-block mb-2"></i>
-                                No hay mensajes aún
-                            </div>
-                        @endforelse
-
-                        @if(!in_array($ticket->estado, ['resuelto', 'cerrado']))
+                        {{-- Notas internas --}}
+                        @if($ticket->notas_internas)
                             <hr>
-                            <form action="{{ route('admin.crm.tickets.mensaje', $ticket) }}" method="POST">
-                                @csrf
-                                <div class="mb-3">
-                                    <textarea name="mensaje" class="form-control" rows="3" placeholder="Escribir respuesta..." required></textarea>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="es_interno" id="es_interno" value="1">
-                                        <label class="form-check-label" for="es_interno">
-                                            <i class="bi bi-lock me-1"></i>Nota interna
-                                        </label>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="bi bi-send me-2"></i>Enviar
-                                    </button>
-                                </div>
-                            </form>
+                            <h6 class="fw-bold mb-3 text-warning"><i class="bi bi-lock me-2"></i>Notas Internas</h6>
+                            <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                {!! nl2br(e($ticket->notas_internas)) !!}
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -166,15 +128,40 @@
                             </a>
                             
                             @if(!in_array($ticket->estado, ['resuelto', 'cerrado']))
-                                <form action="{{ route('admin.crm.tickets.cambiar-estado', $ticket) }}" method="POST" id="form-resolver">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="estado" value="resuelto">
-                                    <button type="button" class="btn btn-success btn-sm w-100 btn-resolver">
-                                        <i class="bi bi-check-circle me-2"></i>Marcar Resuelto
-                                    </button>
-                                </form>
-                                
+                                {{-- Mantenimiento: Programar si no tiene uno vinculado --}}
+                                @if($ticket->es_mantenimiento && !$ticket->mantenimiento)
+                                    <form action="{{ route('admin.crm.tickets.cambiar-estado', $ticket) }}" method="POST" id="form-programar">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="estado" value="en_progreso">
+                                        <input type="hidden" name="programar_mantenimiento" value="1">
+                                        <button type="button" class="btn btn-info btn-sm w-100 btn-programar">
+                                            <i class="bi bi-tools me-2"></i>Programar Mantenimiento
+                                        </button>
+                                    </form>
+                                @endif
+
+                                {{-- Mantenimiento pendiente: aviso --}}
+                                @if($ticket->mantenimiento && !in_array($ticket->mantenimiento->estado, ['completado', 'cancelado']))
+                                    <div class="alert alert-info small mb-0 py-2">
+                                        <i class="bi bi-hourglass-split me-1"></i>
+                                        El ticket se resolverá automáticamente al completar el mantenimiento
+                                        <a href="{{ route('admin.crm.mantenimientos.show', $ticket->mantenimiento) }}">{{ $ticket->mantenimiento->codigo }}</a>.
+                                    </div>
+                                @endif
+
+                                {{-- Resolver manual: solo si NO es tipo mantenimiento, o si mantenimiento ya completado/cancelado --}}
+                                @if(!$ticket->es_mantenimiento || ($ticket->mantenimiento && in_array($ticket->mantenimiento->estado, ['completado', 'cancelado'])))
+                                    <form action="{{ route('admin.crm.tickets.cambiar-estado', $ticket) }}" method="POST" id="form-resolver">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="estado" value="resuelto">
+                                        <button type="button" class="btn btn-success btn-sm w-100 btn-resolver">
+                                            <i class="bi bi-check-circle me-2"></i>Marcar Resuelto
+                                        </button>
+                                    </form>
+                                @endif
+
                                 <form action="{{ route('admin.crm.tickets.escalar', $ticket) }}" method="POST" id="form-escalar">
                                     @csrf
                                     <button type="button" class="btn btn-warning btn-sm w-100 btn-escalar">
@@ -182,6 +169,15 @@
                                     </button>
                                 </form>
                             @endif
+
+                            <hr class="my-1">
+                            <form action="{{ route('admin.crm.tickets.destroy', $ticket) }}" method="POST" class="form-delete">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                    <i class="bi bi-trash me-2"></i>Eliminar Ticket
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -235,13 +231,14 @@
                                 <td class="text-muted">Resolución:</td>
                                 <td>{{ $ticket->fecha_resolucion?->format('d/m/Y H:i') ?? 'Pendiente' }}</td>
                             </tr>
-                            @if($ticket->satisfaccion)
+                            @if($ticket->mantenimiento)
                                 <tr>
-                                    <td class="text-muted">Satisfacción:</td>
+                                    <td class="text-muted">Mantenimiento:</td>
                                     <td>
-                                        @for($i = 1; $i <= 5; $i++)
-                                            <i class="bi bi-star{{ $i <= $ticket->satisfaccion ? '-fill text-warning' : '' }}"></i>
-                                        @endfor
+                                        <a href="{{ route('admin.crm.mantenimientos.show', $ticket->mantenimiento) }}" class="text-decoration-none">
+                                            <span class="badge bg-info">{{ $ticket->mantenimiento->codigo }}</span>
+                                            <i class="bi bi-box-arrow-up-right small"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             @endif
@@ -263,20 +260,76 @@
 <script>
 $(document).ready(function() {
 
-    // ==================== MARCAR RESUELTO ====================
+    // ==================== PROGRAMAR MANTENIMIENTO ====================
+    $('.btn-programar').on('click', function() {
+        Swal.fire({
+            title: 'Programar Mantenimiento',
+            html: `El ticket <strong>{{ $ticket->codigo }}</strong> pasará a <strong class="text-warning">En progreso</strong> y se creará un mantenimiento.<br><br>
+                   <small class="text-muted">El ticket se resolverá automáticamente al completar el mantenimiento.</small>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-tools me-1"></i> Programar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#form-programar').submit();
+            }
+        });
+    });
+
+    // ==================== MARCAR RESUELTO (con solución) ====================
+    @php
+        $tiposSolucion = [
+            'resuelto_remoto' => 'Resuelto remoto',
+            'visita_tecnica' => 'Visita técnica',
+            'cambio_equipo' => 'Cambio de equipo',
+            'ajuste_configuracion' => 'Ajuste de configuración',
+            'capacitacion' => 'Capacitación',
+            'sin_solucion' => 'Sin solución',
+            'otro' => 'Otro',
+        ];
+    @endphp
+
     $('.btn-resolver').on('click', function() {
         Swal.fire({
-            title: '¿Marcar como Resuelto?',
-            html: `El ticket <strong>{{ $ticket->codigo }}</strong> se marcará como <strong class="text-success">Resuelto</strong>.<br><br>
-                   <small class="text-muted">Se registrará la fecha de resolución.</small>`,
+            title: 'Resolver Ticket',
+            html: `
+                <div class="text-start">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Tipo de solución</label>
+                        <select id="swal-tipo-solucion" class="form-select form-select-sm">
+                            <option value="">Seleccionar...</option>
+                            @foreach($tiposSolucion as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold small">Descripción de la solución</label>
+                        <textarea id="swal-solucion" class="form-control form-control-sm" rows="3" placeholder="Describe cómo se resolvió el ticket..."></textarea>
+                    </div>
+                </div>`,
             icon: 'success',
             showCancelButton: true,
             confirmButtonColor: '#1C3146',
             cancelButtonColor: '#FF9C00',
-            confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Sí, resolver',
-            cancelButtonText: 'Cancelar'
+            confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Resolver',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const solucion = document.getElementById('swal-solucion').value;
+                const tipoSolucion = document.getElementById('swal-tipo-solucion').value;
+                if (!solucion.trim()) {
+                    Swal.showValidationMessage('La descripción de la solución es requerida');
+                    return false;
+                }
+                return { solucion, tipoSolucion };
+            }
         }).then((result) => {
             if (result.isConfirmed) {
+                $('<input>').attr({ type: 'hidden', name: 'solucion', value: result.value.solucion }).appendTo('#form-resolver');
+                $('<input>').attr({ type: 'hidden', name: 'tipo_solucion', value: result.value.tipoSolucion }).appendTo('#form-resolver');
                 $('#form-resolver').submit();
             }
         });
@@ -287,7 +340,7 @@ $(document).ready(function() {
         Swal.fire({
             title: '¿Escalar ticket?',
             html: `El ticket <strong>{{ $ticket->codigo }}</strong> será escalado a un nivel superior de atención.<br><br>
-                   <small class="text-muted">Se incrementará la prioridad y se notificará al supervisor.</small>`,
+                   <small class="text-muted">Se incrementará la prioridad.</small>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#1C3146',
@@ -297,6 +350,26 @@ $(document).ready(function() {
         }).then((result) => {
             if (result.isConfirmed) {
                 $('#form-escalar').submit();
+            }
+        });
+    });
+
+    // ==================== ELIMINAR TICKET ====================
+    $('.form-delete').submit(function(e) {
+        e.preventDefault();
+        const form = this;
+        Swal.fire({
+            title: '¿Eliminar ticket?',
+            text: 'Esta acción no se puede revertir.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '¡Sí, eliminar!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
             }
         });
     });

@@ -17,7 +17,7 @@ class Mantenimiento extends Model
         'codigo',
         'slug',
         'cliente_id',
-        'venta_id',
+        'ticket_id',
         'tipo',
         'titulo',
         'descripcion',
@@ -27,9 +27,6 @@ class Mantenimiento extends Model
         'duracion_estimada_horas',
         'duracion_real_horas',
         'direccion',
-        'distrito_id',
-        'latitud',
-        'longitud',
         'estado',
         'potencia_sistema_kw',
         'cantidad_paneles',
@@ -51,14 +48,7 @@ class Mantenimiento extends Model
         'costo_total',
         'estado_pago',
         'tecnico_id',
-        'user_id',
-        'sede_id',
-        'firma_cliente',
-        'firma_tecnico',
-        'fotos_antes',
-        'fotos_despues',
-        'calificacion',
-        'comentario_cliente',
+        'evidencias',
         'observaciones',
         'notas_internas',
         'created_by',
@@ -78,12 +68,9 @@ class Mantenimiento extends Model
         'costo_materiales' => 'decimal:2',
         'costo_transporte' => 'decimal:2',
         'costo_total' => 'decimal:2',
-        'latitud' => 'decimal:8',
-        'longitud' => 'decimal:8',
         'checklist' => 'array',
         'resultados' => 'array',
-        'fotos_antes' => 'array',
-        'fotos_despues' => 'array',
+        'evidencias' => 'array',
         'es_gratuito' => 'boolean',
         'requiere_seguimiento' => 'boolean',
     ];
@@ -172,34 +159,14 @@ class Mantenimiento extends Model
         return $this->belongsTo(Cliente::class);
     }
 
-    public function venta()
+    public function ticket()
     {
-        return $this->belongsTo(Sale::class, 'venta_id');
+        return $this->belongsTo(Ticket::class);
     }
 
     public function tecnico()
     {
         return $this->belongsTo(User::class, 'tecnico_id');
-    }
-
-    public function responsable()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function usuario()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function sede()
-    {
-        return $this->belongsTo(Sede::class);
-    }
-
-    public function distrito()
-    {
-        return $this->belongsTo(Distrito::class);
     }
 
     // ==================== SCOPES ====================
@@ -327,12 +294,11 @@ class Mantenimiento extends Model
         $siguiente->fecha_realizada = null;
         $siguiente->resultados = null;
         $siguiente->checklist = null;
-        $siguiente->fotos_antes = null;
-        $siguiente->fotos_despues = null;
-        $siguiente->firma_cliente = null;
-        $siguiente->firma_tecnico = null;
-        $siguiente->calificacion = null;
-        $siguiente->comentario_cliente = null;
+        $siguiente->evidencias = null;
+        $siguiente->hallazgos = null;
+        $siguiente->recomendaciones = null;
+        $siguiente->observaciones = null;
+        $siguiente->duracion_real_horas = null;
         $siguiente->save();
 
         // Actualizar referencia en el actual

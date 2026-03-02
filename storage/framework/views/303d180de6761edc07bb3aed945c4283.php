@@ -187,7 +187,7 @@
                             <th class="h6 small text-center text-uppercase fw-bold">Fecha</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Total</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Estado</th>
-
+                            <th class="h6 small text-center text-uppercase fw-bold">Origen</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
                     </thead>
@@ -199,7 +199,7 @@
                                 <strong><?php echo e($pedido->codigo); ?></strong><br>
                                 <small class="text-muted"><?php echo e($pedido->created_at->format('d/m/Y')); ?></small>
                             </td>
-                            <td class="fw-normal text-center align-middle"><?php echo e($pedido->cliente->nombre ?? ''); ?> <?php echo e($pedido->cliente->apellidos ?? ''); ?></td>
+                            <td class="fw-normal text-center align-middle"><?php echo e($pedido->cliente->nombre_completo ?? 'N/A'); ?></td>
                             <td class="fw-normal text-center align-middle"><?php echo e($pedido->fecha_entrega_estimada ? $pedido->fecha_entrega_estimada->format('d/m/Y') : 'Sin fecha'); ?></td>
                             <td class="fw-normal text-center align-middle text-primary fw-bold">S/ <?php echo e(number_format($pedido->total, 2)); ?></td>
                             <td class="text-center align-middle">
@@ -233,7 +233,12 @@
                                        title="Stock: <?php echo e($pedido->aprobacion_stock ? 'Reservado' : 'Sin reserva'); ?>"></i>
                                 </div>
                             </td>
+                            <td class="fw-normal text-center align-middle">
+                                <span class="badge <?php echo e($pedido->origen == 'ecommerce' ? 'bg-purple' : 'bg-secondary'); ?>">
+                                    <?php echo e(ucfirst($pedido->origen)); ?>
 
+                                </span>
+                            </td>
                             <td class="text-center align-middle">
                                 <div class="dropstart">
                                     <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
