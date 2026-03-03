@@ -184,7 +184,11 @@ class admin_ProductosController extends Controller
         $producto->tipo_adquisicion = $request->input('tipo_adquisicion');
         $producto->marca_id = $request->input('marca_id');
         $producto->modelo_id = $request->input('modelo_id');
+        $producto->datos = $request->input('datos');
+        $producto->garantias = $request->input('garantias');
+        $producto->ficha_tecnica = $request->input('ficha_tecnica');
         $producto->descripcion = $request->input('descripcion');
+        $producto->fabricante = $request->input('fabricante');
         $producto->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;
         $producto->estado = 'Inactivo';
         $producto->imagen = $img_producto;
@@ -226,8 +230,9 @@ class admin_ProductosController extends Controller
         $medidas = Medida::all()->where('estado', 'Activo');
         $proveedores = Proveedor::where('estado', 'Activo')->get();
         $categorias = Category::where('estado', 'Activo')->get();
+        $modelos = Modelo::all()->where('estado', 'Activo');
 
-        return view('ADMINISTRADOR.PRINCIPAL.configuraciones.productos.edit', compact('admin_producto', 'etiquetas', 'proveedores','categorias','marcas','tipos','medidas'));
+        return view('ADMINISTRADOR.PRINCIPAL.configuraciones.productos.edit', compact('admin_producto', 'etiquetas', 'proveedores','categorias','marcas','tipos','medidas','modelos'));
     }
 
     public function getbusqueda_proved_edit(Request $request){

@@ -27,11 +27,40 @@
         margin-top: 0.5vmin;
     }
 
+    .imagecard {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+    }
+
+    .imagecard:hover {
+        border-color: #0d6efd !important;
+        background-color: #f8f9fa;
+    }
+
+    .imagecard label {
+        transition: all 0.3s ease;
+        width: 100%;
+        height: 100%;
+    }
+
+    .imagecard:hover label i {
+        color: #0d6efd !important;
+    }
+
+    #uploadPreview1 {
+        object-fit: cover;
+        object-position: center;
+    }
+
     @media only screen and (min-width:320px) and (max-width:768px){
         .img_opcional{
-        width: 100%;
-        height: 90px;
-    }
+            width: 100%;
+            height: 90px;
+        }
+        .imagecard {
+            aspect-ratio: 4 / 3;
+        }
     }
 </style>
 @endsection
@@ -77,137 +106,129 @@
                     </div>     
 
                     <div class="row">
-                        <div class="col-12 col-md-8 col-lg-9">
+                        <div class="col-12 col-md-9 col-lg-9">
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Datos generales</p>
                             <div class="row">
-                                <div class="col-6 col-md-3 col-lg-2">
-                                    <div class="mb-3">
-                                        <label for="codigo_id" >Código<span class="text-danger">*</span></label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3 col-lg-2">
-                                    <div class="mb-3">
-                                        <input type="text" id="codigo_show_id" class="form-control form-control-sm bg-white" disabled>
-                                        <input hidden name="codigo" id="codigo_id">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12 col-md-6 col-lg-7">
-                                    <div class="mb-3">
-                                        <label for="name_id" class="">Nombre<span class="text-danger">*</span></label>
-                                        <input type="text" name="name"  class="form-control form-control-sm @error('name') is-invalid @enderror" required>
-                                        @error('name')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-3 col-lg-2">
-                                    <div class="mb-3">
-                                        <label for="peso__id" class="">Peso</label>
-                                        <input type="decimal" value="{{ old('peso') }}" name="peso" class="form-control form-control-sm bg-white" id="peso__id">
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-3 col-lg-3">
-                                    <div class="mb-3">
-                                        <label for="tipos__producto_id" class="">Tipo de bien<span class="text-danger">*</span></label>
-                                        <select class="form-select form-select-sm select2 @error('tipo_id') is-invalid @enderror" id="tipos__producto_id" required>
-                                            <option value="{{old('tipo_id')}}" selected="selected" hidden="hidden">{{ old('tipo_id') }}</option>
-                                            @foreach($tipos as $tipo)
-                                                <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        <input hidden type="text" class="form-control form-control-sm" name="tipo_id" id="id_tipo" required>
-                                        @error('tipo_id')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-3 col-lg-3">
-                                    <div class="mb-3">
-                                        <label for="categorias__id" class="">Categoría<span class="text-danger">*</span></label>
-                                        <select class="form-select form-select-sm select2 @error('categoria_id') is-invalid @enderror"  name="categorie_id" id="categorias__id" required>
-                                            <option value="{{ old('categoria_id') }}" selected="selected" hidden="hidden">{{ old('categoria_id') }}</option>
-                                        </select>
-                                        @error('categoria_id')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-12 col-md-3 col-lg-3">
-                                    <div class="mb-3">
-                                        <label for="medida__id" class="">Unidad de medida<span class="text-danger">*</span></label>
-                                        <select class="form-select form-select-sm @error('medida_id') is-invalid @enderror" name="medida_id"  id="medida__id" required>
-                                            <option value="{{ old('medida_id') }}" selected="selected" hidden="hidden">-- Seleccione --</option>
-                                            @foreach($medidas as $medida)
-                                                <option value="{{ $medida->id }}">{{ $medida->nombre }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('medida_id')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-12 col-md-3 col-lg-3">
-                                    <div class="mb-3">
-                                        <label for="marcas__id" class="">Marca</label>
-                                        <select class="form-select form-select-sm select2 @error('marca') is-invalid @enderror" name="marca_id"  id="marcas__id">
-                                            <option value="{{ old('marca_id') }}" selected="selected" hidden="hidden">{{ old('marca_id') }}</option>
-                                            @foreach($marcas as $marca)
-                                                <option value="{{ $marca->id }}">{{ $marca->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('marca_id')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-12 col-md-3 col-lg-3">
-                                    <div class="mb-3">
-                                        <label for="modelos__id" class="">Modelo</label>
-                                        <select class="form-select form-select-sm select2 @error('modelo') is-invalid @enderror" name="modelo_id"  id="modelos__id">
-                                            <option value="{{ old('modelo_id') }}" selected="selected" hidden="hidden">{{ old('modelo_id') }}</option>
-                                            @foreach($modelos as $modelo)
-                                                <option value="{{ $modelo->id }}">{{ $modelo->nombre }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('modelo_id')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-12 col-md-9">
-                                    <div class="mb-3">
-                                        <label for="descripcion_id" class="">Descripción</label>
-                                        <textarea class="form-control @error('descripcion') is-invalid @enderror" name="descripcion" id="editor" placeholder="Escribe una descripción" style="height: 210px">{{ old('descripcion') }}</textarea>
-                                        @error('descripcion')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-9 col-md-3 mb-3">
-                                    <label for="" class="">Imagen Principal</label>
-                                    <div class="card text-center imagecard rounded mb-0" style="height: auto">  
-                                        <label for="uploadImage1" class=" my-auto text-center">
-                                            <img for="uploadImage1" id="uploadPreview1" alt="" class="py-auto rounded" style="width: 100%; height: 100%;" src="/images/icon-photo.png">   
+                                <div class="col-12 col-md-4 col-lg-4 mb-3">
+                                    <label for="" class="mb-2">Imagen Principal</label>
+                                    <div class="card text-center imagecard rounded p-0 mb-2" style="cursor: pointer; border: 2px dashed #dee2e6; overflow: hidden;">  
+                                        <label for="uploadImage1" class="d-flex flex-column justify-content-center align-items-center h-100 m-0 p-3 w-100" style="cursor: pointer;">
+                                            <i id="iconPreview1" class="bi bi-image text-muted" style="font-size: 5rem;"></i>
+                                            <img id="uploadPreview1" alt="" class="w-100 h-100" style="object-fit: cover; display: none;">
+                                            <small id="textPreview1" class="text-muted mt-3">Click para seleccionar imagen</small>
                                         </label>
                                     </div>
-                                    <input id="uploadImage1" class="form-control-file" type="file" name="imagen" onchange="previewImagePrincipal(1);" hidden/>
+                                    <input id="uploadImage1" class="form-control-file" type="file" name="imagen" accept="image/*" onchange="previewImagePrincipal(1);" hidden/>
                                     @error('imagen')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
                                 </div>
+                                <div class="col-12 col-md-8 col-lg-8">
+                                    <div class="row">
+                                        <div class="col-6 col-md-3 col-lg-2">
+                                            <div class="mb-3">
+                                                <label for="codigo_id">Código<span class="text-danger">*</span></label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-4 col-lg-4">
+                                            <div class="mb-3">
+                                                <input type="text" id="codigo_show_id" class="form-control form-control-sm bg-white" disabled>
+                                                <input hidden name="codigo" id="codigo_id">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12 col-md-6 col-lg-7">
+                                            <div class="mb-3">
+                                                <label for="name_id" class="">Nombre<span class="text-danger">*</span></label>
+                                                <input type="text" name="name"  class="form-control form-control-sm @error('name') is-invalid @enderror" required>
+                                                @error('name')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-3 col-lg-2">
+                                            <div class="mb-3">
+                                                <label for="peso__id" class="">Peso</label>
+                                                <input type="decimal" value="{{ old('peso') }}" name="peso" class="form-control form-control-sm bg-white" id="peso__id">
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-3 col-lg-3">
+                                            <div class="mb-3">
+                                                <label for="tipos__producto_id" class="">Tipo de bien<span class="text-danger">*</span></label>
+                                                <select class="form-select form-select-sm select2 @error('tipo_id') is-invalid @enderror" id="tipos__producto_id" required>
+                                                    <option value="{{old('tipo_id')}}" selected="selected" hidden="hidden">{{ old('tipo_id') }}</option>
+                                                    @foreach($tipos as $tipo)
+                                                        <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <input hidden type="text" class="form-control form-control-sm" name="tipo_id" id="id_tipo" required>
+                                                @error('tipo_id')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-3 col-lg-3">
+                                            <div class="mb-3">
+                                                <label for="categorias__id" class="">Categoría<span class="text-danger">*</span></label>
+                                                <select class="form-select form-select-sm select2 @error('categoria_id') is-invalid @enderror"  name="categorie_id" id="categorias__id" required>
+                                                    <option value="{{ old('categoria_id') }}" selected="selected" hidden="hidden">{{ old('categoria_id') }}</option>
+                                                </select>
+                                                @error('categoria_id')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+        
+                                        <div class="col-12 col-md-3 col-lg-3">
+                                            <div class="mb-3">
+                                                <label for="medida__id" class="">Unidad de medida<span class="text-danger">*</span></label>
+                                                <select class="form-select form-select-sm @error('medida_id') is-invalid @enderror" name="medida_id"  id="medida__id" required>
+                                                    <option value="{{ old('medida_id') }}" selected="selected" hidden="hidden">-- Seleccione --</option>
+                                                    @foreach($medidas as $medida)
+                                                        <option value="{{ $medida->id }}">{{ $medida->nombre }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('medida_id')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+        
+                                        <div class="col-12 col-md-3 col-lg-3">
+                                            <div class="mb-3">
+                                                <label for="marcas__id" class="">Marca</label>
+                                                <select class="form-select form-select-sm select2 @error('marca') is-invalid @enderror" name="marca_id"  id="marcas__id">
+                                                    <option value="{{ old('marca_id') }}" selected="selected" hidden="hidden">{{ old('marca_id') }}</option>
+                                                    @foreach($marcas as $marca)
+                                                        <option value="{{ $marca->id }}">{{ $marca->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('marca_id')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+        
+                                        <div class="col-12 col-md-3 col-lg-3">
+                                            <div class="mb-3">
+                                                <label for="modelos__id" class="">Modelo</label>
+                                                <select class="form-select form-select-sm select2 @error('modelo') is-invalid @enderror" name="modelo_id"  id="modelos__id">
+                                                    <option value="{{ old('modelo_id') }}" selected="selected" hidden="hidden">{{ old('modelo_id') }}</option>
+                                                    @foreach($modelos as $modelo)
+                                                        <option value="{{ $modelo->id }}">{{ $modelo->nombre }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('modelo_id')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <br>
-                            <p class="text-secondary mb-2 small text-uppercase fw-bold" id="title_opcional">Datos adicionales</p>
 
+                            <p class="text-secondary mb-2 small text-uppercase fw-bold" id="title_opcional">Datos adicionales</p>
                             <div class="row" >
                                 <div class="col-12 col-md-2 col-lg-2">
                                     <div class="mb-3">
@@ -273,6 +294,63 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <div class="row">
+                                <div class="col-12 col-md-12 mb-3">
+                                    <nav>
+                                        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                            <button class="nav-link active" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="true">Datos</button>
+                                            <button class="nav-link" id="nav-garantia-tab" data-bs-toggle="tab" data-bs-target="#nav-garantia" type="button" role="tab" aria-controls="nav-garantia" aria-selected="false">Garantias</button>
+                                            <button class="nav-link" id="nav-ficha-tab" data-bs-toggle="tab" data-bs-target="#nav-ficha" type="button" role="tab" aria-controls="nav-ficha" aria-selected="false">Ficha Tecnica</button>
+                                            <button class="nav-link" id="nav-descripcion-producto-tab" data-bs-toggle="tab" data-bs-target="#nav-descripcion-producto" type="button" role="tab" aria-controls="nav-descripcion-producto" aria-selected="false">Descripcion del Producto</button>
+                                            <button class="nav-link" id="nav-fabricante-tab" data-bs-toggle="tab" data-bs-target="#nav-fabricante" type="button" role="tab" aria-controls="nav-fabricante" aria-selected="false">Fabricante</button>
+                                        </div>
+                                    </nav>
+                                    <div class="tab-content" id="nav-tabContent">
+                                        <div class="tab-pane fade show active" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                                            <div class="mb-3">
+                                                <textarea class="form-control editor-tab @error('datos') is-invalid @enderror" name="datos" id="editor_datos" placeholder="Escribe una descripción" style="height: 210px">{{ old('datos') }}</textarea>
+                                                @error('datos')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="nav-garantia" role="tabpanel" aria-labelledby="nav-garantia-tab">
+                                            <div class="mb-3">
+                                                <textarea class="form-control editor-tab @error('garantias') is-invalid @enderror" name="garantias" id="editor_garantias" placeholder="Escribe una descripción" style="height: 210px">{{ old('garantias') }}</textarea>
+                                                @error('garantias')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="nav-ficha" role="tabpanel" aria-labelledby="nav-ficha-tab">
+                                            <div class="mb-3">
+                                                <textarea class="form-control editor-tab @error('ficha_tecnica') is-invalid @enderror" name="ficha_tecnica" id="editor_ficha_tecnica" placeholder="Escribe una descripción" style="height: 210px">{{ old('ficha_tecnica') }}</textarea>
+                                                @error('ficha_tecnica')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="nav-descripcion-producto" role="tabpanel" aria-labelledby="nav-descripcion-producto-tab">
+                                            <div class="mb-3">
+                                                <textarea class="form-control editor-tab @error('descripcion') is-invalid @enderror" name="descripcion" id="editor_descripcion" placeholder="Escribe una descripción" style="height: 210px">{{ old('descripcion') }}</textarea>
+                                                @error('descripcion')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="nav-fabricante" role="tabpanel" aria-labelledby="nav-fabricante-tab">
+                                            <div class="mb-3">
+                                                <textarea class="form-control editor-tab @error('fabricante') is-invalid @enderror" name="fabricante" id="editor_fabricante" placeholder="Escribe una descripción" style="height: 210px">{{ old('fabricante') }}</textarea>
+                                                @error('fabricante')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br>
 
                             <div class="mb-3">
                                 <p class="text-muted mb-2 small text-uppercase fw-bold">Cargue más imágenes (opcional)</p> 
@@ -294,7 +372,7 @@
                                 </div>
                             </div>
                         </div>    
-                        <div class="col-12 col-md-4 col-lg-3">
+                        <div class="col-12 col-md-3 col-lg-3">
                             <div class="mb-3" id="etiquetas">
                                 <p class="text-secondary mb-2 small text-uppercase fw-bold">Etiquetas</p>
                                 <select class="js-example-basic-multiple form-select form-select-sm select2" name="etiquetas[]" multiple="multiple" style="width:100%">
@@ -332,17 +410,23 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.ckeditor.com/ckeditor5/34.1.0/classic/ckeditor.js"></script>
 <script>
-    ClassicEditor
-        .create( document.querySelector( '#editor' ) )
-        .catch( error => {
-            console.error( error );
-        } );
+    document.querySelectorAll('.editor-tab').forEach((element) => {
+        ClassicEditor
+            .create(element)
+            .catch(error => {
+                console.error(error);
+            });
+    });
 </script>
 <script>
     function previewImagePrincipal(nb) {        
         var reader = new FileReader();         
         reader.readAsDataURL(document.getElementById('uploadImage'+nb).files[0]);                
         reader.onload = function (e) {   
+            // Ocultar el icono y el texto, mostrar la imagen
+            document.getElementById('iconPreview'+nb).style.display = 'none';
+            document.getElementById('textPreview'+nb).style.display = 'none';
+            document.getElementById('uploadPreview'+nb).style.display = 'block';
             document.getElementById('uploadPreview'+nb).src = e.target.result;                  
         };     
     }
@@ -432,6 +516,30 @@
         }
 
     }
+
+    // Inicializar imagen principal si existe
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadPreview = document.getElementById('uploadPreview1');
+        const iconPreview = document.getElementById('iconPreview1');
+        const textPreview = document.getElementById('textPreview1');
+        
+        if (uploadPreview && uploadPreview.src) {
+            const img = new Image();
+            img.onload = function() {
+                // La imagen existe y se cargó correctamente
+                uploadPreview.style.display = 'block';
+                if (iconPreview) iconPreview.style.display = 'none';
+                if (textPreview) textPreview.style.display = 'none';
+            };
+            img.onerror = function() {
+                // Si la imagen no existe, mostrar el icono
+                uploadPreview.style.display = 'none';
+                if (iconPreview) iconPreview.style.display = 'block';
+                if (textPreview) textPreview.style.display = 'block';
+            };
+            img.src = uploadPreview.src;
+        }
+    });
 
 </script>
 

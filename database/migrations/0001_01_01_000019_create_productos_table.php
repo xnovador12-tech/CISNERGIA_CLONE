@@ -20,7 +20,11 @@ class CreateProductosTable extends Migration
             $table->string('name')->nullable();
             $table->string('peso')->nullable();
             $table->string('imagen')->nullable();
+            $table->longText('datos')->nullable();
+            $table->longText('garantias')->nullable();
+            $table->longText('ficha_tecnica')->nullable();
             $table->longText('descripcion')->nullable();
+            $table->longText('fabricante')->nullable();
             $table->string('vida_util')->nullable();
             $table->string('depreciacion')->nullable();
             $table->string('tipo_adquisicion')->nullable();
