@@ -131,6 +131,29 @@ class admin_ProductosController extends Controller
         }
     }
 
+    public function getbusqueda_subcategoria_productos(Request $request){
+        if($request->ajax()){
+            if(DB::table('subcategories')
+                ->where('subcategories.category_id',$request->valor_categoria)
+                ->where('subcategories.estado','Activo')
+                ->exists()){
+
+                $subcategorias = DB::table('subcategories')
+                ->where('subcategories.category_id',$request->valor_categoria)
+                ->where('subcategories.estado','Activo')
+                ->get();
+    
+                foreach($subcategorias as $subcategoria){
+                    $ArraySubCategoria[$subcategoria->id] = [$subcategoria->name];
+                }
+            }else{
+                $ArraySubCategoria[1] = ['No hay subcategorías disponibles'];
+            }
+
+            return response()->json($ArraySubCategoria);
+        }
+    }
+
     public function getBusquedaproved(Request $request){
         if($request->ajax()){
             $proveedores = DB::table('personas as pe')->join('proveedors as prov','prov.persona_id','=','pe.id')
@@ -174,6 +197,7 @@ class admin_ProductosController extends Controller
         $producto->name = $request->input('name');
         $producto->medida_id = $request->input('medida_id');
         $producto->categorie_id = $request->input('categorie_id');
+        $producto->subcategory_id = $request->input('subcategoria_id');
         $producto->peso = $request->input('peso');
         $producto->costo = $request->input('costo');
         $producto->precio = $request->input('precio');

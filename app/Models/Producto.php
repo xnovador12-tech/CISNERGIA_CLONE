@@ -33,7 +33,9 @@ class Producto extends Model
         'medida_id',
         'tipo_adquisicion',
         'tipo_afectacion',
-        'categoria_id'
+        'categorie_id',
+        'subcategory_id',
+
     ];
     
     public function getRouteKeyName()

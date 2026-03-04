@@ -93,6 +93,7 @@ Route::get('busqueda_categoria_productos', [admin_ProductosController::class, 'g
 Route::get('busqueda_proved', [admin_ProductosController::class, 'getBusquedaproved']);
 Route::get('busqueda_proved_edit', [admin_ProductosController::class, 'getbusqueda_proved_edit']);
 Route::get('busqueda_codigo_producto', [admin_ProductosController::class, 'getbusqueda_codigo_producto']);
+Route::get('busqueda_subcategoria_productos', [admin_ProductosController::class, 'getbusqueda_subcategoria_productos']);
 
 Route::resource('admin-kits', admin_KitsController::class);
 Route::get('/dtlle_kits', [admin_KitsController::class, 'getdtlle_kits']);

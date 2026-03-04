@@ -40,6 +40,7 @@ class CreateProductosTable extends Migration
             $table->foreignId('medida_id')->constrained('medidas');
             $table->foreignId('marca_id')->constrained('marcas');
             $table->foreignId('categorie_id')->constrained('categories');
+            $table->foreignId('subcategory_id')->nullable()->constrained('subcategories');
             $table->foreignId('sede_id')->constrained('sedes');
             $table->timestamps();
         });

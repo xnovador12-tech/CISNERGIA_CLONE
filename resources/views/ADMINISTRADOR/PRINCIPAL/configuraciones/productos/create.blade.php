@@ -109,7 +109,7 @@
                         <div class="col-12 col-md-9 col-lg-9">
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Datos generales</p>
                             <div class="row">
-                                <div class="col-12 col-md-4 col-lg-4 mb-3">
+                                <div class="col-12 col-md-2 col-lg-2 mb-3">
                                     <label for="" class="mb-2">Imagen Principal</label>
                                     <div class="card text-center imagecard rounded p-0 mb-2" style="cursor: pointer; border: 2px dashed #dee2e6; overflow: hidden;">  
                                         <label for="uploadImage1" class="d-flex flex-column justify-content-center align-items-center h-100 m-0 p-3 w-100" style="cursor: pointer;">
@@ -123,7 +123,7 @@
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
                                 </div>
-                                <div class="col-12 col-md-8 col-lg-8">
+                                <div class="col-12 col-md-10 col-lg-10">
                                     <div class="row">
                                         <div class="col-6 col-md-3 col-lg-2">
                                             <div class="mb-3">
@@ -138,7 +138,7 @@
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-12 col-md-6 col-lg-7">
+                                        <div class="col-12 col-md-4 col-lg-4">
                                             <div class="mb-3">
                                                 <label for="name_id" class="">Nombre<span class="text-danger">*</span></label>
                                                 <input type="text" name="name"  class="form-control form-control-sm @error('name') is-invalid @enderror" required>
@@ -147,7 +147,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-12 col-md-3 col-lg-2">
+                                        <div class="col-12 col-md-2 col-lg-2">
                                             <div class="mb-3">
                                                 <label for="peso__id" class="">Peso</label>
                                                 <input type="decimal" value="{{ old('peso') }}" name="peso" class="form-control form-control-sm bg-white" id="peso__id">
@@ -175,6 +175,17 @@
                                                     <option value="{{ old('categoria_id') }}" selected="selected" hidden="hidden">{{ old('categoria_id') }}</option>
                                                 </select>
                                                 @error('categoria_id')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-3 col-lg-3">
+                                            <div class="mb-3">
+                                                <label for="subcategorias__id" class="">Sub-Categoría<span class="text-danger">*</span></label>
+                                                <select class="form-select form-select-sm select2 @error('subcategory_id') is-invalid @enderror"  name="subcategory_id" id="subcategorias__id" required>
+                                                    <option value="{{ old('subcategory_id') }}" selected="selected" hidden="hidden">{{ old('subcategory_id') }}</option>
+                                                </select>
+                                                @error('subcategory_id')
                                                     <small class="text-danger">{{ $message }}</small>
                                                 @enderror
                                             </div>
@@ -484,6 +495,21 @@
                         console.log(value);
                         $('#codigo_show_id').val(value[0]);
                         $('#codigo_id').val(value[0]);
+                    });
+                });
+
+                $.get('/busqueda_subcategoria_productos', {valor_categorias: __cate_val}, function(subcategorias) {
+                    $('#subcategorias__id').empty();
+                    $('#subcategorias__id').append(
+                        "<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
+                    $.each(subcategorias, function(index, value) {
+                        if(value[0] === 'No hay subcategorías disponibles'){
+                            $('#subcategorias__id').empty();
+                            $('#subcategorias__id').append(
+                        "<option selected='selected' disabled>-- No aplicable --</option>");
+                        }else{
+                            $('#subcategorias__id').append("<option value='"+index+"'>" + value[0] + "</option>");
+                        }
                     });
                 });
             }
