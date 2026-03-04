@@ -181,7 +181,14 @@
                             <div class="contenido align-self-center w-100">
                                 <div class="card rounded-0">
                                     <div class="card-body">
-                                        <h1 class="fw-light text-uppercase mb-0">{{ $admin_producto->name }}</h1>
+                                        <div class="row justify-content-between">
+                                            <div class="col-8">
+                                                <h1 class="fw-light text-uppercase mb-0">{{ $admin_producto->name }}</h1>
+                                            </div>
+                                            <div class="col-4 text-end">
+                                                <span class="badge fw-light bg-info text-uppercase fs-5 mb-0">{{ $admin_producto->codigo }}</span>
+                                            </div>
+                                        </div>
                                         <div class="row g-2 mb-2">
                                             <div class="col-6 col-md-3">
                                                 <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Tipo de bien</small></label>
@@ -199,59 +206,109 @@
                                                 <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Marca</small></label>
                                                 <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ $admin_producto->marca->name }}">
                                             </div>
+                                            <div class="col-6 col-md-3">
+                                                <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Peso</small></label>
+                                                <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ $admin_producto->peso }}">
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Modelo</small></label>
+                                                <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ $admin_producto->modelo->name }}">
+                                            </div>
                                         </div>
 
-                                        @if( $admin_producto->tipo_id == 1)
-                                        @elseif( $admin_producto->tipo_id == 2)
-                                            <div class="row g-2 mb-2">
-                                                <div class="col-6 col-md-3">
-                                                    <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Vida útil</small></label>
-                                                    <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ $admin_producto->vida_util }}">
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Costo</small></label>
-                                                    <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ number_format($admin_producto->costo, 2, '.', ',') }}">
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Depreciación</small></label>
-                                                    <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ number_format($admin_producto->depreciacion, 2, '.', ',') }}">
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>T. Adquisición</small></label>
-                                                    <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ $admin_producto->tipo_adquisicion }}">
-                                                </div>
+                                        <div class="row g-2 mb-2 mt-4">
+                                            <p class="text-uppercase mb-1 fw-bold small"><span class="border-top border-2 border-primary py-2">Datos adicionales</span></p>
+                                            <div class="col-6 col-md-3">
+                                                <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Vida útil</small></label>
+                                                <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ $admin_producto->vida_util }}">
                                             </div>
-                                        @elseif( $admin_producto->tipo_id == 3)
+                                            <div class="col-6 col-md-3">
+                                                <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Costo</small></label>
+                                                <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ number_format($admin_producto->costo, 2, '.', ',') }}">
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Depreciación</small></label>
+                                                <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ number_format($admin_producto->depreciacion, 2, '.', ',') }}">
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>T. Adquisición</small></label>
+                                                <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="{{ $admin_producto->tipo_adquisicion }}">
+                                            </div>
                                             <div class="row g-2 mb-2">
                                                 <div class="col-6 col-md-3">
                                                     <label for="" class="small text-uppercase bg-white text-muted px-1 ms-2"><small>Precio</small></label>
                                                     <input class="form-control bg-white pb-0 text-center" disabled style="margin-top: -12px" value="S/ {{ number_format($admin_producto->precio, 2, '.', ',') }}">
                                                 </div>
                                             </div>
-                                        @endif
+                                        </div>
                                         <div class="mt-4">
                                             <div class="" style="min-height: 150px">
-                                                @if( $admin_producto->proveedores )
-                                                    <p class="text-uppercase mb-1 fw-bold small"><span class="border-top border-2 border-primary py-2">Proveedores</span></p>
-                                                    @forelse($admin_producto->proveedores as $proveedor)
-                                                        <span class="badge bg-info small text-uppercase">{{ $proveedor->persona->name }}</span>         
-                                                    @empty
-                                                        <span class="text-muted small text-uppercase fw-light">No hay registros</span>
-                                                    @endforelse                                             
-                                                @elseif($admin_producto->etiquetas)
-                                                    <p class="text-uppercase mb-1 fw-bold small"><span class="border-top border-2 border-primary py-2">Etiquetas</span></p>
-                                                    @forelse($admin_producto->etiquetas as $etiqueta)
-                                                        <span class="badge bg-info small text-uppercase">{{ $etiqueta->name }}</span>         
-                                                    @empty
-                                                        <span class="text-muted small text-uppercase fw-light">No hay registros</span>
-                                                    @endforelse
-                                                @endif
+                                                <p class="text-uppercase mb-1 fw-bold small"><span class="border-top border-2 border-primary py-2">Proveedores</span></p>
+                                                @forelse($admin_producto->proveedores as $proveedor)
+                                                    <span class="badge bg-info small text-uppercase">{{ $proveedor->persona->name }}</span>         
+                                                @empty
+                                                    <span class="text-muted small text-uppercase fw-light">No hay registros</span>
+                                                @endforelse  
+
+                                                <p class="text-uppercase mb-1 fw-bold small mt-4"><span class="border-top border-2 border-primary py-2">Etiquetas</span></p>
+                                                @forelse($admin_producto->etiquetas as $etiqueta)
+                                                    <span class="badge bg-info small text-uppercase">{{ $etiqueta->name }}</span>         
+                                                @empty
+                                                    <span class="text-muted small text-uppercase fw-light">No hay registros</span>
+                                                @endforelse
                                             </div>
                                         </div>
                                         <div class="mt-4">
-                                            <p class="text-uppercase mb-1 fw-bold small"><span class="border-top border-2 border-primary py-2">Descripción</span></p>
-                                            <div class="" style="min-height: 150px">
-                                                <p class="mb-1">{!! $admin_producto->descripcion !!}</p>
+                                            <nav>
+                                                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                                    <button class="nav-link active" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="true">Datos</button>
+                                                    <button class="nav-link" id="nav-garantia-tab" data-bs-toggle="tab" data-bs-target="#nav-garantia" type="button" role="tab" aria-controls="nav-garantia" aria-selected="false">Garantias</button>
+                                                    <button class="nav-link" id="nav-ficha-tab" data-bs-toggle="tab" data-bs-target="#nav-ficha" type="button" role="tab" aria-controls="nav-ficha" aria-selected="false">Ficha Tecnica</button>
+                                                    <button class="nav-link" id="nav-descripcion-producto-tab" data-bs-toggle="tab" data-bs-target="#nav-descripcion-producto" type="button" role="tab" aria-controls="nav-descripcion-producto" aria-selected="false">Descripcion del Producto</button>
+                                                    <button class="nav-link" id="nav-fabricante-tab" data-bs-toggle="tab" data-bs-target="#nav-fabricante" type="button" role="tab" aria-controls="nav-fabricante" aria-selected="false">Fabricante</button>
+                                                </div>
+                                            </nav>
+                                            <div class="tab-content" id="nav-tabContent">
+                                                <div class="tab-pane fade show active" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                                                    <div class="mb-3">
+                                                        <textarea class="form-control editor-tab @error('datos') is-invalid @enderror bg-white" name="datos" id="editor_datos" placeholder="Escribe una descripción" disabled style="height: 210px">{{ old('datos', $admin_producto->datos) }}</textarea>
+                                                        @error('datos')
+                                                            <small class="text-danger">{{ $message }}</small>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="tab-pane fade" id="nav-garantia" role="tabpanel" aria-labelledby="nav-garantia-tab">
+                                                    <div class="mb-3">
+                                                        <textarea class="form-control editor-tab @error('garantias') is-invalid @enderror bg-white" name="garantias" id="editor_garantias" placeholder="Escribe una descripción" disabled style="height: 210px">{{ old('garantias', $admin_producto->garantias) }}</textarea>
+                                                        @error('garantias')
+                                                            <small class="text-danger">{{ $message }}</small>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="tab-pane fade" id="nav-ficha" role="tabpanel" aria-labelledby="nav-ficha-tab">
+                                                    <div class="mb-3">
+                                                        <textarea class="form-control editor-tab @error('ficha_tecnica') is-invalid @enderror bg-white" name="ficha_tecnica" id="editor_ficha_tecnica" placeholder="Escribe una descripción" disabled style="height: 210px">{{ old('ficha_tecnica', $admin_producto->ficha_tecnica) }}</textarea>
+                                                        @error('ficha_tecnica')
+                                                            <small class="text-danger">{{ $message }}</small>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="tab-pane fade" id="nav-descripcion-producto" role="tabpanel" aria-labelledby="nav-descripcion-producto-tab">
+                                                    <div class="mb-3">
+                                                        <textarea class="form-control editor-tab @error('descripcion') is-invalid @enderror bg-white" name="descripcion" id="editor_descripcion" placeholder="Escribe una descripción" disabled style="height: 210px">{{ old('descripcion', $admin_producto->descripcion) }}</textarea>
+                                                        @error('descripcion')
+                                                            <small class="text-danger">{{ $message }}</small>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="tab-pane fade" id="nav-fabricante" role="tabpanel" aria-labelledby="nav-fabricante-tab">
+                                                    <div class="mb-3">
+                                                        <textarea class="form-control editor-tab @error('fabricante') is-invalid @enderror bg-white" name="fabricante" id="editor_fabricante" placeholder="Escribe una descripción" disabled style="height: 210px">{{ old('fabricante', $admin_producto->fabricante) }}</textarea>
+                                                        @error('fabricante')
+                                                            <small class="text-danger">{{ $message }}</small>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
