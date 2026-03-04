@@ -115,7 +115,7 @@
                         <span class="text-uppercase text-secondary fw-bold">E-commerce</span>
                     </div>
                     <div class="card-body pb-0">
-                        <p class="fw-normal" align="justify">Administra la información de clientes, coberturas, servicios y descuento para la tienda.</p>
+                        <p class="fw-normal" align="justify">Administra la información de clientes, coberturas y descuento para la tienda.</p>
                         <ul class="list-unstyled">
                             <li class="text-primary menu_item">
                                 <i class="bi bi-person-check me-2"></i>
@@ -132,22 +132,6 @@
                             <li class="text-primary menu_item">
                                 <i class="bi bi-receipt me-2"></i>
                                 <a href="{{ route('admin-cupones.index') }}" class="link-primary text-decoration-none">Cupones</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
-                <div class="card border-4 borde-top-secondary box-shadow h-100" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
-                    <div class="card-header bg-transparent">
-                        <span class="text-uppercase text-secondary fw-bold">Combos</span>
-                    </div>
-                    <div class="card-body pb-0">
-                        <p class="fw-normal" align="justify">Agrupa un conjunto de productos para ser ofertados en la tienda</p>
-                        <ul class="list-unstyled">
-                            <li class="text-primary menu_item">
-                                <i class="bi bi-gift me-2"></i>
-                                <a href="{{ route('admin-kits.index') }}" class="link-primary text-decoration-none">Kits</a>
                             </li>
                         </ul>
                     </div>

@@ -331,8 +331,8 @@
         </div>
         <div class="offcanvas-footer border-top">
             <div class="text-white py-2">
-                <p class="mb-0" style="font-size: 12px" align="center">Copyright © 2025 <a href="#"
-                        style="text-decoration: none;" class="text-white fw-bold">VIKINGOS INVERSIONES</a> - Todos los
+                <p class="mb-0" style="font-size: 12px" align="center">Copyright © @php echo date('Y'); @endphp <a href="#"
+                        style="text-decoration: none;" class="text-white fw-bold">CISNERGIA PERU</a> - Todos los
                     derechos Reservados</p>
             </div>
         </div>
