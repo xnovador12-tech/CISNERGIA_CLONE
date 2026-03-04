@@ -177,7 +177,7 @@ class admin_ProductosController extends Controller
             $img_producto = time().$file->getClientOriginalName();
             $file->move(public_path().'/images/productos/', $img_producto);
         }else{
-            $img_producto = '';
+            $img_producto = null;
         }
         $tipo_value = Tipo::where('id',$request->input('tipo_id'))->first();
         // condicion para guardar el nombre de las imagenes opcionales
@@ -297,23 +297,23 @@ class admin_ProductosController extends Controller
         }
         
         $admin_producto['slug'] = Str::slug($request->input('name'));
-        $admin_producto->fill($request->except('imagen'));
+
         if ($request->hasFile('imagen')) {
             $file = $request->file('imagen');
-            $imagen = time().$file->getClientOriginalName();
+            $imagen = time().'_'.$file->getClientOriginalName();
+            $file->move(public_path().'/images/productos/', $imagen);
+
             if ($admin_producto->imagen) {
-                $file_path = public_path(). '/images/productos/'.$admin_producto->imagen;
-                File::delete($file_path);
-                $admin_producto->update([
-                    $admin_producto->imagen = $imagen,
-                    $file->move(public_path().'/images/productos/', $imagen)
-                ]);
-            }else{
-                $admin_producto['imagen'] = $admin_producto->imagen;
+                $file_path = public_path().'/images/productos/'.$admin_producto->imagen;
+                if (File::exists($file_path)) {
+                    File::delete($file_path);
+                }
             }
+
+            $admin_producto->imagen = $imagen;
         }
 
-        $admin_producto->fill($request->except(['codigo', 'slug']));
+        $admin_producto->fill($request->except(['codigo', 'slug', 'imagen']));
         $admin_producto->precio_descuento = $request->input('precio_descuento');
         $admin_producto->save();
 

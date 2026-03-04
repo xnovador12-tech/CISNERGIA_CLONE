@@ -180,13 +180,13 @@
                                         <div class="col-12 col-md-3 col-lg-3">
                                             <div class="mb-3">
                                                 <label for="categorias__id" class="">Categoría<span class="text-danger">*</span></label>
-                                                <select class="form-select form-select-sm select2 @error('categoria_id') is-invalid @enderror"  name="categorie_id" id="categorias__id" required>
-                                                    <option value="{{ $admin_producto->categoria_id }}" selected="selected" hidden="hidden">{{ $admin_producto->categorie->name }}</option>
+                                                <select class="form-select form-select-sm select2 @error('categorie_id') is-invalid @enderror"  name="categorie_id" id="categorias__id" required>
+                                                    <option value="{{ $admin_producto->categorie_id }}" selected="selected" hidden="hidden">{{ $admin_producto->categorie->name }}</option>
                                                     @foreach($categorias as $categoria)
-                                                        <option @if($admin_producto->categoria_id == $categoria->id) selected @endif value="{{ $categoria->id }}">{{ $categoria->name }}</option>
+                                                        <option @if($admin_producto->categorie_id == $categoria->id) selected @endif value="{{ $categoria->id }}">{{ $categoria->name }}</option>
                                                     @endforeach
                                                 </select>
-                                                @error('categoria_id')
+                                                @error('categorie_id')
                                                     <small class="text-danger">{{ $message }}</small>
                                                 @enderror
                                             </div>
@@ -482,7 +482,7 @@
         $('#tipos__producto_id').on('change', function() {
             var valor_bienes = $(this).val();
             $("#id_tipo").val(valor_bienes);
-            var categoria_actual = "{{ $admin_producto->categoria_id }}";
+            var categoria_actual = "{{ $admin_producto->categorie_id }}";
             
             // Cargar categorías según tipo
             $.get('/busqueda_categoria_productos', {valor_bienes: valor_bienes}, function(bienes) {
@@ -503,6 +503,7 @@
                 
                 // Establecer el valor de la categoría actual
                 if (categoria_actual && categoria_actual !== '') {
+                    $('#categorias__id').trigger('change');
                     $('#categorias__id').val(categoria_actual).trigger('change');
                 }
             });
