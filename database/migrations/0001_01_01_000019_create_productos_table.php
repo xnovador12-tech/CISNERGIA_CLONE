@@ -37,7 +37,7 @@ class CreateProductosTable extends Migration
             $table->string('registrado_por')->nullable();
             $table->foreignId('modelo_id')->nullable()->constrained('modelos');
             $table->foreignId('tipo_id')->constrained('tipos');
-            $table->foreignId('medida_id')->constrained('medidas');
+            $table->foreignId('medida_id')->nullable()->constrained('medidas');
             $table->foreignId('marca_id')->constrained('marcas');
             $table->foreignId('categorie_id')->constrained('categories');
             $table->foreignId('subcategory_id')->nullable()->constrained('subcategories');

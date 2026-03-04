@@ -166,7 +166,7 @@
                                             <div class="mb-3">
                                                 <label for="tipos__producto_id" class="">Tipo de bien<span class="text-danger">*</span></label>
                                                 <select class="form-select form-select-sm select2 @error('tipo_id') is-invalid @enderror" id="tipos__producto_id" required>
-                                                    <option value="{{old('tipo_id')}}" selected="selected" hidden="hidden">{{ old('tipo_id') }}</option>
+                                                    <option value="{{ $admin_producto->tipo_id }}" selected="selected" hidden="hidden">{{ $admin_producto->tipo->name }}</option>
                                                     @foreach($tipos as $tipo)
                                                         <option @if($admin_producto->tipo_id == $tipo->id) selected @endif value="{{ $tipo->id }}">{{ $tipo->name }}</option>
                                                     @endforeach
@@ -181,7 +181,7 @@
                                             <div class="mb-3">
                                                 <label for="categorias__id" class="">Categoría<span class="text-danger">*</span></label>
                                                 <select class="form-select form-select-sm select2 @error('categoria_id') is-invalid @enderror"  name="categorie_id" id="categorias__id" required>
-                                                    <option value="{{ old('categoria_id') }}" selected="selected" hidden="hidden">{{ old('categoria_id') }}</option>
+                                                    <option value="{{ $admin_producto->categoria_id }}" selected="selected" hidden="hidden">{{ $admin_producto->categorie->name }}</option>
                                                     @foreach($categorias as $categoria)
                                                         <option @if($admin_producto->categoria_id == $categoria->id) selected @endif value="{{ $categoria->id }}">{{ $categoria->name }}</option>
                                                     @endforeach
