@@ -271,15 +271,12 @@
                                             <div class="tab-content" id="nav-tabContent">
                                                 <div class="tab-pane fade show active" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
                                                     <div class="mb-3">
-                                                        <textarea class="form-control editor-tab @error('datos') is-invalid @enderror bg-white" name="datos" id="editor_datos" placeholder="Escribe una descripción" disabled style="height: 210px">{{ old('datos', $admin_producto->datos) }}</textarea>
-                                                        @error('datos')
-                                                            <small class="text-danger">{{ $message }}</small>
-                                                        @enderror
+                                                        <textarea class="form-control editor-tab @error('datos') is-invalid @enderror bg-white" name="datos" id="editor_datos" placeholder="Escribe una descripción" disabled style="height: 210px">{{ strip_tags(old('datos', $admin_producto->datos)) }}</textarea>
                                                     </div>
                                                 </div>
                                                 <div class="tab-pane fade" id="nav-garantia" role="tabpanel" aria-labelledby="nav-garantia-tab">
                                                     <div class="mb-3">
-                                                        <textarea class="form-control editor-tab @error('garantias') is-invalid @enderror bg-white" name="garantias" id="editor_garantias" placeholder="Escribe una descripción" disabled style="height: 210px">{{ old('garantias', $admin_producto->garantias) }}</textarea>
+                                                        <textarea class="form-control editor-tab @error('garantias') is-invalid @enderror bg-white" name="garantias" id="editor_garantias" placeholder="Escribe una descripción" disabled style="height: 210px">{{ strip_tags(old('garantias', $admin_producto->garantias)) }}</textarea>
                                                         @error('garantias')
                                                             <small class="text-danger">{{ $message }}</small>
                                                         @enderror
@@ -287,7 +284,7 @@
                                                 </div>
                                                 <div class="tab-pane fade" id="nav-ficha" role="tabpanel" aria-labelledby="nav-ficha-tab">
                                                     <div class="mb-3">
-                                                        <textarea class="form-control editor-tab @error('ficha_tecnica') is-invalid @enderror bg-white" name="ficha_tecnica" id="editor_ficha_tecnica" placeholder="Escribe una descripción" disabled style="height: 210px">{{ old('ficha_tecnica', $admin_producto->ficha_tecnica) }}</textarea>
+                                                        <textarea class="form-control editor-tab @error('ficha_tecnica') is-invalid @enderror bg-white" name="ficha_tecnica" id="editor_ficha_tecnica" placeholder="Escribe una descripción" disabled style="height: 210px">{{ strip_tags(old('ficha_tecnica', $admin_producto->ficha_tecnica)) }}</textarea>
                                                         @error('ficha_tecnica')
                                                             <small class="text-danger">{{ $message }}</small>
                                                         @enderror
@@ -295,7 +292,7 @@
                                                 </div>
                                                 <div class="tab-pane fade" id="nav-descripcion-producto" role="tabpanel" aria-labelledby="nav-descripcion-producto-tab">
                                                     <div class="mb-3">
-                                                        <textarea class="form-control editor-tab @error('descripcion') is-invalid @enderror bg-white" name="descripcion" id="editor_descripcion" placeholder="Escribe una descripción" disabled style="height: 210px">{{ old('descripcion', $admin_producto->descripcion) }}</textarea>
+                                                        <textarea class="form-control editor-tab @error('descripcion') is-invalid @enderror bg-white" name="descripcion" id="editor_descripcion" placeholder="Escribe una descripción" disabled style="height: 210px">{{ strip_tags(old('descripcion', $admin_producto->descripcion)) }}</textarea>
                                                         @error('descripcion')
                                                             <small class="text-danger">{{ $message }}</small>
                                                         @enderror
@@ -303,7 +300,7 @@
                                                 </div>
                                                 <div class="tab-pane fade" id="nav-fabricante" role="tabpanel" aria-labelledby="nav-fabricante-tab">
                                                     <div class="mb-3">
-                                                        <textarea class="form-control editor-tab @error('fabricante') is-invalid @enderror bg-white" name="fabricante" id="editor_fabricante" placeholder="Escribe una descripción" disabled style="height: 210px">{{ old('fabricante', $admin_producto->fabricante) }}</textarea>
+                                                        <textarea class="form-control editor-tab @error('fabricante') is-invalid @enderror bg-white" name="fabricante" id="editor_fabricante" placeholder="Escribe una descripción" disabled style="height: 210px">{{ strip_tags(old('fabricante', $admin_producto->fabricante)) }}</textarea>
                                                         @error('fabricante')
                                                             <small class="text-danger">{{ $message }}</small>
                                                         @enderror
