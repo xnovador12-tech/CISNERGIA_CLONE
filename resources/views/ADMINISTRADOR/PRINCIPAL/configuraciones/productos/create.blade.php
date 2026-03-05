@@ -294,11 +294,12 @@
                                 </div>
                                 <div class="col-12 col-md-2 col-lg-2">
                                     <div class="mb-3">
-                                        <label for="precio__id" class="">Precio</label>
+                                        <label for="precio__id" class="">Precio <small class="text-primary fw-bold">(incluye IGV)</small></label>
                                         <div class="input-group input-group-sm mb-3">
                                             <span class="input-group-text" id="inputGroup-sizing-sm">S/</span>
-                                            <input type="decimal" name="precio" value="" class="form-control form-control-sm @error('precio') is-invalid @enderror" id="precio__id">
+                                            <input type="decimal" name="precio" value="" class="form-control form-control-sm @error('precio') is-invalid @enderror" id="precio__id" placeholder="Ej: 11.80">
                                         </div>
+                                        <small class="text-muted d-block" style="margin-top: -10px;">El precio debe incluir el IGV (18%)</small>
                                         @error('precio')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror

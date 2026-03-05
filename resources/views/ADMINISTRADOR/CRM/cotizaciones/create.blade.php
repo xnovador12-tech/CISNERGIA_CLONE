@@ -603,10 +603,24 @@ $(document).ready(function() {
 
         const dtoPct = parseFloat($('#descuento_porcentaje').val()) || 0;
         const dtoMonto = subtotal * (dtoPct / 100);
-        const base = subtotal - dtoMonto;
+        
+        // IMPORTANTE: Los precios en productos YA incluyen IGV
+        // Si IGV está marcado, extraemos el IGV en lugar de sumarlo
         const conIgv = $('#incluye_igv').is(':checked');
-        const igv = conIgv ? base * 0.18 : 0;
-        const total = base + igv;
+        const subtotalConDescuento = subtotal - dtoMonto;
+        
+        let base, igv, total;
+        if (conIgv) {
+            // Los precios tienen IGV incluido, extraer base e IGV
+            total = subtotalConDescuento;
+            base = total / 1.18;
+            igv = total - base;
+        } else {
+            // Sin IGV
+            base = subtotalConDescuento;
+            igv = 0;
+            total = base;
+        }
 
         $('#calc-subtotal').text('S/ ' + subtotal.toFixed(2));
         $('#calc-descuento').text('- S/ ' + dtoMonto.toFixed(2));

@@ -15,6 +15,7 @@ class DetallePedido extends Model
         'pedido_id',
         'producto_id',
         'servicio_id',
+        'subcategory_id',
         'tipo',
         'descripcion',
         'cantidad',
@@ -47,5 +48,10 @@ class DetallePedido extends Model
     public function servicio()
     {
         return $this->belongsTo(Servicio::class, 'servicio_id');
+    }
+
+    public function subcategoria()
+    {
+        return $this->belongsTo(Subcategory::class, 'subcategory_id');
     }
 }

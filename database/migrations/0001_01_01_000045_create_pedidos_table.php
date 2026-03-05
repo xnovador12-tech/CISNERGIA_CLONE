@@ -19,9 +19,12 @@ return new class extends Migration
             // Relaciones principales
             $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('tipo_id')->nullable()->constrained('tipos')->onDelete('set null');
+            $table->foreignId('categoria_id')->nullable()->constrained('categories')->onDelete('set null');
 
             // Montos
             $table->decimal('subtotal', 11, 2)->default(0);
+            $table->string('condicion_pago')->default('Contado');
             $table->boolean('incluye_igv')->default(false);
             $table->decimal('descuento_porcentaje', 5, 2)->default(0);
             $table->decimal('descuento_monto', 11, 2)->default(0);
@@ -59,6 +62,7 @@ return new class extends Migration
 
             // Producto o servicio
             $table->foreignId('producto_id')->nullable()->constrained('productos')->onDelete('cascade');
+            $table->foreignId('subcategory_id')->nullable()->constrained('subcategories')->onDelete('set null');
             $table->foreignId('servicio_id')->nullable()->constrained('servicios')->onDelete('cascade');
             $table->string('tipo')->default('producto'); // producto, servicio, kit
             $table->string('descripcion');
@@ -73,6 +77,15 @@ return new class extends Migration
 
             $table->timestamps();
         });
+
+        Schema::create('pedido_cuotas', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade');
+            $table->integer('numero_cuota');
+            $table->decimal('importe', 11, 2);
+            $table->date('fecha_vencimiento')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -80,6 +93,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('pedido_cuotas');
         Schema::dropIfExists('detalle_pedidos');
         Schema::dropIfExists('pedidos');
     }

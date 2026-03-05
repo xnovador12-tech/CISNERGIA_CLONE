@@ -23,6 +23,7 @@ class Sale extends Model
         'igv',
         'total',
         'mediopago_id',
+        'condicion_pago',
         'estado',
         'user_id',
         'sede_id',
@@ -92,5 +93,10 @@ class Sale extends Model
     public function detalles()
     {
         return $this->hasMany(Detailsale::class, 'sale_id');
+    }
+
+    public function cuotas()
+    {
+        return $this->hasMany(SaleCuota::class, 'sale_id');
     }
 }

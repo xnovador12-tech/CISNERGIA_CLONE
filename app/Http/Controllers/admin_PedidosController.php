@@ -10,6 +10,8 @@ use App\Models\Servicio;
 use App\Models\Almacen;
 use App\Models\Distrito;
 use App\Models\Tipo;
+use App\Models\Category;
+use App\Models\Subcategory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -46,13 +48,14 @@ class admin_PedidosController extends Controller
     public function create()
     {
         $clientes = Cliente::with('vendedor.persona')->orderBy('nombre')->get();
-        $tipos    = Tipo::with('categories')->get();
+        $tipos    = Tipo::with('categories.subcategories')->get();
+        $subcategorias = Subcategory::all();
         $productos = Producto::with('marca')->get();
         $servicios = Servicio::all();
         $almacenes = Almacen::all();
         $distritos = Distrito::orderBy('nombre')->get();
         
-        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('clientes', 'tipos', 'productos', 'servicios', 'almacenes', 'distritos'));
+        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('clientes', 'tipos', 'subcategorias', 'productos', 'servicios', 'almacenes', 'distritos'));
     }
 
     public function store(Request $request)
@@ -65,6 +68,10 @@ class admin_PedidosController extends Controller
             'distrito_id' => 'nullable|exists:distritos,id',
             'almacen_id' => 'nullable|exists:almacenes,id',
             'observaciones' => 'nullable|string',
+            'condicion_pago' => 'nullable|in:Contado,Crédito',
+            'cuotas' => 'nullable|array',
+            'cuotas.*.importe' => 'required_with:cuotas|numeric|min:0.01',
+            'cuotas.*.fecha_vencimiento' => 'required_with:cuotas|date'
         ]);
 
         // Generar código único
@@ -91,9 +98,22 @@ class admin_PedidosController extends Controller
         $pedido->fecha_entrega_estimada = $request->fecha_entrega_estimada;
         $pedido->vigencia_dias = $request->vigencia_dias ?? 15;
         $pedido->almacen_id = $request->almacen_id;
+        $pedido->condicion_pago = $request->condicion_pago ?? 'Contado';
         $pedido->observaciones = $request->observaciones;
         $pedido->origen = 'directo';
         $pedido->save();
+
+        // Guardar cuotas si es crédito
+        if ($pedido->condicion_pago === 'Crédito' && $request->has('cuotas')) {
+            foreach ($request->cuotas as $index => $cuotaData) {
+                \App\Models\PedidoCuota::create([
+                    'pedido_id' => $pedido->id,
+                    'numero_cuota' => $index + 1,
+                    'importe' => $cuotaData['importe'],
+                    'fecha_vencimiento' => $cuotaData['fecha_vencimiento'],
+                ]);
+            }
+        }
 
         // Guardar detalles del pedido y Reservar Stock Automáticamente
         if ($request->has('detalles')) {
@@ -104,6 +124,7 @@ class admin_PedidosController extends Controller
                     'pedido_id' => $pedido->id,
                     'producto_id' => $detalleData['producto_id'] ?? null,
                     'servicio_id' => $detalleData['servicio_id'] ?? null,
+                    'subcategory_id' => $detalleData['subcategory_id'] ?? null,
                     'tipo' => $detalleData['tipo'] ?? 'producto',
                     'descripcion' => $detalleData['descripcion'],
                     'cantidad' => $detalleData['cantidad'],
@@ -156,21 +177,22 @@ class admin_PedidosController extends Controller
 
     public function show(Pedido $admin_pedido)
     {
-        $pedido = $admin_pedido->load(['cliente', 'usuario', 'distrito', 'almacen', 'detalles.producto', 'detalles.servicio']);
+        $pedido = $admin_pedido->load(['cliente', 'usuario', 'distrito', 'almacen', 'detalles.producto', 'detalles.servicio', 'detalles.subcategoria', 'cuotas']);
         return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.show', compact('pedido'));
     }
 
     public function edit(Pedido $admin_pedido)
     {
-        $pedido = $admin_pedido->load('detalles');
+        $pedido = $admin_pedido->load('detalles', 'cuotas');
         $clientes = Cliente::orderBy('nombre')->get();
-        $tipos    = Tipo::with('categories')->get();
+        $tipos    = Tipo::with('categories.subcategories')->get();
+        $subcategorias = Subcategory::all();
         $productos = Producto::with('marca')->get();
         $servicios = Servicio::all();
         $almacenes = Almacen::all();
         $distritos = Distrito::orderBy('nombre')->get();
         
-        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('pedido', 'clientes', 'tipos', 'productos', 'servicios', 'almacenes', 'distritos'));
+        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('pedido', 'clientes', 'tipos', 'subcategorias', 'productos', 'servicios', 'almacenes', 'distritos'));
     }
 
     public function update(Request $request, Pedido $admin_pedido)
@@ -189,6 +211,10 @@ class admin_PedidosController extends Controller
             'descuento_monto' => 'nullable|numeric',
             'igv' => 'nullable|numeric',
             'total' => 'nullable|numeric',
+            'condicion_pago' => 'nullable|in:Contado,Crédito',
+            'cuotas' => 'nullable|array',
+            'cuotas.*.importe' => 'required_with:cuotas|numeric|min:0.01',
+            'cuotas.*.fecha_vencimiento' => 'required_with:cuotas|date'
         ]);
 
         // 1. Devolver Stock actual antes de los cambios (si estaba reservado)
@@ -210,6 +236,19 @@ class admin_PedidosController extends Controller
         // 2. Actualizar datos principales
         $admin_pedido->update($validated);
 
+        // Actualizar cuotas si es crédito
+        $admin_pedido->cuotas()->delete();
+        if (isset($validated['condicion_pago']) && $validated['condicion_pago'] === 'Crédito' && !empty($validated['cuotas'])) {
+            foreach ($validated['cuotas'] as $index => $cuotaData) {
+                \App\Models\PedidoCuota::create([
+                    'pedido_id' => $admin_pedido->id,
+                    'numero_cuota' => $index + 1,
+                    'importe' => $cuotaData['importe'],
+                    'fecha_vencimiento' => $cuotaData['fecha_vencimiento'],
+                ]);
+            }
+        }
+
         // 3. Actualizar Detalles (Borrar y crear nuevos)
         if ($request->has('detalles')) {
             $admin_pedido->detalles()->delete();
@@ -220,6 +259,7 @@ class admin_PedidosController extends Controller
                     'pedido_id' => $admin_pedido->id,
                     'producto_id' => $detalleData['producto_id'] ?? null,
                     'servicio_id' => $detalleData['servicio_id'] ?? null,
+                    'subcategory_id' => $detalleData['subcategory_id'] ?? null,
                     'tipo' => $detalleData['tipo'] ?? 'producto',
                     'descripcion' => $detalleData['descripcion'],
                     'cantidad' => $detalleData['cantidad'],
@@ -433,8 +473,12 @@ class admin_PedidosController extends Controller
         // Validar datos del formulario
         $validated = $request->validate([
             'tiposcomprobante_id' => 'required|exists:tiposcomprobantes,id',
+            'condicion_pago' => 'required|in:Contado,Crédito',
             'mediopago_id' => 'required|exists:mediopagos,id',
             'numero_comprobante' => 'nullable|string',
+            'cuotas' => 'nullable|array',
+            'cuotas.*.importe' => 'required_with:cuotas|numeric|min:0.01',
+            'cuotas.*.fecha_vencimiento' => 'required_with:cuotas|date'
         ]);
 
         // Generar número de comprobante automáticamente si no se proporciona
@@ -485,6 +529,7 @@ class admin_PedidosController extends Controller
             'igv' => $admin_pedido->igv,
             'total' => $admin_pedido->total,
             'mediopago_id' => $validated['mediopago_id'],
+            'condicion_pago' => $validated['condicion_pago'],
             'estado' => 'completada',
             'user_id' => auth()->id(),
             'sede_id' => auth()->user()->persona->sede_id ?? null,
@@ -506,6 +551,18 @@ class admin_PedidosController extends Controller
                 'descuento_monto' => $detalle->descuento_monto ?? 0,
                 'subtotal' => $detalle->subtotal,
             ]);
+        }
+
+        // Si es a crédito y trae cuotas, lo guardamos
+        if ($validated['condicion_pago'] === 'Crédito' && !empty($validated['cuotas'])) {
+            foreach ($validated['cuotas'] as $index => $cuotaData) {
+                \App\Models\SaleCuota::create([
+                    'sale_id' => $venta->id,
+                    'numero_cuota' => $index + 1,
+                    'importe' => $cuotaData['importe'],
+                    'fecha_vencimiento' => $cuotaData['fecha_vencimiento'],
+                ]);
+            }
         }
 
         return redirect()->route('admin-ventas.show', $venta)->with('success', 'Comprobante generado exitosamente: ' . $codigoVenta);

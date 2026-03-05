@@ -31,8 +31,11 @@ class Pedido extends Model
         'slug',
         'cliente_id',
         'user_id',
+        'tipo_id',
+        'categoria_id',
         'subtotal',
         'incluye_igv',
+        'condicion_pago',
         'descuento_porcentaje',
         'descuento_monto',
         'igv',
@@ -90,9 +93,24 @@ class Pedido extends Model
         return $this->belongsTo(Almacen::class, 'almacen_id');
     }
 
+    public function tipo()
+    {
+        return $this->belongsTo(Tipo::class, 'tipo_id');
+    }
+
+    public function categoria()
+    {
+        return $this->belongsTo(Category::class, 'categoria_id');
+    }
+
     public function detalles()
     {
         return $this->hasMany(DetallePedido::class, 'pedido_id');
+    }
+
+    public function cuotas()
+    {
+        return $this->hasMany(PedidoCuota::class, 'pedido_id');
     }
 
     public function venta()

@@ -30,6 +30,7 @@ return new class extends Migration
 
             // Pago y estado
             $table->foreignId('mediopago_id')->nullable()->constrained('mediopagos')->onDelete('set null');
+            $table->string('condicion_pago')->default('Contado');
             $table->enum('estado', ['completada', 'parcial', 'anulada'])->default('completada');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('sede_id')->nullable()->constrained('sedes')->onDelete('set null');
@@ -71,6 +72,15 @@ return new class extends Migration
 
             $table->timestamps();
         });
+
+        Schema::create('sale_cuotas', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('sale_id')->constrained('sales')->onDelete('cascade');
+            $table->integer('numero_cuota');
+            $table->decimal('importe', 11, 2);
+            $table->date('fecha_vencimiento')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -78,6 +88,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('sale_cuotas');
         Schema::dropIfExists('detail_sales');
         Schema::dropIfExists('sales');
     }

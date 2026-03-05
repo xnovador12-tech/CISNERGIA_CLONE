@@ -10,7 +10,7 @@
     .btn-quitar { padding: 0.15rem 0.4rem; font-size: 0.75rem; }
     .resumen-valor { font-size: 0.95rem; }
     .cascada-selects { display: flex; flex-wrap: wrap; gap: 4px; }
-    .cascada-selects .sel-wrap-half { flex: 1; min-width: 100px; }
+    .cascada-selects .sel-wrap-third { flex: 1; min-width: 80px; }
     .cascada-selects .sel-wrap-full { flex: 0 0 100%; }
     .producto-info { font-size: 0.72rem; color: #6c757d; margin-top: 2px; }
     .cascada-selects .select2-container { font-size: 0.8rem; }
@@ -177,14 +177,60 @@
                     <div class="card-body">
                         <p class="text-secondary mb-3 small text-uppercase fw-bold text-center text-success"><i class="bi bi-calculator me-1"></i>Liquidación Final</p>
 
-                        <!-- Control de IGV Sofisticado -->
-                        <div class="form-check form-switch p-3 bg-light rounded-3 mb-4 d-flex align-items-center shadow-sm">
-                            <input class="form-check-input ms-0 me-3 mt-0" type="checkbox" role="switch" name="incluye_igv" id="incluye_igv" style="transform: scale(1.3);" value="1" {{ old('incluye_igv', isset($pedido) ? $pedido->incluye_igv : true) ? 'checked' : '' }}>
-                            <label class="form-check-label fw-bold small text-muted" for="incluye_igv" style="cursor: pointer;">
-                                APLICAR IGV (18%)<br>
-                                <small class="text-secondary fw-normal">Active para agregar IGV al total</small>
-                            </label>
+                        <input type="hidden" name="incluye_igv" id="incluye_igv" value="1">
+                        
+                        <!-- 
+                        Condición de Pago & Cuotas comentadas por solicitud, 
+                        ya que no van estrictamente al momento de crear un Pedido
+                        -->
+                        {{-- 
+                        <div class="mb-4 p-3 bg-light rounded-3 shadow-sm border">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-2"><i class="bi bi-wallet2 me-1"></i>Condición de Pago:</label>
+                            <select name="condicion_pago" id="pago_condicion" class="form-select border-0 shadow-sm">
+                                <option value="Contado" {{ (old('condicion_pago', $pedido->condicion_pago ?? 'Contado') == 'Contado') ? 'selected' : '' }}>Al Contado</option>
+                                <option value="Crédito" {{ (old('condicion_pago', $pedido->condicion_pago ?? '') == 'Crédito') ? 'selected' : '' }}>A Crédito</option>
+                            </select>
                         </div>
+
+                        <div id="pago_seccion_cuotas" class="mb-4 p-3 bg-light rounded-3 shadow-sm border border-primary" style="display: none;">
+                            <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-calendar-check me-2"></i>Cronograma de Cuotas</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted fw-bold">Restante a distribuir:</small>
+                                <strong id="pago_monto_restante" class="text-danger h6 mb-0">S/ 0.00</strong>
+                            </div>
+                            
+                            <table class="table table-sm table-bordered bg-white" id="pago_tabla_cuotas">
+                                <thead class="table-light text-muted small">
+                                    <tr>
+                                        <th class="text-center" style="width: 40px;">N°</th>
+                                        <th>Fecha</th>
+                                        <th>Importe (S/)</th>
+                                        <th class="text-center" style="width: 40px;"><i class="bi bi-trash"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if(isset($pedido) && $pedido->cuotas->count() > 0)
+                                        @foreach($pedido->cuotas as $index => $cuota)
+                                        <tr>
+                                            <td class="align-middle text-center fw-bold text-muted pago-cuota-num">{{ $index + 1 }}</td>
+                                            <td><input type="date" name="cuotas[{{ $index }}][fecha_vencimiento]" class="form-control form-control-sm border-0 bg-light" value="{{ $cuota->fecha_vencimiento }}" required></td>
+                                            <td><input type="number" step="0.01" min="0.01" name="cuotas[{{ $index }}][importe]" class="form-control form-control-sm border-0 bg-light text-end pago-input-cuota" value="{{ $cuota->importe }}" required></td>
+                                            <td class="text-center align-middle">
+                                                <button type="button" class="btn btn-sm text-danger p-0 m-0 pago-btn-eliminar"><i class="bi bi-x-circle-fill"></i></button>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    @endif
+                                </tbody>
+                            </table>
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="pago_btn_agregar_cuota">
+                                    <i class="bi bi-plus-circle me-1"></i>Agregar Cuota
+                                </button>
+                            </div>
+                        </div>
+                        --}}
+
 
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted fw-bold small text-uppercase">Base Imponible:</span>
@@ -348,7 +394,7 @@ $(document).ready(function() {
         let celdaDescripcion = '';
 
         if (esProducto) {
-            // Selects en cascada: Tipo → Categoría → Producto
+            // Selects en cascada: Tipo → Categoría → Subcategoría → Producto
             let optTipos = '<option value="">-- Tipo --</option>';
             tipos.forEach(t => {
                 optTipos += `<option value="${t.id}">${t.name}</option>`;
@@ -356,11 +402,14 @@ $(document).ready(function() {
 
             celdaDescripcion = `
                 <div class="cascada-selects">
-                    <div class="sel-wrap-half"><select class="form-select form-select-sm sel-tipo" data-index="${i}">
+                    <div class="sel-wrap-third"><select class="form-select form-select-sm sel-tipo" data-index="${i}">
                         ${optTipos}
                     </select></div>
-                    <div class="sel-wrap-half"><select class="form-select form-select-sm sel-subcategoria" data-index="${i}" ${datos.producto_id ? '' : 'disabled'}>
+                    <div class="sel-wrap-third"><select class="form-select form-select-sm sel-categoria-real" data-index="${i}" ${datos.producto_id ? '' : 'disabled'}>
                         <option value="">-- Categoría --</option>
+                    </select></div>
+                    <div class="sel-wrap-third"><select class="form-select form-select-sm sel-subcategoria" data-index="${i}" ${datos.producto_id ? '' : 'disabled'}>
+                        <option value="">-- Subcategoría --</option>
                     </select></div>
                     <div class="sel-wrap-full"><select class="form-select form-select-sm sel-producto" data-index="${i}" ${datos.producto_id ? '' : 'disabled'}>
                         <option value="">-- Producto --</option>
@@ -480,7 +529,7 @@ $(document).ready(function() {
     // ==================== SELECT2 HELPERS ====================
     function initSelect2Cascada(idx) {
         var fila = $(`#fila-${idx}`);
-        fila.find('.sel-tipo, .sel-subcategoria, .sel-producto').each(function() {
+        fila.find('.sel-tipo, .sel-categoria-real, .sel-subcategoria, .sel-producto').each(function() {
             if ($(this).hasClass('select2-hidden-accessible')) {
                 $(this).select2('destroy');
             }
@@ -527,25 +576,29 @@ $(document).ready(function() {
     $(document).on('change', '.sel-tipo', function() {
         const idx = $(this).data('index');
         const tipoId = parseInt($(this).val());
+        const selCat = $(`.sel-categoria-real[data-index="${idx}"]`);
         const selSubcat = $(`.sel-subcategoria[data-index="${idx}"]`);
         const selProducto = $(`.sel-producto[data-index="${idx}"]`);
 
+        selSubcat.html('<option value="">-- Subcategoría --</option>').prop('disabled', true);
         selProducto.html('<option value="">-- Producto --</option>').prop('disabled', true);
+        reinitSelect2(`.sel-subcategoria[data-index="${idx}"]`);
         reinitSelect2(`.sel-producto[data-index="${idx}"]`);
+        
         $(`#fila-${idx}`).find('.input-producto-id').val('');
         $(`#fila-${idx}`).find('.input-descripcion').val('');
         $(`#producto-info-${idx}`).html('');
 
         if (!tipoId) {
-            selSubcat.html('<option value="">-- Categoría --</option>').prop('disabled', true);
-            reinitSelect2(`.sel-subcategoria[data-index="${idx}"]`);
+            selCat.html('<option value="">-- Categoría --</option>').prop('disabled', true);
+            reinitSelect2(`.sel-categoria-real[data-index="${idx}"]`);
             return;
         }
 
         const tipo = tipos.find(t => t.id === tipoId);
         if (!tipo || !tipo.categories || tipo.categories.length === 0) {
-            selSubcat.html('<option value="">Sin categorías</option>').prop('disabled', true);
-            reinitSelect2(`.sel-subcategoria[data-index="${idx}"]`);
+            selCat.html('<option value="">Sin categorías</option>').prop('disabled', true);
+            reinitSelect2(`.sel-categoria-real[data-index="${idx}"]`);
             return;
         }
 
@@ -553,28 +606,79 @@ $(document).ready(function() {
         tipo.categories.forEach(c => {
             opts += `<option value="${c.id}">${c.name}</option>`;
         });
+        selCat.html(opts).prop('disabled', false);
+        reinitSelect2(`.sel-categoria-real[data-index="${idx}"]`);
+    });
+
+    // ==================== CASCADA: CATEGORÍA → SUBCATEGORÍA ====================
+    $(document).on('change', '.sel-categoria-real', function() {
+        const idx = $(this).data('index');
+        const categoriaId = parseInt($(this).val());
+        const tipoId = parseInt($(`.sel-tipo[data-index="${idx}"]`).val());
+        const selSubcat = $(`.sel-subcategoria[data-index="${idx}"]`);
+        const selProducto = $(`.sel-producto[data-index="${idx}"]`);
+
+        selProducto.html('<option value="">-- Producto --</option>').prop('disabled', true);
+        reinitSelect2(`.sel-producto[data-index="${idx}"]`);
+        
+        $(`#fila-${idx}`).find('.input-producto-id').val('');
+        $(`#fila-${idx}`).find('.input-descripcion').val('');
+        $(`#producto-info-${idx}`).html('');
+
+        if (!categoriaId) {
+            selSubcat.html('<option value="">-- Subcategoría --</option>').prop('disabled', true);
+            reinitSelect2(`.sel-subcategoria[data-index="${idx}"]`);
+            return;
+        }
+
+        const tipo = tipos.find(t => t.id === tipoId);
+        const cat = tipo ? tipo.categories.find(c => c.id === categoriaId) : null;
+
+        if (!cat || !cat.subcategories || cat.subcategories.length === 0) {
+            selSubcat.html('<option value="">Sin subcategorías</option>').prop('disabled', true);
+            reinitSelect2(`.sel-subcategoria[data-index="${idx}"]`);
+            
+            cargarProductos(idx, categoriaId, null);
+            return;
+        }
+
+        let opts = '<option value="">-- Subcategoría --</option>';
+        cat.subcategories.forEach(sc => {
+            opts += `<option value="${sc.id}">${sc.name}</option>`;
+        });
         selSubcat.html(opts).prop('disabled', false);
         reinitSelect2(`.sel-subcategoria[data-index="${idx}"]`);
     });
 
-    // ==================== CASCADA: CATEGORÍA → PRODUCTO ====================
+    // ==================== CASCADA: SUBCATEGORÍA → PRODUCTO ====================
     $(document).on('change', '.sel-subcategoria', function() {
         const idx = $(this).data('index');
-        const categoriaId = parseInt($(this).val());
-        const selProducto = $(`.sel-producto[data-index="${idx}"]`);
-
+        const categoriaId = parseInt($(`.sel-categoria-real[data-index="${idx}"]`).val());
+        const subcategoriaId = parseInt($(this).val());
+        
         $(`#fila-${idx}`).find('.input-producto-id').val('');
         $(`#fila-${idx}`).find('.input-descripcion').val('');
         $(`#fila-${idx}`).find('.input-precio').val(0);
         $(`#producto-info-${idx}`).html('');
 
-        if (!categoriaId) {
+        cargarProductos(idx, categoriaId, subcategoriaId);
+    });
+
+    function cargarProductos(idx, categoriaId, subcategoriaId) {
+        const selProducto = $(`.sel-producto[data-index="${idx}"]`);
+        
+        if (!categoriaId && !subcategoriaId) {
             selProducto.html('<option value="">-- Producto --</option>').prop('disabled', true);
             reinitSelect2(`.sel-producto[data-index="${idx}"]`);
             return;
         }
 
-        const prods = productosDB.filter(p => p.categorie_id === categoriaId);
+        let prods = productosDB;
+        if (subcategoriaId) {
+            prods = prods.filter(p => p.subcategory_id === subcategoriaId);
+        } else if (categoriaId) {
+            prods = prods.filter(p => p.categorie_id === categoriaId);
+        }
 
         if (prods.length === 0) {
             selProducto.html('<option value="">Sin productos</option>').prop('disabled', true);
@@ -584,12 +688,12 @@ $(document).ready(function() {
 
         let opts = '<option value="">-- Producto --</option>';
         prods.forEach(p => {
-            const extra = `S/ ${parseFloat(p.precio || 0).toFixed(2)}`;
-            opts += `<option value="${p.id}" data-precio="${p.precio || 0}" data-nombre="${p.name}" data-marca="${p.marca?.name || ''}">[${p.codigo || ''}] ${p.name} (${extra})</option>`;
+            const mMarca = (p.marca && p.marca.name) ? ` | ${p.marca.name}` : '';
+            opts += `<option value="${p.id}" data-precio="${p.precio || 0}" data-nombre="${p.name}" data-marca="${p.marca?.name || ''}">[${p.codigo || ''}] ${p.name} ${mMarca}</option>`;
         });
         selProducto.html(opts).prop('disabled', false);
         reinitSelect2(`.sel-producto[data-index="${idx}"]`);
-    });
+    }
 
     // ==================== SELECCIÓN DE PRODUCTO ====================
     $(document).on('change', '.sel-producto', function() {
@@ -666,9 +770,9 @@ $(document).ready(function() {
         calcularLinea(fila.attr('id').replace('fila-', ''));
     });
 
-    $('#incluye_igv').on('change', function() {
-        calcularLiquidacionFinal();
-    });
+    // $('#incluye_igv').on('change', function() {
+    //     calcularLiquidacionFinal();
+    // });
 
     function calcularLinea(idx) {
         const fila = $(`#fila-${idx}`);
@@ -707,11 +811,13 @@ $(document).ready(function() {
             sumaDetallesFinal += subtotalFila;
         });
 
-        let aplicaIgv = $('#incluye_igv').is(':checked');
+        // let aplicaIgv = $('#incluye_igv').is(':checked');
+        const aplicaIgv = true;
         
-        let baseImponible = sumaDetallesFinal;
-        let calculoIgv = aplicaIgv ? (sumaDetallesFinal * 0.18) : 0;
-        let valorAPagarTotal = sumaDetallesFinal + calculoIgv;
+        // Asumiendo que precios ya incluyen IGV
+        let valorAPagarTotal = sumaDetallesFinal;
+        let baseImponible = aplicaIgv ? (sumaDetallesFinal / 1.18) : sumaDetallesFinal;
+        let calculoIgv = aplicaIgv ? (sumaDetallesFinal - baseImponible) : 0;
 
         $('#calc-subtotal').text('S/ ' + baseImponible.toFixed(2));
         $('#calc-descuento').text('- S/ ' + totalDescuentosMonto.toFixed(2));
@@ -722,10 +828,105 @@ $(document).ready(function() {
         $('#input-descuento-monto').val(totalDescuentosMonto.toFixed(2));
         $('#input-igv').val(calculoIgv.toFixed(2));
         $('#input-total').val(valorAPagarTotal.toFixed(2));
+
+        if(typeof pagoCalcularRestante === 'function') {
+            pagoCalcularRestante();
+        }
     }
 
     // Inicializar Select2 general
     $('.select2-basic').select2({ theme: 'bootstrap-5' });
+
+    // ==================== LÓGICA DE CUOTAS ====================
+    window.pagoCalcularRestante = function() {
+        let totalAPagar = parseFloat($('#input-total').val()) || 0;
+        let suma = 0;
+        $('.pago-input-cuota').each(function() {
+            suma += parseFloat($(this).val() || 0);
+        });
+        let restante = totalAPagar - suma;
+        
+        let colorClass = restante < 0 ? 'text-danger' : (restante === 0 ? 'text-success' : 'text-warning');
+        $('#pago_monto_restante')
+            .removeClass('text-danger text-success text-warning')
+            .addClass(colorClass)
+            .text('S/ ' + restante.toFixed(2));
+    };
+
+    function pagoAgregarCuota() {
+        let totalAPagar = parseFloat($('#input-total').val()) || 0;
+        let sumaActual = 0;
+        $('.pago-input-cuota').each(function() {
+            sumaActual += parseFloat($(this).val() || 0);
+        });
+        let sugerido = totalAPagar - sumaActual;
+        if(sugerido < 0) sugerido = 0;
+
+        let index = $('#pago_tabla_cuotas tbody tr').length;
+        
+        let tr = `
+            <tr>
+                <td class="align-middle text-center fw-bold text-muted pago-cuota-num">${index + 1}</td>
+                <td><input type="date" name="cuotas[${index}][fecha_vencimiento]" class="form-control form-control-sm border-0 bg-light" required></td>
+                <td><input type="number" step="0.01" min="0.01" name="cuotas[${index}][importe]" class="form-control form-control-sm border-0 bg-light text-end pago-input-cuota" value="${sugerido.toFixed(2)}" required></td>
+                <td class="text-center align-middle">
+                    <button type="button" class="btn btn-sm text-danger p-0 m-0 pago-btn-eliminar"><i class="bi bi-x-circle-fill"></i></button>
+                </td>
+            </tr>
+        `;
+        $('#pago_tabla_cuotas tbody').append(tr);
+        pagoCalcularRestante();
+    }
+
+    function pagoReordenarCuotas() {
+        $('#pago_tabla_cuotas tbody tr').each(function(index) {
+            $(this).find('.pago-cuota-num').text(index + 1);
+            $(this).find('input[type="date"]').attr('name', `cuotas[${index}][fecha_vencimiento]`);
+            $(this).find('input[type="number"]').attr('name', `cuotas[${index}][importe]`);
+        });
+    }
+
+    $('#pago_condicion').change(function() {
+        if ($(this).val() === 'Crédito') {
+            $('#pago_seccion_cuotas').slideDown();
+            if($('#pago_tabla_cuotas tbody tr').length === 0) {
+                pagoAgregarCuota();
+            }
+        } else {
+            $('#pago_seccion_cuotas').slideUp();
+            $('#pago_tabla_cuotas tbody').empty();
+        }
+        pagoCalcularRestante();
+    }).trigger('change');
+
+    $('#pago_btn_agregar_cuota').click(function() {
+        pagoAgregarCuota();
+    });
+
+    $(document).on('input', '.pago-input-cuota', function() {
+        pagoCalcularRestante();
+    });
+
+    $(document).on('click', '.pago-btn-eliminar', function() {
+        $(this).closest('tr').remove();
+        pagoReordenarCuotas();
+        pagoCalcularRestante();
+    });
+
+    // Validar sumatoria de cuotas antes de enviar el formulario principal
+    $('form#formCrearPedido').on('submit', function(e) {
+        if ($('#pago_condicion').val() === 'Crédito') {
+            let totalAPagar = parseFloat($('#input-total').val()) || 0;
+            let suma = 0;
+            $('.pago-input-cuota').each(function() {
+                suma += parseFloat($(this).val() || 0);
+            });
+            if (Math.abs(suma - totalAPagar) > 0.1) {
+                e.preventDefault();
+                alert('La suma de las cuotas (S/ ' + suma.toFixed(2) + ') debe coincidir exactamente con el Total del Pedido (S/ ' + totalAPagar.toFixed(2) + ').');
+            }
+        }
+    });
 
     // ==================== MODAL NUEVO CLIENTE ====================
     // Limpiar modal al cerrarlo
