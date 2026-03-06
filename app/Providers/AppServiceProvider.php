@@ -5,7 +5,9 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use App\Models\User;
+use App\Models\Pedido;
 use App\Observers\UserObserver;
+use App\Observers\PedidoObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,5 +28,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Observer CRM ↔ E-commerce
         User::observe(UserObserver::class); // Registro → Prospecto automático
+
+        // Observer Operaciones
+        Pedido::observe(PedidoObserver::class);
     }
 }

@@ -31,11 +31,8 @@ class Pedido extends Model
         'slug',
         'cliente_id',
         'user_id',
-        'tipo_id',
-        'categoria_id',
         'subtotal',
         'incluye_igv',
-        'condicion_pago',
         'descuento_porcentaje',
         'descuento_monto',
         'igv',
@@ -52,7 +49,16 @@ class Pedido extends Model
         'observaciones',
         'origen',
         'created_by',
-        'updated_by'
+        'updated_by',
+        // Operaciones
+        'estado_operativo',
+        'area_actual',
+        'tecnico_asignado_id',
+        'fecha_asignacion',
+        'prioridad',
+        'observaciones_operativas',
+        'campania_id',
+        'cotizacion_id',
     ];
 
     protected $casts = [
@@ -65,6 +71,7 @@ class Pedido extends Model
         'total' => 'decimal:2',
         'aprobacion_finanzas' => 'boolean',
         'aprobacion_stock' => 'boolean',
+        'fecha_asignacion' => 'datetime',
     ];
 
     public function getRouteKeyName()
@@ -93,24 +100,9 @@ class Pedido extends Model
         return $this->belongsTo(Almacen::class, 'almacen_id');
     }
 
-    public function tipo()
-    {
-        return $this->belongsTo(Tipo::class, 'tipo_id');
-    }
-
-    public function categoria()
-    {
-        return $this->belongsTo(Category::class, 'categoria_id');
-    }
-
     public function detalles()
     {
         return $this->hasMany(DetallePedido::class, 'pedido_id');
-    }
-
-    public function cuotas()
-    {
-        return $this->hasMany(PedidoCuota::class, 'pedido_id');
     }
 
     public function venta()
@@ -126,5 +118,94 @@ class Pedido extends Model
     public function actualizadoPor()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    // =====================================================
+    // OPERACIONES - Relaciones, Scopes y Métodos
+    // =====================================================
+
+    protected $transicionesValidas = [
+        'sin_asignar' => ['logistica'],
+        'logistica'   => ['almacen', 'sin_asignar'],
+        'almacen'     => ['calidad', 'logistica'],
+        'calidad'     => ['despacho', 'almacen', 'logistica'],
+        'despacho'    => ['completado', 'calidad'],
+        'completado'  => [],
+    ];
+
+    public function tecnico()
+    {
+        return $this->belongsTo(User::class, 'tecnico_asignado_id');
+    }
+
+    public function campania()
+    {
+        return $this->belongsTo(Campania::class, 'campania_id');
+    }
+
+    public function calidad()
+    {
+        return $this->hasOne(PedidoCalidad::class);
+    }
+
+    public function verificaciones()
+    {
+        return $this->hasManyThrough(PedidoVerificacion::class, PedidoCalidad::class);
+    }
+
+    // Scopes
+    public function scopeEnKanban($query)
+    {
+        return $query->whereHas('venta', function ($q) {
+            $q->where('estado', 'completada');
+        });
+    }
+
+    public function scopeEstadoOperativo($query, $estado)
+    {
+        return $query->where('estado_operativo', $estado);
+    }
+
+    // Transiciones de estado operativo
+    public function moverEstado($nuevoEstado, $datos = [])
+    {
+        $estadoActual = $this->estado_operativo;
+
+        if (!isset($this->transicionesValidas[$estadoActual]) ||
+            !in_array($nuevoEstado, $this->transicionesValidas[$estadoActual])) {
+            return [
+                'success' => false,
+                'message' => "No se puede mover de '{$estadoActual}' a '{$nuevoEstado}'."
+            ];
+        }
+
+        $this->estado_operativo = $nuevoEstado;
+        $this->area_actual = $nuevoEstado;
+
+        if (isset($datos['tecnico_asignado_id'])) {
+            $this->tecnico_asignado_id = $datos['tecnico_asignado_id'];
+            if (!$this->fecha_asignacion) {
+                $this->fecha_asignacion = now();
+            }
+        }
+
+        if (isset($datos['fecha_entrega_estimada'])) {
+            $this->fecha_entrega_estimada = $datos['fecha_entrega_estimada'];
+        }
+
+        if (isset($datos['prioridad'])) {
+            $this->prioridad = $datos['prioridad'];
+        }
+
+        if (isset($datos['observaciones_operativas'])) {
+            $this->observaciones_operativas = $datos['observaciones_operativas'];
+        }
+
+        $this->save();
+
+        return [
+            'success' => true,
+            'message' => "Pedido movido a '{$nuevoEstado}' exitosamente."
+        ];
     }
 }

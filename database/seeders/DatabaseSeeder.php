@@ -41,5 +41,11 @@ class DatabaseSeeder extends Seeder
 
         // CRM Module Seeders (incluye ClienteSeeder internamente)
         $this->call(CrmSeeder::class);
+
+        // Operaciones Module Seeders
+        $this->call(ChecklistItemTableSeeder::class);
+        $this->call(KanbanTestDataSeeder::class);
+        $this->call(CampaniaTableSeeder::class);
+
     }
 }

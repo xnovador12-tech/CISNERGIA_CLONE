@@ -32,6 +32,7 @@ use App\Http\Controllers\admin_CrmCotizacionesController;
 use App\Http\Controllers\admin_CrmActividadesController;
 use App\Http\Controllers\admin_CrmClientesController;
 use App\Http\Controllers\admin_CrmTicketsController;
+use App\Http\Controllers\admin_OperacionesController;
 
 use App\Http\Controllers\admin_CrmMantenimientosController;
 use App\Http\Controllers\admin_ModeloController;
@@ -230,6 +231,47 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     Route::post('mantenimientos/{mantenimiento}/cancelar', [admin_CrmMantenimientosController::class, 'cancelar'])->name('mantenimientos.cancelar');
     Route::post('mantenimientos/{mantenimiento}/reprogramar', [admin_CrmMantenimientosController::class, 'reprogramar'])->name('mantenimientos.reprogramar');
 }); // Fin del grupo CRM
+
+// =============================================
+// OPERACIONES
+// =============================================
+
+// Asignaciones
+Route::get('admin-operaciones-asignaciones', [admin_OperacionesController::class, 'asignacionesIndex'])->name('admin-operaciones-asignaciones.index');
+Route::get('admin-operaciones-asignaciones/data', [admin_OperacionesController::class, 'asignacionesData'])->name('admin-operaciones-asignaciones.data');
+Route::get('admin-operaciones-asignaciones/stats', [admin_OperacionesController::class, 'asignacionesGetStats'])->name('admin-operaciones-asignaciones.stats');
+Route::post('admin-operaciones-asignaciones/asignar', [admin_OperacionesController::class, 'asignacionesAsignar'])->name('admin-operaciones-asignaciones.asignar');
+Route::get('admin-operaciones-asignaciones/filtrar', [admin_OperacionesController::class, 'asignacionesFiltrar'])->name('admin-operaciones-asignaciones.filtrar');
+Route::get('admin-operaciones-asignaciones/{id}', [admin_OperacionesController::class, 'asignacionesGetPedido'])->name('admin-operaciones-asignaciones.show');
+
+// Calidad
+Route::get('admin-operaciones-calidad', [admin_OperacionesController::class, 'calidadIndex'])->name('admin-operaciones-calidad.index');
+Route::post('admin-operaciones-calidad/guardar-check', [admin_OperacionesController::class, 'calidadGuardarCheck'])->name('admin-operaciones-calidad.guardar-check');
+Route::post('admin-operaciones-calidad/aprobar', [admin_OperacionesController::class, 'calidadAprobar'])->name('admin-operaciones-calidad.aprobar');
+Route::post('admin-operaciones-calidad/rechazar', [admin_OperacionesController::class, 'calidadRechazar'])->name('admin-operaciones-calidad.rechazar');
+Route::get('admin-operaciones-calidad/{id}', [admin_OperacionesController::class, 'calidadGetPedido'])->name('admin-operaciones-calidad.show');
+
+// Trazabilidad
+Route::get('admin-operaciones-trazabilidad', [admin_OperacionesController::class, 'trazabilidadIndex'])->name('admin-operaciones-trazabilidad.index');
+Route::get('admin-operaciones-trazabilidad/buscar', [admin_OperacionesController::class, 'trazabilidadBuscar'])->name('admin-operaciones-trazabilidad.buscar');
+Route::get('admin-operaciones-trazabilidad/{id}', [admin_OperacionesController::class, 'trazabilidadGetPedido'])->name('admin-operaciones-trazabilidad.show');
+
+// Campañas
+Route::get('admin-operaciones-campanias', [admin_OperacionesController::class, 'campaniasIndex'])->name('admin-operaciones-campanias.index');
+Route::get('admin-operaciones-campanias/crear', [admin_OperacionesController::class, 'campaniasCreate'])->name('admin-operaciones-campanias.create');
+Route::post('admin-operaciones-campanias', [admin_OperacionesController::class, 'campaniasStore'])->name('admin-operaciones-campanias.store');
+Route::get('admin-operaciones-campanias/ajax/productos', [admin_OperacionesController::class, 'campaniasGetProductos'])->name('admin-operaciones-campanias.ajax.productos');
+Route::get('admin-operaciones-campanias/{id}', [admin_OperacionesController::class, 'campaniasShow'])->name('admin-operaciones-campanias.show');
+Route::get('admin-operaciones-campanias/{id}/editar', [admin_OperacionesController::class, 'campaniasEdit'])->name('admin-operaciones-campanias.edit');
+Route::put('admin-operaciones-campanias/{id}', [admin_OperacionesController::class, 'campaniasUpdate'])->name('admin-operaciones-campanias.update');
+Route::delete('admin-operaciones-campanias/{id}', [admin_OperacionesController::class, 'campaniasDestroy'])->name('admin-operaciones-campanias.destroy');
+Route::post('admin-operaciones-campanias/{id}/activar', [admin_OperacionesController::class, 'campaniasActivar'])->name('admin-operaciones-campanias.activar');
+Route::post('admin-operaciones-campanias/{id}/pausar', [admin_OperacionesController::class, 'campaniasPausar'])->name('admin-operaciones-campanias.pausar');
+Route::post('admin-operaciones-campanias/{id}/reanudar', [admin_OperacionesController::class, 'campaniasReanudar'])->name('admin-operaciones-campanias.reanudar');
+Route::post('admin-operaciones-campanias/{id}/finalizar', [admin_OperacionesController::class, 'campaniasFinalizar'])->name('admin-operaciones-campanias.finalizar');
+Route::post('admin-operaciones-campanias/{id}/duplicar', [admin_OperacionesController::class, 'campaniasDuplicar'])->name('admin-operaciones-campanias.duplicar');
+Route::get('admin-operaciones-campanias/{id}/metricas', [admin_OperacionesController::class, 'campaniasGetMetricas'])->name('admin-operaciones-campanias.metricas');
+
 
 Route::get('admin-reportes', [admin_ReportesController::class, 'index'])->name('admin-reportes.index');
 
