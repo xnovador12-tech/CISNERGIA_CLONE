@@ -266,7 +266,8 @@ class KanbanTestDataSeeder extends Seeder
 
         foreach ($pedidosConfig as $i => $config) {
             $fechaCreacion = $now->copy()->subDays($config['dias_atras']);
-            $codigo = 'PED-' . $now->format('Y') . '-' . str_pad($i + 1, 5, '0', STR_PAD_LEFT);
+            $numero = Pedido::count() + 1;
+            $codigo = 'PED-' . $now->format('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
 
             // Calcular totales desde detalles
             $subtotal = 0;
@@ -301,7 +302,7 @@ class KanbanTestDataSeeder extends Seeder
                 'almacen_id' => 1,
                 'observaciones' => null,
                 'observaciones_operativas' => $tecnicoId ? 'Asignado por administración.' : null,
-                'origen' => 'manual',
+                'origen' => 'directo',
                 'created_at' => $fechaCreacion,
                 'updated_at' => $fechaCreacion,
             ]);
@@ -327,7 +328,8 @@ class KanbanTestDataSeeder extends Seeder
             }
 
             // Crear venta completada asociada al pedido (requisito para entrar a asignaciones)
-            $codigoVenta = 'VTA-' . $now->format('Y') . '-' . str_pad($i + 1, 5, '0', STR_PAD_LEFT);
+            $numeroVenta = DB::table('sales')->count() + 1;
+            $codigoVenta = 'VTA-' . $now->format('Y') . '-' . str_pad($numeroVenta, 5, '0', STR_PAD_LEFT);
             DB::table('sales')->insert([
                 'codigo' => $codigoVenta,
                 'slug' => Str::slug($codigoVenta),

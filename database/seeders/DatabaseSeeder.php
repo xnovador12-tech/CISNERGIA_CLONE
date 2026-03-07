@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
         // Operaciones Module Seeders
         $this->call(ChecklistItemTableSeeder::class);
         $this->call(KanbanTestDataSeeder::class);
-        $this->call(CampaniaTableSeeder::class);
+        // $this->call(CampaniaTableSeeder::class);
 
     }
 }

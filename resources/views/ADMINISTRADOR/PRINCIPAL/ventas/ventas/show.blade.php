@@ -199,20 +199,9 @@
                         <h5 class="mb-0"><i class="bi bi-tools me-2"></i>Acciones</h5>
                     </div>
                     <div class="card-body">
-                        @if($venta->tipo_venta === 'pos' && !$venta->pedido_id)
-                            <form action="{{ route('admin-pedidos.desde-ecommerce', $venta) }}" method="POST" class="mb-2">
-                                @csrf
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="bi bi-box-seam me-2"></i>Enviar a Almacén para Despacho
-                                </button>
-                            </form>
-                            <small class="text-muted d-block mb-3">
-                                <i class="bi bi-info-circle me-1"></i>Crea una orden de pedido interna para que Almacén prepare la entrega
-                            </small>
-                        @endif
-                        <button class="btn btn-danger w-100 mb-2">
-                            <i class="bi bi-file-pdf me-2"></i>Descargar PDF
-                        </button>
+                        <a href="{{ route('admin-ventas.voucher', $venta) }}" class="btn btn-danger w-100 mb-2" target="_blank">
+                            <i class="bi bi-file-pdf me-2"></i>Generar Comprobante
+                        </a>
                         <a href="{{ route('admin-ventas.index') }}" class="btn btn-secondary w-100">
                             <i class="bi bi-arrow-left me-2"></i>Volver al Listado
                         </a>

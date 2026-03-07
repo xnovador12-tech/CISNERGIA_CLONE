@@ -249,74 +249,93 @@ class ecommerceController extends Controller
                 ]
             );
 
-            // Generar código de pedido
+            // =====================================================
+            // FLUJO ECOMMERCE: Crear VENTA + PEDIDO juntos
+            // =====================================================
+
+            // 1. Generar código de pedido
             $year = date('Y');
             $lastPedido = Pedido::whereYear('created_at', $year)->orderBy('id', 'desc')->first();
             $nextNumber = $lastPedido ? intval(substr($lastPedido->codigo, -5)) + 1 : 1;
-            $codigo = 'PED-' . $year . '-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+            $codigoPedido = 'PED-' . $year . '-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
 
-            // Crear pedido
+            // 2. Generar código de venta
+            $ultimaVenta = \App\Models\Sale::latest('id')->first();
+            $numeroVenta = $ultimaVenta ? $ultimaVenta->id + 1 : 1;
+            $codigoVenta = 'VTA-' . date('Y') . '-' . str_pad($numeroVenta, 5, '0', STR_PAD_LEFT);
+
+            // 3. Crear pedido (estado confirmado porque pago ya verificado online)
             $pedido = new Pedido();
-            $pedido->codigo = $codigo;
-            $pedido->slug = Str::slug($codigo);
+            $pedido->codigo = $codigoPedido;
+            $pedido->slug = Str::slug($codigoPedido);
             $pedido->cliente_id = $cliente->id;
             $pedido->subtotal = $cart->subtotal;
-            $pedido->descuento = $cart->descuento;
+            $pedido->descuento_monto = $cart->descuento;
             $pedido->igv = $cart->igv;
             $pedido->total = $cart->total;
-            $pedido->estado = 'pendiente';
-            $pedido->aprobacion_stock = true; // Stock descontado al crear (RESERVA AUTOMÁTICA)
-            $pedido->aprobacion_finanzas = false; // Finanzas PENDIENTE de revisión manual de transferencia
+            $pedido->estado = 'proceso'; // Ya pagado online y en operación
+            $pedido->aprobacion_stock = true; // Stock descontado al crear
+            $pedido->aprobacion_finanzas = true; // Pago online confirmado automáticamente
             $pedido->direccion_instalacion = $request->direccion;
             $pedido->distrito_id = $request->distrito_id;
+            $pedido->condicion_pago = $request->metodo_pago === 'credito' ? 'Crédito' : 'Contado';
             $pedido->observaciones = $request->observaciones ?? null;
             $pedido->origen = 'ecommerce';
+            $pedido->estado_operativo = 'sin_asignar';
+            $pedido->area_actual = 'logistica';
             $pedido->save();
 
-            // Descontar Stock del Inventario (LIFO o FIFO - Simplificado: descuenta del primer almácen con stock)
+            // 4. Crear venta vinculada al pedido
+            $venta = \App\Models\Sale::create([
+                'codigo' => $codigoVenta,
+                'slug' => Str::slug($codigoVenta),
+                'pedido_id' => $pedido->id,
+                'cliente_id' => $cliente->id,
+                'tiposcomprobante_id' => 1, // Boleta por defecto para ecommerce
+                'numero_comprobante' => 'ECOM-' . $codigoPedido,
+                'subtotal' => $cart->subtotal,
+                'descuento' => $cart->descuento,
+                'igv' => $cart->igv,
+                'total' => $cart->total,
+                'mediopago_id' => 1, // Configurar según metodo_pago
+                'condicion_pago' => $request->metodo_pago === 'credito' ? 'Crédito' : 'Contado',
+                'estado' => 'completada',
+                'tipo_venta' => 'ecommerce',
+                'observaciones' => 'Venta generada automáticamente desde E-commerce: ' . $codigoPedido,
+            ]);
+
+            // Descontar Stock del Inventario mediante StockService
+            $stockService = new \App\Services\StockService();
+            $stockService->deductStock($cart->items);
+
+            // 5. Crear detalles del pedido
             foreach ($cart->items as $item) {
-                $cantidadNecesaria = $item->cantidad;
-                
-                // Buscar inventarios con stock de este producto
-                $inventarios = \App\Models\Inventario::where('id_producto', $item->producto_id)
-                                ->where('cantidad', '>', 0)
-                                ->orderBy('created_at', 'asc') // FIFO
-                                ->get();
-                                
-                $stockTotal = $inventarios->sum('cantidad');
-
-                if ($stockTotal < $cantidadNecesaria) {
-                     throw new \Exception("Stock insuficiente para el producto: " . $item->nombre);
-                }
-
-                foreach ($inventarios as $inventario) {
-                    if ($cantidadNecesaria <= 0) break;
-
-                    if ($inventario->cantidad >= $cantidadNecesaria) {
-                        $inventario->cantidad -= $cantidadNecesaria;
-                        $inventario->save();
-                        $cantidadNecesaria = 0;
-                    } else {
-                        $cantidadNecesaria -= $inventario->cantidad;
-                        $inventario->cantidad = 0;
-                        $inventario->save();
-                    }
-                }
+                DetallePedido::create([
+                    'pedido_id' => $pedido->id,
+                    'producto_id' => $item->producto_id,
+                    'servicio_id' => $item->servicio_id,
+                    'tipo' => $item->tipo,
+                    'descripcion' => $item->nombre,
+                    'cantidad' => $item->cantidad,
+                    'precio_unitario' => $item->precio_unitario,
+                    'descuento_monto' => $item->descuento,
+                    'subtotal' => $item->subtotal,
+                ]);
             }
 
-            // Crear detalles del pedido
+            // 6. Crear detalles de la venta (copia de los detalles del pedido)
             foreach ($cart->items as $item) {
-                $detalle = new DetallePedido();
-                $detalle->pedido_id = $pedido->id;
-                $detalle->producto_id = $item->producto_id;
-                $detalle->servicio_id = $item->servicio_id;
-                $detalle->tipo = $item->tipo;
-                $detalle->descripcion = $item->nombre;
-                $detalle->cantidad = $item->cantidad;
-                $detalle->precio_unitario = $item->precio_unitario;
-                $detalle->descuento = $item->descuento;
-                $detalle->subtotal = $item->subtotal;
-                $detalle->save();
+                \App\Models\Detailsale::create([
+                    'sale_id' => $venta->id,
+                    'producto_id' => $item->producto_id,
+                    'servicio_id' => $item->servicio_id,
+                    'tipo' => $item->tipo,
+                    'descripcion' => $item->nombre,
+                    'cantidad' => $item->cantidad,
+                    'precio_unitario' => $item->precio_unitario,
+                    'descuento_monto' => $item->descuento,
+                    'subtotal' => $item->subtotal,
+                ]);
             }
 
             // Limpiar carrito

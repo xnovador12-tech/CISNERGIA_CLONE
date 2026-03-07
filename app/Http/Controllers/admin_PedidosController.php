@@ -15,12 +15,14 @@ use App\Models\Subcategory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class admin_PedidosController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Pedido::with(['cliente', 'usuario', 'distrito']);
+        $query = Pedido::with(['cliente', 'usuario', 'distrito', 'venta']);
 
         // Filtro por Fecha
         if ($request->filled('desde')) {
@@ -135,30 +137,11 @@ class admin_PedidosController extends Controller
                     'subtotal' => $detalleData['subtotal'],
                 ]);
 
-                // LOGICA DE RESERVA INTERNA AUTOMÁTICA
+                // LOGICA DE RESERVA INTERNA AUTOMÁTICA USANDO StockService
                 if ($detalle->producto_id) {
-                    $cantidadNecesaria = $detalle->cantidad;
-                    $inventarios = \App\Models\Inventario::where('id_producto', $detalle->producto_id)
-                                    ->where('cantidad', '>', 0)
-                                    ->orderBy('created_at', 'asc')
-                                    ->get();
-                    
-                    $stockDisponible = $inventarios->sum('cantidad');
-
-                    if ($stockDisponible >= $cantidadNecesaria) {
-                        // Descontar
-                        foreach ($inventarios as $inventario) {
-                            if ($cantidadNecesaria <= 0) break;
-                            if ($inventario->cantidad >= $cantidadNecesaria) {
-                                $inventario->cantidad -= $cantidadNecesaria;
-                                $inventario->save();
-                                $cantidadNecesaria = 0;
-                            } else {
-                                $cantidadNecesaria -= $inventario->cantidad;
-                                $inventario->cantidad = 0;
-                                $inventario->save();
-                            }
-                        }
+                    $stockService = new \App\Services\StockService();
+                    if ($stockService->hasStock([$detalle], $pedido->almacen_id)) {
+                        $stockService->deductStock([$detalle], $pedido->almacen_id);
                     } else {
                         $stockReservadoTotalmente = false;
                     }
@@ -177,12 +160,18 @@ class admin_PedidosController extends Controller
 
     public function show(Pedido $admin_pedido)
     {
-        $pedido = $admin_pedido->load(['cliente', 'usuario', 'distrito', 'almacen', 'detalles.producto', 'detalles.servicio', 'detalles.subcategoria', 'cuotas']);
+        $pedido = $admin_pedido->load(['cliente', 'usuario', 'distrito', 'almacen', 'detalles.producto', 'detalles.servicio', 'detalles.subcategoria', 'cuotas', 'cotizacionCrm']);
         return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.show', compact('pedido'));
     }
 
     public function edit(Pedido $admin_pedido)
     {
+        // VALIDACIÓN: No permitir editar pedidos que ya tienen venta generada
+        if ($admin_pedido->venta) {
+            return redirect()->route('admin-pedidos.show', $admin_pedido)
+                ->with('error', '❌ No se puede editar un pedido que ya tiene un comprobante generado: ' . $admin_pedido->venta->codigo . '. Debe anular primero la venta si necesita hacer cambios.');
+        }
+
         $pedido = $admin_pedido->load('detalles', 'cuotas');
         $clientes = Cliente::orderBy('nombre')->get();
         $tipos    = Tipo::with('categories.subcategories')->get();
@@ -197,9 +186,15 @@ class admin_PedidosController extends Controller
 
     public function update(Request $request, Pedido $admin_pedido)
     {
+        // VALIDACIÓN: No permitir actualizar pedidos que ya tienen venta generada
+        if ($admin_pedido->venta) {
+            return redirect()->route('admin-pedidos.show', $admin_pedido)
+                ->with('error', '❌ No se puede modificar un pedido que ya tiene un comprobante generado: ' . $admin_pedido->venta->codigo . '. Debe anular primero la venta.');
+        }
+
         $validated = $request->validate([
             'cliente_id' => 'required|exists:clientes,id',
-            'estado' => 'required|in:pendiente,proceso,entregado,cancelado',
+            'estado' => 'required|in:pendiente,proceso,confirmado,cancelado',
             'fecha_entrega_estimada' => 'nullable|date',
             'vigencia_dias' => 'required|in:15,30',
             'direccion_instalacion' => 'nullable|string',
@@ -219,17 +214,8 @@ class admin_PedidosController extends Controller
 
         // 1. Devolver Stock actual antes de los cambios (si estaba reservado)
         if ($admin_pedido->aprobacion_stock) {
-            foreach ($admin_pedido->detalles as $detalle) {
-                if ($detalle->producto_id) {
-                    $inventario = \App\Models\Inventario::where('id_producto', $detalle->producto_id)
-                        ->where('almacen_id', $admin_pedido->almacen_id)
-                        ->first();
-                    if ($inventario) {
-                        $inventario->cantidad += $detalle->cantidad;
-                        $inventario->save();
-                    }
-                }
-            }
+            $stockService = new \App\Services\StockService();
+            $stockService->restoreStock($admin_pedido->detalles, $admin_pedido->almacen_id);
             $admin_pedido->aprobacion_stock = false;
         }
 
@@ -272,25 +258,9 @@ class admin_PedidosController extends Controller
 
                 // 4. Intentar re-reservar stock si es manual y era pendiente/proceso
                 if ($detalle->producto_id && in_array($admin_pedido->estado, ['pendiente', 'proceso'])) {
-                    $cantidadNecesaria = $detalle->cantidad;
-                    $inventarios = \App\Models\Inventario::where('id_producto', $detalle->producto_id)
-                                    ->where('cantidad', '>', 0)
-                                    ->orderBy('created_at', 'asc')
-                                    ->get();
-                    
-                    if ($inventarios->sum('cantidad') >= $cantidadNecesaria) {
-                        foreach ($inventarios as $inv) {
-                            if ($cantidadNecesaria <= 0) break;
-                            if ($inv->cantidad >= $cantidadNecesaria) {
-                                $inv->cantidad -= $cantidadNecesaria;
-                                $inv->save();
-                                $cantidadNecesaria = 0;
-                            } else {
-                                $cantidadNecesaria -= $inv->cantidad;
-                                $inv->cantidad = 0;
-                                $inv->save();
-                            }
-                        }
+                    $stockService = new \App\Services\StockService();
+                    if ($stockService->deductStock([$detalle], $admin_pedido->almacen_id)) {
+                        // Stock reservado unitariamente
                     } else {
                         $stockReservadoTotalmente = false;
                     }
@@ -308,47 +278,134 @@ class admin_PedidosController extends Controller
 
     public function destroy(Pedido $admin_pedido)
     {
+        // VALIDACIÓN: No permitir eliminar pedidos que ya tienen venta generada
+        if ($admin_pedido->venta) {
+            return back()->with('error', '❌ No se puede eliminar un pedido que tiene un comprobante generado: ' . $admin_pedido->venta->codigo . '. Debe anular primero la venta desde el módulo de Ventas.');
+        }
+
         // Devolver stock si estaba aprobado
         if ($admin_pedido->aprobacion_stock) {
-            foreach ($admin_pedido->detalles as $detalle) {
-                // Devolver al almacén del pedido o al primero encontrado
-                $inventario = \App\Models\Inventario::where('id_producto', $detalle->producto_id)
-                    ->when($admin_pedido->almacen_id, function($q) use ($admin_pedido) {
-                        return $q->where('almacen_id', $admin_pedido->almacen_id);
-                    })
-                    ->first();
-
-                if ($inventario) {
-                    $inventario->cantidad += $detalle->cantidad;
-                    $inventario->save();
-                }
-            }
+            $stockService = new \App\Services\StockService();
+            $stockService->restoreStock($admin_pedido->detalles, $admin_pedido->almacen_id);
         }
 
         $admin_pedido->delete();
-        return redirect()->route('admin-pedidos.index')->with('success', 'Pedido eliminado y stock actualizado');
+        return redirect()->route('admin-pedidos.index')->with('success', '✅ Pedido eliminado correctamente. Stock restaurado al inventario.');
     }
 
+    /**
+     * Cambiar estado del pedido con lógica de cancelación correcta
+     * 
+     * ESCENARIOS MANEJADOS:
+     * 1. Cancelación sin venta: Restaura stock + revoca aprobaciones
+     * 2. Cancelación con venta (e-commerce): Bloquea y redirige a Nota de Crédito
+     * 3. Otros cambios de estado: Solo cambian estado
+     */
     public function estado(Request $request, Pedido $admin_pedido)
     {
-        $admin_pedido->estado = $request->estado;
+        $nuevoEstado = $request->estado;
+        
+        // ================================================================
+        // VALIDACIÓN 1: Si es CANCELACIÓN, revisar si tiene venta asociada
+        // ================================================================
+        if ($nuevoEstado === 'cancelado') {
+            // Si tiene venta generada, necesita Nota de Crédito
+            if ($admin_pedido->venta) {
+                return back()->with('error', 
+                    '❌ No se puede cancelar directamente. Este pedido tiene comprobante emitido: ' . 
+                    $admin_pedido->venta->codigo . 
+                    '. Debe generar una NOTA DE CRÉDITO en el módulo de Ventas para reversar esta operación.'
+                );
+            }
+        }
+
+        // ================================================================
+        // LÓGICA DE CANCELACIÓN: Restaurar stock y revertir aprobaciones
+        // ================================================================
+        if ($nuevoEstado === 'cancelado') {
+            return DB::transaction(function () use ($admin_pedido, $nuevoEstado) {
+                $stockRestorado = false;
+                
+                // PASO 1: Restaurar stock si estaba aprobado
+                if ($admin_pedido->aprobacion_stock) {
+                    try {
+                        $stockService = new \App\Services\StockService();
+                        $stockService->restoreStock($admin_pedido->detalles, $admin_pedido->almacen_id);
+                        $stockRestorado = true;
+                    } catch (\Exception $e) {
+                        return back()->with('error', '❌ Error al restaurar stock: ' . $e->getMessage());
+                    }
+                }
+
+                // PASO 2: Revertir aprobaciones al cancelar
+                $admin_pedido->aprobacion_stock = false;
+                $admin_pedido->aprobacion_finanzas = false;
+
+                // PASO 3: Cambiar estado a cancelado
+                $admin_pedido->estado = 'cancelado';
+                $admin_pedido->updated_by = auth()->id();
+                $admin_pedido->save();
+
+                // PASO 4: Registrar la cancelación en observaciones para auditoría
+                $motivoCancelacion = $request->motivo ?? 'No especificado';
+                $observacionesAdicionales = $request->observaciones_cancelacion ?? '';
+                $observacionesActuales = $admin_pedido->observaciones ?? '';
+                
+                // Construir registro de auditoría completo
+                $registroCancelacion = "[CANCELACIÓN - " . now()->format('Y-m-d H:i:s') . "] " .
+                    "Usuario: " . auth()->user()->name . " | " .
+                    "Motivo: " . $motivoCancelacion;
+                
+                if (!empty($observacionesAdicionales)) {
+                    $registroCancelacion .= " | Notas: " . $observacionesAdicionales;
+                }
+                
+                $registroCancelacion .= ($stockRestorado ? " | Stock restaurado: SÍ" : " | Stock: No tenía reservado");
+                
+                $admin_pedido->observaciones = $observacionesActuales . "\n\n" . $registroCancelacion;
+                $admin_pedido->save();
+
+                // PASO 5: Mensaje de éxito personalizando por origen
+                $msg = match($admin_pedido->origen) {
+                    'ecommerce' => '✅ Pedido e-commerce cancelado. Stock de ' . $admin_pedido->detalles->count() . 
+                                   ' línea(s) restaurado. Notificar al cliente.',
+                    'cotizacion' => '✅ Pedido desde cotización cancelado. Stock restaurado. Actualizar prospecto.',
+                    default => '✅ Pedido cancelado correctamente.' . ($stockRestorado ? ' Stock restaurado.' : '')
+                };
+
+                return back()->with('success', $msg);
+            });
+        }
+        
+        // ================================================================
+        // OTROS CAMBIOS DE ESTADO (confirmado → proceso, etc)
+        // ================================================================
+        $admin_pedido->estado = $nuevoEstado;
+        $admin_pedido->updated_by = auth()->id();
         $admin_pedido->save();
 
-        $msg = match($request->estado) {
-            'entregado' => '✅ Pedido marcado como ENTREGADO con éxito.',
-            'cancelado' => '⚠️ Pedido ANULADO correctamente.',
-            default     => '✅ Estado actualizado.'
+        $msg = match($nuevoEstado) {
+            'confirmado' => '✅ Pedido confirmado.',
+            'proceso' => '✅ Pedido en proceso.',
+            'entregado' => '✅ Pedido entregado.',
+            default => '✅ Estado actualizado.'
         };
 
         return back()->with('success', $msg);
     }
 
     /**
-     * Toggle aprobación de Finanzas
+     * Toggle aprobación de Finanzas con Registro de Pago
      */
-    public function aprobarFinanzas(Pedido $admin_pedido)
+    public function aprobarFinanzas(Request $request, Pedido $admin_pedido)
     {
-        $admin_pedido->aprobacion_finanzas = !$admin_pedido->aprobacion_finanzas;
+        if (!$admin_pedido->aprobacion_finanzas) {
+            // Flujo simplificado solicitado: confirmar pago sin modal ni captura duplicada
+            $admin_pedido->aprobacion_finanzas = true;
+        } else {
+            // Se va a Revocar
+            $admin_pedido->aprobacion_finanzas = false;
+        }
 
         // Auto-avanzar a 'proceso' si ambas aprobaciones están listas
         if ($admin_pedido->aprobacion_finanzas && $admin_pedido->aprobacion_stock) {
@@ -360,9 +417,8 @@ class admin_PedidosController extends Controller
         }
 
         $admin_pedido->save();
-
         return back()->with('success', $admin_pedido->aprobacion_finanzas 
-            ? '✅ Finanzas aprobado. ' . ($admin_pedido->estado === 'proceso' ? 'Pedido pasó a EN PROCESO.' : '')
+            ? '✅ Pago validado. Ya puede generar el comprobante desde Facturación Directa.'
             : '⚠️ Aprobación revocada. Pedido regresó a PENDIENTE.');
     }
 
@@ -374,65 +430,26 @@ class admin_PedidosController extends Controller
         // Lógica de movimiento de Stock
         if (!$admin_pedido->aprobacion_stock) {
             // Se va a activar: DESCONTAR STOCK
-            foreach ($admin_pedido->detalles as $detalle) {
-                // Solo productos tienen inventario (los servicios no)
-                if (!$detalle->producto_id) continue;
-
-                $cantidadNecesaria = $detalle->cantidad;
-                $inventarios = \App\Models\Inventario::where('id_producto', $detalle->producto_id)
-                                ->where('cantidad', '>', 0)
-                                ->orderBy('created_at', 'asc')
-                                ->get();
-                
-                $stockDisponible = $inventarios->sum('cantidad');
-
-                if ($stockDisponible < $cantidadNecesaria) {
-                    return back()->with('error', 
-                        '❌ Stock insuficiente para "' . $detalle->descripcion . '". ' .
-                        'Disponible: ' . intval($stockDisponible) . ' | Necesario: ' . $cantidadNecesaria . '. ' .
-                        'Por favor ingresa más stock antes de reservar.'
-                    );
-                }
-
-                foreach ($inventarios as $inventario) {
-                    if ($cantidadNecesaria <= 0) break;
-                    if ($inventario->cantidad >= $cantidadNecesaria) {
-                        $inventario->cantidad -= $cantidadNecesaria;
-                        $inventario->save();
-                        $cantidadNecesaria = 0;
-                    } else {
-                        $cantidadNecesaria -= $inventario->cantidad;
-                        $inventario->cantidad = 0;
-                        $inventario->save();
-                    }
-                }
+            try {
+                $stockService = new \App\Services\StockService();
+                $stockService->deductStock($admin_pedido->detalles, $admin_pedido->almacen_id);
+            } catch (\Exception $e) {
+                return back()->with('error', '❌ Error al reservar stock: ' . $e->getMessage());
             }
             $admin_pedido->aprobacion_stock = true;
             $msg = '✅ Stock reservado correctamente. El inventario ha sido descontado.';
         } else {
             // Se va a desactivar: DEVOLVER STOCK
-            foreach ($admin_pedido->detalles as $detalle) {
-                $inventario = \App\Models\Inventario::where('id_producto', $detalle->producto_id)
-                    ->when($admin_pedido->almacen_id, function($q) use ($admin_pedido) {
-                        return $q->where('almacen_id', $admin_pedido->almacen_id);
-                    })
-                    ->first(); // Prioriza almacén asignado, sino el primero
+            $stockService = new \App\Services\StockService();
+            $stockService->restoreStock($admin_pedido->detalles, $admin_pedido->almacen_id);
 
-                if (!$inventario) {
-                    // Si no existe inventario (raro), buscar cualquiera para este producto
-                     $inventario = \App\Models\Inventario::where('id_producto', $detalle->producto_id)->first();
-                }
-
-                if ($inventario) {
-                    $inventario->cantidad += $detalle->cantidad;
-                    $inventario->save();
-                }
-            }
             $admin_pedido->aprobacion_stock = false;
             // Si estaba en proceso y se libera stock, vuelve a pendiente
             if ($admin_pedido->estado === 'proceso') {
                 $admin_pedido->estado = 'pendiente';
-                $msg .= ' El pedido regresó a PENDIENTE.';
+                $msg = '⚠️ Aprobación de stock revocada. El pedido regresó a PENDIENTE.';
+            } else {
+                $msg = '⚠️ Aprobación de stock revocada. El inventario ha sido restaurado.';
             }
         }
 
@@ -565,65 +582,34 @@ class admin_PedidosController extends Controller
             }
         }
 
-        return redirect()->route('admin-ventas.show', $venta)->with('success', 'Comprobante generado exitosamente: ' . $codigoVenta);
+        // =====================================================
+        // AUTOMATIZACIÓN: Enviar a Operaciones (Logística)
+        // =====================================================
+        $admin_pedido->estado_operativo = 'sin_asignar';
+        $admin_pedido->area_actual = 'logistica';
+        $admin_pedido->estado = 'proceso';
+        $admin_pedido->save();
+
+        return redirect()->route('admin-ventas.show', $venta)->with('success', 'Comprobante generado exitosamente. El pedido ha sido enviado a Operaciones (Logística).');
     }
 
     /**
-     * Crear Pedido desde Venta E-commerce (Flujo B2C)
-     * Se ejecuta automáticamente cuando se confirma un pago online
+     * Ver/Descargar Voucher de Pago (Voucher Manual)
      */
-    public function storeFromEcommerce(\App\Models\Sale $venta)
+    public function voucher(Pedido $pedido)
     {
-        // Validar que la venta no tenga pedido asociado
-        if ($venta->pedido_id) {
-            return back()->with('error', 'Esta venta ya tiene un pedido asociado.');
-        }
-
-        // Generar código único
-        $ultimoPedido = Pedido::latest('id')->first();
-        $numero = $ultimoPedido ? $ultimoPedido->id + 1 : 1;
-        $codigo = 'PED-' . date('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
-
-        // Crear pedido con estado confirmado pero aprobaciones condicionadas
-        // Si el pago es por pasarela, finanzas = true. Si es manual, finanzas = false.
-        // Aquí asumimos pasarela exitosa, por ende Finanzas = TRUE.
-        $pedido = Pedido::create([
-            'codigo' => $codigo,
-            'slug' => Str::slug($codigo),
-            'cliente_id' => $venta->cliente_id,
-            'user_id' => $venta->user_id,
-            'subtotal' => $venta->subtotal,
-            'descuento_monto' => $venta->descuento,
-            'igv' => $venta->igv,
-            'total' => $venta->total,
-            'estado' => 'confirmado',              // Ya pagado online
-            'aprobacion_finanzas' => true,         // Pago confirmado automáticamente por pasarela
-            'aprobacion_stock' => true,            // Stock ya descontado en venta
-            'origen' => 'ecommerce',
-            'direccion_instalacion' => $venta->direccion_envio ?? null,
-            'observaciones' => 'Pedido pagado con tarjeta/gateway. Generado desde venta E-commerce: ' . $venta->codigo,
+        // Cargar relaciones necesarias
+        $pedido->load([
+            'cliente',
+            'detalles',
+            'usuario',
+            'cuotas',
+            'venta.tipocomprobante',
+            'venta.mediopago',
         ]);
 
-        // Copiar detalles de la venta al pedido
-        foreach ($venta->detalles as $detalle) {
-            \App\Models\DetallePedido::create([
-                'pedido_id' => $pedido->id,
-                'producto_id' => $detalle->producto_id,
-                'servicio_id' => $detalle->servicio_id,
-                'tipo' => $detalle->tipo ?? 'producto',
-                'descripcion' => $detalle->descripcion,
-                'cantidad' => $detalle->cantidad,
-                'unidad' => $detalle->unidad ?? 'und',
-                'precio_unitario' => $detalle->precio_unitario,
-                'descuento_porcentaje' => $detalle->descuento_porcentaje ?? 0,
-                'descuento_monto' => $detalle->descuento_monto ?? 0,
-                'subtotal' => $detalle->subtotal,
-            ]);
-        }
-
-        // Vincular venta con pedido
-        $venta->update(['pedido_id' => $pedido->id]);
-
-        return redirect()->route('admin-pedidos.show', $pedido)->with('success', 'Pedido E-commerce generado: ' . $codigo);
+        $pdf = Pdf::loadView('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.voucher_pdf', compact('pedido'));
+        return $pdf->download('Comprobante-' . $pedido->codigo . '.pdf');
     }
+
 }

@@ -8,6 +8,7 @@ use App\Models\DetallePedido;
 use App\Models\Oportunidad;
 use App\Models\Pedido;
 use App\Models\Prospecto;
+use App\Services\StockService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -122,7 +123,7 @@ class CotizacionApprovalService
         $numero = $ultimoPedido ? $ultimoPedido->id + 1 : 1;
         $codigo = 'PED-' . date('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
 
-        // Crear pedido
+        // Crear pedido con vínculo directo a cotización
         $pedido = Pedido::create([
             'codigo'                => $codigo,
             'slug'                  => Str::slug($codigo),
@@ -143,6 +144,7 @@ class CotizacionApprovalService
             'fecha_entrega_estimada' => now()->addDays($cotizacion->tiempo_ejecucion_dias ?? 7),
             'vigencia_dias'         => 15,
             'origen'                => 'cotizacion',
+            'cotizacion_id'         => $cotizacion->id,
             'observaciones'         => "Generado automáticamente desde cotización {$cotizacion->codigo}."
                 . " Oportunidad: {$oportunidad->codigo}."
                 . " Proyecto: {$oportunidad->nombre}.",

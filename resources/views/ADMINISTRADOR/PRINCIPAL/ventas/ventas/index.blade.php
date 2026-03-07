@@ -164,19 +164,9 @@
                                         <li><a class="dropdown-item" href="{{ route('admin-ventas.show', $venta) }}">
                                             <i class="bi bi-eye text-info me-2"></i>Ver Detalles</a>
                                         </li>
-                                        <li><a class="dropdown-item" href="#">
-                                            <i class="bi bi-file-pdf text-danger me-2"></i>Descargar PDF</a>
-                                        </li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form action="{{ route('admin-ventas.destroy', $venta) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="dropdown-item" onclick="return confirm('¿Estás seguro?')">
-                                                    <i class="bi bi-trash text-danger me-2"></i>Eliminar
-                                                </button>
-                                            </form>
-                                        </li>
+                                         <li><a class="dropdown-item" href="{{ route('admin-ventas.voucher', $venta) }}" target="_blank">
+                                             <i class="bi bi-file-earmark-check text-success me-2"></i>Generar Comprobante</a>
+                                         </li>
                                     </ul>
                                 </div>
                             </td>

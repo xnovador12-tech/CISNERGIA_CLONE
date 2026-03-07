@@ -11,6 +11,7 @@ use App\Models\Mediopago;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class admin_VentasController extends Controller
 {
@@ -51,8 +52,11 @@ class admin_VentasController extends Controller
 
     public function destroy(Sale $admin_venta)
     {
-        $admin_venta->delete();
-        return redirect()->route('admin-ventas.index')->with('success', 'Venta eliminada exitosamente');
+        // IMPORTANTE: Las ventas NO deben eliminarse por razones fiscales y de auditoría
+        // Este método se mantiene solo para cumplir con el contrato del Resource Controller
+        // pero siempre deniega la acción
+        
+        return back()->with('error', '❌ No se pueden eliminar ventas. Las ventas son documentos fiscales/contables que deben conservarse por ley. Si necesita anular una venta, contacte al área de Finanzas.');
     }
 
     public function estado(Request $request, Sale $admin_venta)
@@ -61,5 +65,27 @@ class admin_VentasController extends Controller
         $admin_venta->save();
 
         return response()->json(['success' => true, 'message' => 'Estado actualizado']);
+    }
+
+    public function voucher(Sale $admin_venta)
+    {
+        $admin_venta->load([
+            'tipocomprobante',
+            'mediopago',
+            'pedido.cliente',
+            'pedido.detalles',
+            'pedido.usuario',
+            'pedido.cuotas',
+            'pedido.venta.tipocomprobante',
+            'pedido.venta.mediopago',
+        ]);
+        $pedido = $admin_venta->pedido;
+
+        if (!$pedido) {
+            return back()->with('error', 'Esta venta no tiene un registro de pedido asociado para generar el voucher de validación.');
+        }
+
+        $pdf = Pdf::loadView('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.voucher_pdf', compact('pedido'));
+        return $pdf->download('Comprobante-' . $pedido->codigo . '.pdf');
     }
 }

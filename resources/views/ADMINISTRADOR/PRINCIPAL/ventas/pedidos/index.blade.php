@@ -248,9 +248,18 @@
                                         <li><a class="dropdown-item" href="{{ route('admin-pedidos.show', $pedido) }}">
                                             <i class="bi bi-eye text-info me-2"></i>Ver Detalles</a>
                                         </li>
-                                        <li><a class="dropdown-item" href="{{ route('admin-pedidos.edit', $pedido) }}">
-                                            <i class="bi bi-pencil text-secondary me-2"></i>Editar</a>
-                                        </li>
+                                        
+                                        {{-- Solo permitir editar y eliminar si NO tiene venta generada --}}
+                                        @if(!$pedido->venta)
+                                            <li><a class="dropdown-item" href="{{ route('admin-pedidos.edit', $pedido) }}">
+                                                <i class="bi bi-pencil text-secondary me-2"></i>Editar</a>
+                                            </li>
+                                        @else
+                                            <li><span class="dropdown-item text-muted small">
+                                                <i class="bi bi-lock-fill me-2"></i>Edición bloqueada (tiene venta)</span>
+                                            </li>
+                                        @endif
+                                        
                                         {{-- Acciones Minimalistas Inteligentes --}}
                                         @if(!$pedido->aprobacion_finanzas && $pedido->estado !== 'cancelado')
                                             <li>
@@ -264,42 +273,93 @@
                                             <li><hr class="dropdown-divider"></li>
                                         @endif
 
-                                        @if($pedido->estado === 'proceso')
-                                            <li>
-                                                <form action="{{ route('admin-pedidos.estado', $pedido) }}" method="POST">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <input type="hidden" name="estado" value="entregado">
-                                                    <button type="submit" class="dropdown-item">
-                                                        <i class="bi bi-check2-all text-success me-2"></i>Marcar como Entregado
-                                                    </button>
-                                                </form>
-                                            </li>
-                                        @endif
-
                                         @if($pedido->estado !== 'cancelado')
                                             <li>
-                                                <form action="{{ route('admin-pedidos.estado', $pedido) }}" method="POST">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <input type="hidden" name="estado" value="cancelado">
-                                                    <button type="submit" class="dropdown-item text-danger">
+                                                {{-- Si tiene venta, mostrar botón deshabilitado con tooltip --}}
+                                                @if($pedido->venta)
+                                                    <button type="button" class="dropdown-item text-danger disabled" 
+                                                            title="No se puede cancelar. Use Nota de Crédito desde Ventas.">
+                                                        <i class="bi bi-exclamation-circle me-2"></i>Anular (Bloqueado)
+                                                    </button>
+                                                @else
+                                                    {{-- Si no tiene venta, mostrar botón que abre modal --}}
+                                                    <button type="button" class="dropdown-item text-danger" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#modalCancelarPedido{{ $pedido->id }}">
                                                         <i class="bi bi-x-circle me-2"></i>Anular Pedido
+                                                    </button>
+                                                    
+                                                    {{-- Modal de Confirmación --}}
+                                                    <div class="modal fade" id="modalCancelarPedido{{ $pedido->id }}" tabindex="-1">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header bg-danger bg-opacity-10 border-danger">
+                                                                    <h5 class="modal-title fw-bold">⚠️ Anular Pedido {{ $pedido->codigo }}</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+                                                                <form action="{{ route('admin-pedidos.estado', $pedido) }}" method="POST">
+                                                                    @csrf
+                                                                    @method('PUT')
+                                                                    <input type="hidden" name="estado" value="cancelado">
+                                                                    
+                                                                    <div class="modal-body">
+                                                                        <p class="text-muted mb-3">
+                                                                            <strong>Origen:</strong> <span class="badge bg-info">{{ ucfirst($pedido->origen) }}</span><br>
+                                                                            <strong>Estado:</strong> <span class="badge bg-warning">{{ ucfirst($pedido->estado) }}</span>
+                                                                        </p>
+                                                                        
+                                                                        @if($pedido->aprobacion_stock)
+                                                                            <div class="alert alert-info small mb-3">
+                                                                                <i class="bi bi-info-circle me-2"></i>
+                                                                                Se restaurarán <strong>{{ $pedido->detalles->count() }}</strong> línea(s) de stock al inventario.
+                                                                            </div>
+                                                                        @endif
+                                                                        
+                                                                        <label class="form-label fw-bold">Motivo de Cancelación</label>
+                                                                        <select name="motivo" class="form-select form-select-sm mb-3" required>
+                                                                            <option value="">-- Seleccione un motivo --</option>
+                                                                            <option value="Solicitud del cliente">Solicitud del cliente</option>
+                                                                            <option value="Error en el pedido">Error en el pedido</option>
+                                                                            <option value="Producto no disponible">Producto no disponible</option>
+                                                                            @if($pedido->origen === 'cotizacion')
+                                                                                <option value="Cliente no responde">Cliente no responde</option>
+                                                                                <option value="Prospecto inactivo">Prospecto inactivo</option>
+                                                                            @endif
+                                                                            <option value="Otro (especificar)">Otro (especificar en observaciones)</option>
+                                                                        </select>
+                                                                        
+                                                                        <label class="form-label fw-bold small">Observaciones (Opcional)</label>
+                                                                        <textarea name="observaciones_cancelacion" class="form-control form-control-sm" 
+                                                                                  rows="3" placeholder="Detalles adicionales sobre la cancelación..."></textarea>
+                                                                    </div>
+                                                                    
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                                            <i class="bi bi-check-circle me-1"></i>Confirmar Anulación
+                                                                        </button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            </li>
+                                        @endif
+
+                                        {{-- Solo permitir eliminar si NO tiene venta generada --}}
+                                        @if(!$pedido->venta)
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form action="{{ route('admin-pedidos.destroy', $pedido) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item p-n3 small opacity-50" onclick="return confirm('¿Eliminar registro permanentemente?\\n\\nAdvertencia: Esta acción no se puede deshacer.')">
+                                                        <i class="bi bi-trash me-2"></i>Borrar (Admin)
                                                     </button>
                                                 </form>
                                             </li>
                                         @endif
-
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form action="{{ route('admin-pedidos.destroy', $pedido) }}" method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="dropdown-item p-n3 small opacity-50" onclick="return confirm('¿Eliminar registro permanentemente?')">
-                                                    <i class="bi bi-trash me-2"></i>Borrar (Admin)
-                                                </button>
-                                            </form>
-                                        </li>
                                     </ul>
                                 </div>
                             </td>

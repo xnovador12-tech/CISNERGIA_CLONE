@@ -48,9 +48,7 @@
                                     <select name="estado" class="form-select" required>
                                         <option value="pendiente" {{ $pedido->estado == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
                                         <option value="confirmado" {{ $pedido->estado == 'confirmado' ? 'selected' : '' }}>Confirmado</option>
-                                        <option value="preparacion" {{ $pedido->estado == 'preparacion' ? 'selected' : '' }}>En Preparación</option>
-                                        <option value="despacho" {{ $pedido->estado == 'despacho' ? 'selected' : '' }}>En Despacho</option>
-                                        <option value="entregado" {{ $pedido->estado == 'entregado' ? 'selected' : '' }}>Entregado</option>
+                                        <option value="proceso" {{ $pedido->estado == 'proceso' ? 'selected' : '' }}>En Proceso</option>
                                         <option value="cancelado" {{ $pedido->estado == 'cancelado' ? 'selected' : '' }}>Cancelado</option>
                                     </select>
                                 </div>

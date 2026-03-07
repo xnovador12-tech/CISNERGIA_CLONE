@@ -67,6 +67,13 @@
                     @elseif($pedido->origen === 'cotizacion')
                         <span class="badge bg-primary fs-6">
                             <i class="bi bi-file-earmark-text me-2"></i>Pedido desde Cotización
+                            @if($pedido->cotizacion_id)
+                                <a href="{{ route('admin.crm.cotizaciones.show', $pedido->cotizacion_id) }}" 
+                                   class="text-white text-decoration-none ms-2 fw-bold"
+                                   title="Ver cotización de origen">
+                                    #{{ $pedido->cotizacionCrm->codigo ?? $pedido->cotizacion_id }}
+                                </a>
+                            @endif
                         </span>
                     @else
                         <span class="badge bg-secondary fs-6">
@@ -273,11 +280,11 @@
                                 <i class="bi bi-check-circle me-2"></i>Ver Comprobante: {{ $pedido->venta->codigo }}
                             </a>
                         @else
-                            {{-- Botón de Pago (Finanzas) simplificado en Acciones --}}
+                            {{-- Confirmar Pago directo (sin modal) --}}
                             @if(!$pedido->aprobacion_finanzas)
-                                <form action="{{ route('admin-pedidos.aprobar-finanzas', $pedido) }}" method="POST">
+                                <form action="{{ route('admin-pedidos.aprobar-finanzas', $pedido) }}" method="POST" class="mb-2">
                                     @csrf
-                                    <button type="submit" class="btn btn-primary w-100 mb-2 py-2">
+                                    <button type="submit" class="btn btn-primary w-100 py-2">
                                         <i class="bi bi-cash-coin me-2"></i>Confirmar Pago
                                     </button>
                                 </form>
@@ -291,14 +298,24 @@
                                         </button>
                                     </form>
                                 </div>
+
                                 <button type="button" class="btn btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#modalGenerarComprobante">
                                     <i class="bi bi-receipt me-2"></i>Generar Comprobante
                                 </button>
                             @endif
                         @endif
-                        <a href="{{ route('admin-pedidos.edit', $pedido) }}" class="btn btn-warning w-100 mb-2">
-                            <i class="bi bi-pencil me-2"></i>Editar Pedido
-                        </a>
+                        
+                        {{-- Solo permitir editar si NO tiene venta generada --}}
+                        @if(!$pedido->venta)
+                            <a href="{{ route('admin-pedidos.edit', $pedido) }}" class="btn btn-warning w-100 mb-2">
+                                <i class="bi bi-pencil me-2"></i>Editar Pedido
+                            </a>
+                        @else
+                            <div class="alert alert-warning py-2 mb-2 text-center small">
+                                <i class="bi bi-lock-fill me-1"></i> Pedido bloqueado. Ya tiene comprobante generado.
+                            </div>
+                        @endif
+                        
                         <a href="{{ route('admin-pedidos.index') }}" class="btn btn-secondary w-100">
                             <i class="bi bi-arrow-left me-2"></i>Volver al Listado
                         </a>
@@ -307,115 +324,101 @@
             </div>
         </div>
     </div>
+    
+    @php $cuotasExistentes = $pedido->cuotas()->orderBy('numero_cuota')->get(); @endphp
 
     <!-- Modal: Generar Comprobante -->
-@if(!$pedido->venta)
+    @if(!$pedido->venta)
     <div class="modal fade" id="modalGenerarComprobante" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="bi bi-receipt me-2"></i>Generar Comprobante de Venta</h5>
+                    <h5 class="modal-title font-weight-bold"><i class="bi bi-receipt me-2"></i>Facturación Directa</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="{{ route('admin-pedidos.generar-comprobante', $pedido) }}" method="POST">
                     @csrf
                     <div class="modal-body">
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>
-                            El comprobante heredará todos los datos del pedido <strong>{{ $pedido->codigo }}</strong>
+                        <div class="alert alert-primary bg-opacity-10 border-primary text-primary" style="font-size: 0.9rem;">
+                            <i class="bi bi-info-circle-fill me-2"></i> Verifique el tipo de comprobante y los medios de pago finales para el pedido <b>{{ $pedido->codigo }}</b>.
                         </div>
                         
-                        <div class="mb-3">
-                            <label class="form-label">Tipo de Comprobante <span class="text-danger">*</span></label>
-                            <select name="tiposcomprobante_id" class="form-select" required>
-                                <option value="">Seleccionar...</option>
-                                @foreach(\App\Models\Tiposcomprobante::where('tipo', 'ventas')->get() as $tipo)
-                                    <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="row mb-3">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Condición de Pago <span class="text-danger">*</span></label>
-                                <select name="condicion_pago" id="condicion_pago" class="form-select" required>
-                                    <option value="Contado" {{ $pedido->condicion_pago == 'Contado' ? 'selected' : '' }}>Al Contado</option>
-                                    <option value="Crédito" {{ $pedido->condicion_pago == 'Crédito' ? 'selected' : '' }}>A Crédito</option>
+                                <label class="form-label small fw-bold">Tipo de Comprobante <span class="text-danger">*</span></label>
+                                <select name="tiposcomprobante_id" class="form-select" required>
+                                    <option value="">Seleccionar...</option>
+                                    @foreach(\App\Models\Tiposcomprobante::where('tipo', 'ventas')->get() as $tipo)
+                                        <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Medio de Pago <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-bold">Medio de Pago Principal <span class="text-danger">*</span></label>
                                 <select name="mediopago_id" class="form-select" required>
-                                    <option value="">Seleccionar...</option>
                                     @foreach(\App\Models\Mediopago::all() as $medio)
-                                        <option value="{{ $medio->id }}">{{ $medio->name }}</option>
+                                        <option value="{{ $medio->id }}" {{ $pedido->mediopago_id == $medio->id ? 'selected' : '' }}>{{ $medio->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
 
-                        <!-- SECCIÓN CUOTAS (Oculta por defecto) -->
-                        <div id="seccion_cuotas" class="mb-3 p-3 bg-light border rounded" style="display: none;">
-                            <h6 class="fw-bold mb-3"><i class="bi bi-calendar-check me-2"></i>Cronograma de Cuotas</h6>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <small class="text-muted">Total a financiar: <strong id="monto_financiar">S/ {{ number_format($pedido->total, 2, '.', '') }}</strong></small>
-                                <small class="text-muted">Restante: <strong id="monto_restante" class="text-danger">S/ {{ number_format($pedido->total, 2, '.', '') }}</strong></small>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Condición de Pago <span class="text-danger">*</span></label>
+                                <select name="condicion_pago" class="form-select selector-condicion-pago" required>
+                                    <option value="Contado" {{ $pedido->condicion_pago == 'Contado' ? 'selected' : '' }}>Al Contado</option>
+                                    <option value="Crédito" {{ $pedido->condicion_pago == 'Crédito' ? 'selected' : '' }}>A Crédito</option>
+                                </select>
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">N° Comprobante (Manual/Fijo)</label>
+                                <input type="text" name="numero_comprobante" class="form-control" placeholder="Dejar vacío para correlativo auto">
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN CUOTAS -->
+                        <div class="seccion-cuotas-container mb-3 p-3 bg-light border rounded" style="display: none;">
+                            <h6 class="fw-bold mb-3 d-flex justify-content-between">
+                                <span><i class="bi bi-calendar-check me-2"></i>Cronograma de Facturación</span>
+                                <small class="text-muted">Total: S/ <span class="monto-total-pedido">{{ number_format($pedido->total, 2, '.', '') }}</span></small>
+                            </h6>
                             
-                            <table class="table table-sm table-bordered bg-white" id="tabla_cuotas">
-                                <thead class="table-secondary">
+                            <table class="table table-sm table-bordered bg-white tabla-cuotas-dinamica">
+                                <thead class="table-secondary small">
                                     <tr>
-                                        <th>N°</th>
-                                        <th>Fecha de Venc.</th>
+                                        <th class="text-center">N°</th>
+                                        <th>Fecha Venc.</th>
                                         <th>Importe (S/)</th>
-                                        <th class="text-center"><i class="bi bi-gear"></i></th>
+                                        <th class="text-center"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if($pedido->condicion_pago === 'Crédito' && $pedido->cuotas && $pedido->cuotas->count() > 0)
-                                        @foreach($pedido->cuotas as $index => $cuota)
-                                            <tr>
-                                                <td class="align-middle text-center fw-bold cuota-numero">{{ $index + 1 }}</td>
-                                                <td>
-                                                    <input type="date" name="cuotas[{{ $index }}][fecha_vencimiento]" class="form-control form-control-sm" value="{{ $cuota->fecha_vencimiento }}" required>
-                                                </td>
-                                                <td>
-                                                    <input type="number" step="0.01" min="0.01" name="cuotas[{{ $index }}][importe]" class="form-control form-control-sm input-cuota-monto" value="{{ $cuota->importe }}" required>
-                                                </td>
-                                                <td class="align-middle text-center">
-                                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 btn-eliminar-cuota"><i class="bi bi-trash"></i></button>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    @endif
+                                    @foreach($cuotasExistentes as $index => $cuota)
+                                        <tr>
+                                            <td class="align-middle text-center fw-bold cuota-numero">{{ $index + 1 }}</td>
+                                            <td>
+                                                <input type="date" name="cuotas[{{ $index }}][fecha_vencimiento]" class="form-control form-control-sm" value="{{ $cuota->fecha_vencimiento }}" required>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.01" min="0.01" name="cuotas[{{ $index }}][importe]" class="form-control form-control-sm input-cuota-monto" value="{{ $cuota->importe }}" required>
+                                            </td>
+                                            <td class="align-middle text-center">
+                                                <button type="button" class="btn btn-sm text-danger btn-eliminar-cuota"><i class="bi bi-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
-                            <div class="d-grid mt-2">
-                                <button type="button" class="btn btn-sm btn-outline-primary" id="btn_agregar_cuota">
-                                    <i class="bi bi-plus-circle me-1"></i>Agregar Cuota
-                                </button>
-                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary w-100 btn-agregar-cuota">
+                                <i class="bi bi-plus-circle me-1"></i>Añadir Línea de Crédito
+                            </button>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Número de Comprobante</label>
-                            <input type="text" name="numero_comprobante" class="form-control" placeholder="Ej: F001-00001 (opcional)">
-                            <small class="text-muted">Dejar vacío para generar automáticamente</small>
-                        </div>
-
-                        <hr>
-                        <h6 class="fw-bold">Resumen del Pedido:</h6>
-                        <table class="table table-sm">
-                            <tr><td>Cliente:</td><td class="fw-bold">{{ $pedido->cliente->nombre_completo ?? 'N/A' }}</td></tr>
-                            <tr><td>Subtotal:</td><td>S/ {{ number_format($pedido->subtotal, 2) }}</td></tr>
-                            <tr><td>IGV:</td><td>S/ {{ number_format($pedido->igv, 2) }}</td></tr>
-                            <tr class="table-primary"><td class="fw-bold">TOTAL:</td><td class="fw-bold">S/ {{ number_format($pedido->total, 2) }}</td></tr>
-                        </table>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-2"></i>Generar Comprobante
+                        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i>Emitir Comprobante
                         </button>
                     </div>
                 </form>
@@ -429,96 +432,97 @@
 <script>
     $(document).ready(function() {
         const totalFacturar = parseFloat("{{ $pedido->total }}");
-        let cuotaIndex = 0;
 
-        $('#condicion_pago').on('change', function() {
-            if ($(this).val() === 'Crédito') {
-                $('#seccion_cuotas').slideDown();
-                if(cuotaIndex === 0) {
-                    agregarCuota(); 
+        // Función unificada para manejar el cambio de condición
+        function initCuotasLogic(modal) {
+            const $modal = $(modal);
+            const $selectSub = $modal.find('.selector-condicion-pago');
+            const $container = $modal.find('.seccion-cuotas-container');
+            const $btnAgregar = $modal.find('.btn-agregar-cuota');
+            const $tbody = $modal.find('.tabla-cuotas-dinamica tbody');
+
+            function toggleSeccion() {
+                const esCredito = $selectSub.val() === 'Crédito';
+                if (esCredito) {
+                    $container.slideDown();
+                    $container.find('input').prop('disabled', false); // Habilitar para validación y envío
+                    if ($tbody.children().length === 0) {
+                        agregarCuota($modal);
+                    }
+                } else {
+                    $container.slideUp();
+                    $container.find('input').prop('disabled', true); // Deshabilitar para evitar bloqueos por 'required' ocultos
                 }
-            } else {
-                $('#seccion_cuotas').slideUp();
-                $('#tabla_cuotas tbody').empty();
-                cuotaIndex = 0;
             }
-        });
 
-        $('#btn_agregar_cuota').on('click', function() {
-            agregarCuota();
-        });
+            // Trigger inicial
+            toggleSeccion();
 
-        $(document).on('input', '.input-cuota-monto', function() {
-            calcularRestante();
-        });
-
-        $(document).on('click', '.btn-eliminar-cuota', function() {
-            $(this).closest('tr').remove();
-            reordenarCuotas();
-            calcularRestante();
-        });
-
-        function agregarCuota() {
-            // Calcular monto sugerido
-            let sumaActual = 0;
-            $('.input-cuota-monto').each(function() {
-                sumaActual += parseFloat($(this).val() || 0);
+            $selectSub.on('change', toggleSeccion);
+            
+            $btnAgregar.off('click').on('click', function() {
+                agregarCuota($modal);
             });
-            let montoSugerido = totalFacturar - sumaActual;
-            if(montoSugerido < 0) montoSugerido = 0;
-
-            const tr = `
-                <tr>
-                    <td class="align-middle text-center fw-bold cuota-numero">${cuotaIndex + 1}</td>
-                    <td>
-                        <input type="date" name="cuotas[${cuotaIndex}][fecha_vencimiento]" class="form-control form-control-sm" required>
-                    </td>
-                    <td>
-                        <input type="number" step="0.01" min="0.01" name="cuotas[${cuotaIndex}][importe]" class="form-control form-control-sm input-cuota-monto" value="${montoSugerido.toFixed(2)}" required>
-                    </td>
-                    <td class="align-middle text-center">
-                        <button type="button" class="btn btn-sm btn-outline-danger border-0 btn-eliminar-cuota"><i class="bi bi-trash"></i></button>
-                    </td>
-                </tr>
-            `;
-            $('#tabla_cuotas tbody').append(tr);
-            cuotaIndex++;
-            calcularRestante();
         }
 
-        function reordenarCuotas() {
-            $('#tabla_cuotas tbody tr').each(function(index) {
-                $(this).find('.cuota-numero').text(index + 1);
-                $(this).find('input[type="date"]').attr('name', `cuotas[${index}][fecha_vencimiento]`);
-                $(this).find('input[type="number"]').attr('name', `cuotas[${index}][importe]`);
-            });
-            cuotaIndex = $('#tabla_cuotas tbody tr').length;
-        }
-
-        function calcularRestante() {
+        // Función para agregar fila de cuota
+        function agregarCuota($modal) {
+            const $tbody = $modal.find('.tabla-cuotas-dinamica tbody');
+            const index = $tbody.children().length;
+            
+            // Sugerir monto restante
             let suma = 0;
-            $('.input-cuota-monto').each(function() {
+            $modal.find('.input-cuota-monto').each(function() {
                 suma += parseFloat($(this).val() || 0);
             });
-            
-            let restante = totalFacturar - suma;
-            let ext = restante < 0 ? 'text-danger' : (restante === 0 ? 'text-success' : 'text-warning');
-            
-            $('#monto_restante').removeClass('text-danger text-success text-warning').addClass(ext).text('S/ ' + restante.toFixed(2));
+            let sug = Math.max(0, totalFacturar - suma);
+
+            const row = `
+                <tr>
+                    <td class="align-middle text-center fw-bold cuota-numero">${index + 1}</td>
+                    <td><input type="date" name="cuotas[${index}][fecha_vencimiento]" class="form-control form-control-sm" required></td>
+                    <td><input type="number" step="0.01" min="0.01" name="cuotas[${index}][importe]" class="form-control form-control-sm input-cuota-monto" value="${sug.toFixed(2)}" required></td>
+                    <td class="align-middle text-center"><button type="button" class="btn btn-sm text-danger btn-eliminar-cuota"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `;
+            $tbody.append(row);
+            reordenarIndices($modal);
         }
 
-        // Validación al enviar el formulario si es crédito
-        $('#modalGenerarComprobante form').on('submit', function(e) {
-            if ($('#condicion_pago').val() === 'Crédito') {
+        function reordenarIndices($modal) {
+            $modal.find('.tabla-cuotas-dinamica tbody tr').each(function(i) {
+                $(this).find('.cuota-numero').text(i + 1);
+                $(this).find('input[name*="fecha_vencimiento"]').attr('name', `cuotas[${i}][fecha_vencimiento]`);
+                $(this).find('input[name*="importe"]').attr('name', `cuotas[${i}][importe]`);
+            });
+        }
+
+        // Delegación de eventos para eliminar
+        $(document).on('click', '.btn-eliminar-cuota', function() {
+            const $modal = $(this).closest('.modal');
+            $(this).closest('tr').remove();
+            reordenarIndices($modal);
+        });
+
+        // Inicializar lógica de cuotas en modal de facturación
+        ['#modalGenerarComprobante'].forEach(id => {
+            if ($(id).length) initCuotasLogic(id);
+        });
+
+        // Validación global de montos al enviar
+        $('form').on('submit', function(e) {
+            const $form = $(this);
+            const $sel = $form.find('.selector-condicion-pago');
+            
+            if ($sel.val() === 'Crédito') {
                 let suma = 0;
-                $('.input-cuota-monto').each(function() {
+                $form.find('.input-cuota-monto').each(function() {
                     suma += parseFloat($(this).val() || 0);
                 });
-                
-                // Permitir una pequeña tolerancia por redondeo
-                if (Math.abs(suma - totalFacturar) > 0.1) {
+
+                if (Math.abs(suma - totalFacturar) > 0.05) {
                     e.preventDefault();
-                    alert('La suma de las cuotas (S/ ' + suma.toFixed(2) + ') debe ser exactamente igual al total a facturar (S/ ' + totalFacturar.toFixed(2) + ').');
+                    alert(`La suma de las cuotas (S/ ${suma.toFixed(2)}) debe coincidir con el total (S/ ${totalFacturar.toFixed(2)}).`);
                 }
             }
         });
