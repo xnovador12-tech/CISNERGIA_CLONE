@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Distrito;
 use App\Models\Prospecto;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -16,6 +17,13 @@ class ProspectoSeeder extends Seeder
     {
         $vendedor = User::first();
 
+        // Resolver IDs de distritos por nombre (Lima Metropolitana)
+        $d = Distrito::whereIn('nombre', [
+            'La Molina', 'San Borja', 'Santiago de Surco', 'San Isidro',
+            'Magdalena del Mar', 'Ate', 'San Vicente de Cañete', 'Chaclacayo',
+            'Miraflores', 'San Miguel', 'Surquillo', 'Los Olivos', 'Comas',
+        ])->pluck('id', 'nombre');
+
         $prospectos = [
             // ==================== MANUALES (registrados por vendedores) ====================
             [
@@ -27,6 +35,7 @@ class ProspectoSeeder extends Seeder
                 'telefono' => '014567890',
                 'celular' => '987654321',
                 'direccion' => 'Av. La Molina 1234, La Molina',
+                'distrito_id' => $d['La Molina'] ?? null,
                 'origen' => 'sitio_web',
                 'tipo_interes' => 'producto',
                 'segmento' => 'residencial',
@@ -43,6 +52,7 @@ class ProspectoSeeder extends Seeder
                 'email' => 'maria.torres@hotmail.com',
                 'celular' => '956789012',
                 'direccion' => 'Jr. Las Flores 567, San Borja',
+                'distrito_id' => $d['San Borja'] ?? null,
                 'origen' => 'referido',
                 'tipo_interes' => 'producto',
                 'segmento' => 'residencial',
@@ -59,6 +69,7 @@ class ProspectoSeeder extends Seeder
                 'email' => 'roberto.sanchez@yahoo.com',
                 'celular' => '923456789',
                 'direccion' => 'Calle Los Pinos 890, Surco',
+                'distrito_id' => $d['Santiago de Surco'] ?? null,
                 'origen' => 'redes_sociales',
                 'tipo_interes' => 'producto',
                 'segmento' => 'residencial',
@@ -77,6 +88,7 @@ class ProspectoSeeder extends Seeder
                 'telefono' => '012345678',
                 'celular' => '945678901',
                 'direccion' => 'Av. Javier Prado Este 4521, San Isidro',
+                'distrito_id' => $d['San Isidro'] ?? null,
                 'origen' => 'llamada',
                 'tipo_interes' => 'producto',
                 'segmento' => 'comercial',
@@ -95,6 +107,7 @@ class ProspectoSeeder extends Seeder
                 'telefono' => '013456789',
                 'celular' => '934567890',
                 'direccion' => 'Av. Brasil 2345, Magdalena',
+                'distrito_id' => $d['Magdalena del Mar'] ?? null,
                 'origen' => 'sitio_web',
                 'tipo_interes' => 'producto',
                 'segmento' => 'comercial',
@@ -113,6 +126,7 @@ class ProspectoSeeder extends Seeder
                 'telefono' => '014567891',
                 'celular' => '912345678',
                 'direccion' => 'Av. Industrial 567, Ate',
+                'distrito_id' => $d['Ate'] ?? null,
                 'origen' => 'referido',
                 'tipo_interes' => 'producto',
                 'segmento' => 'industrial',
@@ -130,6 +144,7 @@ class ProspectoSeeder extends Seeder
                 'email' => 'rhuaman@agricolahuaman.com',
                 'celular' => '956123456',
                 'direccion' => 'Fundo Santa Rosa, Km 45 Panamericana Sur, Cañete',
+                'distrito_id' => $d['San Vicente de Cañete'] ?? null,
                 'origen' => 'sitio_web',
                 'tipo_interes' => 'producto',
                 'segmento' => 'agricola',
@@ -146,6 +161,7 @@ class ProspectoSeeder extends Seeder
                 'email' => 'andrea.lopez@gmail.com',
                 'celular' => '978123456',
                 'direccion' => 'Av. El Sol 234, Chaclacayo',
+                'distrito_id' => $d['Chaclacayo'] ?? null,
                 'origen' => 'redes_sociales',
                 'tipo_interes' => 'producto',
                 'segmento' => 'residencial',
@@ -162,6 +178,7 @@ class ProspectoSeeder extends Seeder
                 'email' => 'pedro.diaz@outlook.com',
                 'celular' => '967891234',
                 'direccion' => 'Calle Los Álamos 567, Miraflores',
+                'distrito_id' => $d['Miraflores'] ?? null,
                 'origen' => 'referido',
                 'tipo_interes' => 'servicio',
                 'segmento' => 'residencial',
@@ -177,6 +194,7 @@ class ProspectoSeeder extends Seeder
                 'email' => 'gparedes@gmail.com',
                 'celular' => '943215678',
                 'direccion' => 'Calle Las Magnolias 321, San Miguel',
+                'distrito_id' => $d['San Miguel'] ?? null,
                 'origen' => 'llamada',
                 'tipo_interes' => 'servicio',
                 'segmento' => 'residencial',
@@ -195,12 +213,13 @@ class ProspectoSeeder extends Seeder
                 'email' => 'jrodriguez.pena@gmail.com',
                 'celular' => '991234567',
                 'direccion' => 'Av. Primavera 450, Surquillo',
+                'distrito_id' => $d['Surquillo'] ?? null,
                 'origen' => 'ecommerce',
                 'tipo_interes' => 'producto',
                 'segmento' => 'residencial',
                 'estado' => 'nuevo',
                 'observaciones' => 'Se registró en la tienda online. Agregó paneles solares 550W y un inversor a favoritos.',
-                'user_id' => null, // Sin vendedor asignado (registro automático)
+                'user_id' => null,
             ],
             [
                 'nombre' => 'Lucía',
@@ -210,6 +229,7 @@ class ProspectoSeeder extends Seeder
                 'email' => 'lucia.fc89@hotmail.com',
                 'celular' => '945678321',
                 'direccion' => 'Jr. Los Olivos 789, Los Olivos',
+                'distrito_id' => $d['Los Olivos'] ?? null,
                 'origen' => 'ecommerce',
                 'tipo_interes' => 'producto',
                 'segmento' => 'residencial',
@@ -226,6 +246,7 @@ class ProspectoSeeder extends Seeder
                 'email' => 'dquispe@minimarketdondiego.com',
                 'celular' => '952167834',
                 'direccion' => 'Av. Túpac Amaru 3456, Comas',
+                'distrito_id' => $d['Comas'] ?? null,
                 'origen' => 'ecommerce',
                 'tipo_interes' => 'producto',
                 'segmento' => 'comercial',

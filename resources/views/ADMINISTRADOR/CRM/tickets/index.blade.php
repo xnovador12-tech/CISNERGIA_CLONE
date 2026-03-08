@@ -64,7 +64,7 @@
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between"><div><p class="text-muted mb-1 small">Tickets Abiertos</p><h3 class="mb-0 fw-bold text-danger">{{ $stats['abiertos'] ?? 0 }}</h3></div><div class="bg-danger bg-opacity-10 p-3 rounded-3"><i class="bi bi-ticket-detailed fs-3 text-danger"></i></div></div>
+                        <div class="d-flex justify-content-between"><div><p class="text-muted mb-1 small">Tickets Activos</p><h3 class="mb-0 fw-bold text-danger">{{ $stats['abiertos'] ?? 0 }}</h3></div><div class="bg-danger bg-opacity-10 p-3 rounded-3"><i class="bi bi-ticket-detailed fs-3 text-danger"></i></div></div>
                     </div>
                 </div>
             </div>
@@ -85,39 +85,43 @@
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between"><div><p class="text-muted mb-1 small">Tiempo Promedio</p><h3 class="mb-0 fw-bold text-info">{{ $stats['tiempo_promedio'] ?? '0h' }}</h3></div><div class="bg-info bg-opacity-10 p-3 rounded-3"><i class="bi bi-speedometer2 fs-3 text-info"></i></div></div>
+                        <div class="d-flex justify-content-between"><div><p class="text-muted mb-1 small">Primera Respuesta Prom.</p><h3 class="mb-0 fw-bold text-info">{{ $stats['tiempo_promedio'] ?? '0h' }}</h3></div><div class="bg-info bg-opacity-10 p-3 rounded-3"><i class="bi bi-speedometer2 fs-3 text-info"></i></div></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="container-fluid mb-3"><div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div></div>
-    @endif
-
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px" data-aos="fade-up">
-            <div class="card-header bg-transparent d-flex justify-content-between">
-                <a href="{{ route('admin.crm.tickets.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle-fill me-2"></i>Nuevo Ticket</a>
-                {{-- <a href="{{ route('admin.crm.tickets.metricas') }}" class="btn btn-outline-info btn-sm"><i class="bi bi-graph-up me-2"></i>Métricas SLA</a> --}}
-                {{-- TODO: descomentar cuando se cree la vista metricas.blade.php --}}
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <a href="{{ route('admin.crm.tickets.create') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle-fill me-2"></i>Nuevo Ticket
+                </a>
+                @php $verResueltos = request()->filled('incluir_resueltos'); @endphp
+                <a href="{{ $verResueltos ? route('admin.crm.tickets.index') : route('admin.crm.tickets.index', ['incluir_resueltos' => 1]) }}"
+                   class="btn btn-sm {{ $verResueltos ? 'btn-success' : 'btn-outline-secondary' }}">
+                    <i class="bi bi-{{ $verResueltos ? 'eye-slash' : 'archive' }} me-1"></i>
+                    {{ $verResueltos ? 'Ocultar Resueltos' : 'Ver Historial Resueltos' }}
+                </a>
             </div>
             <div class="card-body">
                 {{-- Filtros DataTables --}}
-                <div class="row g-2 mb-3">
-                    <div class="col-md-3">
-                        <select id="filtro-estado" class="form-select form-select-sm">
+                <div class="row g-2 mb-3 align-items-end flex-nowrap">
+                    <div class="col">
+                        <label class="form-label small text-muted mb-1">Estado</label>
+                        <select id="filtro-estado" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Estados">
                             <option value="">Todos los Estados</option>
                             <option value="Abierto">Abierto</option>
                             <option value="En progreso">En Progreso</option>
                             <option value="Pendiente cliente">Pendiente Cliente</option>
                             <option value="Resuelto">Resuelto</option>
-                            <option value="Cerrado">Cerrado</option>
+                            <option value="Reabierto">Reabierto</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <select id="filtro-prioridad" class="form-select form-select-sm">
+                    <div class="col">
+                        <label class="form-label small text-muted mb-1">Prioridad</label>
+                        <select id="filtro-prioridad" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todas las Prioridades">
                             <option value="">Todas las Prioridades</option>
                             <option value="Baja">Baja</option>
                             <option value="Media">Media</option>
@@ -125,25 +129,35 @@
                             <option value="Critica">Crítica</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <select id="filtro-categoria" class="form-select form-select-sm">
+                    <div class="col">
+                        <label class="form-label small text-muted mb-1">Categoría</label>
+                        <select id="filtro-categoria" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todas las Categorías">
                             <option value="">Todas las Categorías</option>
-                            <option value="Soporte">Soporte Técnico</option>
-                            <option value="Mantenimiento">Mantenimiento</option>
-                            <option value="Instalación">Instalación</option>
-                            <option value="Garantía">Garantía</option>
-                            <option value="Facturación">Facturación</option>
-                            <option value="Consulta">Consulta</option>
-                            <option value="Reclamo">Reclamo</option>
-                            <option value="Otro">Otro</option>
+                            <option value="Mantenimiento">🔩 Mantenimiento</option>
+                            <option value="Soporte Técnico">🔧 Soporte Técnico</option>
+                            <option value="Garantía">🛡️ Garantía</option>
+                            <option value="Facturación">💰 Facturación / Cobranza</option>
+                            <option value="Consulta">❓ Consulta / Reclamo</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <select id="filtro-sla" class="form-select form-select-sm">
+                    <div class="col">
+                        <label class="form-label small text-muted mb-1">SLA</label>
+                        <select id="filtro-sla" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los SLA">
                             <option value="">Todos los SLA</option>
-                            <option value="OK">OK</option>
+                            <option value="Dentro">Dentro del SLA</option>
                             <option value="Vencido">Vencido</option>
                         </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-muted mb-1 d-block invisible">.</label>
+                        <button type="button" id="btn-limpiar"
+                                class="btn btn-sm btn-outline-secondary"
+                                title="Limpiar filtros"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                style="height: 31px; padding: 0 8px; border-radius: 6px;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
                     </div>
                 </div>
                 
@@ -165,28 +179,50 @@
                         </tr>
                     </thead>
                         <tbody>
-                            @forelse($tickets as $i => $ticket)
+                            @php
+                            $prioridadColors = ['baja' => 'success', 'media' => 'warning text-dark', 'alta' => 'danger', 'critica' => 'dark'];
+                            $estadoColors    = ['abierto' => 'danger', 'en_progreso' => 'warning text-dark', 'pendiente_cliente' => 'info', 'resuelto' => 'success'];
+                        @endphp
+                        @foreach($tickets as $i => $ticket)
                                 <tr>
                                     <td class="text-center">{{ $i + 1 }}</td>
-                                    <td class="text-center"><span class="badge bg-secondary">{{ $ticket->codigo }}</span><br><small class="text-muted">{{ $ticket->created_at->format('d/m/Y H:i') }}</small></td>
-                                    <td class="text-center">{{ $ticket->cliente->nombre ?? 'N/A' }}</td>
-                                    <td class="text-start"><strong>{{ Str::limit($ticket->asunto, 40) }}</strong></td>
-                                    <td class="text-center"><span class="badge bg-light text-dark">{{ $ticket->categoria_label }}</span></td>
                                     <td class="text-center">
-                                        @php $prioridadColors = ['baja' => 'success', 'media' => 'warning', 'alta' => 'danger', 'critica' => 'dark']; @endphp
+                                        <span class="fw-semibold">{{ $ticket->codigo }}</span>
+                                        <br><small class="text-muted">{{ $ticket->created_at->format('d/m/Y') }}</small>
+                                    </td>
+                                    <td class="text-center"><small>{{ $ticket->cliente->nombre ?? 'N/A' }}</small></td>
+                                    <td class="text-start">
+                                        <span class="fw-semibold">{{ Str::limit($ticket->asunto, 40) }}</span>
+                                        <div class="d-flex gap-1 mt-1 flex-wrap">
+                                            @if($ticket->pedido_id)
+                                                <span class="badge bg-light text-secondary border" style="font-size:10px">
+                                                    <i class="bi bi-receipt me-1"></i>{{ $ticket->pedido->codigo ?? 'Pedido' }}
+                                                </span>
+                                            @endif
+                                            @if($ticket->adjuntos && count($ticket->adjuntos) > 0)
+                                                <span class="badge bg-light text-secondary border" style="font-size:10px"
+                                                      title="{{ count($ticket->adjuntos) }} adjunto(s)" data-bs-toggle="tooltip">
+                                                    <i class="bi bi-paperclip"></i> {{ count($ticket->adjuntos) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <small class="text-muted">{{ $ticket->categoria_label }}</small>
+                                    </td>
+                                    <td class="text-center">
                                         <span class="badge bg-{{ $prioridadColors[$ticket->prioridad] ?? 'secondary' }}">{{ ucfirst($ticket->prioridad) }}</span>
                                     </td>
                                     <td class="text-center">
-                                        @php $estadoColors = ['abierto' => 'danger', 'en_progreso' => 'warning', 'pendiente_cliente' => 'info', 'resuelto' => 'success', 'cerrado' => 'secondary']; @endphp
                                         <span class="badge bg-{{ $estadoColors[$ticket->estado] ?? 'secondary' }}">{{ str_replace('_', ' ', ucfirst($ticket->estado)) }}</span>
                                     </td>
                                     <td class="text-center">
                                         @if($ticket->esta_vencido)
-                                            <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Vencido</span>
+                                            <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Vencido</span>
                                         @elseif($ticket->sla_vencimiento && $ticket->sla_vencimiento->diffInHours(now()) <= 2)
-                                            <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> {{ $ticket->tiempo_restante_sla }}</span>
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>{{ $ticket->tiempo_restante_sla }}</span>
                                         @else
-                                            <span class="badge bg-success"><i class="bi bi-check"></i> OK</span>
+                                            <span class="badge bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle-fill me-1"></i>Dentro del SLA</span>
                                         @endif
                                     </td>
                                     <td class="text-center align-middle">
@@ -195,7 +231,7 @@
                                             <ul class="dropdown-menu dropdown-menu-end shadow">
                                                 <li><a class="dropdown-item" href="{{ route('admin.crm.tickets.show', $ticket) }}"><i class="bi bi-eye text-info me-2"></i>Ver/Responder</a></li>
                                                 <li><a class="dropdown-item" href="{{ route('admin.crm.tickets.edit', $ticket) }}"><i class="bi bi-pencil text-secondary me-2"></i>Editar</a></li>
-                                                @if(!in_array($ticket->estado, ['resuelto', 'cerrado']))
+                                                @if($ticket->estado !== 'resuelto')
                                                     <li><hr class="dropdown-divider"></li>
                                                     @if(!$ticket->es_mantenimiento || ($ticket->mantenimiento && in_array($ticket->mantenimiento->estado, ['completado', 'cancelado'])))
                                                         <li>
@@ -208,12 +244,6 @@
                                                     @else
                                                         <li><span class="dropdown-item text-muted small disabled"><i class="bi bi-hourglass-split me-2"></i>Pendiente mantenimiento</span></li>
                                                     @endif
-                                                    <li>
-                                                        <form action="{{ route('admin.crm.tickets.escalar', $ticket) }}" method="POST">
-                                                            @csrf
-                                                            <button class="dropdown-item text-warning"><i class="bi bi-arrow-up-circle me-2"></i>Escalar</button>
-                                                        </form>
-                                                    </li>
                                                 @endif
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
@@ -226,9 +256,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr><td colspan="9" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay tickets</td></tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
             </div>
@@ -244,6 +272,7 @@ $(document).ready(function() {
         responsive: true,
         language: {
             url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+            emptyTable: '<div class="text-center py-4 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay tickets registrados</div>',
             paginate: {
                 first: '«',
                 previous: '‹',
@@ -253,7 +282,7 @@ $(document).ready(function() {
             info: 'Mostrando página _PAGE_ de _PAGES_'
         },
         pageLength: 10,
-        order: [[0, 'asc']],
+        order: [[1, 'desc']], // Más reciente primero
         columnDefs: [
             { orderable: false, targets: [8] } // Desactivar orden en columna de acciones
         ],
@@ -285,6 +314,18 @@ $(document).ready(function() {
         var val = $(this).val();
         table.column(7).search(val).draw();
     });
+
+    // Limpiar filtros
+    $('#btn-limpiar').on('click', function() {
+        $('[id^="filtro-"]').each(function() {
+            $(this).val('').trigger('change');
+        });
+        table.search('').columns().search('').draw();
+    });
+
+    // Inicializar tooltip del botón limpiar
+    var tooltipEl = document.querySelector('#btn-limpiar');
+    if (tooltipEl) { new bootstrap.Tooltip(tooltipEl); }
 });
 
 // SweetAlert para resolver con solución
@@ -294,24 +335,39 @@ $('.form-resolver').submit(function(e) {
 
     Swal.fire({
         title: 'Resolver Ticket',
+        width: 520,
+        padding: '1.5rem',
         html: `
             <div class="text-start">
                 <div class="mb-3">
-                    <label class="form-label fw-bold small">Tipo de solución</label>
+                    <label class="form-label fw-bold small">Tipo de resolución</label>
                     <select id="swal-tipo-solucion" class="form-select form-select-sm">
                         <option value="">Seleccionar...</option>
-                        <option value="resuelto_remoto">Resuelto remoto</option>
-                        <option value="visita_tecnica">Visita técnica</option>
-                        <option value="cambio_equipo">Cambio de equipo</option>
+                        <option value="resuelto_remoto">Resuelto de forma remota</option>
+                        <option value="visita_tecnica">Visita técnica realizada</option>
+                        <option value="cambio_equipo">Cambio / reemplazo de equipo</option>
                         <option value="ajuste_configuracion">Ajuste de configuración</option>
-                        <option value="capacitacion">Capacitación</option>
-                        <option value="sin_solucion">Sin solución</option>
+                        <option value="garantia_aplicada">Garantía aplicada</option>
+                        <option value="derivado_proveedor">Derivado al proveedor</option>
                         <option value="otro">Otro</option>
                     </select>
                 </div>
-                <div class="mb-2">
-                    <label class="form-label fw-bold small">Descripción de la solución</label>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Descripción de la solución <span class="text-danger">*</span></label>
                     <textarea id="swal-solucion" class="form-control form-control-sm" rows="3" placeholder="Describe cómo se resolvió el ticket..."></textarea>
+                </div>
+                <div class="border rounded p-2 bg-light">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" id="swal-seguimiento">
+                        <label class="form-check-label fw-bold small" for="swal-seguimiento">
+                            Requiere seguimiento
+                        </label>
+                    </div>
+                    <div id="bloque-dias" style="display:none; margin-top:8px;">
+                        <label class="form-label small mb-1">Verificar en (días)</label>
+                        <input type="number" id="swal-dias" class="form-control form-control-sm" value="7" min="1" max="90" style="width:100px">
+                        <small class="text-muted">Se creará una actividad de seguimiento para recordártelo.</small>
+                    </div>
                 </div>
             </div>`,
         icon: 'success',
@@ -320,18 +376,30 @@ $('.form-resolver').submit(function(e) {
         cancelButtonColor: '#FF9C00',
         confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Resolver',
         cancelButtonText: 'Cancelar',
+        didOpen: () => {
+            document.getElementById('swal-seguimiento').addEventListener('change', function() {
+                document.getElementById('bloque-dias').style.display = this.checked ? 'block' : 'none';
+            });
+        },
         preConfirm: () => {
             const solucion = document.getElementById('swal-solucion').value;
             if (!solucion.trim()) {
                 Swal.showValidationMessage('La descripción de la solución es requerida');
                 return false;
             }
-            return { solucion, tipoSolucion: document.getElementById('swal-tipo-solucion').value };
+            return {
+                solucion,
+                tipoSolucion:        document.getElementById('swal-tipo-solucion').value,
+                requiereSeguimiento: document.getElementById('swal-seguimiento').checked,
+                diasSeguimiento:     document.getElementById('swal-dias').value,
+            };
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            $('<input>').attr({ type: 'hidden', name: 'solucion', value: result.value.solucion }).appendTo(form);
-            $('<input>').attr({ type: 'hidden', name: 'tipo_solucion', value: result.value.tipoSolucion }).appendTo(form);
+            $('<input>').attr({ type: 'hidden', name: 'solucion',             value: result.value.solucion }).appendTo(form);
+            $('<input>').attr({ type: 'hidden', name: 'tipo_solucion',        value: result.value.tipoSolucion }).appendTo(form);
+            $('<input>').attr({ type: 'hidden', name: 'requiere_seguimiento', value: result.value.requiereSeguimiento ? '1' : '0' }).appendTo(form);
+            $('<input>').attr({ type: 'hidden', name: 'dias_seguimiento',     value: result.value.diasSeguimiento }).appendTo(form);
             form.submit();
         }
     });

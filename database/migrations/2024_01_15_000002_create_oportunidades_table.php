@@ -25,7 +25,7 @@ return new class extends Migration
             $table->enum('etapa', [
                 'calificacion',       // Evaluando si es viable
                 'evaluacion',         // Evaluación técnica / visita / análisis
-                'propuesta_tecnica',  // Elaborando propuesta y cotización
+                'cotizacion',  // Elaborando propuesta y cotización
                 'negociacion',        // Negociando condiciones
                 'ganada',
                 'perdida'
@@ -35,15 +35,15 @@ return new class extends Migration
             $table->enum('tipo_proyecto', ['residencial', 'comercial', 'industrial', 'agricola'])->default('residencial');
             $table->enum('tipo_oportunidad', ['producto', 'servicio', 'mixto'])->default('producto');
             
-            // Servicio
-            $table->enum('tipo_servicio', [
-                'instalacion', 'mantenimiento_preventivo', 'mantenimiento_correctivo', 'ampliacion', 'otro'
-            ])->nullable();
+            // Servicio — tipo_servicio ya no se guarda en oportunidades (se infiere del servicio elegido)
+            $table->foreignId('servicio_id')->nullable()->constrained('servicios')->onDelete('set null');
             $table->text('descripcion_servicio')->nullable();
             
             // Visita técnica
             $table->boolean('requiere_visita_tecnica')->default(false);
-            $table->date('fecha_visita_programada')->nullable();
+            $table->datetime('fecha_visita_programada')->nullable();
+            $table->string('ubicacion_visita')->nullable();
+            $table->foreignId('tecnico_visita_id')->nullable()->constrained('users')->onDelete('set null');
             $table->text('resultado_visita')->nullable();
             
             // Valores económicos

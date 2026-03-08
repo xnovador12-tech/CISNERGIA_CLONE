@@ -20,24 +20,6 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    @endif
-
-    @if(session('info'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-info alert-dismissible fade show"><i class="bi bi-info-circle me-2"></i>{{ session('info') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    @endif
-
     @php
         $tipoIcons = ['llamada' => 'telephone', 'reunion' => 'people', 'visita_tecnica' => 'geo-alt', 'email' => 'envelope', 'whatsapp' => 'whatsapp'];
         $tipoColors = ['llamada' => 'primary', 'reunion' => 'success', 'visita_tecnica' => 'warning', 'email' => 'info', 'whatsapp' => 'success'];
@@ -195,31 +177,43 @@
             <div class="col-lg-4">
                 {{-- Cambiar Estado --}}
                 @php
+                    $esVisita = $actividad->tipo === 'visita_tecnica';
                     $estadosFlow = [
-                        'programada' => ['nombre' => 'Programada', 'color' => 'warning', 'icono' => 'bi-clock'],
-                        'completada' => ['nombre' => 'Completada', 'color' => 'success', 'icono' => 'bi-check-circle'],
+                        'programada'    => ['nombre' => 'Programada',    'color' => 'warning',   'icono' => 'bi-clock'],
+                        'en_evaluacion' => ['nombre' => 'En Evaluación', 'color' => 'info',      'icono' => 'bi-search'],
+                        'completada'    => ['nombre' => 'Completada',    'color' => 'success',   'icono' => 'bi-check-circle'],
+                        'no_realizada'  => ['nombre' => 'No Realizada',  'color' => 'dark',      'icono' => 'bi-person-x'],
+                        'cancelada'     => ['nombre' => 'Cancelada',     'color' => 'danger',    'icono' => 'bi-slash-circle'],
+                        'reprogramada'  => ['nombre' => 'Reprogramada',  'color' => 'secondary', 'icono' => 'bi-calendar-event'],
                     ];
                     $estadoActualInfo = $estadosFlow[$actividad->estado] ?? ['nombre' => ucfirst(str_replace('_', ' ', $actividad->estado)), 'color' => 'secondary', 'icono' => 'bi-circle'];
-                    $siguienteEstado = match($actividad->estado) {
-                        'programada' => $estadosFlow['completada'],
-                        default => null,
-                    };
                 @endphp
 
+                {{-- ESTADO: programada --}}
                 @if($actividad->estado === 'programada')
                 <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                     <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>Cambiar Estado</h6></div>
                     <div class="card-body">
-                        {{-- Indicador visual: Estado Actual → Siguiente --}}
-                        @if($siguienteEstado)
-                            <div class="d-flex align-items-center justify-content-center gap-2 mb-3 py-2 bg-light rounded">
-                                <span class="badge bg-{{ $estadoActualInfo['color'] }}"><i class="bi {{ $estadoActualInfo['icono'] }} me-1"></i>{{ $estadoActualInfo['nombre'] }}</span>
-                                <i class="bi bi-arrow-right text-muted"></i>
-                                <span class="badge bg-{{ $siguienteEstado['color'] }}"><i class="bi {{ $siguienteEstado['icono'] }} me-1"></i>{{ $siguienteEstado['nombre'] }}</span>
-                            </div>
-                        @endif
-
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-3 py-2 bg-light rounded">
+                            <span class="badge bg-{{ $estadoActualInfo['color'] }}">
+                                <i class="bi {{ $estadoActualInfo['icono'] }} me-1"></i>{{ $estadoActualInfo['nombre'] }}
+                            </span>
+                            <i class="bi bi-arrow-right text-muted"></i>
+                            @if($esVisita)
+                                <span class="badge bg-info"><i class="bi bi-search me-1"></i>En Evaluación</span>
+                            @else
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Completada</span>
+                            @endif
+                        </div>
                         <div class="d-grid gap-2">
+                            @if($esVisita)
+                            <form action="{{ route('admin.crm.actividades.iniciar-evaluacion', $actividad) }}" method="POST" id="form-iniciar">
+                                @csrf
+                                <button type="button" class="btn btn-outline-info btn-sm w-100 btn-iniciar">
+                                    <i class="bi bi-search me-2"></i>Iniciar Evaluación
+                                </button>
+                            </form>
+                            @else
                             <form action="{{ route('admin.crm.actividades.completar', $actividad) }}" method="POST" id="form-completar">
                                 @csrf
                                 <input type="hidden" name="resultado" id="input-resultado">
@@ -227,6 +221,7 @@
                                     <i class="bi bi-check-circle me-2"></i>Marcar Completada
                                 </button>
                             </form>
+                            @endif
                             <form action="{{ route('admin.crm.actividades.reprogramar', $actividad) }}" method="POST" id="form-reprogramar">
                                 @csrf
                                 <input type="hidden" name="fecha_programada" id="input-nueva-fecha">
@@ -245,6 +240,43 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- ESTADO: en_evaluacion (solo visita_tecnica) --}}
+                @elseif($actividad->estado === 'en_evaluacion')
+                <div class="card border-4 shadow-sm mb-4" style="border-radius: 20px; border-top: 4px solid #0dcaf0 !important;" data-aos="fade-up">
+                    <div class="card-header bg-info text-white" style="border-radius: 16px 16px 0 0;">
+                        <h6 class="mb-0"><i class="bi bi-search me-2"></i>En Evaluación</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="small text-muted mb-3">El técnico está en sitio. Registra el resultado para completar la visita o márcala como no realizada si hubo inconvenientes.</p>
+                        <div class="d-grid gap-2">
+                            <form action="{{ route('admin.crm.actividades.completar', $actividad) }}" method="POST" id="form-completar">
+                                @csrf
+                                <input type="hidden" name="resultado" id="input-resultado">
+                                <button type="button" class="btn btn-success btn-sm w-100 btn-completar">
+                                    <i class="bi bi-clipboard-check me-2"></i>Registrar Resultado y Completar
+                                </button>
+                            </form>
+                            <form action="{{ route('admin.crm.actividades.no-realizada', $actividad) }}" method="POST" id="form-no-realizada">
+                                @csrf
+                                <input type="hidden" name="motivo_cancelacion" id="input-motivo-no-realizada">
+                                <button type="button" class="btn btn-outline-dark btn-sm w-100 btn-no-realizada">
+                                    <i class="bi bi-person-x me-2"></i>No se pudo realizar
+                                </button>
+                            </form>
+                            <form action="{{ route('admin.crm.actividades.reprogramar', $actividad) }}" method="POST" id="form-reprogramar">
+                                @csrf
+                                <input type="hidden" name="fecha_programada" id="input-nueva-fecha">
+                                <input type="hidden" name="motivo_reprogramacion" id="input-motivo-reprogramacion">
+                                <button type="button" class="btn btn-outline-warning btn-sm w-100 btn-reprogramar">
+                                    <i class="bi bi-calendar-event me-2"></i>Reprogramar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ESTADO: completada --}}
                 @elseif($actividad->estado === 'completada')
                 <div class="card border-4 shadow-sm mb-4" style="border-radius: 20px; border-top: 4px solid #198754 !important;" data-aos="fade-up">
                     <div class="card-header bg-success text-white" style="border-radius: 16px 16px 0 0;"><h6 class="mb-0"><i class="bi bi-check-circle me-2"></i>Actividad Completada</h6></div>
@@ -256,6 +288,29 @@
                         @endif
                     </div>
                 </div>
+
+                {{-- ESTADO: no_realizada --}}
+                @elseif($actividad->estado === 'no_realizada')
+                <div class="card border-4 shadow-sm mb-4" style="border-radius: 20px; border-top: 4px solid #212529 !important;" data-aos="fade-up">
+                    <div class="card-header bg-dark text-white" style="border-radius: 16px 16px 0 0;"><h6 class="mb-0"><i class="bi bi-person-x me-2"></i>No Realizada</h6></div>
+                    <div class="card-body">
+                        @if($actividad->motivo_cancelacion)
+                            <p class="mb-3"><strong>Motivo:</strong> {{ $actividad->motivo_cancelacion }}</p>
+                        @endif
+                        <div class="d-grid">
+                            <form action="{{ route('admin.crm.actividades.reprogramar', $actividad) }}" method="POST" id="form-reprogramar">
+                                @csrf
+                                <input type="hidden" name="fecha_programada" id="input-nueva-fecha">
+                                <input type="hidden" name="motivo_reprogramacion" id="input-motivo-reprogramacion">
+                                <button type="button" class="btn btn-warning btn-sm w-100 btn-reprogramar">
+                                    <i class="bi bi-calendar-event me-2"></i>Reprogramar Visita
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ESTADO: cancelada --}}
                 @elseif($actividad->estado === 'cancelada')
                 <div class="card border-4 shadow-sm mb-4" style="border-radius: 20px; border-top: 4px solid #dc3545 !important;" data-aos="fade-up">
                     <div class="card-header bg-danger text-white" style="border-radius: 16px 16px 0 0;"><h6 class="mb-0"><i class="bi bi-x-circle me-2"></i>Actividad Cancelada</h6></div>
@@ -291,6 +346,53 @@
                         @endif
                     </div>
                 </div>
+
+                <!-- Crear Seguimiento -->
+                @if(in_array($actividad->estado, ['completada', 'no_realizada']))
+                <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
+                    <div class="card-header bg-transparent">
+                        <h6 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>Crear Seguimiento</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="small text-muted mb-3">Programa una nueva actividad de seguimiento vinculada al mismo contacto.</p>
+                        <form action="{{ route('admin.crm.actividades.seguimiento', $actividad) }}" method="POST" id="form-seguimiento">
+                            @csrf
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold">Tipo <span class="text-danger">*</span></label>
+                                <select name="tipo" class="form-select form-select-sm" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="llamada">📞 Llamada</option>
+                                    <option value="email">📧 Email</option>
+                                    <option value="reunion">👥 Reunión</option>
+                                    <option value="visita_tecnica">🏗️ Visita Técnica</option>
+                                    <option value="whatsapp">💬 WhatsApp</option>
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold">Título <span class="text-danger">*</span></label>
+                                <input type="text" name="titulo" class="form-control form-control-sm"
+                                    placeholder="Ej: Seguimiento de propuesta..." required
+                                    value="Seguimiento: {{ Str::limit($actividad->titulo, 40) }}">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold">Fecha y Hora <span class="text-danger">*</span></label>
+                                <input type="datetime-local" name="fecha_programada" class="form-control form-control-sm" required
+                                    min="{{ now()->format('Y-m-d\TH:i') }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Descripción</label>
+                                <textarea name="descripcion" class="form-control form-control-sm" rows="2"
+                                    placeholder="Detalles del seguimiento..."></textarea>
+                            </div>
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-outline-primary btn-sm btn-crear-seguimiento">
+                                    <i class="bi bi-plus-circle me-2"></i>Crear Seguimiento
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @endif
 
                 <!-- Acciones Rápidas -->
                 <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
@@ -344,8 +446,58 @@
 <script>
 $(document).ready(function() {
 
-    // ==================== COMPLETAR ACTIVIDAD (con resultado) ====================
+    // ==================== INICIAR EVALUACIÓN (solo visita_tecnica) ====================
+    $('.btn-iniciar').on('click', function() {
+        Swal.fire({
+            title: '¿Iniciar evaluación?',
+            html: `<p class="mb-0">La actividad <strong>{{ Str::limit($actividad->titulo, 40) }}</strong> pasará a <strong class="text-info">En Evaluación</strong> y la oportunidad avanzará automáticamente a <strong>Evaluación</strong>.</p>`,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-search me-1"></i> Iniciar',
+            cancelButtonText: 'Volver',
+        }).then((result) => {
+            if (result.isConfirmed) $('#form-iniciar').submit();
+        });
+    });
+
+    // ==================== COMPLETAR ACTIVIDAD (con resultado obligatorio para visita_tecnica) ====================
     $('.btn-completar').on('click', function() {
+        @if($esVisita)
+        Swal.fire({
+            title: 'Registrar resultado de visita',
+            html: `
+                <p class="mb-3">Registra el resultado de la evaluación técnica. Este resultado se copiará automáticamente a la oportunidad.</p>
+                <div class="text-start">
+                    <label class="form-label fw-bold small">Resultado de la visita <span class="text-danger">*</span></label>
+                    <textarea id="swal-resultado" class="form-control" rows="4"
+                              placeholder="Ej: Techo en buen estado, capacidad para 10 paneles, se recomienda sistema de 5kW..."></textarea>
+                    <div id="swal-error" class="text-danger small mt-1" style="display:none;">El resultado es obligatorio (mínimo 10 caracteres).</div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-clipboard-check me-1"></i> Completar Visita',
+            cancelButtonText: 'Volver',
+            focusConfirm: false,
+            preConfirm: () => {
+                const val = document.getElementById('swal-resultado').value.trim();
+                if (val.length < 10) {
+                    document.getElementById('swal-error').style.display = 'block';
+                    return false;
+                }
+                return val;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#input-resultado').val(result.value);
+                $('#form-completar').submit();
+            }
+        });
+        @else
         Swal.fire({
             title: '¿Marcar como completada?',
             html: `
@@ -369,6 +521,43 @@ $(document).ready(function() {
             if (result.isConfirmed) {
                 $('#input-resultado').val(result.value || 'Actividad completada');
                 $('#form-completar').submit();
+            }
+        });
+        @endif
+    });
+
+    // ==================== NO REALIZADA (con motivo obligatorio) ====================
+    $('.btn-no-realizada').on('click', function() {
+        Swal.fire({
+            title: '¿No se pudo realizar?',
+            html: `
+                <p class="mb-3">Indica el motivo por el que no se pudo completar la visita. La oportunidad <strong>permanecerá en Evaluación</strong> hasta que se reprograme y complete.</p>
+                <div class="text-start">
+                    <label class="form-label fw-bold small">Motivo <span class="text-danger">*</span></label>
+                    <textarea id="swal-motivo-nr" class="form-control" rows="3"
+                              placeholder="Ej: Cliente no se encontraba en el domicilio, acceso denegado..."></textarea>
+                    <div id="swal-error-nr" class="text-danger small mt-1" style="display:none;">El motivo es obligatorio.</div>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#212529',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-person-x me-1"></i> Confirmar',
+            cancelButtonText: 'Volver',
+            focusConfirm: false,
+            preConfirm: () => {
+                const val = document.getElementById('swal-motivo-nr').value.trim();
+                if (val.length < 5) {
+                    document.getElementById('swal-error-nr').style.display = 'block';
+                    return false;
+                }
+                return val;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#input-motivo-no-realizada').val(result.value);
+                $('#form-no-realizada').submit();
             }
         });
     });
@@ -464,6 +653,38 @@ $(document).ready(function() {
         }).then((result) => {
             if (result.isConfirmed) {
                 $('#form-eliminar').submit();
+            }
+        });
+    });
+
+    // ==================== CREAR SEGUIMIENTO ====================
+    $('.btn-crear-seguimiento').on('click', function() {
+        const tipo    = $('#form-seguimiento [name="tipo"]').val();
+        const titulo  = $('#form-seguimiento [name="titulo"]').val().trim();
+        const fecha   = $('#form-seguimiento [name="fecha_programada"]').val();
+
+        if (!tipo || !titulo || !fecha) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos incompletos',
+                text: 'Completa el tipo, título y fecha antes de continuar.',
+                confirmButtonColor: '#1C3146',
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: '¿Crear seguimiento?',
+            html: `Se creará una nueva actividad de seguimiento vinculada al mismo contacto.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-plus-circle me-1"></i> Crear',
+            cancelButtonText: 'Cancelar',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#form-seguimiento').submit();
             }
         });
     });

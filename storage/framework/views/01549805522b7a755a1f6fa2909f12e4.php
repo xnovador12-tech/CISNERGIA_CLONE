@@ -53,25 +53,6 @@
     </div>
 
     
-    <?php if(session('success')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i><?php echo e(session('success')); ?>
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
-
-    <?php if(session('error')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i><?php echo e(session('error')); ?>
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
 
     <div class="container-fluid">
         <div class="row g-4">
@@ -81,7 +62,7 @@
                 <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="badge bg-secondary fs-6 me-2"><?php echo e($prospecto->codigo); ?></span>
+                            <span class="fw-bold me-2"><?php echo e($prospecto->codigo); ?></span>
                             <?php
                                 $estadoColors = [
                                     'nuevo' => 'secondary',
@@ -191,11 +172,11 @@
                                 <div>
                                     <?php
                                         $etapaColors = [
-                                            'calificacion' => 'primary', 'evaluacion' => 'info', 'propuesta_tecnica' => 'warning',
+                                            'calificacion' => 'primary', 'evaluacion' => 'info', 'cotizacion' => 'warning',
                                             'negociacion' => 'secondary', 'ganada' => 'success', 'perdida' => 'danger'
                                         ];
                                     ?>
-                                    <span class="badge bg-secondary me-1"><?php echo e($oportunidad->codigo); ?></span>
+                                    <span class="fw-semibold me-1"><?php echo e($oportunidad->codigo); ?></span>
                                     <strong class="small"><?php echo e(Str::limit($oportunidad->nombre, 30)); ?></strong>
                                     <span class="badge bg-<?php echo e($etapaColors[$oportunidad->etapa] ?? 'secondary'); ?> ms-1"><?php echo e(ucfirst(str_replace('_', ' ', $oportunidad->etapa))); ?></span>
                                 </div>
@@ -410,6 +391,12 @@
                     <div class="card-header bg-success text-white" style="border-radius: 16px 16px 0 0;"><h6 class="mb-0"><i class="bi bi-check-circle me-2"></i>Prospecto Convertido</h6></div>
                     <div class="card-body">
                         <p class="text-muted mb-2">Este prospecto ya fue convertido a cliente.</p>
+                        <?php if($prospecto->cliente): ?>
+                            <a href="<?php echo e(route('admin.crm.clientes.show', $prospecto->cliente)); ?>" class="btn btn-outline-dark btn-sm w-100 mb-2">
+                                <i class="bi bi-person-check me-2"></i>Ver Cliente — <?php echo e($prospecto->cliente->codigo); ?>
+
+                            </a>
+                        <?php endif; ?>
                         <a href="<?php echo e(route('admin.crm.oportunidades.create', $oportunidadParams)); ?>" class="btn btn-success btn-sm w-100">
                             <i class="bi bi-plus-circle me-2"></i>Nueva Oportunidad
                         </a>
@@ -498,6 +485,16 @@
                                 <i class="bi bi-telephone me-2"></i>Llamar
                             </a>
                             <?php endif; ?>
+                            <?php if($prospecto->estado !== 'convertido'): ?>
+                            <hr class="my-1">
+                            <form action="<?php echo e(route('admin.crm.prospectos.destroy', $prospecto)); ?>"
+                                  method="POST" id="form-eliminar-show">
+                                <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
+                                <button type="button" class="btn btn-outline-danger btn-sm w-100 btn-eliminar-show">
+                                    <i class="bi bi-trash me-2"></i>Eliminar Prospecto
+                                </button>
+                            </form>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -522,6 +519,12 @@
                             <p class="mb-0"><?php echo e($prospecto->fecha_primer_contacto->format('d/m/Y')); ?></p>
                         </div>
                         <?php endif; ?>
+                        <?php if($prospecto->fecha_ultimo_contacto): ?>
+                        <div class="mb-2">
+                            <small class="text-muted">Último contacto</small>
+                            <p class="mb-0"><?php echo e($prospecto->fecha_ultimo_contacto->format('d/m/Y')); ?></p>
+                        </div>
+                        <?php endif; ?>
                         <?php if($prospecto->fecha_proximo_contacto): ?>
                         <div>
                             <small class="text-muted">Próximo contacto</small>
@@ -541,7 +544,7 @@
     </div>
 
     <!-- Modal Nueva Actividad -->
-    <div class="modal fade" id="modalActividad" tabindex="-1">
+    <div class="modal fade" id="modalActividad" tabindex="-1" style="display:none">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
@@ -557,7 +560,7 @@
                                 <i class="bi bi-link-45deg text-info me-2"></i>
                                 <small class="text-muted">
                                     Actividad vinculada a <strong>Prospecto</strong>:
-                                    <span class="badge bg-secondary"><?php echo e($prospecto->codigo); ?></span>
+                                    <span class="fw-semibold"><?php echo e($prospecto->codigo); ?></span>
                                     <?php echo e($prospecto->nombre_completo); ?>
 
                                 </small>
@@ -663,6 +666,24 @@ $(document).ready(function() {
         }).then((result) => {
             if (result.isConfirmed) {
                 form.submit();
+            }
+        });
+    });
+
+    // ==================== ELIMINAR DESDE SHOW ====================
+    $('.btn-eliminar-show').on('click', function() {
+        Swal.fire({
+            title: '¿Eliminar prospecto?',
+            html: 'Se eliminará permanentemente a <strong><?php echo e($prospecto->nombre_completo); ?></strong>.<br><small class="text-muted">Esta acción no se puede deshacer.</small>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-trash me-1"></i> Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#form-eliminar-show').submit();
             }
         });
     });

@@ -14,7 +14,7 @@ class OportunidadSeeder extends Seeder
      * Crea 10 oportunidades con asignación EXPLÍCITA de prospectos.
      *
      * Distribución:
-     *   - 4 en pipeline activo (calificacion, evaluacion, propuesta_tecnica, negociacion)
+     *   - 4 en pipeline activo (calificacion, evaluacion, cotizacion, negociacion)
      *   - 5 ganadas (se convertirán en clientes vía ClienteSeeder)
      *   - 1 perdida
      *
@@ -29,7 +29,7 @@ class OportunidadSeeder extends Seeder
         $prospectoMap = Prospecto::whereIn('email', [
             'carlos.mendoza@gmail.com',       // pipeline: calificacion
             'patricia.vega@clinicasonrisas.com', // pipeline: evaluacion
-            'gparedes@gmail.com',              // pipeline: propuesta_tecnica (servicio)
+            'gparedes@gmail.com',              // pipeline: cotizacion (servicio)
             'dquispe@minimarketdondiego.com',  // pipeline: negociacion (ecommerce)
             'maria.torres@hotmail.com',        // GANADA → Cliente 1 (natural, residencial)
             'lgarcia@elbuensabor.com.pe',      // GANADA → Cliente 2 (jurídica, comercial)
@@ -108,12 +108,11 @@ class OportunidadSeeder extends Seeder
                 'vendedor' => $vendedor,
                 'data' => [
                     'nombre' => 'Mantenimiento Preventivo - Sistema 3kW San Miguel',
-                    'etapa' => 'propuesta_tecnica',
+                    'etapa' => 'cotizacion',
                     'monto_estimado' => 1800,
                     'probabilidad' => 50,
                     'tipo_proyecto' => 'residencial',
                     'tipo_oportunidad' => 'servicio',
-                    'tipo_servicio' => 'mantenimiento_preventivo',
                     'descripcion_servicio' => 'Mantenimiento preventivo + limpieza de paneles para sistema de 3kW instalado hace 1 año.',
                     'requiere_visita_tecnica' => true,
                     'fecha_visita_programada' => now()->addDays(2),
@@ -165,7 +164,7 @@ class OportunidadSeeder extends Seeder
                     'resultado_visita' => 'Casa de 2 pisos. Techo de concreto en buen estado con buena orientación.',
                     'descripcion' => 'Sistema pequeño para casa unifamiliar. Referida por cliente existente. Instalación completada.',
                     'fecha_cierre_estimada' => now()->subDays(25),
-                    'fecha_cierre_real' => now()->subDays(20),
+                    'fecha_cierre_real' => now()->startOfMonth()->addDays(1),
                 ],
                 'items' => [
                     ['codigo' => 'PNL-004', 'cantidad' => 6, 'notas' => ''],
@@ -187,7 +186,7 @@ class OportunidadSeeder extends Seeder
                     'resultado_visita' => 'Restaurante con techo metálico amplio. Consumo promedio S/2,800/mes.',
                     'descripcion' => 'Restaurante de alta demanda energética. Proyecto rentable con ROI estimado de 3 años.',
                     'fecha_cierre_estimada' => now()->subDays(40),
-                    'fecha_cierre_real' => now()->subDays(35),
+                    'fecha_cierre_real' => now()->startOfMonth()->addDays(3),
                 ],
                 'items' => [
                     ['codigo' => 'PNL-002', 'cantidad' => 44, 'notas' => 'TOPCon alta eficiencia'],
@@ -206,13 +205,12 @@ class OportunidadSeeder extends Seeder
                     'probabilidad' => 100,
                     'tipo_proyecto' => 'industrial',
                     'tipo_oportunidad' => 'mixto',
-                    'tipo_servicio' => 'instalacion',
                     'descripcion_servicio' => 'Instalación completa + contrato de mantenimiento anual incluido.',
                     'requiere_visita_tecnica' => true,
                     'resultado_visita' => 'Nave industrial de 2000m². Techo metálico en buenas condiciones. Sin sombras.',
                     'descripcion' => 'Fábrica textil con alto consumo. Proyecto grande con contrato de mantenimiento.',
                     'fecha_cierre_estimada' => now()->subDays(50),
-                    'fecha_cierre_real' => now()->subDays(45),
+                    'fecha_cierre_real' => now()->subMonths(1)->startOfMonth()->addDays(10),
                 ],
                 'items' => [
                     ['codigo' => 'PNL-003', 'cantidad' => 180, 'notas' => 'Paneles bifaciales para nave industrial'],
@@ -235,7 +233,7 @@ class OportunidadSeeder extends Seeder
                     'resultado_visita' => 'Fundo de 50 hectáreas. Pozo de 80m de profundidad. Sin acceso a red eléctrica.',
                     'descripcion' => 'Sistema de bombeo solar para riego de cultivos. Zona sin acceso a red eléctrica.',
                     'fecha_cierre_estimada' => now()->subDays(15),
-                    'fecha_cierre_real' => now()->subDays(10),
+                    'fecha_cierre_real' => now()->startOfMonth()->addDays(2),
                 ],
                 'items' => [
                     ['codigo' => 'PNL-001', 'cantidad' => 28, 'notas' => 'Paneles para estructura en terreno'],
@@ -256,7 +254,7 @@ class OportunidadSeeder extends Seeder
                     'requiere_visita_tecnica' => false,
                     'descripcion' => 'Compra directa desde e-commerce. Kit solar básico residencial. Envío e instalación incluida.',
                     'fecha_cierre_estimada' => now()->subDays(8),
-                    'fecha_cierre_real' => now()->subDays(5),
+                    'fecha_cierre_real' => now()->startOfMonth(),
                 ],
                 'items' => [
                     ['codigo' => 'PNL-004', 'cantidad' => 4, 'notas' => 'Kit básico e-commerce'],
@@ -285,7 +283,7 @@ class OportunidadSeeder extends Seeder
                     'competidor_ganador' => 'SolarMax Perú',
                     'detalle_perdida' => 'Competidor ofreció 15% menos usando paneles de menor calidad.',
                     'fecha_cierre_estimada' => now()->subDays(20),
-                    'fecha_cierre_real' => now()->subDays(18),
+                    'fecha_cierre_real' => now()->subMonths(1)->startOfMonth()->addDays(5),
                 ],
                 'items' => [
                     ['codigo' => 'PNL-001', 'cantidad' => 18, 'notas' => ''],

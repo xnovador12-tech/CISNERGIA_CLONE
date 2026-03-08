@@ -39,13 +39,16 @@ class DatabaseSeeder extends Seeder
         $this->call(ProductoSeeder::class);
         $this->call(InventarioSeeder::class);
 
+        // Servicios del catálogo (antes del CRM para trazabilidad en cotizaciones)
+        $this->call(ServicioSeeder::class);
+
         // CRM Module Seeders (incluye ClienteSeeder internamente)
         $this->call(CrmSeeder::class);
 
         // Operaciones Module Seeders
         $this->call(ChecklistItemTableSeeder::class);
         $this->call(KanbanTestDataSeeder::class);
-        // $this->call(CampaniaTableSeeder::class);
+        $this->call(CampaniaTableSeeder::class);
 
     }
 }

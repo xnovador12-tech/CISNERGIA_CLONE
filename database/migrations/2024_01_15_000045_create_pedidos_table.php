@@ -19,9 +19,12 @@ return new class extends Migration
             // Relaciones principales
             $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('tipo_id')->nullable()->constrained('tipos')->onDelete('set null');
+            $table->foreignId('categoria_id')->nullable()->constrained('categories')->onDelete('set null');
 
             // Montos
             $table->decimal('subtotal', 11, 2)->default(0);
+            $table->string('condicion_pago')->default('Contado'); // Contado, Crédito, etc.
             $table->boolean('incluye_igv')->default(false);
             $table->decimal('descuento_porcentaje', 5, 2)->default(0);
             $table->decimal('descuento_monto', 11, 2)->default(0);
@@ -31,9 +34,6 @@ return new class extends Migration
             // Estado y tipo
             $table->enum('estado', ['pendiente', 'proceso', 'entregado', 'cancelado', 'confirmado'])->default('pendiente');
             $table->enum('tipo', ['producto', 'servicio'])->default('producto');
-            $table->foreignId('tipo_id')->nullable()->constrained('tipos')->onDelete('set null');
-            $table->foreignId('categoria_id')->nullable()->constrained('categories')->onDelete('set null');
-            $table->string('condicion_pago')->default('Contado'); // Contado, Crédito, etc.
 
             // Flags de Aprobación del Flujo
             $table->boolean('aprobacion_finanzas')->default(false); // ¿Pagó el anticipo?
@@ -58,7 +58,7 @@ return new class extends Migration
 
             // Extras
             $table->text('observaciones')->nullable();
-            $table->enum('origen', ['directo', 'ecommerce', 'cotizacion'])->default('directo'); // SOLO 3 formas permitidas
+            $table->enum('origen', ['directo', 'ecommerce', 'cotizacion'])->default('directo');
 
             // Detalles de Pago (Voucher)
             $table->string('pago_banco')->nullable();

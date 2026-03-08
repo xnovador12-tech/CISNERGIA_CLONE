@@ -36,6 +36,7 @@ use App\Http\Controllers\admin_OperacionesController;
 
 use App\Http\Controllers\admin_CrmMantenimientosController;
 use App\Http\Controllers\admin_ModeloController;
+use App\Http\Controllers\admin_UbigeoController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -72,6 +73,10 @@ Route::resource('admin-perfil', admin_PerfilController::class);
 
 Route::resource('admin-modelos', admin_ModeloController::class);
 Route::put('/admin-modelos/estado/{admin_modelo}', [admin_ModeloController::class, 'estado']);
+
+// UBIGEO AJAX
+Route::get('/ajax/provincias', [admin_UbigeoController::class, 'provincias'])->name('ajax.provincias');
+Route::get('/ajax/distritos', [admin_UbigeoController::class, 'distritos'])->name('ajax.distritos');
 
 Route::resource('admin-tipos', admin_TiposController::class);
 Route::put('/admin-tipos/estado/{admin_tipo}', [admin_TiposController::class, 'estado']);
@@ -158,23 +163,20 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     // PROSPECTOS (Leads)
     // -------------------------------------------------
     Route::resource('prospectos', admin_CrmProspectosController::class);
-    Route::post('prospectos/{prospecto}/convertir-cliente', [admin_CrmProspectosController::class, 'convertirACliente'])->name('prospectos.convertir');
     Route::post('prospectos/{prospecto}/actividad', [admin_CrmProspectosController::class, 'registrarActividad'])->name('prospectos.actividad');
     Route::patch('prospectos/{prospecto}/estado', [admin_CrmProspectosController::class, 'actualizarEstado'])->name('prospectos.actualizar-estado');
-    Route::get('prospectos-exportar', [admin_CrmProspectosController::class, 'exportar'])->name('prospectos.exportar');
+
 
     // -------------------------------------------------
     // OPORTUNIDADES (Pipeline de Ventas)
     // -------------------------------------------------
     Route::resource('oportunidades', admin_CrmOportunidadesController::class)->parameters(['oportunidades' => 'oportunidad']);
     Route::post('oportunidades/{oportunidad}/avanzar', [admin_CrmOportunidadesController::class, 'avanzarEtapa'])->name('oportunidades.avanzar');
-    Route::post('oportunidades/{oportunidad}/ganada', [admin_CrmOportunidadesController::class, 'marcarGanada'])->name('oportunidades.ganada');
+    Route::post('oportunidades/{oportunidad}/crear-cotizacion', [admin_CrmOportunidadesController::class, 'crearCotizacion'])->name('oportunidades.crear-cotizacion');
     Route::post('oportunidades/{oportunidad}/perdida', [admin_CrmOportunidadesController::class, 'marcarPerdida'])->name('oportunidades.perdida');
-    Route::post('oportunidades/{oportunidad}/convertir-cliente', [admin_CrmOportunidadesController::class, 'convertirACliente'])->name('oportunidades.convertir-cliente');
-    Route::post('oportunidades/{oportunidad}/cotizacion', [admin_CrmOportunidadesController::class, 'crearCotizacion'])->name('oportunidades.crear-cotizacion');
     Route::post('oportunidades/{oportunidad}/actividad', [admin_CrmOportunidadesController::class, 'registrarActividad'])->name('oportunidades.actividad');
-    Route::get('oportunidades-exportar', [admin_CrmOportunidadesController::class, 'exportar'])->name('oportunidades.exportar');
-    Route::get('prospectos/{prospecto:id}/wishlist', [admin_CrmOportunidadesController::class, 'getWishlist'])->name('prospectos.wishlist');
+
+    Route::get('prospectos/{prospecto}/wishlist', [admin_CrmOportunidadesController::class, 'getWishlist'])->name('prospectos.wishlist');
 
     // -------------------------------------------------
     // COTIZACIONES
@@ -188,10 +190,8 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     Route::get('cotizaciones/{cotizacion}/preview', [admin_CrmCotizacionesController::class, 'previsualizarPdf'])->name('cotizaciones.preview');
     Route::post('cotizaciones/{cotizacion}/recalcular', [admin_CrmCotizacionesController::class, 'recalcular'])->name('cotizaciones.recalcular');
 
+
     // Ítems de cotización
-    Route::post('cotizaciones/{cotizacion}/items', [admin_CrmCotizacionesController::class, 'agregarItem'])->name('cotizaciones.agregarItem');
-    Route::put('cotizaciones/{cotizacion}/items/{item}', [admin_CrmCotizacionesController::class, 'actualizarItem'])->name('cotizaciones.actualizarItem');
-    Route::delete('cotizaciones/{cotizacion}/items/{item}', [admin_CrmCotizacionesController::class, 'eliminarItem'])->name('cotizaciones.eliminarItem');
     Route::post('cotizaciones/{cotizacion}/items-guardar', [admin_CrmCotizacionesController::class, 'guardarItems'])->name('cotizaciones.guardarItems');
 
     // -------------------------------------------------
@@ -201,6 +201,8 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     Route::post('actividades/{actividad}/completar', [admin_CrmActividadesController::class, 'completar'])->name('actividades.completar');
     Route::post('actividades/{actividad}/cancelar', [admin_CrmActividadesController::class, 'cancelar'])->name('actividades.cancelar');
     Route::post('actividades/{actividad}/reprogramar', [admin_CrmActividadesController::class, 'reprogramar'])->name('actividades.reprogramar');
+    Route::post('actividades/{actividad}/iniciar-evaluacion', [admin_CrmActividadesController::class, 'iniciarEvaluacion'])->name('actividades.iniciar-evaluacion');
+    Route::post('actividades/{actividad}/no-realizada', [admin_CrmActividadesController::class, 'noRealizada'])->name('actividades.no-realizada');
     Route::post('actividades/{actividad}/seguimiento', [admin_CrmActividadesController::class, 'crearSeguimiento'])->name('actividades.seguimiento');
     Route::get('actividades-eventos', [admin_CrmActividadesController::class, 'eventosCalendario'])->name('actividades.eventos');
     Route::patch('actividades/{actividad}/fecha', [admin_CrmActividadesController::class, 'actualizarFecha'])->name('actividades.actualizar-fecha');
@@ -217,15 +219,17 @@ Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
     // -------------------------------------------------
     // TICKETS (Soporte)
     // -------------------------------------------------
+    Route::get('tickets/pedidos-por-cliente/{clienteId}', [admin_CrmTicketsController::class, 'pedidosPorCliente'])->name('tickets.pedidos-por-cliente');
+    Route::get('tickets/ventas-por-cliente/{clienteId}', [admin_CrmTicketsController::class, 'ventasPorCliente'])->name('tickets.ventas-por-cliente');
+    Route::post('tickets/{ticket}/agendar-visita', [admin_CrmTicketsController::class, 'agendarVisita'])->name('tickets.agendar-visita');
     Route::resource('tickets', admin_CrmTicketsController::class);
     Route::patch('tickets/{ticket}/estado', [admin_CrmTicketsController::class, 'cambiarEstado'])->name('tickets.cambiar-estado');
     Route::post('tickets/{ticket}/asignar', [admin_CrmTicketsController::class, 'asignar'])->name('tickets.asignar');
-    Route::post('tickets/{ticket}/escalar', [admin_CrmTicketsController::class, 'escalar'])->name('tickets.escalar');
 
     // -------------------------------------------------
     // MANTENIMIENTOS
     // -------------------------------------------------
-    Route::resource('mantenimientos', admin_CrmMantenimientosController::class);
+    Route::resource('mantenimientos', admin_CrmMantenimientosController::class)->except(['create', 'store']);
     Route::post('mantenimientos/{mantenimiento}/confirmar', [admin_CrmMantenimientosController::class, 'confirmar'])->name('mantenimientos.confirmar');
     Route::post('mantenimientos/{mantenimiento}/iniciar', [admin_CrmMantenimientosController::class, 'iniciar'])->name('mantenimientos.iniciar');
     Route::post('mantenimientos/{mantenimiento}/completar', [admin_CrmMantenimientosController::class, 'completar'])->name('mantenimientos.completar');
@@ -279,4 +283,3 @@ Route::get('admin-reportes', [admin_ReportesController::class, 'index'])->name('
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-

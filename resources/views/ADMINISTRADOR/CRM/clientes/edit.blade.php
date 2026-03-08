@@ -111,20 +111,64 @@
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Ubicación</p>
                         </div>
 
+                        @php
+                            $distritoActual    = $cliente->distrito;
+                            $provinciaActual   = $distritoActual?->provincia;
+                            $departamentoActual = $provinciaActual?->departamento;
+                        @endphp
+
                         <div class="col-md-8">
                             <label class="form-label">Dirección</label>
                             <input type="text" class="form-control form-control-sm" name="direccion" value="{{ old('direccion', $cliente->direccion) }}">
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Distrito</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="distrito_id" data-placeholder="Seleccionar distrito...">
-                                <option value="">Seleccionar distrito...</option>
-                                @foreach($distritos as $distrito)
-                                    <option value="{{ $distrito->id }}" {{ old('distrito_id', $cliente->distrito_id) == $distrito->id ? 'selected' : '' }}>
-                                        {{ $distrito->nombre }}
+                            <label class="form-label">Departamento</label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100"
+                                    id="select_departamento" data-placeholder="Seleccionar...">
+                                <option value="">Seleccionar...</option>
+                                @foreach($departamentos as $dep)
+                                    <option value="{{ $dep->id }}"
+                                        {{ $departamentoActual?->id == $dep->id ? 'selected' : '' }}>
+                                        {{ $dep->nombre }}
                                     </option>
                                 @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Provincia</label>
+                            <select class="form-select form-select-sm w-100"
+                                    id="select_provincia"
+                                    data-placeholder="Seleccione un departamento"
+                                    {{ $provinciaActual ? '' : 'disabled' }}>
+                                <option value="">Seleccionar...</option>
+                                @if($provinciaActual)
+                                    @foreach($departamentoActual->provincias()->orderBy('nombre')->get() as $prov)
+                                        <option value="{{ $prov->id }}"
+                                            {{ $provinciaActual->id == $prov->id ? 'selected' : '' }}>
+                                            {{ $prov->nombre }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Distrito</label>
+                            <select class="form-select form-select-sm w-100"
+                                    name="distrito_id" id="select_distrito"
+                                    data-placeholder="Seleccione una provincia"
+                                    {{ $distritoActual ? '' : 'disabled' }}>
+                                <option value="">Seleccionar...</option>
+                                @if($distritoActual)
+                                    @foreach($provinciaActual->distritos()->orderBy('nombre')->get() as $dist)
+                                        <option value="{{ $dist->id }}"
+                                            {{ old('distrito_id', $distritoActual->id) == $dist->id ? 'selected' : '' }}>
+                                            {{ $dist->nombre }}
+                                        </option>
+                                    @endforeach
+                                @endif
                             </select>
                         </div>
 
@@ -133,7 +177,7 @@
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Clasificación</p>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Segmento <span class="text-danger">*</span></label>
                             <select class="form-select form-select-sm select2_bootstrap w-100" name="segmento" required data-placeholder="Seleccionar...">
                                 <option value="residencial" {{ old('segmento', $cliente->segmento) == 'residencial' ? 'selected' : '' }}>Residencial</option>
@@ -143,7 +187,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Estado <span class="text-danger">*</span></label>
                             <select class="form-select form-select-sm select2_bootstrap w-100" name="estado" required data-placeholder="Seleccionar...">
                                 <option value="activo" {{ old('estado', $cliente->estado) == 'activo' ? 'selected' : '' }}>Activo</option>
@@ -152,13 +196,25 @@
                             </select>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Vendedor Asignado</label>
                             <select class="form-select form-select-sm select2_bootstrap w-100" name="vendedor_id" data-placeholder="Sin asignar">
                                 <option value="">Sin asignar</option>
                                 @foreach($vendedores as $vendedor)
                                     <option value="{{ $vendedor->id }}" {{ old('vendedor_id', $cliente->vendedor_id) == $vendedor->id ? 'selected' : '' }}>
                                         {{ $vendedor->persona?->name ?? $vendedor->email }} {{ $vendedor->persona?->surnames ?? '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Sede</label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="sede_id" data-placeholder="Sin sede">
+                                <option value="">Sin sede</option>
+                                @foreach($sedes as $sede)
+                                    <option value="{{ $sede->id }}" {{ old('sede_id', $cliente->sede_id) == $sede->id ? 'selected' : '' }}>
+                                        {{ $sede->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -192,7 +248,8 @@
 @section('js')
 <script>
 $(document).ready(function() {
-    // Toggle campos según tipo de persona
+
+    // ===== TOGGLE TIPO PERSONA =====
     function toggleTipoPersona() {
         var tipo = $('#tipo_persona').val();
         if (tipo === 'juridica') {
@@ -203,9 +260,83 @@ $(document).ready(function() {
             $('#campo-dni').show();
         }
     }
-
     $('#tipo_persona').on('change', toggleTipoPersona);
-    toggleTipoPersona(); // Ejecutar al cargar
+    toggleTipoPersona();
+
+    // ===== UBIGEO CASCADING =====
+    var urlProvincias = '{{ route("ajax.provincias") }}';
+    var urlDistritos  = '{{ route("ajax.distritos") }}';
+
+    function destroySelect2(selector) {
+        if ($(selector).hasClass('select2-hidden-accessible')) {
+            $(selector).select2('destroy');
+        }
+    }
+
+    function initSelect2(selector, placeholder) {
+        $(selector).select2({ theme: 'bootstrap-5', placeholder: placeholder, width: '100%' });
+    }
+
+    function resetSelect(selector, msg) {
+        destroySelect2(selector);
+        $(selector).empty()
+                   .append('<option value="">' + msg + '</option>')
+                   .prop('disabled', true);
+    }
+
+    // Inicializar Select2 en los selects pre-cargados
+    @if(isset($provinciaActual) && $provinciaActual)
+        initSelect2('#select_provincia', 'Seleccionar provincia...');
+    @endif
+    @if(isset($distritoActual) && $distritoActual)
+        initSelect2('#select_distrito', 'Seleccionar distrito...');
+    @endif
+
+    // Al cambiar Departamento → cargar Provincias
+    $(document).on('change', '#select_departamento', function() {
+        var depId = $(this).val();
+
+        resetSelect('#select_provincia', 'Seleccione un departamento');
+        resetSelect('#select_distrito',  'Seleccione una provincia');
+
+        if (!depId) return;
+
+        $.getJSON(urlProvincias, { departamento_id: depId })
+            .done(function(data) {
+                destroySelect2('#select_provincia');
+                var $prov = $('#select_provincia').empty()
+                    .append('<option value="">Seleccionar...</option>');
+                $.each(data, function(i, p) {
+                    $prov.append('<option value="' + p.id + '">' + p.nombre + '</option>');
+                });
+                $prov.prop('disabled', false);
+                initSelect2('#select_provincia', 'Seleccionar provincia...');
+            })
+            .fail(function() { alert('Error al cargar provincias.'); });
+    });
+
+    // Al cambiar Provincia → cargar Distritos
+    $(document).on('change', '#select_provincia', function() {
+        var provId = $(this).val();
+
+        resetSelect('#select_distrito', 'Seleccione una provincia');
+
+        if (!provId) return;
+
+        $.getJSON(urlDistritos, { provincia_id: provId })
+            .done(function(data) {
+                destroySelect2('#select_distrito');
+                var $dist = $('#select_distrito').empty()
+                    .append('<option value="">Seleccionar...</option>');
+                $.each(data, function(i, d) {
+                    $dist.append('<option value="' + d.id + '">' + d.nombre + '</option>');
+                });
+                $dist.prop('disabled', false);
+                initSelect2('#select_distrito', 'Seleccionar distrito...');
+            })
+            .fail(function() { alert('Error al cargar distritos.'); });
+    });
+
 });
 </script>
 @endsection

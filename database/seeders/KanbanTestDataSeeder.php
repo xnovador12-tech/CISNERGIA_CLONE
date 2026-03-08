@@ -177,15 +177,17 @@ class KanbanTestDataSeeder extends Seeder
                 'updated_at' => now(),
             ]);
 
-            $clienteIds[] = DB::table('clientes')->insertGetId([
-                'nombre' => $c['name'],
+            $clienteIds[] = Cliente::create([
+                'nombre'    => $c['name'],
                 'apellidos' => $c['surnames'],
-                'email' => $c['email'],
-                'celular' => $c['celular'],
-                'user_id' => $userId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                'email'     => $c['email'],
+                'celular'   => $c['celular'],
+                'user_id'   => $userId,
+                'tipo_persona' => 'natural',
+                'estado'    => 'activo',
+                'origen'    => 'directo',
+                'segmento'  => 'residencial',
+            ])->id;
         }
 
         // =============================================
@@ -320,7 +322,8 @@ class KanbanTestDataSeeder extends Seeder
                     'descripcion' => $productos[$prodIdx]['name'],
                     'cantidad' => $qty,
                     'precio_unitario' => $precioUnit,
-                    'descuento' => 0,
+                    'descuento_porcentaje' => 0,
+                    'descuento_monto' => 0,
                     'subtotal' => $precioUnit * $qty,
                     'created_at' => $fechaCreacion,
                     'updated_at' => $fechaCreacion,

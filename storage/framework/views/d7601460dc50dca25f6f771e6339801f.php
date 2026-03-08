@@ -24,26 +24,6 @@
         </div>
     </div>
 
-    <?php if(session('success')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i><?php echo e(session('success')); ?>
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
-
-    <?php if(session('error')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i><?php echo e(session('error')); ?>
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
-
     <div class="container-fluid">
         <div class="row g-4">
             
@@ -172,6 +152,9 @@
                                                         <?php endif; ?>
                                                         <?php if($item->producto): ?>
                                                             <br><small class="text-primary"><i class="bi bi-link-45deg"></i> <?php echo e($item->producto->codigo); ?></small>
+                                                        <?php endif; ?>
+                                                        <?php if($item->servicio): ?>
+                                                            <br><small class="text-info"><i class="bi bi-link-45deg"></i> <?php echo e($item->servicio->name); ?></small>
                                                         <?php endif; ?>
                                                     </td>
                                                     <td class="small text-center"><?php echo e(number_format($item->cantidad, $item->cantidad == intval($item->cantidad) ? 0 : 2)); ?> <?php echo e($item->unidad); ?></td>
@@ -432,7 +415,10 @@
                     <div class="card-body">
                         <div class="d-grid gap-2">
                             <a href="<?php echo e(route('admin.crm.cotizaciones.pdf', $cotizacion)); ?>" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-file-pdf me-2"></i>Descargar PDF
+                                <i class="bi bi-file-earmark-arrow-down me-2"></i>Descargar PDF
+                            </a>
+                            <a href="<?php echo e(route('admin.crm.cotizaciones.preview', $cotizacion)); ?>" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-eye me-2"></i>Vista Previa PDF
                             </a>
                             <?php if(!in_array($cotizacion->estado, ['aceptada', 'rechazada'])): ?>
                             <a href="<?php echo e(route('admin.crm.cotizaciones.edit', $cotizacion)); ?>" class="btn btn-outline-warning btn-sm">

@@ -123,6 +123,7 @@
                                 <option value="">Ninguna</option>
                                 <option value="App\Models\Prospecto" {{ old('activable_type', $entidadTipo) == 'App\Models\Prospecto' ? 'selected' : '' }}>Prospecto</option>
                                 <option value="App\Models\Oportunidad" {{ old('activable_type', $entidadTipo) == 'App\Models\Oportunidad' ? 'selected' : '' }}>Oportunidad</option>
+                                <option value="App\Models\Cliente" {{ old('activable_type', $entidadTipo) == 'App\Models\Cliente' ? 'selected' : '' }}>Cliente</option>
                             </select>
                         </div>
 
@@ -161,8 +162,9 @@
 @section('js')
 <script>
 $(document).ready(function() {
-    const prospectos = @json($prospectos);
+    const prospectos   = @json($prospectos);
     const oportunidades = @json($oportunidades);
+    const clientes     = @json($clientes);
     const entidadIdInicial = "{{ old('activable_id', $entidadId ?? '') }}";
 
     // Cambiar opciones según tipo de entidad
@@ -179,12 +181,17 @@ $(document).ready(function() {
 
         if (tipo === 'App\\Models\\Prospecto') {
             prospectos.forEach(p => {
-                selectEntidad.append(`<option value="${p.id}">${p.nombre}</option>`);
+                selectEntidad.append(`<option value="${p.id}">${p.nombre} ${p.apellidos ?? ''}</option>`);
             });
         } else if (tipo === 'App\\Models\\Oportunidad') {
             oportunidades.forEach(o => {
                 const nombre = o.prospecto ? o.prospecto.nombre : 'Sin nombre';
                 selectEntidad.append(`<option value="${o.id}">${o.codigo} - ${nombre}</option>`);
+            });
+        } else if (tipo === 'App\\Models\\Cliente') {
+            clientes.forEach(c => {
+                const nombre = c.razon_social ?? `${c.nombre} ${c.apellidos ?? ''}`.trim();
+                selectEntidad.append(`<option value="${c.id}">${nombre}</option>`);
             });
         }
 

@@ -22,7 +22,8 @@ return new class extends Migration
                 'email',
                 'reunion',
                 'visita_tecnica',
-                'whatsapp'
+                'whatsapp',
+                'seguimiento',
             ]);
 
             // Relación polimórfica (puede ser de prospecto, oportunidad, cliente, etc.)
@@ -43,6 +44,7 @@ return new class extends Migration
             // Estado
             $table->enum('estado', [
                 'programada',
+                'en_evaluacion',   // Visita técnica iniciada, técnico en sitio evaluando
                 'completada',
                 'cancelada',
                 'reprogramada',

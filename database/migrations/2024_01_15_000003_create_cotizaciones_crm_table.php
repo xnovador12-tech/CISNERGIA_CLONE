@@ -16,23 +16,26 @@ return new class extends Migration
             
             // Relaciones
             $table->foreignId('oportunidad_id')->constrained('oportunidades')->onDelete('cascade');
-            $table->foreignId('prospecto_id')->constrained('prospectos')->onDelete('cascade');
+            $table->foreignId('prospecto_id')->nullable()->constrained('prospectos')->onDelete('set null');
             $table->foreignId('cliente_id')->nullable()->constrained('clientes')->onDelete('set null');
             
             // Datos del proyecto
             $table->string('nombre_proyecto');
             
             // Totales (calculados desde los ítems del detalle)
-            $table->decimal('subtotal', 12, 2)->default(0);
-            $table->decimal('descuento_porcentaje', 5, 2)->default(0);
-            $table->decimal('descuento_monto', 12, 2)->default(0);
+            // Precisión 14,6: permite montos hasta S/ 99,999,999.99 con 6 decimales
+            // para cálculos intermedios de IGV sin perder ningún céntimo.
+            // SUNAT exige presentar con 2 decimales, pero internamente operamos a 6.
+            $table->decimal('subtotal',            14, 6)->default(0);
+            $table->decimal('descuento_porcentaje', 7, 4)->default(0); // Ej: 12.5000%
+            $table->decimal('descuento_monto',     14, 6)->default(0);
             $table->boolean('incluye_igv')->default(true);
-            $table->decimal('igv', 12, 2)->default(0);
-            $table->decimal('total', 14, 2)->default(0);
+            $table->decimal('igv',                 14, 6)->default(0);
+            $table->decimal('total',               14, 6)->default(0);
             
             // Plazos
-            $table->integer('tiempo_ejecucion_dias')->default(5);
-            $table->string('garantia_servicio')->nullable(); // Ej: "2 años en mano de obra"
+            $table->integer('tiempo_ejecucion_dias')->default(0);
+            $table->string('garantia_servicio')->nullable();
             $table->date('fecha_emision');
             $table->date('fecha_vigencia');
             

@@ -115,50 +115,36 @@
     </div>
 
     
-    <?php if(session('success')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i><?php echo e(session('success')); ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    <?php endif; ?>
-    <?php if(session('error')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2"></i><?php echo e(session('error')); ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    <?php endif; ?>
-    <?php if(session('info')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-info alert-dismissible fade show"><i class="bi bi-info-circle me-2"></i><?php echo e(session('info')); ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    <?php endif; ?>
 
     
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px; min-height: 500px" data-aos="fade-up">
             <div class="card-header bg-transparent">
                 <div class="row justify-content-between align-items-center">
-                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                    <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex gap-2">
                         <a href="<?php echo e(route('admin.crm.oportunidades.create')); ?>" class="btn btn-primary text-uppercase text-white btn-sm">
                             <i class="bi bi-plus-circle-fill me-2"></i>Nueva Oportunidad
                         </a>
+                
                     </div>
                 </div>
             </div>
             <div class="card-body">
                 
-                <div class="row g-2 mb-3 align-items-end">
-                    <div class="col-md-3">
+                <div class="row g-2 mb-3 align-items-end flex-nowrap">
+                    <div class="col">
                         <label for="filtro-etapa" class="form-label small text-muted mb-1">Etapa</label>
                         <select id="filtro-etapa" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todas las Etapas">
                             <option value="">Todas las Etapas</option>
                             <option value="Calificación">Calificación</option>
                             <option value="Evaluación">Evaluación</option>
-                            <option value="Propuesta Técnica">Propuesta Técnica</option>
+                            <option value="Cotización">Cotización</option>
                             <option value="Negociación">Negociación</option>
                             <option value="Ganada">Ganada</option>
                             <option value="Perdida">Perdida</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col">
                         <label for="filtro-tipo" class="form-label small text-muted mb-1">Tipo Proyecto</label>
                         <select id="filtro-tipo" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Proyectos">
                             <option value="">Todos los Proyectos</option>
@@ -168,7 +154,7 @@
                             <option value="Agrícola">Agrícola</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col">
                         <label for="filtro-tipo-oportunidad" class="form-label small text-muted mb-1">Tipo Oportunidad</label>
                         <select id="filtro-tipo-oportunidad" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Producto / Servicio">
                             <option value="">Producto / Servicio</option>
@@ -177,14 +163,29 @@
                             <option value="Mixto">Mixto</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label small text-muted mb-1">&nbsp;</label>
-                        <div class="form-check mt-1">
-                            <input class="form-check-input" type="checkbox" id="ocultar-cerradas">
-                            <label class="form-check-label small" for="ocultar-cerradas">
-                                <i class="bi bi-eye-slash me-1"></i>Ocultar Ganadas/Perdidas
-                            </label>
-                        </div>
+                    <?php if($esAdmin): ?>
+                    <div class="col">
+                        <label class="form-label small text-muted mb-1">Vendedor</label>
+                        <select id="filtro-vendedor" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Vendedores">
+                            <option value="">Todos los Vendedores</option>
+                            <?php $__currentLoopData = $vendedores; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vendedor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e(trim(($vendedor->persona?->name ?? $vendedor->email) . ' ' . ($vendedor->persona?->surnames ?? ''))); ?>">
+                                    <?php echo e($vendedor->persona?->name ?? $vendedor->email); ?> <?php echo e($vendedor->persona?->surnames ?? ''); ?>
+
+                                </option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
+                    <?php endif; ?>
+                    <div class="col-auto">
+                        <button type="button" id="btn-limpiar"
+                                class="btn btn-sm btn-outline-secondary"
+                                title="Limpiar filtros"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                style="height: 31px; padding: 0 8px; border-radius: 6px;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
                     </div>
                 </div>
                 
@@ -202,44 +203,71 @@
                             <th class="text-center">Valor</th>
                             <th class="text-center">Etapa</th>
                             <th class="text-center">Probabilidad</th>
-                            <th class="text-center">Cierre Est.</th>
+                            <?php if($esAdmin): ?>
+                            <th class="text-center">Vendedor</th>
+                            <?php endif; ?>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
+                    <?php
+                        $tipoOpoColors = ['producto' => 'success', 'servicio' => 'warning text-dark', 'mixto' => 'info'];
+                        $etapaColors   = [
+                            'calificacion'    => 'primary',
+                            'evaluacion'      => 'info',
+                            'cotizacion' => 'warning text-dark',
+                            'negociacion'     => 'secondary',
+                            'ganada'          => 'success',
+                            'perdida'         => 'danger',
+                        ];
+                    ?>
                     <tbody>
                         <?php $__currentLoopData = $oportunidades; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $oportunidad): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <tr>
+                            <?php
+                                $vencida = !in_array($oportunidad->etapa, ['ganada', 'perdida'])
+                                    && $oportunidad->fecha_cierre_estimada
+                                    && $oportunidad->fecha_cierre_estimada->isPast();
+                            ?>
+                            <tr class="<?php echo e($vencida ? 'table-warning' : ''); ?>">
                                 <td class="text-center"></td>
-                                <td class="text-center"><span class="badge bg-secondary"><?php echo e($oportunidad->codigo); ?></span></td>
-                                <td class="text-start">
-                                    <strong><?php echo e(Str::limit($oportunidad->nombre, 30)); ?></strong>
-                                    <br><small class="text-muted"><?php echo e(ucfirst($oportunidad->tipo_proyecto ?? '')); ?></small>
-                                </td>
                                 <td class="text-center">
-                                    <?php if($oportunidad->cliente): ?>
-                                        <span class="badge bg-success"><?php echo e(Str::limit($oportunidad->cliente->nombre, 20)); ?></span>
-                                    <?php elseif($oportunidad->prospecto): ?>
-                                        <span class="badge bg-warning text-dark"><?php echo e(Str::limit($oportunidad->prospecto->nombre_completo, 20)); ?></span>
-                                    <?php else: ?>
-                                        <span class="text-muted">-</span>
+                                    <span class="fw-semibold"><?php echo e($oportunidad->codigo); ?></span>
+                                    <br><small class="text-muted"><?php echo e($oportunidad->created_at->format('d/m/Y')); ?></small>
+                                    <?php if($vencida): ?>
+                                        <br><span class="badge bg-danger" style="font-size:0.6rem;" title="Fecha de cierre vencida">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Vencida
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-start">
+                                    <span class="fw-semibold"><?php echo e(Str::limit($oportunidad->nombre, 30)); ?></span>
+                                    <?php if($oportunidad->tipo_proyecto): ?>
+                                        <br><small class="text-muted"><?php echo e(ucfirst($oportunidad->tipo_proyecto)); ?></small>
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-center">
-                                    <?php $tipoOpoColors = ['producto' => 'success', 'servicio' => 'warning', 'mixto' => 'info']; ?>
+                                    <?php if($oportunidad->cliente): ?>
+                                        <small class="text-dark fw-semibold"><?php echo e(Str::limit($oportunidad->cliente->nombre, 22)); ?></small>
+                                    <?php elseif($oportunidad->prospecto): ?>
+                                        <small class="text-dark fw-semibold"><?php echo e(Str::limit($oportunidad->prospecto->nombre_completo, 22)); ?></small>
+                                    <?php else: ?>
+                                        <span class="text-muted">—</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-center">
                                     <span class="badge bg-<?php echo e($tipoOpoColors[$oportunidad->tipo_oportunidad ?? 'producto'] ?? 'secondary'); ?>">
                                         <?php echo e(ucfirst($oportunidad->tipo_oportunidad ?? 'producto')); ?>
 
                                     </span>
                                 </td>
-                                <td class="text-center fw-bold text-primary">S/ <?php echo e(number_format($oportunidad->monto_estimado, 0)); ?></td>
+                                <td class="text-center fw-bold">
+                                    <?php if($oportunidad->monto_final): ?>
+                                        <span class="text-success">S/ <?php echo e(number_format($oportunidad->monto_final, 0)); ?></span>
+                                        <br><small class="text-muted fw-normal">est. S/ <?php echo e(number_format($oportunidad->monto_estimado, 0)); ?></small>
+                                    <?php else: ?>
+                                        <span class="text-primary">S/ <?php echo e(number_format($oportunidad->monto_estimado, 0)); ?></span>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="text-center">
-                                    <?php
-                                        $etapaColors = [
-                                            'calificacion' => 'primary', 'evaluacion' => 'info',
-                                            'propuesta_tecnica' => 'warning', 'negociacion' => 'secondary',
-                                            'ganada' => 'success', 'perdida' => 'danger',
-                                        ];
-                                    ?>
                                     <span class="badge bg-<?php echo e($etapaColors[$oportunidad->etapa] ?? 'secondary'); ?>">
                                         <?php echo e(\App\Models\Oportunidad::ETAPAS[$oportunidad->etapa]['nombre'] ?? ucfirst($oportunidad->etapa)); ?>
 
@@ -254,9 +282,12 @@
                                         <small><?php echo e($oportunidad->probabilidad); ?>%</small>
                                     </div>
                                 </td>
-                                <td class="text-center">
-                                    <small><?php echo e($oportunidad->fecha_cierre_estimada ? $oportunidad->fecha_cierre_estimada->format('d/m/Y') : '-'); ?></small>
+                                <?php if($esAdmin): ?>
+                                <td class="text-center small">
+                                    <?php echo e(trim(($oportunidad->vendedor?->persona?->name ?? $oportunidad->vendedor?->email ?? '—') . ' ' . ($oportunidad->vendedor?->persona?->surnames ?? ''))); ?>
+
                                 </td>
+                                <?php endif; ?>
                                 <td class="text-center">
                                     <div class="dropstart">
                                         <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
@@ -271,7 +302,8 @@
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <form action="<?php echo e(route('admin.crm.oportunidades.destroy', $oportunidad)); ?>"
-                                                      method="POST" class="form-delete d-inline">
+                                                      method="POST" class="form-delete d-inline"
+                                                      data-nombre="<?php echo e($oportunidad->nombre); ?>">
                                                     <?php echo csrf_field(); ?>
                                                     <?php echo method_field('DELETE'); ?>
                                                     <button type="submit"
@@ -314,7 +346,7 @@
             pageLength: 10,
             order: [[1, 'desc']],
             columnDefs: [
-                { orderable: false, searchable: false, targets: [0, 9] }
+                { orderable: false, searchable: false, targets: <?php echo e($esAdmin ? '[0, 9]' : '[0, 8]'); ?> }
             ],
             dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
                  '<"row"<"col-sm-12"tr>>' +
@@ -335,6 +367,22 @@
         // Filtro por Tipo Oportunidad (columna 4)
         $('#filtro-tipo-oportunidad').on('change', function() { table.column(4).search($(this).val()).draw(); });
 
+        <?php if($esAdmin): ?>
+        $('#filtro-vendedor').on('change', function() { table.column(8).search($(this).val()).draw(); });
+        <?php endif; ?>
+
+        // Limpiar filtros
+        $('#btn-limpiar').on('click', function() {
+            $('[id^="filtro-"]').each(function() {
+                $(this).val('').trigger('change');
+            });
+            table.search('').columns().search('').draw();
+        });
+
+    // Inicializar tooltip
+    var tooltipEl = document.querySelector('#btn-limpiar');
+    if (tooltipEl) { new bootstrap.Tooltip(tooltipEl); }
+
         // Al cambiar el checkbox, redibujar la tabla
         $('#ocultar-cerradas').on('change', function() {
             table.draw();
@@ -344,14 +392,15 @@
         $(document).on('submit', '.form-delete', function(e) {
             e.preventDefault();
             var form = this;
+            var nombre = $(this).data('nombre') || 'esta oportunidad';
             Swal.fire({
-                title: '¿Estás seguro?',
-                text: "¡No podrás revertir esto!",
+                title: '¿Eliminar oportunidad?',
+                html: 'Se eliminará permanentemente <strong>' + nombre + '</strong>.<br><small class="text-muted">Esta acción no se puede deshacer.</small>',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#1C3146',
                 cancelButtonColor: '#FF9C00',
-                confirmButtonText: '¡Sí, eliminar!',
+                confirmButtonText: '<i class="bi bi-trash me-1"></i> Sí, eliminar',
                 cancelButtonText: 'Cancelar'
             }).then(function(result) {
                 if (result.isConfirmed) { form.submit(); }

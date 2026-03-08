@@ -21,6 +21,7 @@ class PedidoCrmSeeder extends Seeder
      *
      * Los ítems del pedido se copian de los detalles de la cotización aceptada.
      * Cada pedido se vincula al cliente creado desde esa misma oportunidad.
+     * El descuento es general (nivel pedido), no por ítem.
      *
      * Dependencias: OportunidadSeeder, CotizacionCrmSeeder, ClienteSeeder
      */
@@ -36,17 +37,14 @@ class PedidoCrmSeeder extends Seeder
         }
 
         $almacen = \App\Models\Almacen::first();
-        $tecnico = User::skip(1)->first() ?? User::first();
 
-        $totalPedidos = 0;
-
-        foreach ($ganadas as $index => $oportunidad) {
+        foreach ($ganadas as $oportunidad) {
             $prospecto = $oportunidad->prospecto;
             if (!$prospecto) {
                 continue;
             }
 
-            // Buscar el cliente que fue creado desde esta oportunidad (via prospecto_id)
+            // Buscar el cliente creado desde esta oportunidad (via prospecto_id)
             $cliente = Cliente::where('prospecto_id', $prospecto->id)->first();
             if (!$cliente) {
                 continue;
@@ -66,32 +64,29 @@ class PedidoCrmSeeder extends Seeder
                 continue;
             }
 
-            // ── Calcular totales desde detalles de cotización ──
-            $subtotal = 0;
+            // ── Preparar ítems desde detalles de cotización ──
+            // El subtotal por ítem ya viene calculado por DetalleCotizacionCrm::booted()
             $itemsData = [];
+            $subtotalItems = 0;
 
             foreach ($cotizacion->detalles as $detalle) {
-                $precioUnit = $detalle->precio_unitario;
-                $cantidad   = $detalle->cantidad;
-                $descuento  = ($precioUnit * $cantidad) * ($detalle->descuento_porcentaje / 100);
-                $lineTotal  = ($precioUnit * $cantidad) - $descuento;
-
                 $itemsData[] = [
-                    'producto_id'    => $detalle->producto_id,
-                    'servicio_id'    => null, // servicios de cotización no tienen FK a tabla servicios
-                    'tipo'           => $detalle->categoria ?? 'producto',
-                    'descripcion'    => $detalle->descripcion,
-                    'cantidad'       => (int) $cantidad,
-                    'precio_unitario' => $precioUnit,
-                    'descuento_monto' => $descuento,
-                    'subtotal'       => $lineTotal,
+                    'producto_id'     => $detalle->producto_id,
+                    'servicio_id'     => $detalle->servicio_id,
+                    'tipo'            => $detalle->categoria ?? 'producto',
+                    'descripcion'     => $detalle->descripcion,
+                    'cantidad'        => (int) $detalle->cantidad,
+                    'unidad'          => $detalle->unidad ?? 'und',
+                    'precio_unitario' => $detalle->precio_unitario,
+                    'subtotal'        => $detalle->subtotal,
                 ];
 
-                $subtotal += $lineTotal;
+                $subtotalItems += (float) $detalle->subtotal;
             }
 
-            $descuentoGlobal = $subtotal * (($cotizacion->descuento_porcentaje ?? 0) / 100);
-            $baseImponible   = $subtotal - $descuentoGlobal;
+            // ── Calcular totales a nivel de pedido ──
+            $descuentoGlobal = $subtotalItems * (($cotizacion->descuento_porcentaje ?? 0) / 100);
+            $baseImponible   = $subtotalItems - $descuentoGlobal;
             $igv             = $cotizacion->incluye_igv ? round($baseImponible * 0.18, 2) : 0;
             $total           = round($baseImponible + $igv, 2);
 
@@ -105,23 +100,25 @@ class PedidoCrmSeeder extends Seeder
 
             // ── Crear pedido ──
             $pedido = Pedido::create([
-                'codigo'                => $codigo,
-                'slug'                  => Str::slug($codigo),
-                'cliente_id'            => $cliente->id,
-                'user_id'               => $oportunidad->user_id,
-                'subtotal'              => round($baseImponible, 2),
-                'descuento_monto'       => round($descuentoGlobal, 2),
-                'igv'                   => $igv,
-                'total'                 => $total,
-                'estado'                => 'entregado',
-                'aprobacion_finanzas'   => true,
-                'aprobacion_stock'      => true,
-                'direccion_instalacion' => $cliente->direccion,
-                'distrito_id'           => $cliente->distrito_id,
+                'codigo'                 => $codigo,
+                'slug'                   => Str::slug($codigo),
+                'cliente_id'             => $cliente->id,
+                'user_id'                => $oportunidad->user_id,
+                'cotizacion_id'          => $cotizacion->id,
+                'subtotal'               => round($subtotalItems, 2),
+                'descuento_porcentaje'   => $cotizacion->descuento_porcentaje ?? 0,
+                'descuento_monto'        => round($descuentoGlobal, 2),
+                'igv'                    => $igv,
+                'total'                  => $total,
+                'estado'                 => 'entregado',
+                'aprobacion_finanzas'    => true,
+                'aprobacion_stock'       => true,
+                'direccion_instalacion'  => $cliente->direccion,
+                'distrito_id'            => $cliente->distrito_id,
                 'fecha_entrega_estimada' => $fechaEntrega,
-                'almacen_id'            => $almacen?->id,
-                'origen'                => $cliente->origen === 'ecommerce' ? 'ecommerce' : 'directo',
-                'observaciones'         => "Pedido generado desde oportunidad {$oportunidad->codigo}. Cotización: {$cotizacion->codigo}.",
+                'almacen_id'             => $almacen?->id,
+                'origen'                 => $cliente->origen === 'ecommerce' ? 'ecommerce' : 'directo',
+                'observaciones'          => "Pedido generado desde oportunidad {$oportunidad->codigo}. Cotización: {$cotizacion->codigo}.",
             ]);
 
             // ── Crear detalles del pedido ──
@@ -130,10 +127,6 @@ class PedidoCrmSeeder extends Seeder
                     'pedido_id' => $pedido->id,
                 ]));
             }
-
-            $totalPedidos++;
-            $itemCount = count($itemsData);
         }
-
     }
 }

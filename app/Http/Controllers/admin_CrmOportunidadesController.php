@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Oportunidad;
 use App\Models\Prospecto;
 use App\Models\Producto;
+use App\Models\Servicio;
 use App\Models\Tipo;
 use App\Models\User;
+use App\Http\Requests\StoreActividadOportunidadRequest;
+use App\Http\Requests\StoreOportunidadRequest;
+use App\Http\Requests\UpdateOportunidadRequest;
 use Illuminate\Http\Request;
 
 class admin_CrmOportunidadesController extends Controller
@@ -17,7 +21,16 @@ class admin_CrmOportunidadesController extends Controller
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $rolesAdmin = ['cuantica', 'administrador'];
+        $esAdmin = in_array(strtolower($user->role->slug ?? ''), $rolesAdmin);
+
         $query = Oportunidad::with(['prospecto', 'vendedor', 'cliente']);
+
+        // Filtro por rol: no admins solo ven sus oportunidades
+        if (!$esAdmin) {
+            $query->where('user_id', $user->id);
+        }
 
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
@@ -75,7 +88,8 @@ class admin_CrmOportunidadesController extends Controller
         return view('ADMINISTRADOR.CRM.oportunidades.index', compact(
             'oportunidades',
             'estadisticas',
-            'vendedores'
+            'vendedores',
+            'esAdmin'
         ));
     }
 
@@ -104,6 +118,11 @@ class admin_CrmOportunidadesController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Servicios activos del catálogo (lista plana)
+        $servicios = Servicio::where('estado', 'Activo')
+            ->orderBy('name')
+            ->get();
+
         $prospectoId = $request->get('prospecto_id');
         $montoEstimado = $request->get('monto_estimado');
 
@@ -112,6 +131,7 @@ class admin_CrmOportunidadesController extends Controller
             'vendedores',
             'tipos',
             'productos',
+            'servicios',
             'prospectoId',
             'montoEstimado'
         ));
@@ -120,31 +140,9 @@ class admin_CrmOportunidadesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreOportunidadRequest $request)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:200',
-            'prospecto_id' => 'required|exists:prospectos,id',
-            'tipo_proyecto' => 'required|in:residencial,comercial,industrial,agricola',
-            'tipo_oportunidad' => 'required|in:producto,servicio,mixto',
-            'monto_estimado' => 'required|numeric|min:0',
-            'fecha_cierre_estimada' => 'required|date|after:today',
-            // Servicio
-            'tipo_servicio' => 'nullable|in:instalacion,mantenimiento_preventivo,mantenimiento_correctivo,ampliacion,otro',
-            'descripcion_servicio' => 'nullable|string',
-            // Visita técnica
-            'requiere_visita_tecnica' => 'nullable|boolean',
-            'fecha_visita_programada' => 'nullable|date',
-            // Descripción y notas
-            'descripcion' => 'nullable|string',
-            'observaciones' => 'nullable|string',
-            'user_id' => 'nullable|exists:users,id',
-            // Productos de interés
-            'items' => 'nullable|array',
-            'items.*.producto_id' => 'required_with:items|exists:productos,id',
-            'items.*.cantidad' => 'required_with:items|numeric|min:0.01',
-            'items.*.notas' => 'nullable|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $validated['etapa'] = 'calificacion';
         $validated['probabilidad'] = Oportunidad::ETAPAS['calificacion']['probabilidad'];
@@ -168,9 +166,33 @@ class admin_CrmOportunidadesController extends Controller
             $oportunidad->productosInteres()->sync($syncData);
         }
 
+        // Auto-crear actividad de visita técnica si aplica
+        if ($oportunidad->requiere_visita_tecnica && $oportunidad->fecha_visita_programada) {
+            \App\Models\ActividadCrm::create([
+                'tipo'              => 'visita_tecnica',
+                'actividadable_type'=> Oportunidad::class,
+                'actividadable_id'  => $oportunidad->id,
+                'titulo'            => 'Visita Técnica — ' . $oportunidad->nombre,
+                'descripcion'       => $oportunidad->descripcion_servicio
+                                        ? 'Evaluación técnica para: ' . $oportunidad->descripcion_servicio
+                                        : 'Evaluación técnica de la oportunidad ' . $oportunidad->codigo,
+                'ubicacion'         => $oportunidad->ubicacion_visita,
+                'fecha_programada'  => $oportunidad->fecha_visita_programada,
+                'estado'            => 'programada',
+                'prioridad'         => 'alta',
+                'user_id'           => $oportunidad->tecnico_visita_id ?? auth()->id(),
+                'created_by'        => auth()->id(),
+                'recordatorio_activo'          => true,
+                'recordatorio_minutos_antes'   => 60,
+            ]);
+        }
+
         return redirect()
             ->route('admin.crm.oportunidades.show', $oportunidad)
-            ->with('success', 'Oportunidad creada exitosamente.');
+            ->with('success', 'Oportunidad creada exitosamente.' .
+                ($oportunidad->requiere_visita_tecnica && $oportunidad->fecha_visita_programada
+                    ? ' Se creó la actividad de visita técnica automáticamente.'
+                    : ''));
     }
 
     /**
@@ -182,6 +204,8 @@ class admin_CrmOportunidadesController extends Controller
             'prospecto',
             'cliente',
             'vendedor',
+            'tecnicoVisita',
+            'servicio',
             'cotizaciones' => fn($q) => $q->latest(),
             'actividades' => fn($q) => $q->latest()->take(15),
             'productosInteres.marca',
@@ -216,6 +240,11 @@ class admin_CrmOportunidadesController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Servicios activos del catálogo (lista plana)
+        $servicios = Servicio::where('estado', 'Activo')
+            ->orderBy('name')
+            ->get();
+
         $productosExistentesJson = $oportunidad->productosInteres->map(function($p) {
             return [
                 'producto_id' => $p->id,
@@ -234,6 +263,7 @@ class admin_CrmOportunidadesController extends Controller
             'clientes',
             'tipos',
             'productos',
+            'servicios',
             'productosExistentesJson'
         ));
     }
@@ -241,39 +271,78 @@ class admin_CrmOportunidadesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Oportunidad $oportunidad)
+    public function update(UpdateOportunidadRequest $request, Oportunidad $oportunidad)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:200',
-            'prospecto_id' => 'nullable|exists:prospectos,id',
-            'tipo_proyecto' => 'required|in:residencial,comercial,industrial,agricola',
-            'tipo_oportunidad' => 'required|in:producto,servicio,mixto',
-            'monto_estimado' => 'required|numeric|min:0',
-            // Servicio
-            'tipo_servicio' => 'nullable|in:instalacion,mantenimiento_preventivo,mantenimiento_correctivo,ampliacion,otro',
-            'descripcion_servicio' => 'nullable|string',
-            // Visita técnica
-            'requiere_visita_tecnica' => 'nullable|boolean',
-            'fecha_visita_programada' => 'nullable|date',
-            'resultado_visita' => 'nullable|string',
-            // Fechas y notas
-            'fecha_cierre_estimada' => 'nullable|date',
-            'descripcion' => 'nullable|string',
-            'observaciones' => 'nullable|string',
-            'user_id' => 'nullable|exists:users,id',
-            // Productos de interés
-            'items' => 'nullable|array',
-            'items.*.producto_id' => 'required_with:items|exists:productos,id',
-            'items.*.cantidad' => 'required_with:items|numeric|min:0.01',
-            'items.*.notas' => 'nullable|string|max:500',
-            // Campos del pipeline (etapa, probabilidad, monto_final, fecha_cierre_real,
-            // motivo_perdida, competidor_ganador, detalle_perdida) se gestionan
-            // exclusivamente desde las acciones del show (avanzar, ganada, perdida)
-        ]);
+        $validated = $request->validated();
 
         $validated['requiere_visita_tecnica'] = $request->has('requiere_visita_tecnica');
 
+        // Limpiar campos de servicio si el tipo cambia a 'producto'
+        if (($validated['tipo_oportunidad'] ?? null) === 'producto') {
+            $validated['servicio_id']         = null;
+            $validated['descripcion_servicio'] = null;
+            $validated['requiere_visita_tecnica'] = false;
+            $validated['fecha_visita_programada'] = null;
+            $validated['ubicacion_visita']    = null;
+            $validated['tecnico_visita_id']   = null;
+        }
+
+        // Guardar estado anterior de visita para comparar
+        $visitaAntes = [
+            'activa'   => $oportunidad->requiere_visita_tecnica,
+            'fecha'    => $oportunidad->fecha_visita_programada?->toDateTimeString(),
+            'tecnico'  => $oportunidad->tecnico_visita_id,
+            'ubicacion'=> $oportunidad->ubicacion_visita,
+        ];
+
         $oportunidad->update($validated);
+
+        // ── Sincronizar actividad de visita técnica ──────────────────────────
+        $visitaDespues = $validated['requiere_visita_tecnica'] ?? false;
+
+        if ($visitaDespues && $oportunidad->fecha_visita_programada) {
+            // Buscar actividad de visita existente (programada o en_evaluacion)
+            $actividadVisita = \App\Models\ActividadCrm::where('actividadable_type', Oportunidad::class)
+                ->where('actividadable_id', $oportunidad->id)
+                ->where('tipo', 'visita_tecnica')
+                ->whereIn('estado', ['programada', 'en_evaluacion'])
+                ->latest()
+                ->first();
+
+            $cambioFecha   = $visitaAntes['fecha']    !== $oportunidad->fecha_visita_programada?->toDateTimeString();
+            $cambioTecnico = $visitaAntes['tecnico']  !== $oportunidad->tecnico_visita_id;
+            $cambioUbic    = $visitaAntes['ubicacion'] !== $oportunidad->ubicacion_visita;
+
+            if ($actividadVisita) {
+                // Actualizar la actividad existente si cambiaron datos relevantes
+                if ($cambioFecha || $cambioTecnico || $cambioUbic) {
+                    $actividadVisita->update([
+                        'fecha_programada' => $oportunidad->fecha_visita_programada,
+                        'user_id'          => $oportunidad->tecnico_visita_id ?? $actividadVisita->user_id,
+                        'ubicacion'        => $oportunidad->ubicacion_visita,
+                    ]);
+                }
+            } elseif (!$visitaAntes['activa']) {
+                // Se activó requiere_visita_tecnica en este update → crear actividad nueva
+                \App\Models\ActividadCrm::create([
+                    'tipo'               => 'visita_tecnica',
+                    'actividadable_type' => Oportunidad::class,
+                    'actividadable_id'   => $oportunidad->id,
+                    'titulo'             => 'Visita Técnica — ' . $oportunidad->nombre,
+                    'descripcion'        => $oportunidad->descripcion_servicio
+                                            ? 'Evaluación técnica para: ' . $oportunidad->descripcion_servicio
+                                            : 'Evaluación técnica de la oportunidad ' . $oportunidad->codigo,
+                    'ubicacion'          => $oportunidad->ubicacion_visita,
+                    'fecha_programada'   => $oportunidad->fecha_visita_programada,
+                    'estado'             => 'programada',
+                    'prioridad'          => 'alta',
+                    'user_id'            => $oportunidad->tecnico_visita_id ?? auth()->id(),
+                    'created_by'         => auth()->id(),
+                    'recordatorio_activo'         => true,
+                    'recordatorio_minutos_antes'  => 60,
+                ]);
+            }
+        }
 
         // Sincronizar productos de interés
         $syncData = [];
@@ -282,7 +351,7 @@ class admin_CrmOportunidadesController extends Controller
                 if (!empty($item['producto_id'])) {
                     $syncData[$item['producto_id']] = [
                         'cantidad' => $item['cantidad'] ?? 1,
-                        'notas' => $item['notas'] ?? null,
+                        'notas'    => $item['notas'] ?? null,
                     ];
                 }
             }
@@ -302,6 +371,18 @@ class admin_CrmOportunidadesController extends Controller
      */
     public function destroy(Oportunidad $oportunidad)
     {
+        if ($oportunidad->etapa === 'ganada') {
+            return redirect()
+                ->route('admin.crm.oportunidades.show', $oportunidad)
+                ->with('error', 'No se puede eliminar una oportunidad ganada. Tiene un pedido asociado.');
+        }
+
+        if ($oportunidad->cotizaciones()->exists()) {
+            return redirect()
+                ->route('admin.crm.oportunidades.show', $oportunidad)
+                ->with('error', 'No se puede eliminar una oportunidad con cotizaciones asociadas. Elimina primero las cotizaciones.');
+        }
+
         $oportunidad->delete();
 
         return redirect()
@@ -322,25 +403,26 @@ class admin_CrmOportunidadesController extends Controller
     }
 
     /**
-     * Marcar oportunidad como ganada
+     * Avanza la oportunidad a cotizacion y redirige a crear cotización.
+     * Si ya está en cotizacion o más adelante, solo redirige.
      */
-    public function marcarGanada(Request $request, Oportunidad $oportunidad)
+    public function crearCotizacion(Oportunidad $oportunidad)
     {
-        $validated = $request->validate([
-            'monto_final' => 'required|numeric|min:0',
-            'fecha_cierre_real' => 'required|date',
-        ]);
+        $etapas = array_keys(Oportunidad::ETAPAS);
+        $indiceActual = array_search($oportunidad->etapa, $etapas);
+        $indicePropuesta = array_search('cotizacion', $etapas);
 
-        $oportunidad->marcarGanada($validated['monto_final'], $validated['fecha_cierre_real']);
+        // Avanzar solo si aún está antes de cotizacion
+        if ($indiceActual !== false && $indiceActual < $indicePropuesta) {
+            $oportunidad->etapa = 'cotizacion';
+            $oportunidad->probabilidad = Oportunidad::ETAPAS['cotizacion']['probabilidad'];
+            $oportunidad->save();
+        }
 
         return redirect()
-            ->route('admin.crm.oportunidades.show', $oportunidad)
-            ->with('success', 'Oportunidad ganada. El prospecto ha sido convertido a cliente.');
+            ->route('admin.crm.cotizaciones.create', ['oportunidad_id' => $oportunidad->id])
+            ->with('success', 'Oportunidad avanzada a Cotización. Completa la cotización.');
     }
-
-    /**
-     * Marcar oportunidad como perdida
-     */
     public function marcarPerdida(Request $request, Oportunidad $oportunidad)
     {
         $validated = $request->validate([
@@ -361,30 +443,11 @@ class admin_CrmOportunidadesController extends Controller
     }
 
     /**
-     * Crear cotización desde oportunidad
-     */
-    public function crearCotizacion(Request $request, Oportunidad $oportunidad)
-    {
-        $cotizacion = $oportunidad->crearCotizacion();
-
-        return redirect()
-            ->route('admin.crm.cotizaciones.edit', $cotizacion)
-            ->with('success', 'Cotización creada. Agregue los ítems del catálogo.');
-    }
-
-    /**
      * Registrar actividad
      */
-    public function registrarActividad(Request $request, Oportunidad $oportunidad)
+    public function registrarActividad(StoreActividadOportunidadRequest $request, Oportunidad $oportunidad)
     {
-        $validated = $request->validate([
-            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,whatsapp',
-            'titulo' => 'required|string|max:200',
-            'descripcion' => 'nullable|string',
-            'fecha_programada' => 'required|date',
-            'prioridad' => 'nullable|in:alta,media,baja',
-            'user_id' => 'nullable|exists:users,id',
-        ]);
+        $validated = $request->validated();
 
         $validated['estado'] = 'programada';
         $validated['user_id'] = $validated['user_id'] ?? auth()->id();
@@ -417,9 +480,9 @@ class admin_CrmOportunidadesController extends Controller
             'total_valor' => $totalValor,
             'total_ponderado' => $totalPonderado,
             'total_oportunidades' => $totalOportunidades,
-            'ganadas_mes' => Oportunidad::ganadas()->delMes()->count(),
-            'valor_ganado_mes' => Oportunidad::ganadas()->delMes()->sum('monto_final'),
-            'perdidas_mes' => Oportunidad::perdidas()->delMes()->count(),
+            'ganadas_mes' => Oportunidad::ganadas()->cerradasEnMes()->count(),
+            'valor_ganado_mes' => Oportunidad::ganadas()->cerradasEnMes()->sum('monto_final'),
+            'perdidas_mes' => Oportunidad::perdidas()->cerradasEnMes()->count(),
             'tasa_conversion' => $this->calcularTasaConversion(),
             'ticket_promedio' => Oportunidad::ganadas()->avg('monto_final') ?? 0,
         ];
@@ -431,89 +494,6 @@ class admin_CrmOportunidadesController extends Controller
         $ganadas = Oportunidad::where('etapa', 'ganada')->count();
         
         return $cerradas > 0 ? round(($ganadas / $cerradas) * 100, 1) : 0;
-    }
-
-    /**
-     * Exportar oportunidades
-     */
-    public function exportar(Request $request)
-    {
-        $query = Oportunidad::with(['prospecto', 'vendedor']);
-
-        if ($request->filled('etapa')) {
-            $query->where('etapa', $request->etapa);
-        }
-
-        if (!$request->filled('incluir_cerradas')) {
-            $query->activas();
-        }
-
-        $oportunidades = $query->get();
-
-        $filename = 'oportunidades_' . date('Y-m-d_His') . '.csv';
-        
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        $callback = function() use ($oportunidades) {
-            $file = fopen('php://output', 'w');
-            
-            fputcsv($file, [
-                'Código', 'Nombre', 'Cliente/Prospecto', 'Etapa', 'Tipo Proyecto',
-                'Tipo Oportunidad', 'Monto Estimado', 'Valor Ponderado',
-                'Probabilidad', 'Fecha Cierre Est.', 'Vendedor', 'Días en Pipeline'
-            ]);
-
-            foreach ($oportunidades as $o) {
-                fputcsv($file, [
-                    $o->codigo,
-                    $o->nombre,
-                    $o->prospecto?->nombre_completo ?? $o->cliente?->nombre_completo,
-                    $o->nombre_etapa,
-                    $o->tipo_proyecto,
-                    $o->tipo_oportunidad,
-                    $o->monto_estimado,
-                    $o->valor_ponderado,
-                    $o->probabilidad . '%',
-                    $o->fecha_cierre_estimada?->format('d/m/Y'),
-                    $o->vendedor?->name,
-                    $o->dias_en_pipeline,
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
-
-    /**
-     * Convertir el prospecto de una oportunidad ganada a cliente
-     */
-    public function convertirACliente(Oportunidad $oportunidad)
-    {
-        if ($oportunidad->etapa !== 'ganada') {
-            return back()->with('error', 'Solo se pueden convertir prospectos de oportunidades ganadas.');
-        }
-
-        if (!$oportunidad->prospecto) {
-            return back()->with('error', 'Esta oportunidad no tiene un prospecto asociado.');
-        }
-
-        if ($oportunidad->cliente_id) {
-            return back()->with('info', 'Este prospecto ya fue convertido a cliente.');
-        }
-
-        $cliente = $oportunidad->prospecto->convertirACliente();
-        
-        $oportunidad->cliente_id = $cliente->id;
-        $oportunidad->save();
-
-        return redirect()
-            ->route('admin.crm.oportunidades.show', $oportunidad)
-            ->with('success', 'Prospecto convertido a cliente exitosamente. Codigo: ' . $cliente->codigo);
     }
 
     /**

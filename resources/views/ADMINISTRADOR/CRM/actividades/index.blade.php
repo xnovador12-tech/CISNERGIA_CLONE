@@ -127,40 +127,24 @@
     </div>
 
     {{-- Alertas de sesión --}}
-    @if(session('success'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    @endif
 
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px"
             data-aos="fade-up" data-aos-anchor-placement="top-bottom">
             <div class="card-header bg-transparent">
                 <div class="row justify-content-between align-items-center">
-                    <div class="col-12 col-md-4 mb-2 mb-md-0">
+                    <div class="col-12 col-md-4 mb-2 mb-md-0 d-flex gap-2">
                         <a href="{{ route('admin.crm.actividades.create') }}" class="btn btn-primary text-uppercase text-white btn-sm">
                             <i class="bi bi-plus-circle-fill me-2"></i>Nueva Actividad
                         </a>
+
                     </div>
                 </div>
             </div>
             <div class="card-body">
                 {{-- Filtros --}}
-                <div class="row g-2 mb-3 align-items-end">
-                    <div class="col-md-4">
+                <div class="row g-2 mb-3 align-items-end flex-nowrap">
+                    <div class="col">
                         <label for="filtro-tipo" class="form-label small text-muted mb-1">Tipo</label>
                         <select id="filtro-tipo" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Tipos">
                             <option value="">Todos los Tipos</option>
@@ -169,18 +153,19 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col">
                         <label for="filtro-estado" class="form-label small text-muted mb-1">Estado</label>
                         <select id="filtro-estado" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Estados">
                             <option value="">Todos los Estados</option>
                             <option value="Programada">Programada</option>
+                            <option value="En Evaluación">En Evaluación</option>
                             <option value="Completada">Completada</option>
-                            <option value="Cancelada">Cancelada</option>
                             <option value="Reprogramada">Reprogramada</option>
+                            <option value="Cancelada">Cancelada</option>
                             <option value="No Realizada">No Realizada</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col">
                         <label for="filtro-prioridad" class="form-label small text-muted mb-1">Prioridad</label>
                         <select id="filtro-prioridad" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todas las Prioridades">
                             <option value="">Todas las Prioridades</option>
@@ -188,6 +173,29 @@
                             <option value="Media">Media</option>
                             <option value="Baja">Baja</option>
                         </select>
+                    </div>
+                    @if($esAdmin ?? false)
+                    <div class="col">
+                        <label for="filtro-responsable" class="form-label small text-muted mb-1">Responsable</label>
+                        <select id="filtro-responsable" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos">
+                            <option value="">Todos</option>
+                            @foreach($usuarios as $u)
+                                <option value="{{ $u->persona?->name ?? $u->email }}">
+                                    {{ $u->persona?->name ?? $u->email }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+                    <div class="col-auto">
+                        <button type="button" id="btn-limpiar"
+                                class="btn btn-sm btn-outline-secondary"
+                                title="Limpiar filtros"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                style="height: 31px; padding: 0 8px; border-radius: 6px;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -209,27 +217,28 @@
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
                     </thead>
+                        @php
+                            $estadoColors  = ['programada' => 'warning text-dark', 'completada' => 'success', 'cancelada' => 'danger', 'reprogramada' => 'primary', 'no_realizada' => 'secondary', 'en_evaluacion' => 'info'];
+                            $estadoNombres = ['programada' => 'Programada', 'completada' => 'Completada', 'cancelada' => 'Cancelada', 'reprogramada' => 'Reprogramada', 'no_realizada' => 'No Realizada', 'en_evaluacion' => 'En Evaluación'];
+                            $prioridadIcons = ['alta' => 'bi-arrow-up-circle-fill text-danger', 'media' => 'bi-dash-circle-fill text-warning', 'baja' => 'bi-arrow-down-circle-fill text-success'];
+                        @endphp
                         <tbody>
                             @foreach($actividades as $index => $actividad)
-                                @php
-                                    $tipoInfo = $actividad->tipo_info;
-                                    $estadoColors = ['programada' => 'warning', 'completada' => 'success', 'cancelada' => 'danger', 'reprogramada' => 'primary', 'no_realizada' => 'secondary'];
-                                    $estadoNombres = ['programada' => 'Programada', 'completada' => 'Completada', 'cancelada' => 'Cancelada', 'reprogramada' => 'Reprogramada', 'no_realizada' => 'No Realizada'];
-                                    $prioridadIcons = ['alta' => '🔴', 'media' => '🟡', 'baja' => '🟢'];
-                                @endphp
+                                @php $tipoInfo = $actividad->tipo_info; @endphp
                                 <tr>
-                                    <td class="fw-normal text-center align-middle"></td>
-                                    <td class="fw-normal text-center align-middle">
-                                        <span class="badge bg-secondary">{{ $actividad->codigo }}</span>
+                                    <td class="text-center align-middle"></td>
+                                    <td class="text-center align-middle">
+                                        <span class="fw-semibold">{{ $actividad->codigo }}</span>
+                                        <br><small class="text-muted">{{ $actividad->created_at->format('d/m/Y') }}</small>
                                     </td>
-                                    <td class="fw-normal text-center align-middle">
+                                    <td class="text-center align-middle">
                                         <span class="badge bg-{{ $tipoInfo['color'] }}">
                                             <i class="bi {{ $tipoInfo['icono'] }} me-1"></i>{{ $tipoInfo['nombre'] }}
                                         </span>
                                     </td>
-                                    <td class="fw-normal text-start align-middle" style="max-width: 280px;">
-                                        <div class="text-truncate" style="max-width: 280px;" title="{{ $actividad->titulo }}">
-                                            <strong>{{ $actividad->titulo }}</strong>
+                                    <td class="text-start align-middle" style="max-width: 280px;">
+                                        <div class="text-truncate fw-semibold" style="max-width: 280px;" title="{{ $actividad->titulo }}">
+                                            {{ $actividad->titulo }}
                                         </div>
                                         @if($actividad->descripcion)
                                             <div class="text-truncate text-muted" style="max-width: 280px; font-size: 0.8rem;" title="{{ $actividad->descripcion }}">
@@ -237,36 +246,34 @@
                                             </div>
                                         @endif
                                     </td>
-                                    <td class="fw-normal text-center align-middle" style="max-width: 180px;">
+                                    <td class="text-center align-middle" style="max-width: 180px;">
                                         @if($actividad->actividadable)
                                             @php
                                                 $entidadNombre = class_basename($actividad->actividadable_type);
-                                                $entidadLabel = $actividad->actividadable->nombre_completo ?? $actividad->actividadable->nombre ?? 'N/A';
+                                                $entidadLabel  = $actividad->actividadable->nombre_completo ?? $actividad->actividadable->nombre ?? 'N/A';
                                             @endphp
                                             <small>
-                                                <span class="badge bg-light text-dark">{{ $entidadNombre }}</span><br>
+                                                <span class="text-muted">{{ $entidadNombre }}</span><br>
                                                 <span class="d-inline-block text-truncate" style="max-width: 160px;" title="{{ $entidadLabel }}">{{ $entidadLabel }}</span>
                                             </small>
                                         @else
                                             <small class="text-muted">Sin relación</small>
                                         @endif
                                     </td>
-                                    <td class="fw-normal text-center align-middle">
+                                    <td class="text-center align-middle">
                                         <small>{{ $actividad->asignadoA?->persona?->name ?? $actividad->asignadoA?->email ?? 'Sin asignar' }}</small>
                                     </td>
-                                    <td class="fw-normal text-center align-middle" data-order="{{ $actividad->fecha_programada->timestamp }}">
-                                        <small>
-                                            {{ $actividad->fecha_programada->format('d/m/Y') }}<br>
-                                            <strong>{{ $actividad->fecha_programada->format('H:i') }}</strong>
-                                        </small>
+                                    <td class="text-center align-middle" data-order="{{ $actividad->fecha_programada->timestamp }}">
+                                        <small>{{ $actividad->fecha_programada->format('d/m/Y') }}<br>
+                                        <strong>{{ $actividad->fecha_programada->format('H:i') }}</strong></small>
                                         @if($actividad->estado === 'programada' && $actividad->fecha_programada < now())
-                                            <br><span class="badge bg-danger mt-1" style="font-size: 0.65rem;">Vencida</span>
+                                            <br><small class="text-danger"><i class="bi bi-clock-fill me-1"></i>Vencida</small>
                                         @endif
                                     </td>
-                                    <td class="fw-normal text-center align-middle">
-                                        {{ $prioridadIcons[$actividad->prioridad] ?? '' }} {{ ucfirst($actividad->prioridad) }}
+                                    <td class="text-center align-middle">
+                                        <i class="bi {{ $prioridadIcons[$actividad->prioridad] ?? 'bi-circle text-secondary' }}" title="{{ ucfirst($actividad->prioridad) }}" data-bs-toggle="tooltip"></i>
                                     </td>
-                                    <td class="fw-normal text-center align-middle">
+                                    <td class="text-center align-middle">
                                         <span class="badge bg-{{ $estadoColors[$actividad->estado] ?? 'secondary' }}">
                                             {{ $estadoNombres[$actividad->estado] ?? ucfirst($actividad->estado) }}
                                         </span>
@@ -357,6 +364,23 @@ $(document).ready(function() {
     $('#filtro-prioridad').on('change', function() {
         table.column(7).search($(this).val()).draw();
     });
+
+    // Filtro por Responsable (columna 5) — solo visible para admins
+    $('#filtro-responsable').on('change', function() {
+        table.column(5).search($(this).val()).draw();
+    });
+
+    // Limpiar filtros
+    $('#btn-limpiar').on('click', function() {
+        $('[id^="filtro-"]').each(function() {
+            $(this).val('').trigger('change');
+        });
+        table.search('').columns().search('').draw();
+    });
+
+    // Inicializar tooltip
+    var tooltipEl = document.querySelector('#btn-limpiar');
+    if (tooltipEl) { new bootstrap.Tooltip(tooltipEl); }
 
     // SweetAlert para eliminar
     $('.form-delete').submit(function(e) {

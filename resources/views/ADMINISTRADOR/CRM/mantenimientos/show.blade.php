@@ -5,7 +5,7 @@
     <div class="header_section">
         <div class="bg-transparent mb-3" style="height: 67px"></div>
         <div class="container-fluid">
-            <div class="" data-aos="fade-right">
+            <div class="" data-aos="fade-up">
                 <h1 class="titulo h2 text-uppercase fw-bold mb-0">MANTENIMIENTO {{ $mantenimiento->codigo }}</h1>
                 <div class="" style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
                     <ol class="breadcrumb">
@@ -18,24 +18,6 @@
             </div>
         </div>
     </div>
-
-    @if(session('success'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show">
-                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    @endif
 
     <div class="container-fluid">
         <div class="row g-4">
@@ -52,13 +34,11 @@
                         </h5>
                         @php
                             $estadoColors = [
-                                'programado' => 'info', 
-                                'confirmado' => 'primary', 
-                                'en_camino' => 'warning', 
-                                'en_progreso' => 'warning', 
-                                'completado' => 'success', 
-                                'cancelado' => 'danger', 
-                                'reprogramado' => 'secondary'
+                                'programado'  => 'info',
+                                'confirmado'  => 'primary',
+                                'en_progreso' => 'warning',
+                                'completado'  => 'success',
+                                'cancelado'   => 'danger',
                             ];
                         @endphp
                         <span class="badge bg-{{ $estadoColors[$mantenimiento->estado] ?? 'secondary' }} fs-6">
@@ -97,53 +77,8 @@
                                 {!! nl2br(e($mantenimiento->descripcion)) !!}
                             </div>
                         @endif
-
-                        @if($mantenimiento->es_gratuito)
-                            <div class="mt-3">
-                                <span class="badge bg-success fs-6">
-                                    <i class="bi bi-gift me-1"></i>Servicio Gratuito (Incluido en la instalación)
-                                </span>
-                            </div>
-                        @endif
                     </div>
                 </div>
-
-                {{-- Datos del Sistema Solar --}}
-                @if($mantenimiento->potencia_sistema_kw || $mantenimiento->cantidad_paneles || $mantenimiento->marca_inversor)
-                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-up">
-                        <div class="card-header bg-transparent">
-                            <h5 class="mb-0 fw-bold"><i class="bi bi-sun me-2"></i>Sistema Solar</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                @if($mantenimiento->potencia_sistema_kw)
-                                    <div class="col-md-3">
-                                        <p class="text-muted mb-1 small">Potencia del Sistema</p>
-                                        <p class="mb-0 fw-bold">{{ number_format($mantenimiento->potencia_sistema_kw, 2) }} kW</p>
-                                    </div>
-                                @endif
-                                @if($mantenimiento->cantidad_paneles)
-                                    <div class="col-md-3">
-                                        <p class="text-muted mb-1 small">Cantidad de Paneles</p>
-                                        <p class="mb-0 fw-bold">{{ $mantenimiento->cantidad_paneles }}</p>
-                                    </div>
-                                @endif
-                                @if($mantenimiento->marca_inversor)
-                                    <div class="col-md-3">
-                                        <p class="text-muted mb-1 small">Marca Inversor</p>
-                                        <p class="mb-0 fw-bold">{{ $mantenimiento->marca_inversor }}</p>
-                                    </div>
-                                @endif
-                                @if($mantenimiento->modelo_inversor)
-                                    <div class="col-md-3">
-                                        <p class="text-muted mb-1 small">Modelo Inversor</p>
-                                        <p class="mb-0 fw-bold">{{ $mantenimiento->modelo_inversor }}</p>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                @endif
 
                 {{-- Checklist --}}
                 @if($mantenimiento->checklist && count($mantenimiento->checklist) > 0)
@@ -166,24 +101,14 @@
                                         @foreach($mantenimiento->checklist as $index => $item)
                                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                                 <div class="form-check">
-                                                    @if(is_array($item))
-                                                        <input class="form-check-input checklist-item" type="checkbox" 
-                                                               name="checklist[{{ $index }}][completado]" 
-                                                               id="check_{{ $index }}" 
-                                                               {{ isset($item['completado']) && $item['completado'] ? 'checked' : '' }}>
-                                                        <input type="hidden" name="checklist[{{ $index }}][tarea]" value="{{ $item['tarea'] ?? $item['nombre'] ?? 'Tarea' }}">
-                                                        <label class="form-check-label" for="check_{{ $index }}">
-                                                            {{ $item['tarea'] ?? $item['nombre'] ?? 'Tarea' }}
-                                                        </label>
-                                                    @else
-                                                        <input class="form-check-input checklist-item" type="checkbox" 
-                                                               name="checklist[{{ $index }}][completado]" 
-                                                               id="check_{{ $index }}">
-                                                        <input type="hidden" name="checklist[{{ $index }}][tarea]" value="{{ $item }}">
-                                                        <label class="form-check-label" for="check_{{ $index }}">
-                                                            {{ $item }}
-                                                        </label>
-                                                    @endif
+                                                    <input class="form-check-input checklist-item" type="checkbox"
+                                                           name="checklist[{{ $index }}][completado]"
+                                                           id="check_{{ $index }}"
+                                                           {{ !empty($item['completado']) ? 'checked' : '' }}>
+                                                    <input type="hidden" name="checklist[{{ $index }}][tarea]" value="{{ $item['tarea'] }}">
+                                                    <label class="form-check-label" for="check_{{ $index }}">
+                                                        {{ $item['tarea'] }}
+                                                    </label>
                                                 </div>
                                             </li>
                                         @endforeach
@@ -199,17 +124,12 @@
                                     @foreach($mantenimiento->checklist as $item)
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>
-                                                @if(is_array($item))
-                                                    @if(isset($item['completado']) && $item['completado'])
-                                                        <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                    @else
-                                                        <i class="bi bi-circle text-muted me-2"></i>
-                                                    @endif
-                                                    {{ $item['tarea'] ?? $item['nombre'] ?? 'Tarea' }}
+                                                @if(!empty($item['completado']))
+                                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
                                                 @else
                                                     <i class="bi bi-circle text-muted me-2"></i>
-                                                    {{ $item }}
                                                 @endif
+                                                {{ $item['tarea'] }}
                                             </span>
                                         </li>
                                     @endforeach
@@ -231,33 +151,11 @@
                                     <p class="text-muted mb-1 small">Fecha Realizada</p>
                                     <p class="mb-0 fw-bold">{{ $mantenimiento->fecha_realizada?->format('d/m/Y') ?? 'N/A' }}</p>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <p class="text-muted mb-1 small">Duración Real</p>
                                     <p class="mb-0 fw-bold">{{ $mantenimiento->duracion_real_horas ?? '-' }} horas</p>
                                 </div>
-                                <div class="col-md-4">
-                                    <p class="text-muted mb-1 small">Eficiencia</p>
-                                    <p class="mb-0 fw-bold">{{ $mantenimiento->eficiencia_porcentaje ?? '-' }}%</p>
-                                </div>
                             </div>
-
-                            @if($mantenimiento->produccion_actual_kwh || $mantenimiento->produccion_esperada_kwh)
-                                <hr>
-                                <div class="row g-3">
-                                    @if($mantenimiento->produccion_actual_kwh)
-                                        <div class="col-md-6">
-                                            <p class="text-muted mb-1 small">Producción Actual</p>
-                                            <p class="mb-0 fw-bold">{{ number_format($mantenimiento->produccion_actual_kwh, 2) }} kWh</p>
-                                        </div>
-                                    @endif
-                                    @if($mantenimiento->produccion_esperada_kwh)
-                                        <div class="col-md-6">
-                                            <p class="text-muted mb-1 small">Producción Esperada</p>
-                                            <p class="mb-0 fw-bold">{{ number_format($mantenimiento->produccion_esperada_kwh, 2) }} kWh</p>
-                                        </div>
-                                    @endif
-                                </div>
-                            @endif
 
                             @if($mantenimiento->hallazgos)
                                 <hr>
@@ -281,20 +179,6 @@
                                     @endif
                                 </div>
                             @endif
-
-                            @if($mantenimiento->calificacion)
-                                <hr>
-                                <h6 class="fw-bold mb-2">Calificación del Cliente</h6>
-                                <div class="d-flex align-items-center">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <i class="bi bi-star{{ $i <= $mantenimiento->calificacion ? '-fill text-warning' : ' text-muted' }} fs-5"></i>
-                                    @endfor
-                                    <span class="ms-2">({{ $mantenimiento->calificacion }}/5)</span>
-                                </div>
-                                @if($mantenimiento->comentario_cliente)
-                                    <p class="mt-2 mb-0 fst-italic">"{{ $mantenimiento->comentario_cliente }}"</p>
-                                @endif
-                            @endif
                         </div>
                     </div>
                 @endif
@@ -303,7 +187,7 @@
                 @if(isset($historial) && $historial->count() > 0)
                     <div class="card border-0 shadow-sm" style="border-radius: 15px" data-aos="fade-up">
                         <div class="card-header bg-transparent">
-                            <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Historial de Mantenimientos</h5>
+                            <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Historial del Cliente</h5>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -374,7 +258,7 @@
             {{-- Columna Lateral --}}
             <div class="col-lg-4">
                 {{-- Acciones --}}
-                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-left">
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-up">
                     <div class="card-body">
                         <h6 class="fw-bold mb-3"><i class="bi bi-gear me-2"></i>Acciones</h6>
                         <div class="d-grid gap-2">
@@ -391,7 +275,7 @@
                                 </form>
                             @endif
 
-                            @if(in_array($mantenimiento->estado, ['confirmado', 'en_camino']))
+                            @if($mantenimiento->estado === 'confirmado')
                                 <form action="{{ route('admin.crm.mantenimientos.iniciar', $mantenimiento) }}" method="POST" id="form-iniciar">
                                     @csrf
                                     <button type="button" class="btn btn-warning btn-sm w-100 btn-iniciar">
@@ -431,7 +315,7 @@
                 </div>
 
                 {{-- Cliente --}}
-                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-left">
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-up">
                     <div class="card-body">
                         <h6 class="fw-bold mb-3"><i class="bi bi-person me-2"></i>Cliente</h6>
                         <p class="mb-1"><strong>{{ $mantenimiento->cliente->nombre ?? $mantenimiento->cliente->razon_social ?? 'N/A' }}</strong></p>
@@ -448,7 +332,7 @@
 
                 {{-- Técnico --}}
                 @if($mantenimiento->ticket)
-                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-left">
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-up">
                     <div class="card-body">
                         <h6 class="fw-bold mb-3"><i class="bi bi-ticket-detailed me-2"></i>Ticket Origen</h6>
                         <a href="{{ route('admin.crm.tickets.show', $mantenimiento->ticket) }}" class="text-decoration-none">
@@ -460,14 +344,14 @@
                         </a>
                         <p class="text-muted small mb-0 mt-2">
                             <i class="bi bi-calendar me-1"></i>{{ $mantenimiento->ticket->created_at->format('d/m/Y') }}
-                            · <span class="badge bg-{{ ['resuelto' => 'success', 'cerrado' => 'secondary'][$mantenimiento->ticket->estado] ?? 'warning' }}">{{ ucfirst(str_replace('_', ' ', $mantenimiento->ticket->estado)) }}</span>
+                            · <span class="badge bg-{{ ['resuelto' => 'success', 'reabierto' => 'danger'][$mantenimiento->ticket->estado] ?? 'warning' }}">{{ ucfirst(str_replace('_', ' ', $mantenimiento->ticket->estado)) }}</span>
                         </p>
                     </div>
                 </div>
                 @endif
 
                 {{-- Técnico --}}
-                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-left">
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-up">
                     <div class="card-body">
                         <h6 class="fw-bold mb-3"><i class="bi bi-tools me-2"></i>Técnico Asignado</h6>
                         @if($mantenimiento->tecnico)
@@ -488,47 +372,36 @@
                     </div>
                 </div>
 
-                {{-- Costos --}}
-                <div class="card border-0 shadow-sm" style="border-radius: 15px" data-aos="fade-left">
+                {{-- Costos internos: visibles solo cuando está completado Y solo para admin --}}
+                @if($mantenimiento->estado === 'completado' && $esAdmin)
+                @php $esGarantiaShow = $mantenimiento->ticket && $mantenimiento->ticket->categoria === 'garantia'; @endphp
+                <div class="card border-0 shadow-sm" style="border-radius: 15px" data-aos="fade-up">
                     <div class="card-body">
-                        <h6 class="fw-bold mb-3"><i class="bi bi-cash me-2"></i>Información Económica</h6>
-                        @if($mantenimiento->es_gratuito)
-                            <div class="alert alert-success mb-0">
-                                <i class="bi bi-gift me-2"></i>Servicio Gratuito
-                            </div>
-                        @else
-                            <table class="table table-sm table-borderless mb-0">
-                                <tr>
-                                    <td class="text-muted">Mano de Obra:</td>
-                                    <td class="text-end">S/ {{ number_format($mantenimiento->costo_mano_obra ?? 0, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Materiales:</td>
-                                    <td class="text-end">S/ {{ number_format($mantenimiento->costo_materiales ?? 0, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Transporte:</td>
-                                    <td class="text-end">S/ {{ number_format($mantenimiento->costo_transporte ?? 0, 2) }}</td>
-                                </tr>
-                                <tr class="border-top">
-                                    <td class="fw-bold">Total:</td>
-                                    <td class="text-end fw-bold">S/ {{ number_format($mantenimiento->costo_total ?? 0, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Estado Pago:</td>
-                                    <td class="text-end">
-                                        @php
-                                            $estadoPagoColors = ['pendiente' => 'warning', 'pagado' => 'success', 'no_aplica' => 'secondary'];
-                                        @endphp
-                                        <span class="badge bg-{{ $estadoPagoColors[$mantenimiento->estado_pago] ?? 'secondary' }}">
-                                            {{ ucfirst(str_replace('_', ' ', $mantenimiento->estado_pago)) }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            </table>
+                        <h6 class="fw-bold mb-1"><i class="bi bi-cash me-2"></i>Costos Internos del Servicio</h6>
+                        @if($esGarantiaShow)
+                            <p class="text-muted small mb-3">Garantía — el cliente no fue cobrado. Registro de costo operativo.</p>
                         @endif
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <td class="text-muted">Mano de Obra:</td>
+                                <td class="text-end">S/ {{ number_format($mantenimiento->costo_mano_obra ?? 0, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Materiales:</td>
+                                <td class="text-end">S/ {{ number_format($mantenimiento->costo_materiales ?? 0, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Transporte:</td>
+                                <td class="text-end">S/ {{ number_format($mantenimiento->costo_transporte ?? 0, 2) }}</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="fw-bold">Total:</td>
+                                <td class="text-end fw-bold">S/ {{ number_format($mantenimiento->costo_total ?? 0, 2) }}</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
+                @endif
             </div>
         </div>
 
@@ -559,6 +432,25 @@ $(document).ready(function() {
         }).then((result) => {
             if (result.isConfirmed) {
                 $('#form-confirmar').submit();
+            }
+        });
+    });
+
+    // ==================== EN CAMINO ====================
+    $('.btn-en-camino').on('click', function() {
+        Swal.fire({
+            title: '¿Técnico en camino?',
+            html: `El mantenimiento <strong>{{ $mantenimiento->codigo }}</strong> pasará a estado <strong class="text-info">En Camino</strong>.<br><br>
+                   <small class="text-muted">Indica que el técnico ya se desplaza hacia el cliente.</small>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-truck me-1"></i> Sí, en camino',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#form-en-camino').submit();
             }
         });
     });
@@ -606,7 +498,7 @@ $(document).ready(function() {
 
 {{-- Modal Completar Mantenimiento --}}
 @if($mantenimiento->estado === 'en_progreso')
-    <div class="modal fade" id="modalCompletarShow" tabindex="-1">
+    <div class="modal fade" id="modalCompletarShow" tabindex="-1" style="display:none">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form action="{{ route('admin.crm.mantenimientos.completar', $mantenimiento) }}" method="POST" enctype="multipart/form-data">
@@ -629,6 +521,16 @@ $(document).ready(function() {
                                 <label for="duracion_real_horas" class="form-label fw-bold">Duración Real (hrs)</label>
                                 <input type="number" name="duracion_real_horas" id="duracion_real_horas" class="form-control" min="1" max="24" value="{{ $mantenimiento->duracion_estimada_horas }}">
                             </div>
+                            @php $esGarantia = $mantenimiento->ticket && $mantenimiento->ticket->categoria === 'garantia'; @endphp
+                            @if($esAdmin)
+                            <div class="col-12">
+                                <p class="fw-bold mb-1 small text-uppercase text-muted">
+                                    Costos Internos del Servicio
+                                    @if($esGarantia)
+                                        <span class="badge bg-info ms-1">Garantía — no se cobra al cliente</span>
+                                    @endif
+                                </p>
+                            </div>
                             <div class="col-md-4">
                                 <label for="costo_mano_obra" class="form-label fw-bold">Mano de Obra (S/.)</label>
                                 <input type="number" name="costo_mano_obra" id="costo_mano_obra" class="form-control" step="0.01" min="0" value="{{ $mantenimiento->costo_mano_obra ?? 0 }}">
@@ -637,6 +539,11 @@ $(document).ready(function() {
                                 <label for="costo_materiales" class="form-label fw-bold">Materiales (S/.)</label>
                                 <input type="number" name="costo_materiales" id="costo_materiales" class="form-control" step="0.01" min="0" value="{{ $mantenimiento->costo_materiales ?? 0 }}">
                             </div>
+                            <div class="col-md-4">
+                                <label for="costo_transporte" class="form-label fw-bold">Transporte (S/.)</label>
+                                <input type="number" name="costo_transporte" id="costo_transporte" class="form-control" step="0.01" min="0" value="{{ $mantenimiento->costo_transporte ?? 0 }}">
+                            </div>
+                            @endif
                             <div class="col-12">
                                 <label for="observaciones" class="form-label fw-bold">Observaciones</label>
                                 <textarea name="observaciones" id="observaciones" class="form-control" rows="2" placeholder="Observaciones adicionales..."></textarea>
@@ -670,7 +577,7 @@ $(document).ready(function() {
 
 {{-- Modal Reprogramar Mantenimiento --}}
 @if(!in_array($mantenimiento->estado, ['completado', 'cancelado', 'en_progreso']))
-    <div class="modal fade" id="modalReprogramar" tabindex="-1">
+    <div class="modal fade" id="modalReprogramar" tabindex="-1" style="display:none">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form action="{{ route('admin.crm.mantenimientos.reprogramar', $mantenimiento) }}" method="POST">
@@ -705,7 +612,7 @@ $(document).ready(function() {
 
 {{-- Modal Cancelar Mantenimiento --}}
 @if(!in_array($mantenimiento->estado, ['completado', 'cancelado']))
-    <div class="modal fade" id="modalCancelar" tabindex="-1">
+    <div class="modal fade" id="modalCancelar" tabindex="-1" style="display:none">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form action="{{ route('admin.crm.mantenimientos.cancelar', $mantenimiento) }}" method="POST">

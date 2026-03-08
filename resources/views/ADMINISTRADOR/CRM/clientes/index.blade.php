@@ -86,11 +86,11 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <p class="text-muted mb-1 small">Desde E-commerce</p>
-                                <h3 class="mb-0 fw-bold text-info">{{ $stats['ecommerce'] ?? 0 }}</h3>
+                                <p class="text-muted mb-1 small">Suspendidos</p>
+                                <h3 class="mb-0 fw-bold text-warning">{{ $stats['suspendidos'] ?? 0 }}</h3>
                             </div>
-                            <div class="bg-info bg-opacity-10 p-3 rounded-3">
-                                <i class="bi bi-cart3 fs-3 text-info"></i>
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-3">
+                                <i class="bi bi-exclamation-triangle fs-3 text-warning"></i>
                             </div>
                         </div>
                     </div>
@@ -100,35 +100,16 @@
     </div>
 
     {{-- Alertas de sesión --}}
-    @if(session('success'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    @endif
 
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px"
             data-aos="fade-up" data-aos-anchor-placement="top-bottom">
             <div class="card-header bg-transparent">
-                <div class="row justify-content-between align-items-center">
-                    <div class="col-12 col-md-6 mb-2 mb-md-0">
-                        <div class="card border-0 rounded-0 border-start border-3 border-info" style="box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; background-color: #f6f6f6">
-                            <div class="card-body py-2">
-                                <i class="bi bi-info-circle text-info me-2"></i>
-                                <small class="text-muted">Los clientes se generan automáticamente al completar una venta (CRM o E-commerce).</small>
-                            </div>
+                <div class="d-flex justify-content-end">
+                    <div class="card border-0 rounded-0 border-start border-3 border-info" style="box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; background-color: #f6f6f6">
+                        <div class="card-body py-2">
+                            <i class="bi bi-info-circle text-info me-2"></i>
+                            <small class="text-muted">Los clientes se generan automáticamente al completar una venta (CRM o E-commerce).</small>
                         </div>
                     </div>
                 </div>
@@ -136,7 +117,7 @@
             <div class="card-body">
                 {{-- Filtros --}}
                 <div class="row g-2 mb-3 align-items-end">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="filtro-estado" class="form-label small text-muted mb-1">Estado</label>
                         <select id="filtro-estado" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Estados">
                             <option value="">Todos los Estados</option>
@@ -145,15 +126,33 @@
                             <option value="Suspendido">Suspendido</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="filtro-segmento" class="form-label small text-muted mb-1">Segmento</label>
                         <select id="filtro-segmento" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Segmentos">
                             <option value="">Todos los Segmentos</option>
                             <option value="Residencial">Residencial</option>
                             <option value="Comercial">Comercial</option>
                             <option value="Industrial">Industrial</option>
-                            <option value="Agrícola">Agrícola</option>
+                            <option value="Agricola">Agrícola</option>
                         </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtro-origen" class="form-label small text-muted mb-1">Origen</label>
+                        <select id="filtro-origen" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Orígenes">
+                            <option value="">Todos los Orígenes</option>
+                            <option value="E-commerce">E-commerce</option>
+                            <option value="Directo">Directo</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" id="btn-limpiar"
+                                class="btn btn-sm btn-outline-secondary"
+                                title="Limpiar filtros"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                style="height: 31px; padding: 0 8px; border-radius: 6px;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -185,7 +184,8 @@
                             <tr>
                                 <td class="fw-normal text-center align-middle"></td>
                                 <td class="fw-normal text-center align-middle">
-                                    <span class="badge bg-secondary">{{ $cliente->codigo }}</span>
+                                    <span class="fw-semibold">{{ $cliente->codigo }}</span>
+                                    <br><small class="text-muted">{{ $cliente->created_at->format('d/m/Y') }}</small>
                                 </td>
                                 <td class="fw-normal text-start align-middle" style="max-width: 250px;">
                                     <div class="text-truncate" style="max-width: 250px;" title="{{ $cliente->nombre_completo }}">
@@ -305,6 +305,23 @@ $(document).ready(function() {
     $('#filtro-segmento').on('change', function() {
         table.column(5).search($(this).val()).draw();
     });
+
+    // Filtro por Origen (columna 4)
+    $('#filtro-origen').on('change', function() {
+        table.column(4).search($(this).val()).draw();
+    });
+
+    // Limpiar filtros
+    $('#btn-limpiar').on('click', function() {
+        $('[id^="filtro-"]').each(function() {
+            $(this).val('').trigger('change');
+        });
+        table.search('').columns().search('').draw();
+    });
+
+    // Inicializar tooltip
+    var tooltipEl = document.querySelector('#btn-limpiar');
+    if (tooltipEl) { new bootstrap.Tooltip(tooltipEl); }
 
     // SweetAlert para eliminar
     $('.form-delete').submit(function(e) {

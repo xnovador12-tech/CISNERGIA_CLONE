@@ -8,7 +8,6 @@ use App\Models\DetallePedido;
 use App\Models\Oportunidad;
 use App\Models\Pedido;
 use App\Models\Prospecto;
-use App\Services\StockService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -115,6 +114,7 @@ class CotizacionApprovalService
      * Crear pedido desde cotización aprobada.
      * Estado: pendiente (requiere aprobación de finanzas y stock).
      * Los ítems se copian directamente de los detalles de la cotización.
+     * El descuento es general (a nivel de cotización), no por ítem.
      */
     private function crearPedido(CotizacionCrm $cotizacion, Oportunidad $oportunidad, Cliente $cliente): Pedido
     {
@@ -123,49 +123,46 @@ class CotizacionApprovalService
         $numero = $ultimoPedido ? $ultimoPedido->id + 1 : 1;
         $codigo = 'PED-' . date('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
 
-        // Crear pedido con vínculo directo a cotización
+        // Crear pedido
         $pedido = Pedido::create([
-            'codigo'                => $codigo,
-            'slug'                  => Str::slug($codigo),
-            'cliente_id'            => $cliente->id,
-            'user_id'               => $cotizacion->user_id ?? auth()->id(),
-            'subtotal'              => $cotizacion->subtotal,
-            'incluye_igv'           => $cotizacion->incluye_igv ?? false,
-            'descuento_porcentaje'  => $cotizacion->descuento_porcentaje ?? 0,
-            'descuento_monto'       => $cotizacion->descuento_monto ?? 0,
-            'igv'                   => $cotizacion->igv,
-            'total'                 => $cotizacion->total,
-            'estado'                => 'pendiente',
-            'tipo'                  => $this->determinarTipoPedido($cotizacion),
-            'aprobacion_finanzas'   => false,
-            'aprobacion_stock'      => false,
-            'direccion_instalacion' => $cliente->direccion,
-            'distrito_id'           => $cliente->distrito_id,
+            'codigo'                 => $codigo,
+            'slug'                   => Str::slug($codigo),
+            'cliente_id'             => $cliente->id,
+            'user_id'                => $cotizacion->user_id ?? auth()->id(),
+            'cotizacion_id'          => $cotizacion->id,
+            'subtotal'               => $cotizacion->subtotal,
+            'incluye_igv'            => $cotizacion->incluye_igv ?? false,
+            'descuento_porcentaje'   => $cotizacion->descuento_porcentaje ?? 0,
+            'descuento_monto'        => $cotizacion->descuento_monto ?? 0,
+            'igv'                    => $cotizacion->igv,
+            'total'                  => $cotizacion->total,
+            'estado'                 => 'pendiente',
+            'tipo'                   => $this->determinarTipoPedido($cotizacion),
+            'aprobacion_finanzas'    => false,
+            'aprobacion_stock'       => false,
+            'direccion_instalacion'  => $cliente->direccion,
+            'distrito_id'            => $cliente->distrito_id,
             'fecha_entrega_estimada' => now()->addDays($cotizacion->tiempo_ejecucion_dias ?? 7),
-            'vigencia_dias'         => 15,
-            'origen'                => 'cotizacion',
-            'cotizacion_id'         => $cotizacion->id,
-            'observaciones'         => "Generado automáticamente desde cotización {$cotizacion->codigo}."
+            'vigencia_dias'          => 15,
+            'origen'                 => 'cotizacion',
+            'observaciones'          => "Generado desde cotización {$cotizacion->codigo}."
                 . " Oportunidad: {$oportunidad->codigo}."
                 . " Proyecto: {$oportunidad->nombre}.",
         ]);
 
-        // Copiar ítems de la cotización al pedido
+        // Copiar ítems de la cotización al pedido.
+        // El descuento es general (nivel pedido), no por ítem.
         foreach ($cotizacion->detalles as $detalle) {
-            $descuento = ($detalle->precio_unitario * $detalle->cantidad) * (($detalle->descuento_porcentaje ?? 0) / 100);
-
             DetallePedido::create([
-                'pedido_id'      => $pedido->id,
-                'producto_id'    => $detalle->producto_id,
-                'servicio_id'    => null,
-                'tipo'           => $detalle->categoria ?? 'producto',
-                'descripcion'    => $detalle->descripcion,
-                'cantidad'       => $detalle->cantidad,
-                'unidad'         => $detalle->unidad ?? 'und',
+                'pedido_id'       => $pedido->id,
+                'producto_id'     => $detalle->producto_id,
+                'servicio_id'     => $detalle->servicio_id,
+                'tipo'            => $detalle->categoria ?? 'producto',
+                'descripcion'     => $detalle->descripcion,
+                'cantidad'        => $detalle->cantidad,
+                'unidad'          => $detalle->unidad ?? 'und',
                 'precio_unitario' => $detalle->precio_unitario,
-                'descuento_porcentaje' => $detalle->descuento_porcentaje ?? 0,
-                'descuento_monto'      => $descuento,
-                'subtotal'       => ($detalle->precio_unitario * $detalle->cantidad) - $descuento,
+                'subtotal'        => $detalle->subtotal,
             ]);
         }
 

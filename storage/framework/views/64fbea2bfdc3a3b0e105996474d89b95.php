@@ -3,7 +3,7 @@
 <?php $__env->startSection('css'); ?>
 <style>
     .tabla-items th { font-size: 0.75rem; text-transform: uppercase; background: #f8f9fa; }
-    .tabla-items td { vertical-align: top; }
+    .tabla-items td { vertical-align: middle; }
     .tabla-items .form-control, .tabla-items .form-select { font-size: 0.8rem; }
     .item-subtotal { font-weight: 600; min-width: 100px; text-align: right; }
     .btn-quitar { padding: 0.15rem 0.4rem; font-size: 0.75rem; }
@@ -12,8 +12,9 @@
     .cascada-selects .sel-wrap-half { flex: 1; min-width: 100px; }
     .cascada-selects .sel-wrap-full { flex: 0 0 100%; }
     .producto-info { font-size: 0.72rem; color: #6c757d; margin-top: 2px; }
-    .cascada-selects .select2-container { font-size: 0.8rem; }
     .cascada-selects .select2-container--bootstrap-5 .select2-selection { min-height: 28px; padding: 0.15rem 0.5rem; font-size: 0.8rem; }
+    #oportunidad-detalle { transition: all 0.3s ease; }
+    .op-badge { font-size: 0.7rem; }
 </style>
 <?php $__env->stopSection(); ?>
 
@@ -54,6 +55,7 @@
 
         <div class="container-fluid">
             <div class="row g-4">
+
                 
                 <div class="col-lg-8">
 
@@ -62,29 +64,50 @@
                         <div class="card-body">
                             <p class="text-secondary mb-3 small text-uppercase fw-bold">Información General</p>
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-8">
                                     <label class="form-label">Oportunidad <span class="text-danger">*</span></label>
-                                    <select name="oportunidad_id" id="oportunidad_id" class="form-select form-select-sm select2_bootstrap w-100 <?php $__errorArgs = ['oportunidad_id'];
+                                    <select name="oportunidad_id" id="oportunidad_id"
+                                            class="form-select form-select-sm select2_bootstrap w-100 <?php $__errorArgs = ['oportunidad_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" required data-placeholder="Seleccione una oportunidad...">
+unset($__errorArgs, $__bag); ?>"
+                                            required data-placeholder="Seleccione una oportunidad...">
                                         <option value="">Seleccione una oportunidad...</option>
                                         <?php $__currentLoopData = $oportunidades; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $op): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <?php
+                                                $etapaLabel = \App\Models\Oportunidad::ETAPAS[$op->etapa]['nombre'] ?? $op->etapa;
+                                                $tipoServicioLabels = [
+                                                    'instalacion' => 'Instalación',
+                                                    'mantenimiento_preventivo' => 'Mant. Preventivo',
+                                                    'mantenimiento_correctivo' => 'Mant. Correctivo',
+                                                    'ampliacion' => 'Ampliación',
+                                                    'otro' => 'Otro',
+                                                ];
+                                            ?>
                                             <option value="<?php echo e($op->id); ?>"
-                                                    <?php echo e(old('oportunidad_id', $oportunidadId) == $op->id ? 'selected' : ''); ?>
+                                                <?php echo e(old('oportunidad_id', $oportunidadId) == $op->id ? 'selected' : ''); ?>
 
-                                                    data-tipo="<?php echo e($op->tipo_oportunidad); ?>"
-                                                    data-monto="<?php echo e($op->monto_estimado); ?>"
-                                                    data-nombre="<?php echo e($op->nombre); ?>">
-                                                <?php echo e($op->codigo); ?> - <?php echo e($op->nombre); ?>
+                                                data-tipo="<?php echo e($op->tipo_oportunidad); ?>"
+                                                data-tipo-servicio="<?php echo e($op->tipo_servicio); ?>"
+                                                data-tipo-servicio-label="<?php echo e($tipoServicioLabels[$op->tipo_servicio] ?? $op->tipo_servicio); ?>"
+                                                data-servicio="<?php echo e($op->servicio?->name); ?>"
+                                                data-etapa="<?php echo e($op->etapa); ?>"
+                                                data-etapa-label="<?php echo e($etapaLabel); ?>"
+                                                data-monto="<?php echo e($op->monto_estimado); ?>"
+                                                data-monto-final="<?php echo e($op->monto_final); ?>"
+                                                data-nombre="<?php echo e($op->nombre); ?>"
+                                                data-codigo="<?php echo e($op->codigo); ?>"
+                                                data-tipo-proyecto="<?php echo e($op->tipo_proyecto); ?>"
+                                                data-prospecto="<?php echo e($op->prospecto?->nombre_completo); ?>"
+                                                data-email="<?php echo e($op->prospecto?->email); ?>"
+                                                data-telefono="<?php echo e($op->prospecto?->telefono ?? $op->prospecto?->celular); ?>">
+                                                <?php echo e($op->codigo); ?>
 
-                                                <?php if($op->prospecto): ?> (<?php echo e($op->prospecto->nombre_completo); ?>) <?php endif; ?>
-                                                — <?php echo e(ucfirst($op->tipo_oportunidad)); ?>
-
+                                                <?php if($op->prospecto): ?> — <?php echo e($op->prospecto->nombre_completo); ?> <?php endif; ?>
                                             </option>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
@@ -97,7 +120,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <label class="form-label">Vigencia <span class="text-danger">*</span></label>
                                     <select name="vigencia_dias" class="form-select form-select-sm" required>
                                         <option value="15" <?php echo e(old('vigencia_dias') == 15 ? 'selected' : ''); ?>>15 días</option>
@@ -106,16 +129,10 @@ unset($__errorArgs, $__bag); ?>
                                         <option value="60" <?php echo e(old('vigencia_dias') == 60 ? 'selected' : ''); ?>>60 días</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3" id="wrap-tiempo-ejecucion" style="display:none;">
-                                    <label class="form-label">Tiempo Ejecución</label>
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" name="tiempo_ejecucion_dias" class="form-control" value="<?php echo e(old('tiempo_ejecucion_dias', 5)); ?>" min="1">
-                                        <span class="input-group-text">días</span>
-                                    </div>
-                                </div>
                                 <div class="col-md-12">
                                     <label class="form-label">Nombre del Proyecto <span class="text-danger">*</span></label>
-                                    <input type="text" name="nombre_proyecto" id="nombre_proyecto" class="form-control form-control-sm <?php $__errorArgs = ['nombre_proyecto'];
+                                    <input type="text" name="nombre_proyecto" id="nombre_proyecto"
+                                           class="form-control form-control-sm <?php $__errorArgs = ['nombre_proyecto'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -134,6 +151,27 @@ endif;
 unset($__errorArgs, $__bag); ?>
                                 </div>
                             </div>
+
+                            
+                            <div id="oportunidad-detalle" class="mt-3" style="display:none;">
+                                <div class="p-3 rounded-3 bg-light border">
+                                    <div class="row g-2 align-items-start">
+                                        <div class="col-md-6">
+                                            <p class="text-muted mb-1 text-uppercase fw-bold" style="font-size:0.68rem;">Cliente / Prospecto</p>
+                                            <p class="mb-1 fw-semibold small" id="op-prospecto">—</p>
+                                            <p class="mb-0 small text-muted" id="op-contacto">—</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p class="text-muted mb-1 text-uppercase fw-bold" style="font-size:0.68rem;">Segmento</p>
+                                            <p class="mb-0 small" id="op-segmento">—</p>
+                                        </div>
+                                        <div class="col-md-3" id="op-tipo-oportunidad-wrap">
+                                            <p class="text-muted mb-1 text-uppercase fw-bold" style="font-size:0.68rem;">Tipo</p>
+                                            <p class="mb-0 small" id="op-tipo-oportunidad">—</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -144,57 +182,66 @@ unset($__errorArgs, $__bag); ?>
 
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered tabla-items mb-0" id="tablaItems">
+                                    <colgroup>
+                                        <col style="width:45%">
+                                        <col style="width:7%">
+                                        <col style="width:10%">
+                                        <col style="width:18%">
+                                        <col style="width:15%">
+                                        <col style="width:40px">
+                                    </colgroup>
                                     <thead>
                                         <tr>
-                                            <th style="width: 120px;">Categoría</th>
-                                            <th>Descripción / Producto</th>
+                                            <th>Ítem</th>
                                             <th style="width: 70px;">Cant.</th>
                                             <th style="width: 80px;">Unidad</th>
-                                            <th style="width: 110px;">P. Unit.</th>
-                                            <th style="width: 65px;">Dto.%</th>
+                                            <th style="width: 120px;">P. Unit.</th>
                                             <th style="width: 110px;">Subtotal</th>
                                             <th style="width: 35px;"></th>
                                         </tr>
                                     </thead>
-                                    <tbody id="tbodyItems">
-                                        
-                                    </tbody>
+                                    <tbody id="tbodyItems"></tbody>
                                 </table>
                             </div>
 
                             <div id="sinItems" class="text-center text-muted py-4">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                                <p class="mb-0 mt-2">No hay ítems. Haga clic en <strong>"Agregar Ítem"</strong> para comenzar.</p>
+                                <p class="mb-0 mt-2">No hay ítems. Haga clic en <strong>"Agregar Producto"</strong> o <strong>"Agregar Servicio"</strong> para comenzar.</p>
                             </div>
 
-                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="btnAgregarItem">
-                                <i class="bi bi-plus-circle me-1"></i>Agregar Ítem
-                            </button>
+                            <div class="d-flex gap-2 mt-2 flex-wrap">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnAgregarProducto">
+                                    <i class="bi bi-box me-1"></i>Agregar Producto
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" id="btnAgregarServicio">
+                                    <i class="bi bi-gear me-1"></i>Agregar Servicio
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     
                     <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up">
                         <div class="card-body">
-                            <p class="text-secondary mb-3 small text-uppercase fw-bold">Notas y Condiciones</p>
+                            <p class="text-secondary mb-3 small text-uppercase fw-bold">Plazos, Notas y Condiciones</p>
                             <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label">Garantía de Servicio</label>
+                                    <input type="text" name="garantia_servicio" class="form-control form-control-sm"
+                                           value="<?php echo e(old('garantia_servicio')); ?>" placeholder="Ej: 2 años en mano de obra">
+                                </div>
                                 <div class="col-12">
                                     <label class="form-label">Condiciones Comerciales</label>
                                     <textarea name="condiciones_comerciales" class="form-control form-control-sm" rows="2"
                                               placeholder="Condiciones de pago, plazos de entrega, etc."><?php echo e(old('condiciones_comerciales')); ?></textarea>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Garantía de Servicio</label>
-                                    <input type="text" name="garantia_servicio" class="form-control form-control-sm"
-                                           value="<?php echo e(old('garantia_servicio')); ?>" placeholder="Ej: 2 años en mano de obra">
-                                </div>
-                                <div class="col-md-6">
                                     <label class="form-label">Observaciones</label>
-                                    <textarea name="observaciones" class="form-control form-control-sm" rows="1"
+                                    <textarea name="observaciones" class="form-control form-control-sm" rows="2"
                                               placeholder="Observaciones generales"><?php echo e(old('observaciones')); ?></textarea>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label">Notas Internas <small class="text-muted">(solo visibles para el equipo)</small></label>
+                                <div class="col-md-6">
+                                    <label class="form-label">Notas Internas <small class="text-muted">(solo el equipo)</small></label>
                                     <textarea name="notas_internas" class="form-control form-control-sm" rows="2"
                                               placeholder="Solo visible para el equipo interno"><?php echo e(old('notas_internas')); ?></textarea>
                                 </div>
@@ -247,20 +294,24 @@ unset($__errorArgs, $__bag); ?>
                             </div>
 
                             <hr>
-                            <p class="small text-muted mb-2 fw-bold">Desglose por categoría:</p>
+                            <p class="small text-muted mb-2 fw-bold">Desglose por tipo:</p>
                             <div id="desglose-categorias" class="small">
                                 <span class="text-muted">Sin ítems</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary px-5 text-white">
-                            <i class="bi bi-save me-2"></i>Registrar Cotización
-                        </button>
-                        <a href="<?php echo e(route('admin.crm.cotizaciones.index')); ?>" class="btn btn-outline-secondary px-4">
-                            <i class="bi bi-x-circle me-2"></i>Cancelar
-                        </a>
+                    <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius:20px;" data-aos="fade-up">
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary px-5 text-white">
+                                    <i class="bi bi-save me-2"></i>Registrar Cotización
+                                </button>
+                                <a href="<?php echo e(route('admin.crm.cotizaciones.index')); ?>" class="btn btn-outline-secondary px-4">
+                                    <i class="bi bi-x-circle me-2"></i>Cancelar
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -276,134 +327,132 @@ unset($__errorArgs, $__bag); ?>
 <?php $__env->startSection('js'); ?>
 <script>
 $(document).ready(function() {
+
     // ==================== DATOS DEL SERVIDOR ====================
-    const tipos = <?php echo json_encode($tipos, 15, 512) ?>;
+    const tipos       = <?php echo json_encode($tipos, 15, 512) ?>;
     const productosDB = <?php echo json_encode($productos, 15, 512) ?>;
+    const serviciosDB = <?php echo json_encode($servicios, 15, 512) ?>;
+    const tipoNombres = { 'producto': 'Productos', 'servicio': 'Servicios' };
+    const tipoColors  = { 'producto': 'primary', 'servicio': 'info' };
 
-    const catNombres = { 'producto': 'Productos', 'servicio': 'Servicios' };
-    const catColors = { producto: 'primary', servicio: 'info' };
-
-    // Sugerencias predefinidas para servicios
-    const sugerencias = {
-        servicio: [
-            { desc: 'Instalación completa de sistema solar', unidad: 'glb' },
-            { desc: 'Mano de obra técnica especializada', unidad: 'dia' },
-            { desc: 'Mantenimiento preventivo', unidad: 'glb' },
-            { desc: 'Mantenimiento correctivo - Diagnóstico y reparación', unidad: 'glb' },
-            { desc: 'Trámite ante distribuidora eléctrica', unidad: 'glb' },
-            { desc: 'Diseño de ingeniería y dimensionamiento', unidad: 'glb' },
-            { desc: 'Transporte de equipos', unidad: 'glb' },
-            { desc: 'Monitoreo remoto del sistema (anual)', unidad: 'glb' },
-            { desc: 'Conexión eléctrica y puesta en marcha', unidad: 'glb' },
-        ],
-    };
+    // Restaurar ítems si el formulario fue rechazado por validación
+    const itemsOld = <?php echo json_encode(old('items', []), 512) ?>;
 
     let itemIndex = 0;
 
-    // ==================== AGREGAR ÍTEM ====================
-    $('#btnAgregarItem').on('click', function() {
-        agregarFila('producto');
-    });
+    // ==================== RESTAURAR ÍTEMS PREVIOS ====================
+    if (itemsOld.length > 0) {
+        itemsOld.forEach(function(item) {
+            const tipo = (item.categoria === 'servicio') ? 'servicio' : 'producto';
+            agregarFila(tipo, item);
+        });
+    }
 
-    function agregarFila(categoria = 'producto', datos = {}) {
+    // ==================== BOTONES AGREGAR ====================
+    $('#btnAgregarProducto').on('click', function() { agregarFila('producto'); });
+    $('#btnAgregarServicio').on('click', function() { agregarFila('servicio'); });
+
+    // ==================== CREAR FILA ====================
+    function agregarFila(tipo, datos) {
+        datos = datos || {};
         const i = itemIndex++;
         $('#sinItems').hide();
 
-        const esProducto = categoria === 'producto';
-
-        // ---- Celda de descripción ----
         let celdaDescripcion = '';
 
-        if (esProducto) {
-            // Selects en cascada: Tipo → Categoría → Producto
+        if (tipo === 'producto') {
             let optTipos = '<option value="">-- Tipo --</option>';
-            tipos.forEach(t => {
-                optTipos += `<option value="${t.id}">${t.name}</option>`;
-            });
+            tipos.forEach(t => { optTipos += `<option value="${t.id}">${t.name}</option>`; });
 
             celdaDescripcion = `
                 <div class="cascada-selects">
-                    <div class="sel-wrap-half"><select class="form-select form-select-sm sel-tipo" data-index="${i}">
-                        ${optTipos}
-                    </select></div>
-                    <div class="sel-wrap-half"><select class="form-select form-select-sm sel-subcategoria" data-index="${i}" disabled>
-                        <option value="">-- Categoría --</option>
-                    </select></div>
-                    <div class="sel-wrap-full"><select class="form-select form-select-sm sel-producto" data-index="${i}" disabled>
-                        <option value="">-- Producto --</option>
-                    </select></div>
+                    <div class="sel-wrap-half">
+                        <select class="form-select form-select-sm sel-tipo" data-index="${i}">${optTipos}</select>
+                    </div>
+                    <div class="sel-wrap-half">
+                        <select class="form-select form-select-sm sel-subcategoria" data-index="${i}" disabled>
+                            <option value="">-- Categoría --</option>
+                        </select>
+                    </div>
+                    <div class="sel-wrap-full">
+                        <select class="form-select form-select-sm sel-producto" data-index="${i}" disabled>
+                            <option value="">-- Producto --</option>
+                        </select>
+                    </div>
                 </div>
                 <input type="hidden" name="items[${i}][producto_id]" class="input-producto-id" value="${datos.producto_id || ''}">
+                <input type="hidden" name="items[${i}][servicio_id]" class="input-servicio-id" value="">
                 <input type="hidden" name="items[${i}][descripcion]" class="input-descripcion" value="${datos.descripcion || ''}" required>
-                <input type="hidden" name="items[${i}][especificaciones]" value="${datos.especificaciones || ''}">
-                <div class="producto-info" id="producto-info-${i}"></div>`;
-        } else {
-            // Select de servicios predefinidos + opción personalizada
-            let selectHtml = '';
-            if (sugerencias[categoria]) {
-                selectHtml = `<select class="form-select form-select-sm sel-sugerencia mb-1" data-index="${i}">
-                    <option value="">-- Seleccione un servicio --</option>`;
-                sugerencias[categoria].forEach(s => {
-                    const sel = datos.descripcion === s.desc ? 'selected' : '';
-                    selectHtml += `<option value="${s.desc}" data-unidad="${s.unidad}" ${sel}>${s.desc}</option>`;
-                });
-                selectHtml += `<option value="__custom__" ${datos.descripcion && !sugerencias[categoria].some(s => s.desc === datos.descripcion) ? 'selected' : ''}>✏️ Personalizado...</option>`;
-                selectHtml += `</select>`;
-            }
+                <input type="hidden" name="items[${i}][especificaciones]" value="${datos.especificaciones || ''}">`;
 
-            const esCustom = datos.descripcion && sugerencias[categoria] && !sugerencias[categoria].some(s => s.desc === datos.descripcion);
-            const mostrarInput = !sugerencias[categoria] || esCustom;
+        } else {
+            // Cascada tipo de servicio → servicio
+            let optsServicio = '<option value="">-- Seleccionar servicio --</option>';
+            serviciosDB.forEach(s => {
+                const tipo = s.tipo_servicio === 'publico' ? 'Público' : 'Privado';
+                const sel  = (datos.servicio_id && datos.servicio_id == s.id) ? 'selected' : '';
+                optsServicio += `<option value="${s.id}" data-desc="${s.descripcion || ''}" data-tipo="${s.tipo_servicio}" ${sel}>${s.name} (${tipo})</option>`;
+            });
 
             celdaDescripcion = `
-                ${selectHtml}
-                <input type="text" name="items[${i}][descripcion]" class="form-control form-control-sm input-descripcion input-descripcion-custom"
-                       value="${datos.descripcion || ''}" placeholder="Escriba la descripción del ítem" required
-                       style="${mostrarInput ? '' : 'display:none'}">
+                <select class="form-select form-select-sm sel-servicio-especifico w-100" data-index="${i}">${optsServicio}</select>
+                <div class="producto-info input-descripcion-hint mt-1" id="desc-servicio-${i}"
+                     style="${datos.descripcion ? '' : 'display:none;'}">
+                    <i class="bi bi-info-circle me-1"></i><span>${datos.descripcion || ''}</span>
+                </div>
+                <input type="hidden" name="items[${i}][descripcion]" class="input-descripcion" value="${datos.descripcion || ''}" required>
+                <input type="hidden" name="items[${i}][servicio_id]" class="input-servicio-id" value="${datos.servicio_id || ''}">
                 <input type="hidden" name="items[${i}][producto_id]" class="input-producto-id" value="">
-                <input type="hidden" name="items[${i}][especificaciones]" value="">`;
+                <input type="hidden" name="items[${i}][especificaciones]" value="${datos.especificaciones || ''}">`;
         }
 
+        // Celda precio: si es servicio agrega campo tiempo_ejecucion
+        const celdaPrecio = tipo === 'servicio' ? `
+            <div class="input-group input-group-sm mb-1">
+                <span class="input-group-text" style="font-size:0.7rem;">S/</span>
+                <input type="number" name="items[${i}][precio_unitario]" class="form-control form-control-sm input-precio"
+                       value="${datos.precio_unitario || 0}" step="0.01" min="0" required>
+            </div>
+            <div class="input-group input-group-sm">
+                <input type="number" name="items[${i}][tiempo_ejecucion_dias]" class="form-control form-control-sm input-tiempo"
+                       value="${datos.tiempo_ejecucion_dias || ''}" min="1" placeholder="Días ej.">
+                <span class="input-group-text" style="font-size:0.65rem;">días</span>
+            </div>` : `
+            <div class="input-group input-group-sm">
+                <span class="input-group-text" style="font-size:0.7rem;">S/</span>
+                <input type="number" name="items[${i}][precio_unitario]" class="form-control form-control-sm input-precio"
+                       value="${datos.precio_unitario || 0}" step="0.01" min="0" required>
+            </div>
+            <div class="producto-info input-precio-original" id="precio-original-${i}" style="display:none;"></div>
+            <input type="hidden" name="items[${i}][tiempo_ejecucion_dias]" value="">`;
+
         const fila = `
-        <tr id="fila-${i}" class="item-fila" data-categoria="${categoria}">
-            <td>
-                <select name="items[${i}][categoria]" class="form-select form-select-sm sel-categoria" data-index="${i}">
-                    <option value="producto" ${categoria === 'producto' ? 'selected' : ''}>Producto</option>
-                    <option value="servicio" ${categoria === 'servicio' ? 'selected' : ''}>Servicio</option>
-                </select>
+        <tr id="fila-${i}" class="item-fila" data-tipo="${tipo}">
+            <td class="celda-descripcion">
+                <input type="hidden" name="items[${i}][categoria]" value="${tipo}">
+                <input type="hidden" name="items[${i}][descuento_porcentaje]" value="0">
+                ${celdaDescripcion}
             </td>
-            <td class="celda-descripcion">${celdaDescripcion}</td>
             <td>
                 <input type="number" name="items[${i}][cantidad]" class="form-control form-control-sm input-cantidad"
                        value="${datos.cantidad || 1}" step="0.01" min="0.01" required>
             </td>
             <td>
                 <select name="items[${i}][unidad]" class="form-select form-select-sm input-unidad">
-                    <option value="und" ${(datos.unidad || 'und') === 'und' ? 'selected' : ''}>Und</option>
-                    <option value="glb" ${datos.unidad === 'glb' ? 'selected' : ''}>Global</option>
-                    <option value="hrs" ${datos.unidad === 'hrs' ? 'selected' : ''}>Horas</option>
-                    <option value="dia" ${datos.unidad === 'dia' ? 'selected' : ''}>Día</option>
-                    <option value="kg" ${datos.unidad === 'kg' ? 'selected' : ''}>Kg</option>
-                    <option value="m" ${datos.unidad === 'm' ? 'selected' : ''}>Metro</option>
-                    <option value="m2" ${datos.unidad === 'm2' ? 'selected' : ''}>M²</option>
-                    <option value="ml" ${datos.unidad === 'ml' ? 'selected' : ''}>ML</option>
-                    <option value="jgo" ${datos.unidad === 'jgo' ? 'selected' : ''}>Juego</option>
-                    <option value="rollo" ${datos.unidad === 'rollo' ? 'selected' : ''}>Rollo</option>
+                    <option value="und"   ${ (datos.unidad||'und')==='und'   ?'selected':''}>Und</option>
+                    <option value="glb"   ${ datos.unidad==='glb'   ?'selected':''}>Global</option>
+                    <option value="hrs"   ${ datos.unidad==='hrs'   ?'selected':''}>Horas</option>
+                    <option value="dia"   ${ datos.unidad==='dia'   ?'selected':''}>Día</option>
+                    <option value="kg"    ${ datos.unidad==='kg'    ?'selected':''}>Kg</option>
+                    <option value="m"     ${ datos.unidad==='m'     ?'selected':''}>Metro</option>
+                    <option value="m2"    ${ datos.unidad==='m2'    ?'selected':''}>M²</option>
+                    <option value="ml"    ${ datos.unidad==='ml'    ?'selected':''}>ML</option>
+                    <option value="jgo"   ${ datos.unidad==='jgo'   ?'selected':''}>Juego</option>
+                    <option value="rollo" ${ datos.unidad==='rollo' ?'selected':''}>Rollo</option>
+                    <option value="par"   ${ datos.unidad==='par'   ?'selected':''}>Par</option>
                 </select>
             </td>
-            <td>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text" style="font-size:0.7rem;">S/</span>
-                    <input type="number" name="items[${i}][precio_unitario]" class="form-control form-control-sm input-precio"
-                           value="${datos.precio_unitario || 0}" step="0.01" min="0" required>
-                </div>
-            </td>
-            <td>
-                <div class="input-group input-group-sm">
-                    <input type="number" name="items[${i}][descuento_porcentaje]" class="form-control form-control-sm input-dto"
-                           value="${datos.descuento_porcentaje || 0}" step="0.01" min="0" max="100">
-                    <span class="input-group-text" style="font-size:0.7rem;">%</span>
-                </div>
-            </td>
+            <td>${celdaPrecio}</td>
             <td class="item-subtotal text-end pt-2" id="subtotal-${i}">S/ 0.00</td>
             <td class="text-center pt-2">
                 <button type="button" class="btn btn-outline-danger btn-quitar" onclick="quitarFila(${i})">
@@ -414,9 +463,22 @@ $(document).ready(function() {
 
         $('#tbodyItems').append(fila);
 
-        // Inicializar Select2 en cascada si es producto
-        if (esProducto) {
+        // Inicializar Select2 según tipo
+        if (tipo === 'producto') {
             initSelect2Cascada(i);
+            // Restaurar cascada si viene de datos guardados/old()
+            if (datos.producto_id || datos.producto_tipo_id) {
+                const tipoId     = datos.producto_tipo_id     || datos.tipo_id     || null;
+                const catId      = datos.producto_categorie_id || datos.categorie_id || null;
+                const productoId = datos.producto_id || null;
+                restaurarCascadaProducto(i, tipoId, catId, productoId, datos.precio_unitario);
+            }
+        } else {
+            initSelect2Servicio(i);
+            // Servicio preseleccionado si viene de datos guardados/old()
+            if (datos.servicio_id) {
+                $(`.sel-servicio-especifico[data-index="${i}"]`).val(datos.servicio_id).trigger('change');
+            }
         }
 
         calcularSubtotalFila(i);
@@ -425,261 +487,338 @@ $(document).ready(function() {
 
     // ==================== SELECT2 HELPERS ====================
     function initSelect2Cascada(idx) {
-        var fila = $(`#fila-${idx}`);
-        fila.find('.sel-tipo, .sel-subcategoria, .sel-producto').each(function() {
-            if ($(this).hasClass('select2-hidden-accessible')) {
-                $(this).select2('destroy');
-            }
-            $(this).select2({
-                theme: 'bootstrap-5',
-                width: '100%',
-                placeholder: $(this).find('option:first').text()
-            });
+        $(`#fila-${idx}`).find('.sel-tipo, .sel-subcategoria, .sel-producto').each(function() {
+            if ($(this).hasClass('select2-hidden-accessible')) $(this).select2('destroy');
+            $(this).select2({ theme: 'bootstrap-5', width: '100%', placeholder: $(this).find('option:first').text() });
+        });
+    }
+
+    function initSelect2Servicio(idx) {
+        $(`#fila-${idx}`).find('.sel-servicio-especifico').each(function() {
+            if ($(this).hasClass('select2-hidden-accessible')) $(this).select2('destroy');
+            $(this).select2({ theme: 'bootstrap-5', width: '100%', placeholder: $(this).find('option:first').text() });
         });
     }
 
     function reinitSelect2(selector) {
-        var el = $(selector);
-        if (el.hasClass('select2-hidden-accessible')) {
-            el.select2('destroy');
-        }
-        el.select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: el.find('option:first').text()
-        });
+        const el = $(selector);
+        if (el.hasClass('select2-hidden-accessible')) el.select2('destroy');
+        el.select2({ theme: 'bootstrap-5', width: '100%', placeholder: el.find('option:first').text() });
     }
 
-    // ==================== CAMBIO DE CATEGORÍA (SELECT) ====================
-    $(document).on('change', '.sel-categoria', function() {
-        const idx = $(this).data('index');
-        const nuevaCat = $(this).val();
-        const fila = $(`#fila-${idx}`);
-
-        // Guardar datos actuales
-        const cantActual = fila.find('.input-cantidad').val();
-        const precioActual = fila.find('.input-precio').val();
-        const unidadActual = fila.find('.input-unidad').val();
-
-        // Eliminar fila y recrear con nueva categoría
-        fila.remove();
-        itemIndex--; // Reutilizar índice
-        agregarFila(nuevaCat, {
-            cantidad: cantActual,
-            precio_unitario: precioActual,
-            unidad: unidadActual
-        });
-    });
-
-    // ==================== CASCADA: TIPO → CATEGORÍA ====================
+    // ==================== CASCADA: TIPO → CATEGORÍA → PRODUCTO ====================
     $(document).on('change', '.sel-tipo', function() {
-        const idx = $(this).data('index');
+        const idx    = $(this).data('index');
         const tipoId = parseInt($(this).val());
-        const selSubcat = $(`.sel-subcategoria[data-index="${idx}"]`);
+        const selSubcat   = $(`.sel-subcategoria[data-index="${idx}"]`);
         const selProducto = $(`.sel-producto[data-index="${idx}"]`);
 
         selProducto.html('<option value="">-- Producto --</option>').prop('disabled', true);
         reinitSelect2(`.sel-producto[data-index="${idx}"]`);
-        $(`#fila-${idx}`).find('.input-producto-id').val('');
-        $(`#fila-${idx}`).find('.input-descripcion').val('');
-        $(`#producto-info-${idx}`).html('');
+        $(`#fila-${idx}`).find('.input-producto-id, .input-descripcion').val('');
+        $(`#precio-original-${idx}`).hide();
 
         if (!tipoId) {
             selSubcat.html('<option value="">-- Categoría --</option>').prop('disabled', true);
             reinitSelect2(`.sel-subcategoria[data-index="${idx}"]`);
             return;
         }
-
         const tipo = tipos.find(t => t.id === tipoId);
-        if (!tipo || !tipo.categories || tipo.categories.length === 0) {
+        if (!tipo || !tipo.categories || !tipo.categories.length) {
             selSubcat.html('<option value="">Sin categorías</option>').prop('disabled', true);
             reinitSelect2(`.sel-subcategoria[data-index="${idx}"]`);
             return;
         }
-
         let opts = '<option value="">-- Categoría --</option>';
-        tipo.categories.forEach(c => {
-            opts += `<option value="${c.id}">${c.name}</option>`;
-        });
+        tipo.categories.forEach(c => { opts += `<option value="${c.id}">${c.name}</option>`; });
         selSubcat.html(opts).prop('disabled', false);
         reinitSelect2(`.sel-subcategoria[data-index="${idx}"]`);
     });
 
-    // ==================== CASCADA: CATEGORÍA → PRODUCTO ====================
     $(document).on('change', '.sel-subcategoria', function() {
-        const idx = $(this).data('index');
+        const idx         = $(this).data('index');
         const categoriaId = parseInt($(this).val());
         const selProducto = $(`.sel-producto[data-index="${idx}"]`);
 
         $(`#fila-${idx}`).find('.input-producto-id').val('');
         $(`#fila-${idx}`).find('.input-descripcion').val('');
         $(`#fila-${idx}`).find('.input-precio').val(0);
-        $(`#producto-info-${idx}`).html('');
+        $(`#precio-original-${idx}`).hide();
 
         if (!categoriaId) {
             selProducto.html('<option value="">-- Producto --</option>').prop('disabled', true);
             reinitSelect2(`.sel-producto[data-index="${idx}"]`);
             return;
         }
-
         const prods = productosDB.filter(p => p.categorie_id === categoriaId);
-
-        if (prods.length === 0) {
+        if (!prods.length) {
             selProducto.html('<option value="">Sin productos</option>').prop('disabled', true);
             reinitSelect2(`.sel-producto[data-index="${idx}"]`);
             return;
         }
-
         let opts = '<option value="">-- Producto --</option>';
         prods.forEach(p => {
-            const marca = p.marca ? ` (${p.marca.name})` : '';
-            const precio = p.precio ? ` - S/ ${parseFloat(p.precio).toFixed(2)}` : '';
-            opts += `<option value="${p.id}" data-precio="${p.precio || 0}" data-nombre="${p.name}" data-marca="${p.marca?.name || ''}" data-desc="${p.descripcion || ''}">${p.codigo ? p.codigo + ' - ' : ''}${p.name}${marca}${precio}</option>`;
+            const marca  = p.marca  ? ` (${p.marca.name})` : '';
+            opts += `<option value="${p.id}" data-precio="${p.precio||0}" data-nombre="${p.name}" data-marca="${p.marca?.name||''}" data-desc="${p.descripcion||''}">${p.codigo ? p.codigo+' — ':'' }${p.name}${marca}</option>`;
         });
         selProducto.html(opts).prop('disabled', false);
         reinitSelect2(`.sel-producto[data-index="${idx}"]`);
     });
 
-    // ==================== SELECCIÓN DE PRODUCTO ====================
     $(document).on('change', '.sel-producto', function() {
-        const idx = $(this).data('index');
-        const fila = $(`#fila-${idx}`);
+        const idx      = $(this).data('index');
+        const fila     = $(`#fila-${idx}`);
         const selected = $(this).find(':selected');
-        const productoId = $(this).val();
 
-        if (productoId) {
-            fila.find('.input-producto-id').val(productoId);
+        if ($(this).val()) {
+            fila.find('.input-producto-id').val($(this).val());
             fila.find('.input-descripcion').val(selected.data('nombre'));
-            fila.find('.input-precio').val(parseFloat(selected.data('precio') || 0).toFixed(2));
+            const precioOriginal = parseFloat(selected.data('precio') || 0);
+            fila.find('.input-precio').val(precioOriginal.toFixed(2));
             fila.find('input[name*="[especificaciones]"]').val(selected.data('desc') || '');
-
-            const marca = selected.data('marca');
-            let infoHtml = `<i class="bi bi-check-circle text-success me-1"></i><strong>${selected.data('nombre')}</strong>`;
-            if (marca) infoHtml += ` — ${marca}`;
-            $(`#producto-info-${idx}`).html(infoHtml);
+            if (precioOriginal > 0) {
+                $(`#precio-original-${idx}`).html(`<i class="bi bi-tag me-1"></i>Precio original: S/ ${precioOriginal.toFixed(2)}`).show();
+            } else {
+                $(`#precio-original-${idx}`).hide();
+            }
         } else {
-            fila.find('.input-producto-id').val('');
-            fila.find('.input-descripcion').val('');
+            fila.find('.input-producto-id, .input-descripcion').val('');
             fila.find('.input-precio').val(0);
-            $(`#producto-info-${idx}`).html('');
+            $(`#precio-original-${idx}`).hide();
         }
-
         calcularSubtotalFila(idx);
         calcularTotales();
     });
 
-    // ==================== SELECT DE SERVICIOS ====================
-    $(document).on('change', '.sel-sugerencia', function() {
-        const idx = $(this).data('index');
-        const fila = $(`#fila-${idx}`);
-        const val = $(this).val();
-        const inputDesc = fila.find('.input-descripcion');
-        const inputCustom = fila.find('.input-descripcion-custom');
+    // ==================== CASCADA: TIPO SERVICIO → SERVICIO ====================
+    $(document).on('change', '.sel-servicio-especifico', function() {
+        const idx      = $(this).data('index');
+        const fila     = $(`#fila-${idx}`);
+        const selected = $(this).find(':selected');
+        const val      = $(this).val();
 
-        if (val === '__custom__') {
-            inputCustom.val('').show().focus();
-        } else if (val) {
-            const unidad = $(this).find(':selected').data('unidad');
-            inputDesc.val(val);
-            inputCustom.val(val).hide();
-            if (unidad) fila.find('.input-unidad').val(unidad);
+        if (val) {
+            fila.find('.input-servicio-id').val(val);
+            // Nombre: quitar el sufijo "(Público)" o "(Privado)" del texto de la opción
+            const nombre = selected.text().replace(/\s*\([^)]*\)\s*$/, '').trim();
+            const desc   = selected.data('desc') || '';
+            fila.find('.input-descripcion').val(nombre);
+            const hint = $(`#desc-servicio-${idx}`);
+            if (desc) { hint.find('span').text(desc); hint.show(); }
+            else { hint.hide(); }
         } else {
-            inputDesc.val('');
-            inputCustom.val('').hide();
+            fila.find('.input-servicio-id').val('');
+            fila.find('.input-descripcion').val('');
+            $(`#desc-servicio-${idx}`).hide();
         }
+        calcularSubtotalFila(idx);
+        calcularTotales();
     });
+
+
+    // ==================== RESTAURAR CASCADA PRODUCTO (old/guardado) ====================
+    function restaurarCascadaProducto(idx, tipoId, categoriaId, productoId, precioGuardado) {
+        if (!tipoId) return;
+
+        const selTipo    = $(`.sel-tipo[data-index="${idx}"]`);
+        const selSubcat  = $(`.sel-subcategoria[data-index="${idx}"]`);
+        const selProd    = $(`.sel-producto[data-index="${idx}"]`);
+
+        // 1. Seleccionar Tipo y poblar Categorías
+        const tipo = tipos.find(t => t.id == tipoId);
+        if (!tipo) return;
+
+        let optsCat = '<option value="">-- Categoría --</option>';
+        (tipo.categories || []).forEach(cat => {
+            const sel = cat.id == categoriaId ? 'selected' : '';
+            optsCat += `<option value="${cat.id}" ${sel}>${cat.name}</option>`;
+        });
+        selSubcat.html(optsCat).prop('disabled', false);
+        selTipo.val(tipoId);
+
+        // 2. Poblar Productos de la categoría
+        if (!categoriaId) return;
+        const prods = productosDB.filter(p => p.categorie_id == categoriaId);
+        if (!prods.length) return;
+
+        let optsProd = '<option value="">-- Producto --</option>';
+        prods.forEach(p => {
+            const marca = p.marca ? ` (${p.marca.name})` : '';
+            const sel   = p.id == productoId ? 'selected' : '';
+            optsProd += `<option value="${p.id}" data-precio="${p.precio||0}" data-nombre="${p.name}" data-marca="${p.marca?.name||''}" data-desc="${p.descripcion||''}" ${sel}>${p.codigo ? p.codigo+' — ':''}${p.name}${marca}</option>`;
+        });
+        selProd.html(optsProd).prop('disabled', false);
+
+        // 3. Si hay producto, mostrar precio original
+        if (productoId) {
+            const prod = prods.find(p => p.id == productoId);
+            if (prod) {
+                const precioOriginal = parseFloat(prod.precio || 0);
+                if (precioOriginal > 0) {
+                    $(`#precio-original-${idx}`).html(`<i class="bi bi-tag me-1"></i>Precio original: S/ ${precioOriginal.toFixed(2)}`).show();
+                }
+                $(`#fila-${idx}`).find('.input-descripcion').val(prod.name);
+                // Precio final = lo guardado (puede haber sido editado manualmente)
+                if (precioGuardado) {
+                    $(`#fila-${idx}`).find('.input-precio').val(parseFloat(precioGuardado).toFixed(2));
+                }
+            }
+        }
+
+        // 4. Reinicializar Select2
+        reinitSelect2(`.sel-tipo[data-index="${idx}"]`);
+        reinitSelect2(`.sel-subcategoria[data-index="${idx}"]`);
+        reinitSelect2(`.sel-producto[data-index="${idx}"]`);
+
+        calcularSubtotalFila(idx);
+        calcularTotales();
+    }
 
     // ==================== QUITAR FILA ====================
     window.quitarFila = function(i) {
         $(`#fila-${i}`).remove();
         calcularTotales();
-        if ($('.item-fila').length === 0) {
-            $('#sinItems').show();
-        }
-    }
+        if ($('.item-fila').length === 0) $('#sinItems').show();
+    };
 
     // ==================== CÁLCULOS ====================
-    $(document).on('input', '.input-cantidad, .input-precio, .input-dto', function() {
-        const fila = $(this).closest('tr');
-        const idx = fila.attr('id').replace('fila-', '');
+    $(document).on('input', '.input-cantidad, .input-precio', function() {
+        const idx = $(this).closest('tr').attr('id').replace('fila-', '');
         calcularSubtotalFila(idx);
         calcularTotales();
     });
 
+    // ── UTILIDADES DE PRECISIÓN FINANCIERA ──────────────────────────────────
+    // Regla: operar siempre con round6; sólo redondear a 2 al mostrar en pantalla.
+    // Razón: IEEE-754 double acumula error en cada operación; round6 lo contiene.
+    function round6(val) { return Math.round(parseFloat(val || 0) * 1e6) / 1e6; }
+    function round2(val) { return Math.round(val * 100) / 100; }
+    function fmtMoney(val) {
+        return 'S/ ' + round2(val).toFixed(2);
+    }
+
     function calcularSubtotalFila(idx) {
-        const fila = $(`#fila-${idx}`);
-        const cant = parseFloat(fila.find('.input-cantidad').val()) || 0;
-        const precio = parseFloat(fila.find('.input-precio').val()) || 0;
-        const dto = parseFloat(fila.find('.input-dto').val()) || 0;
-        const bruto = cant * precio;
-        const descuento = bruto * (dto / 100);
-        const subtotal = bruto - descuento;
-        $(`#subtotal-${idx}`).text('S/ ' + subtotal.toFixed(2));
-        return subtotal;
+        const fila   = $(`#fila-${idx}`);
+        const cant   = round6(fila.find('.input-cantidad').val());
+        const precio = round6(fila.find('.input-precio').val());
+        // Multiplicar como floats de 64-bit y redondear a 6 para contener error
+        const sub    = round6(cant * precio);
+        $(`#subtotal-${idx}`).text(fmtMoney(sub));
+        return sub; // devolver con 6 decimales para acumulación exacta
     }
 
     function calcularTotales() {
-        let subtotal = 0;
+        let subtotal = 0;  // acumulador en escala 6
         let desglose = {};
 
         $('.item-fila').each(function() {
             const idx = $(this).attr('id').replace('fila-', '');
             const sub = calcularSubtotalFila(idx);
-            subtotal += sub;
-
-            const cat = $(this).find('.sel-categoria').val();
-            desglose[cat] = (desglose[cat] || 0) + sub;
+            subtotal  = round6(subtotal + sub); // sumar y re-redondear a 6
+            const cat = $(this).data('tipo');
+            desglose[cat] = round6((desglose[cat] || 0) + sub);
         });
 
-        const dtoPct = parseFloat($('#descuento_porcentaje').val()) || 0;
-        const dtoMonto = subtotal * (dtoPct / 100);
-        const base = subtotal - dtoMonto;
-        const conIgv = $('#incluye_igv').is(':checked');
-        const igv = conIgv ? base * 0.18 : 0;
-        const total = base + igv;
+        const dtoPct   = round6($('#descuento_porcentaje').val());
+        // descuento_monto = subtotal × (pct/100)  — en escala 6
+        const dtoMonto = round6(subtotal * (dtoPct / 100));
+        const base     = round6(subtotal - dtoMonto);
+        const conIgv   = $('#incluye_igv').is(':checked');
 
-        $('#calc-subtotal').text('S/ ' + subtotal.toFixed(2));
-        $('#calc-descuento').text('- S/ ' + dtoMonto.toFixed(2));
-        $('#calc-base').text('S/ ' + base.toFixed(2));
-        $('#calc-igv').text(conIgv ? 'S/ ' + igv.toFixed(2) : 'S/ 0.00');
-        $('#calc-total').text('S/ ' + total.toFixed(2));
+        let igv, total, baseNeta;
+        if (conIgv) {
+            // Precio YA incluye IGV → extraer: base_neta = total / 1.18
+            total    = base;
+            baseNeta = round6(total / 1.18);
+            igv      = round6(total - baseNeta);
+        } else {
+            // Precio sin IGV → añadir: igv = base × 0.18
+            baseNeta = base;
+            igv      = round6(base * 0.18);
+            total    = round6(base + igv);
+        }
 
-        $('#input-subtotal').val(subtotal.toFixed(2));
-        $('#input-igv').val(igv.toFixed(2));
-        $('#input-total').val(total.toFixed(2));
-        $('#input-descuento-monto').val(dtoMonto.toFixed(2));
+        // Mostrar con 2 decimales (presentación SUNAT)
+        $('#calc-subtotal').text(fmtMoney(subtotal));
+        $('#calc-descuento').text('- ' + fmtMoney(dtoMonto));
+        $('#calc-base').text(fmtMoney(baseNeta));
+        $('#calc-igv').text(conIgv ? fmtMoney(igv) : 'S/ 0.00');
+        $('#calc-total').text(fmtMoney(total));
 
+        // Enviar 6 decimales al servidor — el servidor recalcula con bcmath
+        $('#input-subtotal').val(subtotal.toFixed(6));
+        $('#input-igv').val(igv.toFixed(6));
+        $('#input-total').val(total.toFixed(6));
+        $('#input-descuento-monto').val(dtoMonto.toFixed(6));
+
+        // Desglose por categoría
         let desgloseHtml = '';
         for (let cat in desglose) {
-            const nombre = catNombres[cat] || cat;
+            const nombre = tipoNombres[cat] || cat;
             desgloseHtml += `<div class="d-flex justify-content-between mb-1">
-                <span><i class="bi bi-circle-fill text-${catColors[cat] || 'secondary'} me-1" style="font-size:0.5rem;"></i>${nombre}:</span>
-                <span class="fw-bold">S/ ${desglose[cat].toFixed(2)}</span>
+                <span><i class="bi bi-circle-fill text-${tipoColors[cat]||'secondary'} me-1" style="font-size:0.5rem;"></i>${nombre}:</span>
+                <span class="fw-bold">${fmtMoney(desglose[cat])}</span>
             </div>`;
         }
         $('#desglose-categorias').html(desgloseHtml || '<span class="text-muted">Sin ítems</span>');
     }
 
-    // ==================== IGV y DESCUENTO ====================
-    $('#incluye_igv').on('change', calcularTotales);
+    
     $('#descuento_porcentaje').on('input', calcularTotales);
 
-    // ==================== OPORTUNIDAD SELECCIONADA ====================
+    // ==================== DETALLE DE OPORTUNIDAD ====================
+    const etapaColors = {
+        'calificacion': 'secondary', 'evaluacion': 'info', 'cotizacion': 'warning text-dark',
+        'negociacion': 'primary', 'ganada': 'success', 'perdida': 'danger'
+    };
+    const tipoColorMap = {
+        'producto': 'success', 'servicio': 'warning text-dark', 'mixto': 'info'
+    };
+
+    const tipoProyectoLabels = {
+        'residencial': 'Residencial', 'comercial': 'Comercial',
+        'industrial': 'Industrial', 'agricola': 'Agrícola'
+    };
+    const tipoOportunidadLabels = {
+        'producto': 'Venta de Producto', 'servicio': 'Servicio', 'mixto': 'Mixto'
+    };
+
     $('#oportunidad_id').on('change', function() {
-        const selected = $(this).find(':selected');
-        if (selected.val()) {
-            $('#nombre_proyecto').val(selected.data('nombre') || '');
-            const tipo = selected.data('tipo');
-            if (tipo === 'servicio' || tipo === 'mixto') {
-                $('#wrap-tiempo-ejecucion').show();
-            } else {
-                $('#wrap-tiempo-ejecucion').hide().find('input').val('');
-            }
-        } else {
-            $('#wrap-tiempo-ejecucion').hide();
+        const sel = $(this).find(':selected');
+        if (!sel.val()) {
+            $('#oportunidad-detalle').slideUp(200);
+            return;
         }
+
+        const prospecto     = sel.data('prospecto');
+        const email         = sel.data('email');
+        const tel           = sel.data('telefono');
+        const tipoProyecto  = sel.data('tipo-proyecto');
+        const tipoOp        = sel.data('tipo');
+
+        $('#op-prospecto').text(prospecto || '—');
+
+        let contacto = [];
+        if (email) contacto.push(`<i class="bi bi-envelope me-1"></i>${email}`);
+        if (tel)   contacto.push(`<i class="bi bi-telephone me-1"></i>${tel}`);
+        $('#op-contacto').html(contacto.length ? contacto.join(' &nbsp;&middot;&nbsp; ') : '—');
+
+        const segLabel = tipoProyectoLabels[tipoProyecto] || tipoProyecto || '—';
+        $('#op-segmento').text(segLabel);
+
+        const tipoOpLabel = tipoOportunidadLabels[tipoOp] || (tipoOp ? tipoOp.charAt(0).toUpperCase()+tipoOp.slice(1) : '—');
+        $('#op-tipo-oportunidad').text(tipoOpLabel);
+
+        // Autocompletar nombre del proyecto si está vacío
+        const nombreOp = sel.data('nombre');
+        if (nombreOp && !$('#nombre_proyecto').val()) {
+            $('#nombre_proyecto').val(nombreOp);
+        }
+
+        $('#oportunidad-detalle').slideDown(200);
     });
 
+    // Disparar al cargar si ya hay selección previa
     if ($('#oportunidad_id').val()) {
         $('#oportunidad_id').trigger('change');
     }

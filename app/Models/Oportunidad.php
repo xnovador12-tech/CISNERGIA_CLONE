@@ -22,10 +22,12 @@ class Oportunidad extends Model
         'etapa',
         'tipo_proyecto',
         'tipo_oportunidad',
-        'tipo_servicio',
+        'servicio_id',
         'descripcion_servicio',
         'requiere_visita_tecnica',
         'fecha_visita_programada',
+        'ubicacion_visita',
+        'tecnico_visita_id',
         'resultado_visita',
         'monto_estimado',
         'monto_final',
@@ -51,7 +53,7 @@ class Oportunidad extends Model
         'fecha_creacion' => 'date',
         'fecha_cierre_estimada' => 'date',
         'fecha_cierre_real' => 'date',
-        'fecha_visita_programada' => 'date',
+        'fecha_visita_programada' => 'datetime',
         'requiere_visita_tecnica' => 'boolean',
     ];
 
@@ -61,7 +63,7 @@ class Oportunidad extends Model
     public const ETAPAS = [
         'calificacion'      => ['nombre' => 'Calificación', 'probabilidad' => 10, 'color' => 'primary'],
         'evaluacion'        => ['nombre' => 'Evaluación', 'probabilidad' => 25, 'color' => 'info'],
-        'propuesta_tecnica' => ['nombre' => 'Propuesta Técnica', 'probabilidad' => 50, 'color' => 'warning'],
+        'cotizacion' => ['nombre' => 'Cotización', 'probabilidad' => 50, 'color' => 'warning'],
         'negociacion'       => ['nombre' => 'Negociación', 'probabilidad' => 80, 'color' => 'secondary'],
         'ganada'            => ['nombre' => 'Ganada', 'probabilidad' => 100, 'color' => 'success'],
         'perdida'           => ['nombre' => 'Perdida', 'probabilidad' => 0, 'color' => 'danger'],
@@ -153,7 +155,8 @@ class Oportunidad extends Model
      */
     public function calcularValorPonderado(): void
     {
-        $this->valor_ponderado = ($this->monto_estimado * $this->probabilidad) / 100;
+        $base = $this->monto_final ?? $this->monto_estimado;
+        $this->valor_ponderado = ($base * $this->probabilidad) / 100;
     }
 
     /**
@@ -198,9 +201,14 @@ class Oportunidad extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function usuario()
+    public function tecnicoVisita()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'tecnico_visita_id');
+    }
+
+    public function servicio()
+    {
+        return $this->belongsTo(\App\Models\Servicio::class, 'servicio_id');
     }
 
     public function cotizaciones()
@@ -278,6 +286,19 @@ class Oportunidad extends Model
                     ->whereYear('fecha_creacion', $ano);
     }
 
+    /**
+     * Scope: oportunidades cerradas (ganadas/perdidas) en un mes específico
+     * Usa fecha_cierre_real, no fecha_creacion
+     */
+    public function scopeCerradasEnMes($query, $mes = null, $ano = null)
+    {
+        $mes = $mes ?? now()->month;
+        $ano = $ano ?? now()->year;
+
+        return $query->whereMonth('fecha_cierre_real', $mes)
+                    ->whereYear('fecha_cierre_real', $ano);
+    }
+
     // ==================== MÉTODOS ====================
 
     /**
@@ -300,24 +321,6 @@ class Oportunidad extends Model
     }
 
     /**
-     * Marcar como ganada
-     */
-    public function marcarGanada(?float $montoFinal = null, ?string $fechaCierreReal = null): void
-    {
-        $this->etapa = 'ganada';
-        $this->probabilidad = 100;
-        $this->fecha_cierre_real = $fechaCierreReal ? \Carbon\Carbon::parse($fechaCierreReal) : now();
-        $this->monto_final = $montoFinal ?? $this->monto_estimado;
-        $this->save();
-
-        if ($this->prospecto && !$this->cliente_id) {
-            $cliente = $this->prospecto->convertirACliente();
-            $this->cliente_id = $cliente->id;
-            $this->save();
-        }
-    }
-
-    /**
      * Marcar como perdida
      */
     public function marcarPerdida(string $motivo, ?string $detalle = null, ?string $competidor = null): void
@@ -336,15 +339,21 @@ class Oportunidad extends Model
      */
     public static function getValorPipeline(): array
     {
-        $resultado = [];
+        // Una sola query agrupada en lugar de una por etapa
+        $datos = self::whereNotIn('etapa', ['ganada', 'perdida'])
+            ->selectRaw('etapa, COUNT(*) as cantidad, SUM(monto_estimado) as valor, SUM(valor_ponderado) as valor_ponderado')
+            ->groupBy('etapa')
+            ->get()
+            ->keyBy('etapa');
 
+        $resultado = [];
         foreach (array_keys(self::ETAPAS) as $etapa) {
             if (!in_array($etapa, ['ganada', 'perdida'])) {
-                $oportunidades = self::porEtapa($etapa)->get();
+                $fila = $datos->get($etapa);
                 $resultado[$etapa] = [
-                    'cantidad' => $oportunidades->count(),
-                    'valor' => $oportunidades->sum('monto_estimado'),
-                    'valor_ponderado' => $oportunidades->sum('valor_ponderado'),
+                    'cantidad'        => $fila?->cantidad ?? 0,
+                    'valor'           => $fila?->valor ?? 0,
+                    'valor_ponderado' => $fila?->valor_ponderado ?? 0,
                 ];
             }
         }

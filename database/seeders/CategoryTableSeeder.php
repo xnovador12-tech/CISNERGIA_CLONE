@@ -19,7 +19,7 @@ class CategoryTableSeeder extends Seeder
             'Soportes Paneles Solares' => ['Soportes Cubierta Metálica', 'Soportes Pared o Fachada', 'Soportes Suelo', 'Soporte Elevado', 'Accesorios para Soporte'],
             'Baterías' => ['Baterías Plomo Acido Abierto', 'Baterías AGM', 'Baterías de GEL', 'Baterias Estacionarias','Baterías de Litio','Accesorios de Baterías'],
             'Inversores Solares' => ['Inversores 12V', 'Inversores 24V', 'Inversores 48V', 'Inversores Cargadores','Inversores Hibridos','Inversores Interconexion','Microinversor Solar','Convertidor de Corriente','Vatimetro','Accesorios de Inversores'],
-            'Controladores de Carga ' => ['Controladores de Carga PWM', 'Controladores de Carga MPPT', 'Accesorios'],
+            'Controladores de Carga' => ['Controladores de Carga PWM', 'Controladores de Carga MPPT', 'Accesorios'],
             'Cargador de Baterías' => ['Cargador de Baterías 12V', 'Cargador de Baterías 24V'],
             'Iluminación Solar' => ['Luminarias Solares'],
             'Accesorios Eléctricos' => ['Enchufes', 'Tomacorriente Schuko', 'Aisladores Eléctricos', 'Cajas de Paso', 'Base Galvanizada', 'Rejillas de Ventilación', 'Canalizaciones', 'Repartidores de Corriente', 'Material Eléctrico','Materiales para Pozo a Tierra','Terminales Eléctricos'],

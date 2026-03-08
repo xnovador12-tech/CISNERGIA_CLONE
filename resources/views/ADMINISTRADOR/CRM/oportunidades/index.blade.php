@@ -116,50 +116,36 @@
     </div>
 
     {{-- Alertas completas --}}
-    @if(session('success'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    @endif
-    @if(session('info'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-info alert-dismissible fade show"><i class="bi bi-info-circle me-2"></i>{{ session('info') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    @endif
 
     {{-- Tabla --}}
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px; min-height: 500px" data-aos="fade-up">
             <div class="card-header bg-transparent">
                 <div class="row justify-content-between align-items-center">
-                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                    <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex gap-2">
                         <a href="{{ route('admin.crm.oportunidades.create') }}" class="btn btn-primary text-uppercase text-white btn-sm">
                             <i class="bi bi-plus-circle-fill me-2"></i>Nueva Oportunidad
                         </a>
+                
                     </div>
                 </div>
             </div>
             <div class="card-body">
                 {{-- Filtros --}}
-                <div class="row g-2 mb-3 align-items-end">
-                    <div class="col-md-3">
+                <div class="row g-2 mb-3 align-items-end flex-nowrap">
+                    <div class="col">
                         <label for="filtro-etapa" class="form-label small text-muted mb-1">Etapa</label>
                         <select id="filtro-etapa" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todas las Etapas">
                             <option value="">Todas las Etapas</option>
                             <option value="Calificación">Calificación</option>
                             <option value="Evaluación">Evaluación</option>
-                            <option value="Propuesta Técnica">Propuesta Técnica</option>
+                            <option value="Cotización">Cotización</option>
                             <option value="Negociación">Negociación</option>
                             <option value="Ganada">Ganada</option>
                             <option value="Perdida">Perdida</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col">
                         <label for="filtro-tipo" class="form-label small text-muted mb-1">Tipo Proyecto</label>
                         <select id="filtro-tipo" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Proyectos">
                             <option value="">Todos los Proyectos</option>
@@ -169,7 +155,7 @@
                             <option value="Agrícola">Agrícola</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col">
                         <label for="filtro-tipo-oportunidad" class="form-label small text-muted mb-1">Tipo Oportunidad</label>
                         <select id="filtro-tipo-oportunidad" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Producto / Servicio">
                             <option value="">Producto / Servicio</option>
@@ -178,14 +164,28 @@
                             <option value="Mixto">Mixto</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label small text-muted mb-1">&nbsp;</label>
-                        <div class="form-check mt-1">
-                            <input class="form-check-input" type="checkbox" id="ocultar-cerradas">
-                            <label class="form-check-label small" for="ocultar-cerradas">
-                                <i class="bi bi-eye-slash me-1"></i>Ocultar Ganadas/Perdidas
-                            </label>
-                        </div>
+                    @if($esAdmin)
+                    <div class="col">
+                        <label class="form-label small text-muted mb-1">Vendedor</label>
+                        <select id="filtro-vendedor" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Vendedores">
+                            <option value="">Todos los Vendedores</option>
+                            @foreach($vendedores as $vendedor)
+                                <option value="{{ trim(($vendedor->persona?->name ?? $vendedor->email) . ' ' . ($vendedor->persona?->surnames ?? '')) }}">
+                                    {{ $vendedor->persona?->name ?? $vendedor->email }} {{ $vendedor->persona?->surnames ?? '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+                    <div class="col-auto">
+                        <button type="button" id="btn-limpiar"
+                                class="btn btn-sm btn-outline-secondary"
+                                title="Limpiar filtros"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                style="height: 31px; padding: 0 8px; border-radius: 6px;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
                     </div>
                 </div>
                 
@@ -203,43 +203,70 @@
                             <th class="text-center">Valor</th>
                             <th class="text-center">Etapa</th>
                             <th class="text-center">Probabilidad</th>
-                            <th class="text-center">Cierre Est.</th>
+                            @if($esAdmin)
+                            <th class="text-center">Vendedor</th>
+                            @endif
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
+                    @php
+                        $tipoOpoColors = ['producto' => 'success', 'servicio' => 'warning text-dark', 'mixto' => 'info'];
+                        $etapaColors   = [
+                            'calificacion'    => 'primary',
+                            'evaluacion'      => 'info',
+                            'cotizacion' => 'warning text-dark',
+                            'negociacion'     => 'secondary',
+                            'ganada'          => 'success',
+                            'perdida'         => 'danger',
+                        ];
+                    @endphp
                     <tbody>
                         @foreach($oportunidades as $index => $oportunidad)
-                            <tr>
+                            @php
+                                $vencida = !in_array($oportunidad->etapa, ['ganada', 'perdida'])
+                                    && $oportunidad->fecha_cierre_estimada
+                                    && $oportunidad->fecha_cierre_estimada->isPast();
+                            @endphp
+                            <tr class="{{ $vencida ? 'table-warning' : '' }}">
                                 <td class="text-center"></td>
-                                <td class="text-center"><span class="badge bg-secondary">{{ $oportunidad->codigo }}</span></td>
-                                <td class="text-start">
-                                    <strong>{{ Str::limit($oportunidad->nombre, 30) }}</strong>
-                                    <br><small class="text-muted">{{ ucfirst($oportunidad->tipo_proyecto ?? '') }}</small>
-                                </td>
                                 <td class="text-center">
-                                    @if($oportunidad->cliente)
-                                        <span class="badge bg-success">{{ Str::limit($oportunidad->cliente->nombre, 20) }}</span>
-                                    @elseif($oportunidad->prospecto)
-                                        <span class="badge bg-warning text-dark">{{ Str::limit($oportunidad->prospecto->nombre_completo, 20) }}</span>
-                                    @else
-                                        <span class="text-muted">-</span>
+                                    <span class="fw-semibold">{{ $oportunidad->codigo }}</span>
+                                    <br><small class="text-muted">{{ $oportunidad->created_at->format('d/m/Y') }}</small>
+                                    @if($vencida)
+                                        <br><span class="badge bg-danger" style="font-size:0.6rem;" title="Fecha de cierre vencida">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Vencida
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-start">
+                                    <span class="fw-semibold">{{ Str::limit($oportunidad->nombre, 30) }}</span>
+                                    @if($oportunidad->tipo_proyecto)
+                                        <br><small class="text-muted">{{ ucfirst($oportunidad->tipo_proyecto) }}</small>
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    @php $tipoOpoColors = ['producto' => 'success', 'servicio' => 'warning', 'mixto' => 'info']; @endphp
+                                    @if($oportunidad->cliente)
+                                        <small class="text-dark fw-semibold">{{ Str::limit($oportunidad->cliente->nombre, 22) }}</small>
+                                    @elseif($oportunidad->prospecto)
+                                        <small class="text-dark fw-semibold">{{ Str::limit($oportunidad->prospecto->nombre_completo, 22) }}</small>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
                                     <span class="badge bg-{{ $tipoOpoColors[$oportunidad->tipo_oportunidad ?? 'producto'] ?? 'secondary' }}">
                                         {{ ucfirst($oportunidad->tipo_oportunidad ?? 'producto') }}
                                     </span>
                                 </td>
-                                <td class="text-center fw-bold text-primary">S/ {{ number_format($oportunidad->monto_estimado, 0) }}</td>
+                                <td class="text-center fw-bold">
+                                    @if($oportunidad->monto_final)
+                                        <span class="text-success">S/ {{ number_format($oportunidad->monto_final, 0) }}</span>
+                                        <br><small class="text-muted fw-normal">est. S/ {{ number_format($oportunidad->monto_estimado, 0) }}</small>
+                                    @else
+                                        <span class="text-primary">S/ {{ number_format($oportunidad->monto_estimado, 0) }}</span>
+                                    @endif
+                                </td>
                                 <td class="text-center">
-                                    @php
-                                        $etapaColors = [
-                                            'calificacion' => 'primary', 'evaluacion' => 'info',
-                                            'propuesta_tecnica' => 'warning', 'negociacion' => 'secondary',
-                                            'ganada' => 'success', 'perdida' => 'danger',
-                                        ];
-                                    @endphp
                                     <span class="badge bg-{{ $etapaColors[$oportunidad->etapa] ?? 'secondary' }}">
                                         {{ \App\Models\Oportunidad::ETAPAS[$oportunidad->etapa]['nombre'] ?? ucfirst($oportunidad->etapa) }}
                                     </span>
@@ -253,9 +280,11 @@
                                         <small>{{ $oportunidad->probabilidad }}%</small>
                                     </div>
                                 </td>
-                                <td class="text-center">
-                                    <small>{{ $oportunidad->fecha_cierre_estimada ? $oportunidad->fecha_cierre_estimada->format('d/m/Y') : '-' }}</small>
+                                @if($esAdmin)
+                                <td class="text-center small">
+                                    {{ trim(($oportunidad->vendedor?->persona?->name ?? $oportunidad->vendedor?->email ?? '—') . ' ' . ($oportunidad->vendedor?->persona?->surnames ?? '')) }}
                                 </td>
+                                @endif
                                 <td class="text-center">
                                     <div class="dropstart">
                                         <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
@@ -270,7 +299,8 @@
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <form action="{{ route('admin.crm.oportunidades.destroy', $oportunidad) }}"
-                                                      method="POST" class="form-delete d-inline">
+                                                      method="POST" class="form-delete d-inline"
+                                                      data-nombre="{{ $oportunidad->nombre }}">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit"
@@ -313,7 +343,7 @@
             pageLength: 10,
             order: [[1, 'desc']],
             columnDefs: [
-                { orderable: false, searchable: false, targets: [0, 9] }
+                { orderable: false, searchable: false, targets: {{ $esAdmin ? '[0, 9]' : '[0, 8]' }} }
             ],
             dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
                  '<"row"<"col-sm-12"tr>>' +
@@ -334,6 +364,22 @@
         // Filtro por Tipo Oportunidad (columna 4)
         $('#filtro-tipo-oportunidad').on('change', function() { table.column(4).search($(this).val()).draw(); });
 
+        @if($esAdmin)
+        $('#filtro-vendedor').on('change', function() { table.column(8).search($(this).val()).draw(); });
+        @endif
+
+        // Limpiar filtros
+        $('#btn-limpiar').on('click', function() {
+            $('[id^="filtro-"]').each(function() {
+                $(this).val('').trigger('change');
+            });
+            table.search('').columns().search('').draw();
+        });
+
+    // Inicializar tooltip
+    var tooltipEl = document.querySelector('#btn-limpiar');
+    if (tooltipEl) { new bootstrap.Tooltip(tooltipEl); }
+
         // Al cambiar el checkbox, redibujar la tabla
         $('#ocultar-cerradas').on('change', function() {
             table.draw();
@@ -343,14 +389,15 @@
         $(document).on('submit', '.form-delete', function(e) {
             e.preventDefault();
             var form = this;
+            var nombre = $(this).data('nombre') || 'esta oportunidad';
             Swal.fire({
-                title: '¿Estás seguro?',
-                text: "¡No podrás revertir esto!",
+                title: '¿Eliminar oportunidad?',
+                html: 'Se eliminará permanentemente <strong>' + nombre + '</strong>.<br><small class="text-muted">Esta acción no se puede deshacer.</small>',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#1C3146',
                 cancelButtonColor: '#FF9C00',
-                confirmButtonText: '¡Sí, eliminar!',
+                confirmButtonText: '<i class="bi bi-trash me-1"></i> Sí, eliminar',
                 cancelButtonText: 'Cancelar'
             }).then(function(result) {
                 if (result.isConfirmed) { form.submit(); }

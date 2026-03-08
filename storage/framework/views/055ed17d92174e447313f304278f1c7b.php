@@ -97,34 +97,15 @@
         </div>
     </div>
 
-    <?php if(session('success')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i><?php echo e(session('success')); ?>
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
-
-    <?php if(session('error')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i><?php echo e(session('error')); ?>
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
-
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px; min-height: 500px" data-aos="fade-in">
             <div class="card-header bg-transparent">
                 <div class="row justify-content-between align-items-center">
-                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                    <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex gap-2">
                         <a href="<?php echo e(route('admin.crm.cotizaciones.create')); ?>" class="btn btn-primary text-uppercase text-white btn-sm">
                             <i class="bi bi-plus-circle-fill me-2"></i>Nueva Cotización
                         </a>
+
                     </div>
                 </div>
             </div>
@@ -162,6 +143,16 @@
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
+                    <div class="col-auto">
+                        <button type="button" id="btn-limpiar"
+                                class="btn btn-sm btn-outline-secondary"
+                                title="Limpiar filtros"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                style="height: 31px; padding: 0 8px; border-radius: 6px;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="mb-2 col-12 col-md-6">
@@ -178,29 +169,30 @@
                             <th class="h6 small text-center text-uppercase fw-bold">Total</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Vigencia</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Estado</th>
+                            <?php if($esAdmin): ?>
+                            <th class="h6 small text-center text-uppercase fw-bold">Vendedor</th>
+                            <?php endif; ?>
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
                     </thead>
+                    <?php
+                        $estadoColors = ['borrador' => 'secondary', 'enviada' => 'primary', 'aceptada' => 'success', 'rechazada' => 'danger'];
+                        $tipoColors   = ['producto' => 'success', 'servicio' => 'warning text-dark', 'mixto' => 'info'];
+                    ?>
                     <tbody>
                         <?php $__currentLoopData = $cotizaciones; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $cotizacion): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <?php
-                                $estadoColors = [
-                                    'borrador' => 'secondary', 'enviada' => 'primary',
-                                    'aceptada' => 'success', 'rechazada' => 'danger'
-                                ];
-                            ?>
                             <tr>
                                 <td class="text-center"><?php echo e($i + 1); ?></td>
                                 <td class="text-center">
-                                    <strong><?php echo e($cotizacion->codigo); ?></strong>
-                                    <br><small class="text-muted"><?php echo e($cotizacion->created_at->format('d/m/Y')); ?></small>
+                                    <span class="fw-semibold"><?php echo e($cotizacion->codigo); ?></span>
                                     <?php if($cotizacion->version > 1): ?>
-                                        <br><span class="badge bg-info">v<?php echo e($cotizacion->version); ?></span>
+                                        <span class="text-muted small"> · v<?php echo e($cotizacion->version); ?></span>
                                     <?php endif; ?>
+                                    <br><small class="text-muted"><?php echo e($cotizacion->created_at->format('d/m/Y')); ?></small>
                                 </td>
                                 <td class="text-start">
                                     <?php if($cotizacion->oportunidad): ?>
-                                        <strong><?php echo e(Str::limit($cotizacion->oportunidad->nombre, 30)); ?></strong>
+                                        <span class="fw-semibold"><?php echo e(Str::limit($cotizacion->oportunidad->nombre, 30)); ?></span>
                                         <?php if($cotizacion->oportunidad->prospecto): ?>
                                             <br><small class="text-muted"><?php echo e(Str::limit($cotizacion->oportunidad->prospecto->nombre_completo, 30)); ?></small>
                                         <?php endif; ?>
@@ -210,9 +202,6 @@
                                 </td>
                                 <td class="text-center">
                                     <?php if($cotizacion->oportunidad): ?>
-                                        <?php
-                                            $tipoColors = ['producto' => 'success', 'servicio' => 'warning', 'mixto' => 'info'];
-                                        ?>
                                         <span class="badge bg-<?php echo e($tipoColors[$cotizacion->oportunidad->tipo_oportunidad] ?? 'secondary'); ?>">
                                             <?php echo e(ucfirst($cotizacion->oportunidad->tipo_oportunidad)); ?>
 
@@ -224,7 +213,7 @@
                                     <?php if($cotizacion->fecha_vigencia): ?>
                                         <small><?php echo e($cotizacion->fecha_vigencia->format('d/m/Y')); ?></small>
                                         <?php if($cotizacion->fecha_vigencia->isPast() && !in_array($cotizacion->estado, ['aceptada', 'rechazada'])): ?>
-                                            <br><small class="text-danger"><i class="bi bi-exclamation-triangle"></i> Vencida</small>
+                                            <br><small class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Vencida</small>
                                         <?php endif; ?>
                                     <?php endif; ?>
                                 </td>
@@ -234,6 +223,12 @@
 
                                     </span>
                                 </td>
+                                <?php if($esAdmin): ?>
+                                <td class="text-center small">
+                                    <?php echo e(trim(($cotizacion->usuario?->persona?->name ?? $cotizacion->usuario?->email ?? '—') . ' ' . ($cotizacion->usuario?->persona?->surnames ?? ''))); ?>
+
+                                </td>
+                                <?php endif; ?>
                                 <td class="text-center">
                                     <div class="dropstart">
                                         <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
@@ -294,7 +289,7 @@ $(document).ready(function() {
         pageLength: 10,
         order: [[1, 'desc']],
         columnDefs: [
-            { orderable: false, targets: [7] }
+            { orderable: false, targets: [-1] }
         ],
         dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
              '<"row"<"col-sm-12"tr>>' +
@@ -303,19 +298,29 @@ $(document).ready(function() {
 
     // ==================== FILTROS ====================
     // Estado (columna 6)
-    $('#filtro-estado').on('change', function() {
-        table.column(6).search($(this).val()).draw();
-    });
+    // Columna de estado: índice 6 siempre (vendedor solo existe en admin)
+    $('#filtro-estado').on('change', function() { table.column(6).search($(this).val()).draw(); });
 
     // Tipo oportunidad (columna 3)
-    $('#filtro-tipo').on('change', function() {
-        table.column(3).search($(this).val()).draw();
+    $('#filtro-tipo').on('change', function() { table.column(3).search($(this).val()).draw(); });
+
+    // Vendedor (columna 7 — solo visible para admins)
+    // Columna vendedor: índice 7 cuando es admin (tiene columna extra), no existe si no es admin
+    <?php if($esAdmin): ?>
+    $('#filtro-usuario').on('change', function() { table.column(7).search($(this).val()).draw(); });
+    <?php endif; ?>
+
+    // Limpiar filtros
+    $('#btn-limpiar').on('click', function() {
+        $('[id^="filtro-"]').each(function() {
+            $(this).val('').trigger('change');
+        });
+        table.search('').columns().search('').draw();
     });
 
-    // Vendedor (búsqueda global)
-    $('#filtro-usuario').on('change', function() {
-        table.search($(this).val()).draw();
-    });
+    // Inicializar tooltip
+    var tooltipEl = document.querySelector('#btn-limpiar');
+    if (tooltipEl) { new bootstrap.Tooltip(tooltipEl); }
 
     // ==================== SWEETALERT: ELIMINAR ====================
     $('.form-delete').on('submit', function(e) {

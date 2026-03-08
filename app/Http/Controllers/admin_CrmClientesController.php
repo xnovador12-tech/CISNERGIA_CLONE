@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cliente;
+use App\Models\Departamento;
 use App\Models\Distrito;
+use App\Models\Sede;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class admin_CrmClientesController extends Controller
 {
@@ -21,10 +22,10 @@ class admin_CrmClientesController extends Controller
 
         // KPIs
         $stats = [
-            'total'      => $clientes->count(),
-            'activos'    => $clientes->where('estado', 'activo')->count(),
-            'inactivos'  => $clientes->where('estado', 'inactivo')->count(),
-            'ecommerce'  => $clientes->where('origen', 'ecommerce')->count(),
+            'total'       => $clientes->count(),
+            'activos'     => $clientes->where('estado', 'activo')->count(),
+            'inactivos'   => $clientes->where('estado', 'inactivo')->count(),
+            'suspendidos' => $clientes->where('estado', 'suspendido')->count(),
         ];
 
         return view('ADMINISTRADOR.CRM.clientes.index', compact('clientes', 'stats'));
@@ -57,7 +58,7 @@ class admin_CrmClientesController extends Controller
                 ? $cliente->ventas->sum('total') / $cliente->ventas->count()
                 : 0,
             'oportunidades'    => $cliente->oportunidades->count(),
-            'tickets_abiertos' => $cliente->tickets->whereNotIn('estado', ['cerrado', 'resuelto'])->count(),
+            'tickets_abiertos' => $cliente->tickets->whereNotIn('estado', ['resuelto'])->count(),
         ];
 
         return view('ADMINISTRADOR.CRM.clientes.show', compact('cliente', 'metricas'));
@@ -68,14 +69,15 @@ class admin_CrmClientesController extends Controller
      */
     public function edit(Cliente $cliente)
     {
-        $cliente->load(['distrito', 'vendedor', 'sede']);
+        $cliente->load(['distrito.provincia.departamento', 'vendedor', 'sede']);
 
-        $distritos = Distrito::orderBy('nombre')->get();
-        $vendedores = User::whereHas('role', function ($q) {
-            $q->whereIn('name', ['Cuantica', 'Administrador']);
+        $departamentos = Departamento::orderBy('nombre')->get();
+        $vendedores    = User::whereHas('role', function ($q) {
+            $q->whereNotIn('slug', ['logistica', 'almacen', 'tesoreria', 'cliente']);
         })->with('persona')->get();
+        $sedes = Sede::where('estado', 'Activo')->orderBy('name')->get();
 
-        return view('ADMINISTRADOR.CRM.clientes.edit', compact('cliente', 'distritos', 'vendedores'));
+        return view('ADMINISTRADOR.CRM.clientes.edit', compact('cliente', 'departamentos', 'vendedores', 'sedes'));
     }
 
     /**
@@ -98,6 +100,7 @@ class admin_CrmClientesController extends Controller
             'segmento'     => 'required|in:residencial,comercial,industrial,agricola',
             'estado'       => 'required|in:activo,inactivo,suspendido',
             'vendedor_id'  => 'nullable|exists:users,id',
+            'sede_id'      => 'nullable|exists:sedes,id',
             'observaciones' => 'nullable|string|max:2000',
         ]);
 
@@ -105,7 +108,7 @@ class admin_CrmClientesController extends Controller
             'nombre', 'apellidos', 'razon_social', 'tipo_persona',
             'ruc', 'dni', 'email', 'telefono', 'celular',
             'direccion', 'distrito_id', 'segmento', 'estado',
-            'vendedor_id', 'observaciones',
+            'vendedor_id', 'sede_id', 'observaciones',
         ]));
 
         return redirect()
@@ -115,9 +118,28 @@ class admin_CrmClientesController extends Controller
 
     /**
      * Eliminar cliente (soft delete)
+     * Bloquea si tiene ventas, pedidos o tickets activos
      */
     public function destroy(Cliente $cliente)
     {
+        // Verificar dependencias activas
+        $ventasCount  = $cliente->ventas()->count();
+        $pedidosCount = $cliente->pedidos()->count();
+        $ticketsCount = $cliente->tickets()
+            ->whereNotIn('estado', ['resuelto'])
+            ->count();
+
+        if ($ventasCount > 0 || $pedidosCount > 0 || $ticketsCount > 0) {
+            $detalle = [];
+            if ($ventasCount)  $detalle[] = "{$ventasCount} venta(s)";
+            if ($pedidosCount) $detalle[] = "{$pedidosCount} pedido(s)";
+            if ($ticketsCount) $detalle[] = "{$ticketsCount} ticket(s) abierto(s)";
+
+            return redirect()
+                ->route('admin.crm.clientes.show', $cliente)
+                ->with('error', "No se puede eliminar el cliente \"{$cliente->nombre_completo}\" porque tiene " . implode(', ', $detalle) . ' asociados.');
+        }
+
         $nombre = $cliente->nombre_completo;
         $cliente->delete();
 
@@ -127,7 +149,8 @@ class admin_CrmClientesController extends Controller
     }
 
     /**
-     * Almacenar un nuevo cliente (AJAX)
+     * Almacenar cliente (AJAX desde modal de pedidos)
+     * Verifica duplicados y establece fecha_primera_compra
      */
     public function store(Request $request)
     {
@@ -141,34 +164,51 @@ class admin_CrmClientesController extends Controller
         ]);
 
         $tipoPersona = $request->tipo_identificacion === 'RUC' ? 'juridica' : 'natural';
-        
+        $campo       = $tipoPersona === 'juridica' ? 'ruc' : 'dni';
+
+        // Verificar duplicado — devolver el existente si ya existe
+        $existente = Cliente::where($campo, $request->documento)->first();
+        if ($existente) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Cliente ya registrado',
+                'cliente' => [
+                    'id'        => $existente->id,
+                    'name'      => $existente->nombre_completo,
+                    'documento' => $existente->documento,
+                ],
+            ]);
+        }
+
         $cliente = new Cliente();
         $cliente->nombre = $request->name;
+
         if ($tipoPersona === 'juridica') {
             $cliente->razon_social = $request->name;
-            $cliente->ruc = $request->documento;
+            $cliente->ruc          = $request->documento;
         } else {
             $cliente->dni = $request->documento;
         }
-        
-        $cliente->email = $request->email;
-        $cliente->telefono = $request->telefono;
-        $cliente->direccion = $request->direccion;
-        $cliente->tipo_persona = $tipoPersona;
-        $cliente->vendedor_id = auth()->id();
-        $cliente->estado = 'activo';
-        $cliente->origen = 'directo'; // Pedido directo (valores permitidos: 'directo', 'ecommerce')
-        $cliente->segmento = 'comercial'; // Valor por defecto para nuevos clientes desde pedidos
+
+        $cliente->email                = $request->email;
+        $cliente->telefono             = $request->telefono;
+        $cliente->direccion            = $request->direccion;
+        $cliente->tipo_persona         = $tipoPersona;
+        $cliente->vendedor_id          = auth()->id();
+        $cliente->estado               = 'activo';
+        $cliente->origen               = 'directo';
+        $cliente->segmento             = $request->get('segmento', 'residencial');
+        $cliente->fecha_primera_compra = now()->toDateString();
         $cliente->save();
 
         return response()->json([
             'success' => true,
             'message' => 'Cliente creado exitosamente',
             'cliente' => [
-                'id' => $cliente->id,
-                'name' => $cliente->nombre_completo,
-                'documento' => $cliente->documento
-            ]
+                'id'        => $cliente->id,
+                'name'      => $cliente->nombre_completo,
+                'documento' => $cliente->documento,
+            ],
         ]);
     }
 
@@ -186,4 +226,6 @@ class admin_CrmClientesController extends Controller
         $estadoLabel = ucfirst($request->estado);
         return back()->with('success', "Estado del cliente cambiado a: {$estadoLabel}");
     }
+
 }
+

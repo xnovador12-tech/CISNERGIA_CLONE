@@ -126,42 +126,24 @@
     </div>
 
     
-    <?php if(session('success')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i><?php echo e(session('success')); ?>
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
-
-    <?php if(session('error')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i><?php echo e(session('error')); ?>
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
 
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px"
             data-aos="fade-up" data-aos-anchor-placement="top-bottom">
             <div class="card-header bg-transparent">
                 <div class="row justify-content-between align-items-center">
-                    <div class="col-12 col-md-4 mb-2 mb-md-0">
+                    <div class="col-12 col-md-4 mb-2 mb-md-0 d-flex gap-2">
                         <a href="<?php echo e(route('admin.crm.actividades.create')); ?>" class="btn btn-primary text-uppercase text-white btn-sm">
                             <i class="bi bi-plus-circle-fill me-2"></i>Nueva Actividad
                         </a>
+
                     </div>
                 </div>
             </div>
             <div class="card-body">
                 
-                <div class="row g-2 mb-3 align-items-end">
-                    <div class="col-md-4">
+                <div class="row g-2 mb-3 align-items-end flex-nowrap">
+                    <div class="col">
                         <label for="filtro-tipo" class="form-label small text-muted mb-1">Tipo</label>
                         <select id="filtro-tipo" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Tipos">
                             <option value="">Todos los Tipos</option>
@@ -170,18 +152,19 @@
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col">
                         <label for="filtro-estado" class="form-label small text-muted mb-1">Estado</label>
                         <select id="filtro-estado" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Estados">
                             <option value="">Todos los Estados</option>
                             <option value="Programada">Programada</option>
+                            <option value="En Evaluación">En Evaluación</option>
                             <option value="Completada">Completada</option>
-                            <option value="Cancelada">Cancelada</option>
                             <option value="Reprogramada">Reprogramada</option>
+                            <option value="Cancelada">Cancelada</option>
                             <option value="No Realizada">No Realizada</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col">
                         <label for="filtro-prioridad" class="form-label small text-muted mb-1">Prioridad</label>
                         <select id="filtro-prioridad" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todas las Prioridades">
                             <option value="">Todas las Prioridades</option>
@@ -189,6 +172,30 @@
                             <option value="Media">Media</option>
                             <option value="Baja">Baja</option>
                         </select>
+                    </div>
+                    <?php if($esAdmin ?? false): ?>
+                    <div class="col">
+                        <label for="filtro-responsable" class="form-label small text-muted mb-1">Responsable</label>
+                        <select id="filtro-responsable" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos">
+                            <option value="">Todos</option>
+                            <?php $__currentLoopData = $usuarios; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $u): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($u->persona?->name ?? $u->email); ?>">
+                                    <?php echo e($u->persona?->name ?? $u->email); ?>
+
+                                </option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
+                    <?php endif; ?>
+                    <div class="col-auto">
+                        <button type="button" id="btn-limpiar"
+                                class="btn btn-sm btn-outline-secondary"
+                                title="Limpiar filtros"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                style="height: 31px; padding: 0 8px; border-radius: 6px;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -210,28 +217,30 @@
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
                     </thead>
+                        <?php
+                            $estadoColors  = ['programada' => 'warning text-dark', 'completada' => 'success', 'cancelada' => 'danger', 'reprogramada' => 'primary', 'no_realizada' => 'secondary', 'en_evaluacion' => 'info'];
+                            $estadoNombres = ['programada' => 'Programada', 'completada' => 'Completada', 'cancelada' => 'Cancelada', 'reprogramada' => 'Reprogramada', 'no_realizada' => 'No Realizada', 'en_evaluacion' => 'En Evaluación'];
+                            $prioridadIcons = ['alta' => 'bi-arrow-up-circle-fill text-danger', 'media' => 'bi-dash-circle-fill text-warning', 'baja' => 'bi-arrow-down-circle-fill text-success'];
+                        ?>
                         <tbody>
                             <?php $__currentLoopData = $actividades; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $actividad): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <?php
-                                    $tipoInfo = $actividad->tipo_info;
-                                    $estadoColors = ['programada' => 'warning', 'completada' => 'success', 'cancelada' => 'danger', 'reprogramada' => 'primary', 'no_realizada' => 'secondary'];
-                                    $estadoNombres = ['programada' => 'Programada', 'completada' => 'Completada', 'cancelada' => 'Cancelada', 'reprogramada' => 'Reprogramada', 'no_realizada' => 'No Realizada'];
-                                    $prioridadIcons = ['alta' => '🔴', 'media' => '🟡', 'baja' => '🟢'];
-                                ?>
+                                <?php $tipoInfo = $actividad->tipo_info; ?>
                                 <tr>
-                                    <td class="fw-normal text-center align-middle"></td>
-                                    <td class="fw-normal text-center align-middle">
-                                        <span class="badge bg-secondary"><?php echo e($actividad->codigo); ?></span>
+                                    <td class="text-center align-middle"></td>
+                                    <td class="text-center align-middle">
+                                        <span class="fw-semibold"><?php echo e($actividad->codigo); ?></span>
+                                        <br><small class="text-muted"><?php echo e($actividad->created_at->format('d/m/Y')); ?></small>
                                     </td>
-                                    <td class="fw-normal text-center align-middle">
+                                    <td class="text-center align-middle">
                                         <span class="badge bg-<?php echo e($tipoInfo['color']); ?>">
                                             <i class="bi <?php echo e($tipoInfo['icono']); ?> me-1"></i><?php echo e($tipoInfo['nombre']); ?>
 
                                         </span>
                                     </td>
-                                    <td class="fw-normal text-start align-middle" style="max-width: 280px;">
-                                        <div class="text-truncate" style="max-width: 280px;" title="<?php echo e($actividad->titulo); ?>">
-                                            <strong><?php echo e($actividad->titulo); ?></strong>
+                                    <td class="text-start align-middle" style="max-width: 280px;">
+                                        <div class="text-truncate fw-semibold" style="max-width: 280px;" title="<?php echo e($actividad->titulo); ?>">
+                                            <?php echo e($actividad->titulo); ?>
+
                                         </div>
                                         <?php if($actividad->descripcion): ?>
                                             <div class="text-truncate text-muted" style="max-width: 280px; font-size: 0.8rem;" title="<?php echo e($actividad->descripcion); ?>">
@@ -240,37 +249,34 @@
                                             </div>
                                         <?php endif; ?>
                                     </td>
-                                    <td class="fw-normal text-center align-middle" style="max-width: 180px;">
+                                    <td class="text-center align-middle" style="max-width: 180px;">
                                         <?php if($actividad->actividadable): ?>
                                             <?php
                                                 $entidadNombre = class_basename($actividad->actividadable_type);
-                                                $entidadLabel = $actividad->actividadable->nombre_completo ?? $actividad->actividadable->nombre ?? 'N/A';
+                                                $entidadLabel  = $actividad->actividadable->nombre_completo ?? $actividad->actividadable->nombre ?? 'N/A';
                                             ?>
                                             <small>
-                                                <span class="badge bg-light text-dark"><?php echo e($entidadNombre); ?></span><br>
+                                                <span class="text-muted"><?php echo e($entidadNombre); ?></span><br>
                                                 <span class="d-inline-block text-truncate" style="max-width: 160px;" title="<?php echo e($entidadLabel); ?>"><?php echo e($entidadLabel); ?></span>
                                             </small>
                                         <?php else: ?>
                                             <small class="text-muted">Sin relación</small>
                                         <?php endif; ?>
                                     </td>
-                                    <td class="fw-normal text-center align-middle">
+                                    <td class="text-center align-middle">
                                         <small><?php echo e($actividad->asignadoA?->persona?->name ?? $actividad->asignadoA?->email ?? 'Sin asignar'); ?></small>
                                     </td>
-                                    <td class="fw-normal text-center align-middle" data-order="<?php echo e($actividad->fecha_programada->timestamp); ?>">
-                                        <small>
-                                            <?php echo e($actividad->fecha_programada->format('d/m/Y')); ?><br>
-                                            <strong><?php echo e($actividad->fecha_programada->format('H:i')); ?></strong>
-                                        </small>
+                                    <td class="text-center align-middle" data-order="<?php echo e($actividad->fecha_programada->timestamp); ?>">
+                                        <small><?php echo e($actividad->fecha_programada->format('d/m/Y')); ?><br>
+                                        <strong><?php echo e($actividad->fecha_programada->format('H:i')); ?></strong></small>
                                         <?php if($actividad->estado === 'programada' && $actividad->fecha_programada < now()): ?>
-                                            <br><span class="badge bg-danger mt-1" style="font-size: 0.65rem;">Vencida</span>
+                                            <br><small class="text-danger"><i class="bi bi-clock-fill me-1"></i>Vencida</small>
                                         <?php endif; ?>
                                     </td>
-                                    <td class="fw-normal text-center align-middle">
-                                        <?php echo e($prioridadIcons[$actividad->prioridad] ?? ''); ?> <?php echo e(ucfirst($actividad->prioridad)); ?>
-
+                                    <td class="text-center align-middle">
+                                        <i class="bi <?php echo e($prioridadIcons[$actividad->prioridad] ?? 'bi-circle text-secondary'); ?>" title="<?php echo e(ucfirst($actividad->prioridad)); ?>" data-bs-toggle="tooltip"></i>
                                     </td>
-                                    <td class="fw-normal text-center align-middle">
+                                    <td class="text-center align-middle">
                                         <span class="badge bg-<?php echo e($estadoColors[$actividad->estado] ?? 'secondary'); ?>">
                                             <?php echo e($estadoNombres[$actividad->estado] ?? ucfirst($actividad->estado)); ?>
 
@@ -362,6 +368,23 @@ $(document).ready(function() {
     $('#filtro-prioridad').on('change', function() {
         table.column(7).search($(this).val()).draw();
     });
+
+    // Filtro por Responsable (columna 5) — solo visible para admins
+    $('#filtro-responsable').on('change', function() {
+        table.column(5).search($(this).val()).draw();
+    });
+
+    // Limpiar filtros
+    $('#btn-limpiar').on('click', function() {
+        $('[id^="filtro-"]').each(function() {
+            $(this).val('').trigger('change');
+        });
+        table.search('').columns().search('').draw();
+    });
+
+    // Inicializar tooltip
+    var tooltipEl = document.querySelector('#btn-limpiar');
+    if (tooltipEl) { new bootstrap.Tooltip(tooltipEl); }
 
     // SweetAlert para eliminar
     $('.form-delete').submit(function(e) {

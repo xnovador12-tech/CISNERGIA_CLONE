@@ -49,7 +49,7 @@ class CotizacionCrmSeeder extends Seeder
             // Estado de la cotización según etapa de la oportunidad
             $estado = match ($oportunidad->etapa) {
                 'evaluacion'        => 'borrador',
-                'propuesta_tecnica' => 'enviada',
+                'cotizacion' => 'enviada',
                 'negociacion'       => 'enviada',
                 'ganada'            => 'aceptada',
                 default             => 'borrador',

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Ticket;
+use App\Models\Mantenimiento;
 use App\Models\Cliente;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -10,98 +11,104 @@ use Illuminate\Support\Str;
 
 class TicketSeeder extends Seeder
 {
-    /**
-     * Crea tickets de soporte para clientes existentes.
-     *
-     * Dependencia: ClienteSeeder (debe ejecutarse antes).
-     * Los clientes ya existen porque fueron creados desde oportunidades ganadas.
-     */
     public function run(): void
     {
-        $agente = User::first();
-
+        $agente   = User::first();
         $clientes = Cliente::all();
-        if ($clientes->isEmpty()) {
-            return;
-        }
+
+        if ($clientes->isEmpty()) return;
 
         $tickets = [
             [
-                'asunto' => 'Inversor muestra error de sobretensión',
-                'descripcion' => 'Desde hace 2 días el inversor muestra el código de error E023 en la pantalla. El sistema dejó de inyectar energía a la red. Ya intenté reiniciar el equipo pero el error persiste.',
-                'categoria' => 'soporte_inversores',
-                'prioridad' => 'alta',
-                'estado' => 'en_progreso',
-                'canal' => 'whatsapp',
+                'asunto'              => 'Mantenimiento preventivo anual del sistema',
+                'descripcion'         => 'El cliente solicita el mantenimiento preventivo anual incluido en la garantía.',
+                'categoria'           => 'mantenimiento',
+                'tipo_mantenimiento'  => 'preventivo',
+                'fecha_mantenimiento' => now()->addDays(5)->toDateString(),
+                'hora_mantenimiento'  => '09:00',
+                'prioridad'           => 'media',
+                'estado'              => 'en_progreso',
+                'canal'               => 'whatsapp',
             ],
             [
-                'asunto' => 'Panel solar con rajadura visible',
-                'descripcion' => 'Detecté que uno de los paneles tiene una rajadura en la esquina inferior derecha. No sé cómo ocurrió pero está afectando la generación. Es el panel número 3 de la fila del frente.',
-                'categoria' => 'garantia',
-                'prioridad' => 'media',
-                'estado' => 'asignado',
-                'canal' => 'telefono',
+                'asunto'              => 'Inversor muestra error de sobretensión E023',
+                'descripcion'         => 'Desde hace 2 días el inversor muestra el código E023. El sistema dejó de inyectar energía a la red.',
+                'categoria'           => 'soporte_tecnico',
+                'componente_afectado' => 'Inversor Fronius 5kW',
+                'prioridad'           => 'alta',
+                'estado'              => 'en_progreso',
+                'canal'               => 'whatsapp',
             ],
             [
-                'asunto' => 'Consulta sobre monitoreo remoto',
-                'descripcion' => 'No puedo acceder a la aplicación de monitoreo. Me pide una contraseña que no tengo. ¿Cómo puedo ver la producción de mi sistema?',
-                'categoria' => 'soporte_monitoreo',
-                'prioridad' => 'baja',
-                'estado' => 'resuelto',
-                'solucion' => 'Se resetearon las credenciales y se envió nuevo acceso al cliente. Se brindó capacitación telefónica sobre el uso de la app.',
-                'tipo_solucion' => 'resuelto_remoto',
-                'canal' => 'email',
+                'asunto'              => 'Panel solar con rajadura visible',
+                'descripcion'         => 'Uno de los paneles tiene una rajadura en la esquina inferior derecha.',
+                'categoria'           => 'garantia',
+                'componente_afectado' => 'Panel Monocristalino 400W (panel #3)',
+                'prioridad'           => 'media',
+                'estado'              => 'asignado',
+                'canal'               => 'telefono',
             ],
             [
-                'asunto' => 'Solicitud de mantenimiento preventivo',
-                'descripcion' => 'Mi sistema cumplió 1 año. Quisiera programar el mantenimiento preventivo que está incluido en mi garantía.',
-                'categoria' => 'mantenimiento',
-                'prioridad' => 'baja',
-                'estado' => 'abierto',
-                'canal' => 'web',
+                'asunto'              => 'Sistema genera 30% menos de lo cotizado',
+                'descripcion'         => 'Según la app estoy generando 30% menos. Mi sistema es de 5kW y solo genera 15kWh diarios.',
+                'categoria'           => 'consulta_reclamo',
+                'prioridad'           => 'alta',
+                'estado'              => 'en_progreso',
+                'canal'               => 'telefono',
             ],
             [
-                'asunto' => 'Sistema no genera lo esperado',
-                'descripcion' => 'Según la app estoy generando 30% menos de lo que me indicaron en la cotización. Mi sistema es de 5kW y solo genera 15kWh diarios cuando debería generar más.',
-                'categoria' => 'reclamo',
-                'prioridad' => 'alta',
-                'estado' => 'en_progreso',
-                'canal' => 'telefono',
-            ],
-            [
-                'asunto' => 'Factura de luz no bajó como esperaba',
-                'descripcion' => 'Instalé el sistema hace 2 meses y mi factura de luz sigue siendo alta. ¿Es normal? Me dijeron que iba a bajar un 80%.',
-                'categoria' => 'consulta',
-                'prioridad' => 'media',
-                'estado' => 'cerrado',
-                'solucion' => 'Se explicó al cliente que el ahorro real depende de su patrón de consumo. En su caso, consume más energía en horario nocturno cuando no hay generación solar. Se recomendó cambiar hábitos de consumo o considerar sistema con baterías.',
-                'tipo_solucion' => 'resuelto_remoto',
-                'canal' => 'email',
+                'asunto'              => 'Cobro duplicado en última factura',
+                'descripcion'         => 'Revisé mi estado de cuenta y veo un cargo duplicado por el mismo servicio.',
+                'categoria'           => 'facturacion',
+                'prioridad'           => 'media',
+                'estado'              => 'resuelto',
+                'solucion'            => 'Se verificó el cobro y se emitió nota de crédito por el monto duplicado.',
+                'tipo_solucion'       => 'resuelto_remoto',
+                'canal'               => 'email',
             ],
         ];
 
         foreach ($tickets as $index => $data) {
-            $cliente = $clientes->random();
-            $codigo = 'TK-' . date('Y') . '-' . str_pad($index + 1, 4, '0', STR_PAD_LEFT);
+            $cliente  = $clientes->random();
+            $codigo   = 'TK-' . date('Y') . '-' . str_pad($index + 1, 4, '0', STR_PAD_LEFT);
             $slaHoras = Ticket::SLA_POR_PRIORIDAD[$data['prioridad']] ?? 48;
-            $fechaApertura = now()->subDays(rand(0, 15))->subHours(rand(0, 12));
+            $fechaApertura = now()->subDays(rand(0, 10))->subHours(rand(0, 8));
 
             $ticket = Ticket::updateOrCreate(
                 ['codigo' => $codigo],
                 array_merge($data, [
-                    'codigo' => $codigo,
-                    'slug' => Str::slug($codigo . '-' . Str::random(5)),
-                    'cliente_id' => $cliente->id,
-                    'sla_horas' => $slaHoras,
-                    'sla_vencimiento' => $fechaApertura->copy()->addHours($slaHoras),
-                    'sla_cumplido' => in_array($data['estado'], ['resuelto', 'cerrado']) ? true : null,
-                    
+                    'codigo'                  => $codigo,
+                    'slug'                    => Str::slug($codigo . '-' . Str::random(5)),
+                    'cliente_id'              => $cliente->id,
+                    'sla_horas'               => $slaHoras,
+                    'sla_vencimiento'         => $fechaApertura->copy()->addHours($slaHoras),
+                    'sla_cumplido'            => $data['estado'] === 'resuelto' ? true : null,
                     'fecha_primera_respuesta' => $fechaApertura->copy()->addHours(rand(1, 4)),
-                    'fecha_resolucion' => $data['estado'] === 'resuelto' ? now()->subDays(rand(0, 3)) : null,
-                    'fecha_cierre' => $data['estado'] === 'cerrado' ? now()->subDays(rand(0, 2)) : null,
-                    'user_id' => $agente?->id,
+                    'fecha_resolucion'        => $data['estado'] === 'resuelto' ? now()->subDays(rand(0, 3)) : null,
+                    'fecha_cierre'            => $data['estado'] === 'resuelto' ? now()->subDays(rand(0, 2)) : null,
+                    'user_id'                 => $agente?->id,
                 ])
             );
+
+            // Crear mantenimiento automáticamente si el ticket es de categoría mantenimiento
+            if ($ticket->categoria === 'mantenimiento' && !$ticket->mantenimiento) {
+                $tipo = $data['tipo_mantenimiento'] ?? 'preventivo';
+                Mantenimiento::updateOrCreate(
+                    ['ticket_id' => $ticket->id],
+                    [
+                        'cliente_id'       => $ticket->cliente_id,
+                        'ticket_id'        => $ticket->id,
+                        'titulo'           => $ticket->asunto,
+                        'tipo'             => $tipo,
+                        'descripcion'      => $ticket->descripcion,
+                        'fecha_programada' => $data['fecha_mantenimiento'] ?? now()->addDays(7)->toDateString(),
+                        'hora_programada'  => $data['hora_mantenimiento'] ?? '09:00',
+                        'direccion'        => 'Por confirmar',
+                        'tecnico_id'       => $agente?->id,
+                        'estado'           => 'programado',
+                    ]
+                );
+            }
         }
     }
 }

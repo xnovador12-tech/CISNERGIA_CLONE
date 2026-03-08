@@ -13,34 +13,35 @@ return new class extends Migration
             $table->string('codigo')->unique();
             $table->string('slug')->unique();
 
-            // Relaciones
+            // ── Relaciones principales ──
             $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
 
-            // Clasificación
+            // ── Clasificación (4 categorías operativas) ──
             $table->string('asunto');
             $table->text('descripcion');
             $table->enum('categoria', [
-                'soporte_paneles',
-                'soporte_inversores',
-                'soporte_baterias',
-                'soporte_monitoreo',
-                'soporte_estructura',
-                'mantenimiento',
-                'instalacion',
-                'garantia',
-                'facturacion',
-                'consulta',
-                'reclamo',
-                'otro'
+                'mantenimiento',    // Mantenimiento programado (preventivo/correctivo) → genera Mantenimiento automáticamente
+                'soporte_tecnico',  // Falla técnica → puede derivar en Mantenimiento correctivo desde el show
+                'garantia',         // Producto defectuoso dentro del período
+                'facturacion',      // Cobros, facturas, comprobantes
+                'consulta_reclamo', // Consultas generales y reclamos
             ]);
 
-            // Prioridad y SLA
+            // Campo libre: componente o detalle específico (solo soporte/garantía)
+            $table->string('componente_afectado')->nullable(); // Ej: "Inversor Fronius 5kW", "Panel 400W"
+
+            // ── Datos para categoría mantenimiento (se usan al crear el Mantenimiento automáticamente) ──
+            $table->enum('tipo_mantenimiento', ['preventivo','correctivo','limpieza','inspeccion','predictivo'])->nullable();
+            $table->date('fecha_mantenimiento')->nullable();
+            $table->time('hora_mantenimiento')->nullable();
+
+            // ── Prioridad y SLA ──
             $table->enum('prioridad', ['baja', 'media', 'alta', 'critica'])->default('media');
             $table->integer('sla_horas')->default(48);
             $table->datetime('sla_vencimiento')->nullable();
             $table->boolean('sla_cumplido')->nullable();
 
-            // Estado
+            // ── Estado ──
             $table->enum('estado', [
                 'abierto',
                 'asignado',
@@ -48,50 +49,58 @@ return new class extends Migration
                 'pendiente_cliente',
                 'pendiente_proveedor',
                 'resuelto',
-                'cerrado',
-                'reabierto'
+                'reabierto',
             ])->default('abierto');
 
-            // Fechas
+            // ── Fechas ──
             $table->datetime('fecha_primera_respuesta')->nullable();
             $table->datetime('fecha_resolucion')->nullable();
             $table->datetime('fecha_cierre')->nullable();
 
-            // Resolución
+            // ── Resolución ──
             $table->text('solucion')->nullable();
             $table->enum('tipo_solucion', [
                 'resuelto_remoto',
                 'visita_tecnica',
                 'cambio_equipo',
                 'ajuste_configuracion',
-                'capacitacion',
-                'sin_solucion',
-                'otro'
+                'garantia_aplicada',
+                'derivado_proveedor',
+                'otro',
             ])->nullable();
 
-            // Asignación
-            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            // ── Referencias (sin FK para evitar conflicto de orden de migraciones) ──
+            $table->unsignedBigInteger('pedido_id')->nullable(); // soporte_tecnico + garantia
+            $table->unsignedBigInteger('venta_id')->nullable();  // facturacion
 
-            // Canal de entrada
-            $table->enum('canal', ['web', 'email', 'telefono', 'whatsapp', 'presencial'])->default('web');
+            // ── Canal de contacto ──
+            $table->enum('canal', ['web', 'email', 'telefono', 'whatsapp', 'presencial'])->default('whatsapp');
 
-            // Notas internas
+            // ── Datos del sistema solar (soporte_tecnico + garantia) ──
+            $table->string('direccion_sistema')->nullable();
+
+            // ── Adjuntos ──
+            $table->json('adjuntos')->nullable();
+
+            // ── Notas internas ──
             $table->text('notas_internas')->nullable();
 
-            // Auditoría
+            // ── Asignación ──
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+
+            // ── Auditoría ──
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes();
 
-            // Índices
+            // ── Índices ──
             $table->index(['cliente_id', 'estado']);
             $table->index(['estado', 'prioridad']);
             $table->index(['user_id', 'estado']);
             $table->index('sla_vencimiento');
+            $table->index('categoria');
         });
-
-
     }
 
     public function down(): void

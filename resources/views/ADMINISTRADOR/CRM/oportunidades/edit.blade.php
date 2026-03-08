@@ -47,7 +47,7 @@
                     @php
                         $etapaColors = [
                             'calificacion' => 'primary', 'evaluacion' => 'info',
-                            'propuesta_tecnica' => 'warning', 'negociacion' => 'secondary',
+                            'cotizacion' => 'warning', 'negociacion' => 'secondary',
                             'ganada' => 'success', 'perdida' => 'danger'
                         ];
                     @endphp
@@ -131,42 +131,87 @@
                         <div id="seccion_servicio" class="col-12" style="display: none;">
                             <div class="row g-3">
                                 <div class="col-12 mt-4"><h6 class="text-success border-bottom pb-2"><i class="bi bi-wrench me-2"></i>Detalle del Servicio</h6></div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Tipo de Servicio</label>
-                                    <select class="form-select form-select-sm select2_bootstrap w-100" name="tipo_servicio" data-placeholder="Seleccionar...">
-                                        <option value="">Seleccionar...</option>
-                                        @foreach(['instalacion' => 'Instalación', 'mantenimiento_preventivo' => 'Mant. Preventivo', 'mantenimiento_correctivo' => 'Mant. Correctivo', 'ampliacion' => 'Ampliación', 'otro' => 'Otro'] as $key => $label)
-                                            <option value="{{ $key }}" {{ old('tipo_servicio', $oportunidad->tipo_servicio) == $key ? 'selected' : '' }}>{{ $label }}</option>
+
+                                {{-- Select único de servicio --}}
+                                <div class="col-md-6">
+                                    <label class="form-label">Servicio</label>
+                                    <select class="form-select form-select-sm select2_bootstrap w-100"
+                                            id="sel_servicio_especifico"
+                                            name="servicio_id"
+                                            data-placeholder="Seleccionar servicio...">
+                                        <option value="">Seleccionar servicio...</option>
+                                        @foreach($servicios as $s)
+                                            <option value="{{ $s->id }}"
+                                                    data-desc="{{ $s->descripcion }}"
+                                                    data-tipo="{{ $s->tipo_servicio }}"
+                                                    {{ old('servicio_id', $oportunidad->servicio_id) == $s->id ? 'selected' : '' }}>
+                                                {{ $s->name }}
+                                                ({{ $s->tipo_servicio === 'publico' ? 'Público' : 'Privado' }})
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-8">
+
+                                {{-- Descripción --}}
+                                <div class="col-12" id="wrap_descripcion_servicio">
                                     <label class="form-label">Descripción del Servicio</label>
-                                    <textarea class="form-control form-control-sm" name="descripcion_servicio" rows="2">{{ old('descripcion_servicio', $oportunidad->descripcion_servicio) }}</textarea>
+                                    <textarea class="form-control form-control-sm" id="textarea_descripcion_servicio" name="descripcion_servicio" rows="2"
+                                              placeholder="Se autocompletará al seleccionar el servicio...">{{ old('descripcion_servicio', $oportunidad->descripcion_servicio) }}</textarea>
+                                    <small class="text-muted"><i class="bi bi-pencil me-1"></i>Puedes editar la descripción si es necesario.</small>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- VISITA TÉCNICA --}}
-                        <div class="col-12 mt-4"><h6 class="text-primary border-bottom pb-2"><i class="bi bi-geo-alt me-2"></i>Visita Técnica</h6></div>
-
-                        <div class="col-md-3">
-                            <div class="form-check form-switch mt-2">
-                                <input class="form-check-input" type="checkbox" name="requiere_visita_tecnica" id="requiere_visita" value="1"
-                                       {{ old('requiere_visita_tecnica', $oportunidad->requiere_visita_tecnica) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="requiere_visita">¿Requiere visita técnica?</label>
+                        {{-- VISITA TÉCNICA (solo servicio/mixto) --}}
+                        <div id="seccion_visita" class="col-12 mt-4" style="display: none;">
+                            <h6 class="text-primary border-bottom pb-2"><i class="bi bi-geo-alt me-2"></i>Visita Técnica</h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" name="requiere_visita_tecnica" id="requiere_visita" value="1"
+                                               {{ old('requiere_visita_tecnica', $oportunidad->requiere_visita_tecnica) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="requiere_visita">¿Requiere visita técnica?</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="campos_visita" class="row g-3 mt-1" style="{{ old('requiere_visita_tecnica', $oportunidad->requiere_visita_tecnica) ? '' : 'display:none;' }}">
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha y Hora <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" class="form-control form-control-sm" name="fecha_visita_programada"
+                                           value="{{ old('fecha_visita_programada', $oportunidad->fecha_visita_programada?->format('Y-m-d\TH:i')) }}"
+                                           id="fecha_visita_programada">
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label">Ubicación / Dirección <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm" name="ubicacion_visita"
+                                           value="{{ old('ubicacion_visita', $oportunidad->ubicacion_visita) }}"
+                                           placeholder="Ej: Av. Los Incas 456, Surco, Lima" id="ubicacion_visita">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Técnico Asignado <span class="text-danger">*</span></label>
+                                    <select class="form-select form-select-sm select2_bootstrap w-100" name="tecnico_visita_id"
+                                            id="tecnico_visita_id" data-placeholder="Seleccionar técnico...">
+                                        <option value="">Seleccionar técnico...</option>
+                                        @foreach($vendedores ?? [] as $v)
+                                            <option value="{{ $v->id }}"
+                                                {{ old('tecnico_visita_id', $oportunidad->tecnico_visita_id) == $v->id ? 'selected' : '' }}>
+                                                {{ $v->persona?->name ?? $v->email }} {{ $v->persona?->surnames ?? '' }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="col-md-3" id="campo_fecha_visita" style="display: none;">
-                            <label class="form-label">Fecha Programada</label>
-                            <input type="date" class="form-control form-control-sm" name="fecha_visita_programada" value="{{ old('fecha_visita_programada', $oportunidad->fecha_visita_programada?->format('Y-m-d')) }}">
+                        {{-- Resultado visita (readonly, se llena desde la actividad) --}}
+                        @if($oportunidad->resultado_visita)
+                        <div class="col-12">
+                            <div class="alert alert-success py-2 mb-0">
+                                <small class="fw-bold"><i class="bi bi-clipboard-check me-1"></i>Resultado de Visita Técnica:</small>
+                                <p class="mb-0 small mt-1">{{ $oportunidad->resultado_visita }}</p>
+                            </div>
                         </div>
-
-                        <div class="col-md-6" id="campo_resultado_visita" style="display: none;">
-                            <label class="form-label">Resultado de la Visita</label>
-                            <textarea class="form-control form-control-sm" name="resultado_visita" rows="2" placeholder="Hallazgos, diagnóstico, recomendaciones...">{{ old('resultado_visita', $oportunidad->resultado_visita) }}</textarea>
-                        </div>
+                        @endif
 
                         {{-- PIPELINE --}}
                         <div class="col-12 mt-4"><h6 class="text-primary border-bottom pb-2"><i class="bi bi-currency-dollar me-2"></i>Pipeline y Valores</h6></div>
@@ -249,14 +294,22 @@
 
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered tabla-items mb-0" id="tablaProductos">
+                                    <colgroup>
+                                        <col style="width:40%">
+                                        <col style="width:7%">
+                                        <col style="width:16%">
+                                        <col style="width:13%">
+                                        <col style="width:19%">
+                                        <col style="width:40px">
+                                    </colgroup>
                                     <thead>
                                         <tr>
-                                            <th>Producto</th>
-                                            <th style="width: 70px;">Cant.</th>
-                                            <th style="width: 110px;">P. Unit.</th>
-                                            <th style="width: 110px;">Subtotal</th>
+                                            <th>Ítem</th>
+                                            <th>Cant.</th>
+                                            <th>P. Unit.</th>
+                                            <th>Subtotal</th>
                                             <th>Notas</th>
-                                            <th style="width: 35px;"></th>
+                                            <th style="width:40px;"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="tbody-productos"></tbody>
@@ -337,22 +390,46 @@ $(document).ready(function() {
     // ==================== DATOS DEL SERVIDOR ====================
     const tipos = @json($tipos);
     const productosDB = @json($productos);
+    const serviciosDB = @json($servicios);   // lista plana de servicios
     var productosExistentes = @json($productosExistentesJson);
     var contadorItems = 0;
+
+    // ==================== SERVICIO (select único) ====================
+    $('#sel_servicio_especifico').on('change', function() {
+        var val  = $(this).val();
+        var desc = $(this).find(':selected').data('desc') || '';
+        if (val) {
+            var oldDesc = $('#textarea_descripcion_servicio').val();
+            if (!oldDesc) $('#textarea_descripcion_servicio').val(desc);
+        }
+    });
+
+    // Al cargar: si hay servicio guardado y no hay descripción previa, autocompletar
+    (function() {
+        if ($('#sel_servicio_especifico').val()) {
+            var desc = $('#sel_servicio_especifico').find(':selected').data('desc') || '';
+            if (!$('#textarea_descripcion_servicio').val()) {
+                $('#textarea_descripcion_servicio').val(desc);
+            }
+        }
+    })();
 
     // ==================== TOGGLE SECCIONES ====================
     $('#tipo_oportunidad').on('change', function() {
         var valor = $(this).val();
-        $('#seccion_servicio').toggle(valor === 'servicio' || valor === 'mixto');
+        var esServicio = valor === 'servicio' || valor === 'mixto';
+        $('#seccion_servicio').toggle(esServicio);
         $('#seccion_productos').toggle(valor === 'producto' || valor === 'mixto');
+        $('#seccion_visita').toggle(esServicio);
+        if (!esServicio) {
+            $('#requiere_visita').prop('checked', false).trigger('change');
+        }
     }).trigger('change');
 
-    // Toggle visita técnica
+    // Toggle campos visita técnica
     $('#requiere_visita').on('change', function() {
-        var checked = $(this).is(':checked');
-        $('#campo_fecha_visita').toggle(checked);
-        $('#campo_resultado_visita').toggle(checked);
-    }).trigger('change');
+        $('#campos_visita').toggle($(this).is(':checked'));
+    });
 
     // ==================== CÁLCULOS ====================
     function calcularSubtotalFila(idx) {
@@ -435,12 +512,12 @@ $(document).ready(function() {
             '<div class="sel-wrap"><select class="form-select form-select-sm sel-producto" data-index="' + i + '" disabled><option value="">-- Producto --</option></select></div>' +
             '</div>' +
             '<input type="hidden" name="items[' + i + '][producto_id]" class="input-producto-id" value="' + (datos.producto_id || '') + '">' +
-            '<div class="producto-info" id="producto-info-' + i + '"></div>';
+            '';
 
         var fila = '<tr id="fila-' + i + '" class="item-fila">' +
             '<td>' + celdaProducto + '</td>' +
             '<td><input type="number" name="items[' + i + '][cantidad]" class="form-control form-control-sm input-cantidad" value="' + (datos.cantidad || 1) + '" step="0.01" min="0.01" required></td>' +
-            '<td><div class="input-group input-group-sm"><span class="input-group-text" style="font-size:0.7rem;">S/</span><input type="number" name="items[' + i + '][precio_unitario]" class="form-control form-control-sm input-precio" value="' + (datos.precio || 0) + '" step="0.01" min="0" readonly></div></td>' +
+            '<td><div class="input-group input-group-sm"><span class="input-group-text" style="font-size:0.7rem;">S/</span><input type="number" name="items[' + i + '][precio_unitario]" class="form-control form-control-sm input-precio" value="' + (datos.precio || 0) + '" step="0.01" min="0"></div><div class="producto-info input-precio-original" id="precio-original-' + i + '" style="display:none;"></div></td>' +
             '<td class="item-subtotal text-end pt-2" id="subtotal-' + i + '">S/ 0.00</td>' +
             '<td><input type="text" name="items[' + i + '][notas]" class="form-control form-control-sm" value="' + (datos.notas || '') + '" placeholder="Notas..."></td>' +
             '<td class="text-center pt-2"><button type="button" class="btn btn-outline-danger btn-quitar" onclick="quitarFila(' + i + ')"><i class="bi bi-trash"></i></button></td>' +
@@ -482,8 +559,7 @@ $(document).ready(function() {
             prods.forEach(function(p) {
                 var sel = (p.id == productoId) ? 'selected' : '';
                 var marca = p.marca ? ' (' + p.marca.name + ')' : '';
-                var precioTxt = p.precio ? ' - S/ ' + parseFloat(p.precio).toFixed(2) : '';
-                opts2 += '<option value="' + p.id + '" data-precio="' + (p.precio || 0) + '" data-nombre="' + p.name + '" data-marca="' + (p.marca ? p.marca.name : '') + '" ' + sel + '>' + (p.codigo ? p.codigo + ' - ' : '') + p.name + marca + precioTxt + '</option>';
+                opts2 += '<option value="' + p.id + '" data-precio="' + (p.precio || 0) + '" data-nombre="' + p.name + '" data-marca="' + (p.marca ? p.marca.name : '') + '" ' + sel + '>' + (p.codigo ? p.codigo + ' — ' : '') + p.name + marca + '</option>';
             });
             selProducto.html(opts2).prop('disabled', false);
         }
@@ -493,8 +569,14 @@ $(document).ready(function() {
             var marca = prod.marca ? prod.marca.name : '';
             var info = '<i class="bi bi-check-circle text-success me-1"></i><strong>' + prod.name + '</strong>';
             if (marca) info += ' — ' + marca;
-            $('#producto-info-' + idx).html(info);
-            $('#fila-' + idx).find('.input-precio').val(parseFloat(precio || prod.precio || 0).toFixed(2));
+            var precioOrig = parseFloat(precio || prod.precio || 0);
+            $('#fila-' + idx).find('.input-precio').val(precioOrig.toFixed(2));
+            var hint = $('#precio-original-' + idx);
+            if (precioOrig > 0) {
+                hint.html('<i class="bi bi-tag me-1"></i>Precio original: S/ ' + precioOrig.toFixed(2)).show();
+            } else {
+                hint.hide();
+            }
         }
 
         reinitSelect2('.sel-subcategoria[data-index="' + idx + '"]');
@@ -516,7 +598,7 @@ $(document).ready(function() {
         reinitSelect2('.sel-producto[data-index="' + idx + '"]');
         $('#fila-' + idx).find('.input-producto-id').val('');
         $('#fila-' + idx).find('.input-precio').val(0);
-        $('#producto-info-' + idx).html('');
+        $('#precio-original-' + idx).hide();
 
         if (!tipoId) {
             selSubcat.html('<option value="">-- Categoría --</option>').prop('disabled', true);
@@ -553,7 +635,7 @@ $(document).ready(function() {
 
         $('#fila-' + idx).find('.input-producto-id').val('');
         $('#fila-' + idx).find('.input-precio').val(0);
-        $('#producto-info-' + idx).html('');
+        $('#precio-original-' + idx).hide();
 
         if (!categoriaId) {
             selProducto.html('<option value="">-- Producto --</option>').prop('disabled', true);
@@ -573,8 +655,7 @@ $(document).ready(function() {
         var opts = '<option value="">-- Producto --</option>';
         prods.forEach(function(p) {
             var marca = p.marca ? ' (' + p.marca.name + ')' : '';
-            var precio = p.precio ? ' - S/ ' + parseFloat(p.precio).toFixed(2) : '';
-            opts += '<option value="' + p.id + '" data-precio="' + (p.precio || 0) + '" data-nombre="' + p.name + '" data-marca="' + (p.marca ? p.marca.name : '') + '">' + (p.codigo ? p.codigo + ' - ' : '') + p.name + marca + precio + '</option>';
+            opts += '<option value="' + p.id + '" data-precio="' + (p.precio || 0) + '" data-nombre="' + p.name + '" data-marca="' + (p.marca ? p.marca.name : '') + '">' + (p.codigo ? p.codigo + ' — ' : '') + p.name + marca + '</option>';
         });
         selProducto.html(opts).prop('disabled', false);
         reinitSelect2('.sel-producto[data-index="' + idx + '"]');
@@ -590,27 +671,47 @@ $(document).ready(function() {
 
         if (productoId) {
             fila.find('.input-producto-id').val(productoId);
-            fila.find('.input-precio').val(parseFloat(selected.data('precio') || 0).toFixed(2));
-
-            var marca = selected.data('marca');
-            var info = '<i class="bi bi-check-circle text-success me-1"></i><strong>' + selected.data('nombre') + '</strong>';
-            if (marca) info += ' — ' + marca;
-            $('#producto-info-' + idx).html(info);
+            var precioOriginal = parseFloat(selected.data('precio') || 0);
+            fila.find('.input-precio').val(precioOriginal.toFixed(2));
+            var hint = $('#precio-original-' + idx);
+            if (precioOriginal > 0) {
+                hint.html('<i class="bi bi-tag me-1"></i>Precio original: S/ ' + precioOriginal.toFixed(2)).show();
+            } else {
+                hint.hide();
+            }
         } else {
             fila.find('.input-producto-id').val('');
             fila.find('.input-precio').val(0);
-            $('#producto-info-' + idx).html('');
+            $('#precio-original-' + idx).hide();
         }
 
         calcularSubtotalFila(idx);
         calcularTotales();
     });
 
-    // ==================== PRE-CARGAR PRODUCTOS EXISTENTES ====================
-    for (var j = 0; j < productosExistentes.length; j++) {
-        var item = productosExistentes[j];
-        agregarFila(item);
-    }
+    // ==================== PRE-CARGAR PRODUCTOS ====================
+    // Si hubo error de validación → restaurar old('items') en lugar de los datos de BD
+    // Si no hubo error → cargar los productos guardados normalmente
+    @if(old('items'))
+        var itemsOld = @json(old('items'));
+        $.each(itemsOld, function(idx, item) {
+            if (!item.producto_id) return; // omitir filas incompletas
+            var prod = productosDB.find(function(p) { return p.id == item.producto_id; });
+            if (!prod) return;
+            agregarFila({
+                producto_id:  parseInt(item.producto_id),
+                cantidad:     parseFloat(item.cantidad) || 1,
+                precio:       parseFloat(item.precio_unitario) || parseFloat(prod.precio) || 0,
+                notas:        item.notas || '',
+                tipo_id:      prod.tipo_id || null,
+                categorie_id: prod.categorie_id || null,
+            });
+        });
+    @else
+        for (var j = 0; j < productosExistentes.length; j++) {
+            agregarFila(productosExistentes[j]);
+        }
+    @endif
 });
 </script>
 @endsection

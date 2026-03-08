@@ -43,17 +43,18 @@ class CotizacionCrm extends Model
         'updated_by',
     ];
 
+    // 6 decimales internos; se redondean a 2 sólo al mostrar en pantalla.
     protected $casts = [
-        'subtotal' => 'decimal:2',
-        'descuento_porcentaje' => 'decimal:2',
-        'descuento_monto' => 'decimal:2',
-        'igv' => 'decimal:2',
-        'total' => 'decimal:2',
-        'fecha_emision' => 'date',
-        'fecha_vigencia' => 'date',
-        'fecha_envio' => 'datetime',
-        'fecha_respuesta' => 'datetime',
-        'incluye_igv' => 'boolean',
+        'subtotal'             => 'decimal:6',
+        'descuento_porcentaje' => 'decimal:4',
+        'descuento_monto'      => 'decimal:6',
+        'igv'                  => 'decimal:6',
+        'total'                => 'decimal:6',
+        'fecha_emision'        => 'date',
+        'fecha_vigencia'       => 'date',
+        'fecha_envio'          => 'datetime',
+        'fecha_respuesta'      => 'datetime',
+        'incluye_igv'          => 'boolean',
     ];
 
     /**
@@ -218,22 +219,50 @@ class CotizacionCrm extends Model
     /**
      * Calcular totales desde los ítems de detalle
      */
+    /**
+     * Calcula y persiste todos los totales usando bcmath (escala 6).
+     *
+     * Reglas SUNAT:
+     *  - "incluye_igv = true"  → precio YA incluye IGV  → descomponerlo: base = total/1.18
+     *  - "incluye_igv = false" → precio sin IGV          → agregar:       igv  = base × 0.18
+     *
+     * Se almacenan 6 decimales; al mostrar en pantalla se redondean a 2.
+     */
     public function calcularTotales(): void
     {
-        $subtotalItems = $this->detalles()->sum('subtotal');
-        $this->subtotal = $subtotalItems;
+        $scale = 6;
 
-        $this->descuento_monto = ($this->subtotal * ($this->descuento_porcentaje ?? 0)) / 100;
-        $subtotalConDescuento = $this->subtotal - $this->descuento_monto;
-        
+        // 1. Subtotal = suma exacta de subtotales de ítems (ya calculados con bcmath)
+        $subtotalItems = $this->detalles()->sum('subtotal');
+        $subtotal = number_format((float)$subtotalItems, $scale, '.', '');
+
+        // 2. Descuento general
+        $dtoPct   = number_format((float)($this->descuento_porcentaje ?? 0), $scale, '.', '');
+        $dtoMonto = bccomp($dtoPct, '0', $scale) > 0
+            ? bcmul($subtotal, bcdiv($dtoPct, '100', $scale), $scale)
+            : '0.000000';
+
+        // base = subtotal − descuento_monto
+        $base = bcsub($subtotal, $dtoMonto, $scale);
+
+        // 3. IGV
         if ($this->incluye_igv) {
-            $this->igv = $subtotalConDescuento * 0.18;
+            // precio incluye IGV → extraer base neta: base_neta = total / 1.18
+            // IGV = total − base_neta  (total aquí = base con dto ya aplicado)
+            $baseNeta = bcdiv($base, '1.18', $scale);
+            $igv      = bcsub($base, $baseNeta, $scale);
+            $total    = $base; // total no cambia, ya tiene IGV incluido
         } else {
-            $this->igv = 0;
+            // precio sin IGV → añadir
+            $igv   = bcmul($base, '0.18', $scale);
+            $total = bcadd($base, $igv, $scale);
         }
-        
-        $this->total = $subtotalConDescuento + $this->igv;
-        
+
+        $this->subtotal          = $subtotal;
+        $this->descuento_monto   = $dtoMonto;
+        $this->igv               = $igv;
+        $this->total             = $total;
+
         $this->save();
     }
 

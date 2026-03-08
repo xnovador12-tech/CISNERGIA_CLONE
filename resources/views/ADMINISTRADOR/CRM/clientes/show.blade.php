@@ -19,23 +19,11 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    @endif
-
     @php
         $estadoColors = ['activo' => 'success', 'inactivo' => 'secondary', 'suspendido' => 'danger'];
         $origenColors = ['ecommerce' => 'info', 'directo' => 'primary'];
         $segmentoColors = ['residencial' => 'primary', 'comercial' => 'success', 'industrial' => 'warning', 'agricola' => 'info'];
-        $etapaColors = ['calificacion' => 'primary', 'evaluacion' => 'info', 'propuesta_tecnica' => 'warning', 'negociacion' => 'secondary', 'ganada' => 'success', 'perdida' => 'danger'];
+        $etapaColors = ['calificacion' => 'primary', 'evaluacion' => 'info', 'cotizacion' => 'warning', 'negociacion' => 'secondary', 'ganada' => 'success', 'perdida' => 'danger'];
         $cotEstadoColors = ['borrador' => 'secondary', 'enviada' => 'primary', 'aceptada' => 'success', 'rechazada' => 'danger', 'vencida' => 'dark'];
         $actEstadoColors = ['programada' => 'primary', 'completada' => 'success', 'cancelada' => 'danger', 'reprogramada' => 'warning', 'no_realizada' => 'secondary'];
         $pedidoEstadoColors = ['pendiente' => 'warning', 'proceso' => 'info', 'entregado' => 'success', 'cancelado' => 'danger'];
@@ -65,8 +53,8 @@
                     </div>
                     <div class="card-body">
                         <h4 class="fw-bold mb-1">{{ $cliente->nombre_completo }}</h4>
-                        @if($cliente->tipo_persona === 'juridica' && $cliente->razon_social)
-                            <p class="text-muted mb-3">{{ $cliente->razon_social }}</p>
+                        @if($cliente->tipo_persona === 'juridica' && $cliente->nombre)
+                            <p class="text-muted mb-3"><i class="bi bi-person me-1"></i>Contacto: {{ $cliente->nombre }}</p>
                         @endif
 
                         <div class="row g-3">
@@ -108,8 +96,10 @@
                                         <p class="mb-0 fw-bold">
                                             @if($cliente->celular)
                                                 <a href="tel:{{ $cliente->celular }}" class="text-decoration-none">{{ $cliente->celular }}</a>
-                                                <a href="https://wa.me/51{{ preg_replace('/\D/', '', $cliente->celular) }}" target="_blank" class="btn btn-sm btn-success ms-1" style="padding: 0 4px;" title="WhatsApp">
-                                                    <i class="bi bi-whatsapp" style="font-size: 0.7rem;"></i>
+                                                <a href="https://wa.me/51{{ preg_replace('/\D/', '', $cliente->celular) }}" target="_blank"
+                                                   class="btn btn-sm btn-success ms-1 d-inline-flex align-items-center justify-content-center"
+                                                   style="width: 22px; height: 22px; padding: 0;" title="WhatsApp">
+                                                    <i class="bi bi-whatsapp text-white" style="font-size: 0.75rem; line-height: 1;"></i>
                                                 </a>
                                             @else
                                                 -

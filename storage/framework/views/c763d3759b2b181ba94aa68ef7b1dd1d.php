@@ -2,7 +2,6 @@
 
 <?php $__env->startSection('css'); ?>
 <style>
-    /* Estilos de paginación DataTables */
     .dataTables_wrapper .dataTables_paginate .paginate_button {
         padding: 0.375rem 0.75rem;
         margin-left: 2px;
@@ -45,14 +44,11 @@
     <div class="header_section">
         <div class="bg-transparent mb-3" style="height: 67px"></div>
         <div class="container-fluid">
-            <div class="" data-aos="fade-right">
+            <div data-aos="fade-right">
                 <h1 class="titulo h2 text-uppercase fw-bold mb-0">PROSPECTOS</h1>
-                <div class=""
-                    style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);"
-                    aria-label="breadcrumb">
+                <div style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a class="text-decoration-none link"
-                                href="<?php echo e(route('admin-dashboard.index')); ?>">Principal</a></li>
+                        <li class="breadcrumb-item"><a class="text-decoration-none link" href="<?php echo e(route('admin-dashboard.index')); ?>">Principal</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="#">CRM</a></li>
                         <li class="breadcrumb-item link" aria-current="page">Prospectos</li>
                     </ol>
@@ -128,47 +124,27 @@
     </div>
 
     
-    <?php if(session('success')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i><?php echo e(session('success')); ?>
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
-
-    <?php if(session('error')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i><?php echo e(session('error')); ?>
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
 
     
     <div class="container-fluid">
-        <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px"
+        <div class="card border-4 borde-top-secondary shadow-sm" style="border-radius: 20px; min-height: 500px"
             data-aos="fade-up" data-aos-anchor-placement="top-bottom">
             <div class="card-header bg-transparent">
                 <div class="row justify-content-between align-items-center">
-                    <div class="col-12 col-md-4 mb-2 mb-md-0">
-                        <div class="d-flex gap-2">
-                            <a href="<?php echo e(route('admin.crm.prospectos.create')); ?>"
-                                class="btn btn-primary text-uppercase text-white btn-sm">
-                                <i class="bi bi-plus-circle-fill me-2"></i>Nuevo Prospecto
-                            </a>
-                        </div>
+                    <div class="col-12 col-md-6 d-flex gap-2 flex-wrap">
+                        <a href="<?php echo e(route('admin.crm.prospectos.create')); ?>"
+                            class="btn btn-primary text-uppercase text-white btn-sm">
+                            <i class="bi bi-plus-circle-fill me-2"></i>Nuevo Prospecto
+                        </a>
                     </div>
                 </div>
             </div>
             <div class="card-body">
+
                 
                 <div class="row g-2 mb-3 align-items-end">
-                    <div class="col-md-4">
-                        <label for="filtro-estado" class="form-label small text-muted mb-1">Estado</label>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Estado</label>
                         <select id="filtro-estado" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Estados">
                             <option value="">Todos los Estados</option>
                             <option value="Nuevo">Nuevo</option>
@@ -178,8 +154,8 @@
                             <option value="Convertido">Convertido</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label for="filtro-origen" class="form-label small text-muted mb-1">Origen</label>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Origen</label>
                         <select id="filtro-origen" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Orígenes">
                             <option value="">Todos los Orígenes</option>
                             <option value="Sitio web">Sitio Web</option>
@@ -190,8 +166,8 @@
                             <option value="Otro">Otro</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label for="filtro-segmento" class="form-label small text-muted mb-1">Segmento</label>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Segmento</label>
                         <select id="filtro-segmento" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Segmentos">
                             <option value="">Todos los Segmentos</option>
                             <option value="Residencial">Residencial</option>
@@ -200,12 +176,35 @@
                             <option value="Agricola">Agrícola</option>
                         </select>
                     </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">Vendedor</label>
+                        <select id="filtro-vendedor" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Vendedores">
+                            <option value="">Todos los Vendedores</option>
+                            <?php $__currentLoopData = $vendedores; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vendedor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e(trim(($vendedor->persona?->name ?? $vendedor->email) . ' ' . ($vendedor->persona?->surnames ?? ''))); ?>">
+                                    <?php echo e($vendedor->persona?->name ?? $vendedor->email); ?> <?php echo e($vendedor->persona?->surnames ?? ''); ?>
+
+                                </option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" id="btn-limpiar"
+                                class="btn btn-sm btn-outline-secondary"
+                                title="Limpiar filtros"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                style="height: 31px; padding: 0 8px; border-radius: 6px;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    </div>
                 </div>
-                
-                <div class="mb-2 col-12 col-md-6">
-                    <span class="text-uppercase">Total de registros: <span class="fw-bold"><?php echo e($prospectos->count()); ?></span></span>
+
+                <div class="mb-2">
+                    <span class="text-uppercase small">Total de registros: <span class="fw-bold"><?php echo e($prospectos->count()); ?></span></span>
                 </div>
-                <table id="tablaProspectos" class="table table-hover align-middle" cellspacing="0" style="width:100%">
+
+                <table id="tablaProspectos" class="table table-hover align-middle" style="width:100%">
                     <thead class="bg-dark text-white border-0">
                         <tr>
                             <th class="h6 small text-center text-uppercase fw-bold">N°</th>
@@ -219,213 +218,260 @@
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
                     </thead>
-                        <tbody>
-                            <?php $__currentLoopData = $prospectos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $prospecto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <tr>
-                                    <td class="fw-normal text-center align-middle"><?php echo e($index + 1); ?></td>
-                                    <td class="fw-normal text-center align-middle">
-                                        <span class="badge bg-secondary"><?php echo e($prospecto->codigo); ?></span>
-                                    </td>
-                                    <td class="fw-normal text-start align-middle">
-                                        <strong>
-                                            <?php if($prospecto->tipo_persona == 'juridica'): ?>
-                                                <?php echo e($prospecto->razon_social ?? $prospecto->nombre); ?>
+                    <tbody>
+                        <?php $__currentLoopData = $prospectos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $prospecto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <?php
+                                $estadoColors = [
+                                    'nuevo'      => 'secondary',
+                                    'contactado' => 'primary',
+                                    'calificado' => 'success',
+                                    'descartado' => 'danger',
+                                    'convertido' => 'dark',
+                                ];
+                                $origenColors = [
+                                    'sitio_web'      => 'info',
+                                    'redes_sociales' => 'primary',
+                                    'llamada'        => 'secondary',
+                                    'referido'       => 'success',
+                                    'ecommerce'      => 'warning',
+                                    'otro'           => 'dark',
+                                ];
+                                $origenIcons = [
+                                    'sitio_web'      => 'globe',
+                                    'redes_sociales' => 'share',
+                                    'llamada'        => 'telephone',
+                                    'referido'       => 'people',
+                                    'ecommerce'      => 'cart3',
+                                    'otro'           => 'tag',
+                                ];
+                                $segmentoColors = [
+                                    'residencial' => 'info',
+                                    'comercial'   => 'warning text-dark',
+                                    'industrial'  => 'primary',
+                                    'agricola'    => 'success',
+                                ];
+                            ?>
+                            <tr>
+                                
+                                <td class="text-center align-middle small"><?php echo e($index + 1); ?></td>
 
-                                            <?php else: ?>
-                                                <?php echo e($prospecto->nombre); ?> <?php echo e($prospecto->apellidos); ?>
+                                
+                                <td class="text-center align-middle">
+                                    <span class="fw-semibold"><?php echo e($prospecto->codigo); ?></span>
+                                    <br><small class="text-muted"><?php echo e($prospecto->created_at->format('d/m/Y')); ?></small>
+                                </td>
 
-                                            <?php endif; ?>
-                                        </strong><br>
-                                        <small class="text-muted">
-                                            <?php if($prospecto->tipo_persona == 'juridica' && $prospecto->ruc): ?>
-                                                RUC: <?php echo e($prospecto->ruc); ?>
+                                
+                                <td class="text-start align-middle">
+                                    <span class="fw-semibold">
+                                        <?php if($prospecto->tipo_persona === 'juridica'): ?>
+                                            <?php echo e($prospecto->razon_social ?? $prospecto->nombre); ?>
 
-                                            <?php elseif($prospecto->dni): ?>
-                                                DNI: <?php echo e($prospecto->dni); ?>
+                                        <?php else: ?>
+                                            <?php echo e($prospecto->nombre); ?> <?php echo e($prospecto->apellidos); ?>
 
-                                            <?php endif; ?>
-                                        </small>
-                                    </td>
-                                    <td class="fw-normal text-center align-middle">
-                                        <small>
-                                            <?php if($prospecto->email): ?>
-                                                <i class="bi bi-envelope text-primary me-1"></i><?php echo e($prospecto->email); ?><br>
-                                            <?php endif; ?>
-                                            <?php if($prospecto->celular): ?>
-                                                <i class="bi bi-phone text-success me-1"></i><?php echo e($prospecto->celular); ?>
-
-                                            <?php elseif($prospecto->telefono): ?>
-                                                <i class="bi bi-telephone text-secondary me-1"></i><?php echo e($prospecto->telefono); ?>
-
-                                            <?php endif; ?>
-                                        </small>
-                                    </td>
-                                    <td class="fw-normal text-center align-middle">
-                                        <?php
-                                            $origenColors = [
-                                                'sitio_web' => 'info',
-                                                'redes_sociales' => 'primary',
-                                                'llamada' => 'secondary',
-                                                'referido' => 'success',
-                                                'ecommerce' => 'warning',
-                                                'otro' => 'dark',
-                                            ];
-                                            $origenIcons = [
-                                                'sitio_web' => 'globe',
-                                                'redes_sociales' => 'share',
-                                                'llamada' => 'telephone',
-                                                'referido' => 'people',
-                                                'ecommerce' => 'cart3',
-                                                'otro' => 'tag',
-                                            ];
-                                        ?>
-                                        <span class="badge bg-<?php echo e($origenColors[$prospecto->origen] ?? 'secondary'); ?>">
-                                            <i class="bi bi-<?php echo e($origenIcons[$prospecto->origen] ?? 'tag'); ?> me-1"></i>
-                                            <?php echo e(ucfirst(str_replace('_', ' ', $prospecto->origen))); ?>
-
-                                        </span>
-                                        <?php if($prospecto->origen === 'ecommerce' && $prospecto->wishlist_count > 0): ?>
-                                            <br>
-                                            <span class="badge bg-danger mt-1" title="Productos en lista de favoritos">
-                                                <i class="bi bi-heart-fill me-1"></i><?php echo e($prospecto->wishlist_count); ?>
-
-                                            </span>
                                         <?php endif; ?>
-                                    </td>
-                                    <td class="fw-normal text-center align-middle">
-                                        <?php
-                                            $segmentoColors = [
-                                                'residencial' => 'info',
-                                                'comercial' => 'warning text-dark',
-                                                'industrial' => 'primary',
-                                                'agricola' => 'success',
-                                            ];
-                                        ?>
-                                        <span class="badge bg-<?php echo e($segmentoColors[$prospecto->segmento] ?? 'secondary'); ?>">
-                                            <?php echo e(ucfirst($prospecto->segmento)); ?>
+                                    </span>
+                                    <?php if($prospecto->tipo_persona === 'juridica' && $prospecto->ruc): ?>
+                                        <br><small class="text-muted">RUC: <?php echo e($prospecto->ruc); ?></small>
+                                    <?php elseif($prospecto->dni): ?>
+                                        <br><small class="text-muted">DNI: <?php echo e($prospecto->dni); ?></small>
+                                    <?php endif; ?>
+                                </td>
 
-                                        </span>
-                                    </td>
-                                    <td class="fw-normal text-center align-middle">
-                                        <?php
-                                            $estadoColors = [
-                                                'nuevo' => 'secondary',
-                                                'contactado' => 'primary',
-                                                'calificado' => 'success',
-                                                'descartado' => 'danger',
-                                                'convertido' => 'dark',
-                                            ];
-                                        ?>
-                                        <span class="badge bg-<?php echo e($estadoColors[$prospecto->estado] ?? 'secondary'); ?>">
-                                            <?php echo e(ucfirst(str_replace('_', ' ', $prospecto->estado))); ?>
+                                
+                                <td class="text-center align-middle">
+                                    <small>
+                                        <?php if($prospecto->celular): ?>
+                                            <i class="bi bi-phone text-success me-1"></i><?php echo e($prospecto->celular); ?>
 
-                                        </span>
-                                        <?php if($prospecto->es_cliente): ?>
-                                            <br><span class="badge bg-success mt-1"><i class="bi bi-check-circle me-1"></i>Es Cliente</span>
+                                        <?php elseif($prospecto->telefono): ?>
+                                            <i class="bi bi-telephone text-secondary me-1"></i><?php echo e($prospecto->telefono); ?>
+
+                                        <?php else: ?>
+                                            <span class="text-muted">—</span>
                                         <?php endif; ?>
-                                    </td>
-                                    <td class="fw-normal text-center align-middle">
-                                        <small><?php echo e($prospecto->vendedor?->persona?->name ?? 'Sin asignar'); ?></small>
-                                    </td>
-                                    <td class="text-center align-middle">
-                                        <div class="dropstart">
-                                            <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false"
-                                                style="width: 36px; height: 36px; padding: 0;">
-                                                <i class="bi bi-three-dots-vertical"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow">
-                                                <li>
-                                                    <a href="<?php echo e(route('admin.crm.prospectos.show', $prospecto)); ?>"
-                                                       class="dropdown-item d-flex align-items-center">
-                                                        <i class="bi bi-eye text-info me-2"></i>Ver Detalles
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="<?php echo e(route('admin.crm.prospectos.edit', ['prospecto' => $prospecto, 'redirect_to' => 'index'])); ?>"
-                                                       class="dropdown-item d-flex align-items-center">
-                                                        <i class="bi bi-pencil text-secondary me-2"></i>Editar
-                                                    </a>
-                                                </li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <form action="<?php echo e(route('admin.crm.prospectos.destroy', $prospecto)); ?>"
-                                                          method="POST" class="form-delete d-inline">
-                                                        <?php echo csrf_field(); ?>
-                                                        <?php echo method_field('DELETE'); ?>
-                                                        <button type="submit"
-                                                            class="dropdown-item d-flex align-items-center text-danger">
-                                                            <i class="bi bi-trash me-2"></i>Eliminar
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        </tbody>
-                    </table>
+                                    </small>
+                                    <?php if($prospecto->email): ?>
+                                        <br>
+                                        <a href="mailto:<?php echo e($prospecto->email); ?>"
+                                           class="text-decoration-none text-muted"
+                                           title="<?php echo e($prospecto->email); ?>"
+                                           data-bs-toggle="tooltip">
+                                            <small><i class="bi bi-envelope me-1"></i>
+                                                <?php echo e(Str::limit($prospecto->email, 20)); ?>
+
+                                            </small>
+                                        </a>
+                                    <?php endif; ?>
+                                </td>
+
+                                
+                                <td class="text-center align-middle">
+                                    <span class="badge bg-<?php echo e($origenColors[$prospecto->origen] ?? 'secondary'); ?>"
+                                          <?php if($prospecto->origen === 'ecommerce' && ($prospecto->wishlist_count ?? 0) > 0): ?>
+                                              title="<?php echo e($prospecto->wishlist_count); ?> productos en lista de deseos"
+                                              data-bs-toggle="tooltip"
+                                          <?php endif; ?>>
+                                        <i class="bi bi-<?php echo e($origenIcons[$prospecto->origen] ?? 'tag'); ?> me-1"></i>
+                                        <?php echo e(ucfirst(str_replace('_', ' ', $prospecto->origen))); ?>
+
+                                        <?php if($prospecto->origen === 'ecommerce' && ($prospecto->wishlist_count ?? 0) > 0): ?>
+                                            <span class="ms-1 opacity-75">(<?php echo e($prospecto->wishlist_count); ?>)</span>
+                                        <?php endif; ?>
+                                    </span>
+                                </td>
+
+                                
+                                <td class="text-center align-middle">
+                                    <span class="badge bg-<?php echo e($segmentoColors[$prospecto->segmento] ?? 'secondary'); ?>">
+                                        <?php echo e(ucfirst($prospecto->segmento)); ?>
+
+                                    </span>
+                                </td>
+
+                                
+                                <td class="text-center align-middle">
+                                    <span class="badge bg-<?php echo e($estadoColors[$prospecto->estado] ?? 'secondary'); ?>">
+                                        <?php echo e(ucfirst(str_replace('_', ' ', $prospecto->estado))); ?>
+
+                                    </span>
+                                </td>
+
+                                
+                                <td class="text-center align-middle">
+                                    <small><?php echo e($prospecto->vendedor?->persona?->name ?? 'Sin asignar'); ?></small>
+                                </td>
+
+                                
+                                <td class="text-center align-middle">
+                                    <div class="dropstart">
+                                        <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button"
+                                            data-bs-toggle="dropdown" aria-expanded="false"
+                                            style="width: 36px; height: 36px; padding: 0;">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                                            <li>
+                                                <a href="<?php echo e(route('admin.crm.prospectos.show', $prospecto)); ?>"
+                                                   class="dropdown-item d-flex align-items-center">
+                                                    <i class="bi bi-eye text-info me-2"></i>Ver Detalles
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="<?php echo e(route('admin.crm.prospectos.edit', ['prospecto' => $prospecto, 'redirect_to' => 'index'])); ?>"
+                                                   class="dropdown-item d-flex align-items-center">
+                                                    <i class="bi bi-pencil text-secondary me-2"></i>Editar
+                                                </a>
+                                            </li>
+                                            <?php if($prospecto->estado === 'calificado'): ?>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a href="<?php echo e(route('admin.crm.oportunidades.create', ['prospecto_id' => $prospecto->id])); ?>"
+                                                   class="dropdown-item d-flex align-items-center text-success">
+                                                    <i class="bi bi-bullseye me-2"></i>Crear Oportunidad
+                                                </a>
+                                            </li>
+                                            <?php endif; ?>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form action="<?php echo e(route('admin.crm.prospectos.destroy', $prospecto)); ?>"
+                                                      method="POST" class="form-delete d-inline"
+                                                      data-nombre="<?php echo e($prospecto->nombre_completo); ?>">
+                                                    <?php echo csrf_field(); ?>
+                                                    <?php echo method_field('DELETE'); ?>
+                                                    <button type="submit"
+                                                        class="dropdown-item d-flex align-items-center text-danger">
+                                                        <i class="bi bi-trash me-2"></i>Eliminar
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('js'); ?>
-    <script>
-        $(document).ready(function() {
-            var table = $('#tablaProspectos').DataTable({
-                responsive: true,
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
-                    paginate: { first: '«', previous: '‹', next: '›', last: '»' },
-                    info: 'Mostrando página _PAGE_ de _PAGES_',
-                    emptyTable: '<div class="text-center py-4"><div class="text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay prospectos registrados</div><a href="<?php echo e(route("admin.crm.prospectos.create")); ?>" class="btn btn-primary btn-sm mt-2"><i class="bi bi-plus-circle me-1"></i>Crear primer prospecto</a></div>'
-                },
-                pageLength: 10,
-                order: [[0, 'asc']],
-                columnDefs: [
-                    { orderable: false, targets: [8] }
-                ],
-                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-                     '<"row"<"col-sm-12"tr>>' +
-                     '<"row align-items-center"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7 d-flex justify-content-end"p>>'
-            });
+<script>
+$(document).ready(function() {
 
-            // Filtro por Estado (columna 6)
-            $('#filtro-estado').on('change', function() {
-                table.column(6).search($(this).val()).draw();
-            });
+    // Inicializar tooltips
+    $('[data-bs-toggle="tooltip"]').each(function() {
+        new bootstrap.Tooltip(this);
+    });
 
-            // Filtro por Origen (columna 4)
-            $('#filtro-origen').on('change', function() {
-                table.column(4).search($(this).val()).draw();
-            });
+    // DataTable
+    var table = $('#tablaProspectos').DataTable({
+        responsive: true,
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+            paginate: { first: '«', previous: '‹', next: '›', last: '»' },
+            info: 'Mostrando página _PAGE_ de _PAGES_',
+            emptyTable: '<div class="text-center py-4"><div class="text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay prospectos registrados</div><a href="<?php echo e(route("admin.crm.prospectos.create")); ?>" class="btn btn-primary btn-sm mt-2"><i class="bi bi-plus-circle me-1"></i>Crear primer prospecto</a></div>'
+        },
+        pageLength: 10,
+        order: [[1, 'desc']], // Más reciente primero
+        columnDefs: [
+            { orderable: false, targets: [8] }
+        ],
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+             '<"row"<"col-sm-12"tr>>' +
+             '<"row align-items-center"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7 d-flex justify-content-end"p>>'
+    });
 
-            // Filtro por Segmento (columna 5)
-            $('#filtro-segmento').on('change', function() {
-                table.column(5).search($(this).val()).draw();
-            });
+    // Filtros
+    $('#filtro-estado').on('change', function() {
+        table.column(6).search($(this).val()).draw();
+    });
+    $('#filtro-origen').on('change', function() {
+        table.column(4).search($(this).val()).draw();
+    });
+    $('#filtro-segmento').on('change', function() {
+        table.column(5).search($(this).val()).draw();
+    });
+    $('#filtro-vendedor').on('change', function() {
+        table.column(7).search($(this).val()).draw();
+    });
+
+    // Limpiar filtros
+    $('#btn-limpiar').on('click', function() {
+        $('[id^="filtro-"]').each(function() {
+            $(this).val('').trigger('change');
         });
+        table.search('').columns().search('').draw();
+    });
 
-        // SweetAlert para eliminar
-        $('.form-delete').submit(function(e) {
-            e.preventDefault();
-            const form = this;
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: "¡No podrás revertir esto!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#1C3146',
-                cancelButtonColor: '#FF9C00',
-                confirmButtonText: '¡Sí, eliminar!',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) { form.submit(); }
-            });
+    // Inicializar tooltip Bootstrap
+    var tooltipEl = document.querySelector('#btn-limpiar');
+    if (tooltipEl) { new bootstrap.Tooltip(tooltipEl); }
+
+    // SweetAlert eliminar
+    $('.form-delete').submit(function(e) {
+        e.preventDefault();
+        const form = this;
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: '¡No podrás revertir esto!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '¡Sí, eliminar!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) { form.submit(); }
         });
-    </script>
+    });
+
+});
+</script>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('TEMPLATES.administrador', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\ADMIN\Documents\GitHub\project_cisnergia\resources\views/ADMINISTRADOR/CRM/prospectos/index.blade.php ENDPATH**/ ?>

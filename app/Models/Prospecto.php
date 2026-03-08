@@ -115,9 +115,20 @@ class Prospecto extends Model
     public static function generarCodigo(): string
     {
         $year = date('Y');
-        $ultimo = self::whereYear('created_at', $year)->max('id') ?? 0;
-        $numero = str_pad($ultimo + 1, 4, '0', STR_PAD_LEFT);
-        return "PROSP-{$year}-{$numero}";
+        // Buscar el último número extraído del código para evitar huecos por soft deletes
+        $ultimo = self::withTrashed()
+            ->whereYear('created_at', $year)
+            ->where('codigo', 'like', "PROSP-{$year}-%")
+            ->orderByDesc('codigo')
+            ->value('codigo');
+
+        if ($ultimo) {
+            $numero = (int) substr($ultimo, strrpos($ultimo, '-') + 1);
+        } else {
+            $numero = 0;
+        }
+
+        return "PROSP-{$year}-" . str_pad($numero + 1, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -155,11 +166,6 @@ class Prospecto extends Model
     }
 
     public function vendedor()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function usuario()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
@@ -256,39 +262,6 @@ class Prospecto extends Model
     }
 
     // ==================== MÉTODOS ====================
-
-    /**
-     * Convertir prospecto a cliente
-     */
-    public function convertirACliente(): ?Cliente
-    {
-        // Prevenir duplicados: si ya tiene cliente, retornar el existente
-        if ($this->cliente) {
-            return $this->cliente;
-        }
-
-        $cliente = Cliente::create([
-            'nombre'        => $this->nombre,
-            'apellidos'     => $this->apellidos,
-            'razon_social'  => $this->razon_social,
-            'ruc'           => $this->ruc,
-            'dni'           => $this->dni,
-            'email'         => $this->email,
-            'telefono'      => $this->telefono,
-            'celular'       => $this->celular,
-            'direccion'     => $this->direccion,
-            'tipo_persona'  => $this->tipo_persona,
-            'prospecto_id'  => $this->id,
-            'segmento'      => $this->segmento,
-            'distrito_id'   => $this->distrito_id,
-            'vendedor_id'   => $this->user_id ?? auth()->id(),
-            'fecha_primera_compra' => now(),
-        ]);
-
-        $this->update(['estado' => 'convertido']);
-
-        return $cliente;
-    }
 
     /**
      * Verificar si tiene actividades pendientes

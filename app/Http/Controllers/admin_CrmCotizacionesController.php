@@ -8,6 +8,7 @@ use App\Models\DetalleCotizacionCrm;
 use App\Models\Oportunidad;
 use App\Models\Pedido;
 use App\Models\Producto;
+use App\Models\Servicio;
 use App\Models\Tipo;
 use App\Models\Category;
 use App\Models\User;
@@ -20,18 +21,30 @@ class admin_CrmCotizacionesController extends Controller
     /**
      * Display a listing of the resource.
      */
+    /**
+     * Display a listing of the resource.
+     */
     public function index(Request $request)
     {
-        $query = CotizacionCrm::with(['oportunidad.prospecto', 'usuario']);
+        $user       = auth()->user();
+        $rolesAdmin = ['cuantica', 'administrador'];
+        $esAdmin    = in_array(strtolower($user->role->slug ?? ''), $rolesAdmin);
+
+        $query = CotizacionCrm::with(['oportunidad.prospecto', 'oportunidad.cliente', 'usuario']);
+
+        // Rol: no admins solo ven sus propias cotizaciones
+        if (!$esAdmin) {
+            $query->where('user_id', $user->id);
+        }
 
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
             $query->where(function($q) use ($buscar) {
                 $q->where('codigo', 'like', "%{$buscar}%")
-                  ->orWhereHas('oportunidad', fn($q2) => 
+                  ->orWhereHas('oportunidad', fn($q2) =>
                       $q2->where('nombre', 'like', "%{$buscar}%")
                   )
-                  ->orWhereHas('oportunidad.prospecto', fn($q2) => 
+                  ->orWhereHas('oportunidad.prospecto', fn($q2) =>
                       $q2->where('nombre', 'like', "%{$buscar}%")
                          ->orWhere('razon_social', 'like', "%{$buscar}%")
                   );
@@ -46,15 +59,15 @@ class admin_CrmCotizacionesController extends Controller
         $cotizaciones = $query->get();
 
         $stats = [
-            'total_mes' => CotizacionCrm::whereMonth('created_at', now()->month)->count(),
+            'total_mes'   => CotizacionCrm::whereMonth('created_at', now()->month)->count(),
             'valor_total' => CotizacionCrm::whereMonth('created_at', now()->month)->sum('total'),
-            'aprobadas' => CotizacionCrm::where('estado', 'aceptada')->whereMonth('created_at', now()->month)->count(),
-            'pendientes' => CotizacionCrm::whereIn('estado', ['borrador', 'enviada'])->count(),
+            'aprobadas'   => CotizacionCrm::where('estado', 'aceptada')->whereMonth('created_at', now()->month)->count(),
+            'pendientes'  => CotizacionCrm::whereIn('estado', ['borrador', 'enviada'])->count(),
         ];
 
         $usuarios = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
 
-        return view('ADMINISTRADOR.CRM.cotizaciones.index', compact('cotizaciones', 'stats', 'usuarios'));
+        return view('ADMINISTRADOR.CRM.cotizaciones.index', compact('cotizaciones', 'stats', 'usuarios', 'esAdmin'));
     }
 
     /**
@@ -62,7 +75,7 @@ class admin_CrmCotizacionesController extends Controller
      */
     public function create(Request $request)
     {
-        $oportunidades = Oportunidad::with('prospecto')
+        $oportunidades = Oportunidad::with(['prospecto', 'servicio'])
             ->activas()
             ->orderByDesc('created_at')
             ->get();
@@ -80,7 +93,12 @@ class admin_CrmCotizacionesController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('ADMINISTRADOR.CRM.cotizaciones.create', compact('oportunidades', 'oportunidadId', 'tipos', 'productos'));
+        // Servicios activos del catálogo agrupados por tipo
+        $servicios = Servicio::where('estado', 'Activo')
+            ->orderBy('name')
+            ->get();
+
+        return view('ADMINISTRADOR.CRM.cotizaciones.create', compact('oportunidades', 'oportunidadId', 'tipos', 'productos', 'servicios'));
     }
 
     /**
@@ -89,33 +107,32 @@ class admin_CrmCotizacionesController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'oportunidad_id' => 'required|exists:oportunidades,id',
-            'nombre_proyecto' => 'required|string|max:200',
-            'vigencia_dias' => 'required|integer|min:1|max:90',
-            'incluye_igv' => 'nullable|boolean',
-            
-            // Ítems
-            'items' => 'required|array|min:1',
-            'items.*.categoria' => 'required|in:producto,servicio,otro',
-            'items.*.descripcion' => 'required|string|max:255',
-            'items.*.especificaciones' => 'nullable|string',
-            'items.*.cantidad' => 'required|numeric|min:0.01',
-            'items.*.unidad' => 'required|string|max:20',
-            'items.*.precio_unitario' => 'required|numeric|min:0',
-            'items.*.descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
-            'items.*.producto_id' => 'nullable|exists:productos,id',
-            
-            // Totales
+            'oportunidad_id'   => 'required|exists:oportunidades,id',
+            'nombre_proyecto'  => 'required|string|max:200',
+            'vigencia_dias'    => 'required|integer|min:1|max:90',
+            'incluye_igv'      => 'nullable|boolean',
             'descuento_porcentaje' => 'nullable|numeric|min:0|max:50',
-            
+
+            // Ítems
+            'items'                          => 'required|array|min:1',
+            'items.*.categoria'              => 'required|in:producto,servicio,otro',
+            'items.*.descripcion'            => 'required|string|max:255',
+            'items.*.especificaciones'       => 'nullable|string',
+            'items.*.cantidad'               => 'required|numeric|min:0.01',
+            'items.*.unidad'                 => 'required|string|max:20',
+            'items.*.precio_unitario'        => 'required|numeric|min:0',
+            'items.*.descuento_porcentaje'   => 'nullable|numeric|min:0|max:100',
+            'items.*.producto_id'            => 'nullable|exists:productos,id',
+            'items.*.servicio_id'            => 'nullable|exists:servicios,id',
+            'items.*.tiempo_ejecucion_dias'  => 'nullable|integer|min:1',
+
             // Plazos
-            'tiempo_ejecucion_dias' => 'nullable|integer|min:1',
-            'garantia_servicio' => 'nullable|string|max:200',
-            
+            'garantia_servicio'     => 'nullable|string|max:200',
+
             // Notas
             'condiciones_comerciales' => 'nullable|string',
-            'notas_internas' => 'nullable|string',
-            'observaciones' => 'nullable|string',
+            'notas_internas'          => 'nullable|string',
+            'observaciones'           => 'nullable|string',
         ]);
 
         $oportunidad = Oportunidad::findOrFail($validated['oportunidad_id']);
@@ -138,7 +155,7 @@ class admin_CrmCotizacionesController extends Controller
             'user_id' => auth()->id(),
             'incluye_igv' => $request->boolean('incluye_igv', true),
             'descuento_porcentaje' => $validated['descuento_porcentaje'] ?? 0,
-            'tiempo_ejecucion_dias' => $validated['tiempo_ejecucion_dias'] ?? 5,
+            'tiempo_ejecucion_dias' => 0, // recalculado desde ítems de servicio
             'garantia_servicio' => $validated['garantia_servicio'] ?? null,
             'condiciones_comerciales' => $validated['condiciones_comerciales'] ?? null,
             'notas_internas' => $validated['notas_internas'] ?? null,
@@ -160,19 +177,24 @@ class admin_CrmCotizacionesController extends Controller
      */
     public function show(CotizacionCrm $cotizacion)
     {
-        $cotizacion->load(['oportunidad.prospecto', 'oportunidad.cliente', 'usuario', 'detalles.producto']);
+        $cotizacion->load([
+            'oportunidad.prospecto',
+            'oportunidad.cliente',
+            'usuario',
+            'detalles.producto',
+            'detalles.servicio',
+        ]);
 
         $detallesPorCategoria = $cotizacion->detalles->groupBy('categoria');
 
-        // Si la cotización está aceptada, buscar el pedido generado por cotizacion_id
+        // Buscar pedido vinculado por cotizacion_id (FK directa)
         $pedidoGenerado = null;
         if ($cotizacion->estado === 'aceptada') {
             $pedidoGenerado = Pedido::where('cotizacion_id', $cotizacion->id)->first();
-            
-            // Fallback por observaciones si no tiene cotizacion_id (pedidos antiguos)
+
+            // Fallback por observaciones para pedidos antiguos sin cotizacion_id
             if (!$pedidoGenerado) {
-                $pedidoGenerado = Pedido::where('observaciones', 'LIKE', "%{$cotizacion->codigo}%")
-                    ->first();
+                $pedidoGenerado = Pedido::where('observaciones', 'LIKE', "%{$cotizacion->codigo}%")->first();
             }
         }
 
@@ -184,9 +206,16 @@ class admin_CrmCotizacionesController extends Controller
      */
     public function edit(CotizacionCrm $cotizacion)
     {
-        $cotizacion->load(['detalles.producto', 'oportunidad.prospecto']);
+        // No permitir editar cotizaciones cerradas
+        if (in_array($cotizacion->estado, ['aceptada', 'rechazada'])) {
+            return redirect()
+                ->route('admin.crm.cotizaciones.show', $cotizacion)
+                ->with('error', 'No se puede editar una cotización ' . $cotizacion->estado . '.');
+        }
 
-        $oportunidades = Oportunidad::with('prospecto')
+        $cotizacion->load(['detalles.producto', 'detalles.servicio', 'oportunidad.prospecto', 'oportunidad.servicio']);
+
+        $oportunidades = Oportunidad::with(['prospecto', 'servicio'])
             ->where(function ($q) use ($cotizacion) {
                 $q->activas()->orWhere('id', $cotizacion->oportunidad_id);
             })
@@ -203,25 +232,32 @@ class admin_CrmCotizacionesController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Servicios activos del catálogo
+        $servicios = Servicio::where('estado', 'Activo')
+            ->orderBy('name')
+            ->get();
+
         $categorias = DetalleCotizacionCrm::CATEGORIAS;
         $unidades = DetalleCotizacionCrm::UNIDADES;
 
         // Preparar ítems existentes para JavaScript (evita closure en @json de Blade)
         $itemsParaEditar = $cotizacion->detalles->map(fn($d) => [
-            'categoria' => $d->categoria,
-            'descripcion' => $d->descripcion,
-            'especificaciones' => $d->especificaciones,
-            'cantidad' => $d->cantidad,
-            'unidad' => $d->unidad,
-            'precio_unitario' => $d->precio_unitario,
-            'descuento_porcentaje' => $d->descuento_porcentaje,
-            'producto_id' => $d->producto_id,
-            'producto_tipo_id' => $d->producto?->tipo_id,
-            'producto_categorie_id' => $d->producto?->categorie_id,
+            'categoria'              => $d->categoria,
+            'descripcion'            => $d->descripcion,
+            'especificaciones'       => $d->especificaciones,
+            'cantidad'               => $d->cantidad,
+            'unidad'                 => $d->unidad,
+            'precio_unitario'        => $d->precio_unitario,
+            'descuento_porcentaje'   => $d->descuento_porcentaje,
+            'producto_id'            => $d->producto_id,
+            'servicio_id'            => $d->servicio_id,
+            'tiempo_ejecucion_dias'  => $d->tiempo_ejecucion_dias,
+            'producto_tipo_id'       => $d->producto?->tipo_id,
+            'producto_categorie_id'  => $d->producto?->categorie_id,
         ])->values();
 
         return view('ADMINISTRADOR.CRM.cotizaciones.edit', compact(
-            'cotizacion', 'oportunidades', 'tipos', 'productos', 'categorias', 'unidades', 'itemsParaEditar'
+            'cotizacion', 'oportunidades', 'tipos', 'productos', 'servicios', 'categorias', 'unidades', 'itemsParaEditar'
         ));
     }
 
@@ -231,6 +267,13 @@ class admin_CrmCotizacionesController extends Controller
      */
     public function update(Request $request, CotizacionCrm $cotizacion)
     {
+        // No permitir actualizar cotizaciones cerradas
+        if (in_array($cotizacion->estado, ['aceptada', 'rechazada'])) {
+            return redirect()
+                ->route('admin.crm.cotizaciones.show', $cotizacion)
+                ->with('error', 'No se puede modificar una cotización ' . $cotizacion->estado . '.');
+        }
+
         $validated = $request->validate([
             'oportunidad_id' => 'required|exists:oportunidades,id',
             'nombre_proyecto' => 'required|string|max:200',
@@ -247,12 +290,13 @@ class admin_CrmCotizacionesController extends Controller
             'items.*.precio_unitario' => 'required|numeric|min:0',
             'items.*.descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
             'items.*.producto_id' => 'nullable|exists:productos,id',
+            'items.*.servicio_id' => 'nullable|exists:servicios,id',
+            'items.*.tiempo_ejecucion_dias' => 'nullable|integer|min:1',
 
             // Totales
             'descuento_porcentaje' => 'nullable|numeric|min:0|max:50',
 
             // Plazos
-            'tiempo_ejecucion_dias' => 'nullable|integer|min:1',
             'garantia_servicio' => 'nullable|string|max:200',
 
             // Notas
@@ -272,7 +316,7 @@ class admin_CrmCotizacionesController extends Controller
             'fecha_vigencia' => $validated['fecha_vigencia'],
             'incluye_igv' => $request->boolean('incluye_igv', true),
             'descuento_porcentaje' => $validated['descuento_porcentaje'] ?? 0,
-            'tiempo_ejecucion_dias' => $validated['tiempo_ejecucion_dias'] ?? 5,
+            'tiempo_ejecucion_dias' => 0, // recalculado desde ítems de servicio
             'garantia_servicio' => $validated['garantia_servicio'] ?? null,
             'condiciones_comerciales' => $validated['condiciones_comerciales'] ?? null,
             'notas_internas' => $validated['notas_internas'] ?? null,
@@ -404,65 +448,6 @@ class admin_CrmCotizacionesController extends Controller
     }
 
     /**
-     * Agregar ítem (desde edit modal legacy — se mantiene por compatibilidad)
-     */
-    public function agregarItem(Request $request, CotizacionCrm $cotizacion)
-    {
-        $validated = $request->validate([
-            'categoria' => 'required|in:producto,servicio,otro',
-            'descripcion' => 'required|string|max:255',
-            'especificaciones' => 'nullable|string',
-            'cantidad' => 'required|numeric|min:0.01',
-            'unidad' => 'required|string|max:20',
-            'precio_unitario' => 'required|numeric|min:0',
-            'descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
-            'producto_id' => 'nullable|exists:productos,id',
-        ]);
-
-        $validated['cotizacion_id'] = $cotizacion->id;
-        $validated['orden'] = $cotizacion->detalles()->max('orden') + 1;
-
-        DetalleCotizacionCrm::create($validated);
-        $cotizacion->calcularTotales();
-
-        return back()->with('success', 'Ítem agregado correctamente.');
-    }
-
-    /**
-     * Actualizar ítem
-     */
-    public function actualizarItem(Request $request, CotizacionCrm $cotizacion, $itemId)
-    {
-        $validated = $request->validate([
-            'categoria' => 'required|in:producto,servicio,otro',
-            'descripcion' => 'required|string|max:255',
-            'especificaciones' => 'nullable|string',
-            'cantidad' => 'required|numeric|min:0.01',
-            'unidad' => 'required|string|max:20',
-            'precio_unitario' => 'required|numeric|min:0',
-            'descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
-        ]);
-
-        $item = $cotizacion->detalles()->findOrFail($itemId);
-        $item->update($validated);
-        $cotizacion->calcularTotales();
-
-        return back()->with('success', 'Ítem actualizado correctamente.');
-    }
-
-    /**
-     * Eliminar ítem
-     */
-    public function eliminarItem(CotizacionCrm $cotizacion, $itemId)
-    {
-        $item = $cotizacion->detalles()->findOrFail($itemId);
-        $item->delete();
-        $cotizacion->calcularTotales();
-
-        return back()->with('success', 'Ítem eliminado correctamente.');
-    }
-
-    /**
      * Guardar múltiples ítems (AJAX)
      */
     public function guardarItems(Request $request, CotizacionCrm $cotizacion)
@@ -492,6 +477,7 @@ class admin_CrmCotizacionesController extends Controller
         ]);
     }
 
+
     // ================================================================
     // MÉTODOS PRIVADOS
     // ================================================================
@@ -503,19 +489,30 @@ class admin_CrmCotizacionesController extends Controller
     private function guardarItemsDeCotizacion(CotizacionCrm $cotizacion, array $items): void
     {
         $orden = 1;
+        $tiempoTotal = 0;
+
         foreach ($items as $itemData) {
+            $esServicio = ($itemData['categoria'] ?? '') === 'servicio';
+            $tiempoItem = $esServicio ? (int)($itemData['tiempo_ejecucion_dias'] ?? 0) : null;
+            if ($tiempoItem) $tiempoTotal += $tiempoItem;
+
             DetalleCotizacionCrm::create([
-                'cotizacion_id' => $cotizacion->id,
-                'categoria' => $itemData['categoria'],
-                'descripcion' => $itemData['descripcion'],
-                'especificaciones' => $itemData['especificaciones'] ?? null,
-                'cantidad' => $itemData['cantidad'],
-                'unidad' => $itemData['unidad'],
-                'precio_unitario' => $itemData['precio_unitario'],
-                'descuento_porcentaje' => $itemData['descuento_porcentaje'] ?? 0,
-                'producto_id' => !empty($itemData['producto_id']) ? $itemData['producto_id'] : null,
-                'orden' => $orden++,
+                'cotizacion_id'          => $cotizacion->id,
+                'categoria'              => $itemData['categoria'],
+                'descripcion'            => $itemData['descripcion'],
+                'especificaciones'       => $itemData['especificaciones'] ?? null,
+                'cantidad'               => $itemData['cantidad'],
+                'unidad'                 => $itemData['unidad'],
+                'precio_unitario'        => $itemData['precio_unitario'],
+                'descuento_porcentaje'   => $itemData['descuento_porcentaje'] ?? 0,
+                'producto_id'            => !empty($itemData['producto_id']) ? $itemData['producto_id'] : null,
+                'servicio_id'            => !empty($itemData['servicio_id']) ? $itemData['servicio_id'] : null,
+                'tiempo_ejecucion_dias'  => $tiempoItem,
+                'orden'                  => $orden++,
             ]);
         }
+
+        // Actualizar tiempo total (reset a 0 si no hay servicios, suma si los hay)
+        $cotizacion->update(['tiempo_ejecucion_dias' => $tiempoTotal]);
     }
 }

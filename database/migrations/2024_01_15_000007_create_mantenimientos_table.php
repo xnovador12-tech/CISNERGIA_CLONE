@@ -42,27 +42,14 @@ return new class extends Migration
             $table->enum('estado', [
                 'programado',
                 'confirmado',
-                'en_camino',
                 'en_progreso',
                 'completado',
                 'cancelado',
-                'reprogramado'
             ])->default('programado');
-
-            // Datos del sistema
-            $table->decimal('potencia_sistema_kw', 10, 2)->nullable();
-            $table->integer('cantidad_paneles')->nullable();
-            $table->string('marca_inversor')->nullable();
-            $table->string('modelo_inversor')->nullable();
 
             // Checklist y resultados
             $table->json('checklist')->nullable();
             $table->json('resultados')->nullable();
-
-            // Mediciones
-            $table->decimal('produccion_actual_kwh', 12, 2)->nullable();
-            $table->decimal('produccion_esperada_kwh', 12, 2)->nullable();
-            $table->decimal('eficiencia_porcentaje', 5, 2)->nullable();
 
             // Hallazgos
             $table->text('hallazgos')->nullable();
@@ -70,13 +57,11 @@ return new class extends Migration
             $table->boolean('requiere_seguimiento')->default(false);
             $table->date('fecha_proximo_mantenimiento')->nullable();
 
-            // Costos
-            $table->boolean('es_gratuito')->default(false);
+            // Costos (referencia interna operativa)
             $table->decimal('costo_mano_obra', 10, 2)->default(0);
             $table->decimal('costo_materiales', 10, 2)->default(0);
             $table->decimal('costo_transporte', 10, 2)->default(0);
             $table->decimal('costo_total', 10, 2)->default(0);
-            $table->enum('estado_pago', ['pendiente', 'pagado', 'no_aplica'])->default('no_aplica');
 
             // Asignación
             $table->foreignId('tecnico_id')->nullable()->constrained('users')->onDelete('set null');

@@ -18,26 +18,10 @@
         </div>
     </div>
 
-    <?php if(session('success')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i><?php echo e(session('success')); ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    <?php endif; ?>
-    <?php if(session('error')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2"></i><?php echo e(session('error')); ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    <?php endif; ?>
-    <?php if(session('info')): ?>
-        <div class="container-fluid mb-3">
-            <div class="alert alert-info alert-dismissible fade show"><i class="bi bi-info-circle me-2"></i><?php echo e(session('info')); ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-        </div>
-    <?php endif; ?>
-
     <?php
         $etapaColors = [
             'calificacion' => 'primary', 'evaluacion' => 'info',
-            'propuesta_tecnica' => 'warning', 'negociacion' => 'secondary',
+            'cotizacion' => 'warning', 'negociacion' => 'secondary',
             'ganada' => 'success', 'perdida' => 'danger'
         ];
     ?>
@@ -108,19 +92,23 @@
                 </div>
 
                 
-                <?php if($oportunidad->tipo_servicio || $oportunidad->requiere_visita_tecnica): ?>
+                <?php if($oportunidad->servicio_id || $oportunidad->requiere_visita_tecnica): ?>
                 <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up" data-aos-delay="100">
                     <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>Datos Técnicos</h6></div>
                     <div class="card-body">
                         <div class="row g-3">
                             
-                            <?php if($oportunidad->tipo_servicio): ?>
+                            <?php if($oportunidad->servicio): ?>
                             <div class="col-md-6">
                                 <div class="bg-success bg-opacity-10 rounded p-3">
-                                    <p class="mb-1 small text-muted"><i class="bi bi-wrench me-1"></i>Tipo de Servicio</p>
-                                    <p class="mb-0 fw-bold"><?php echo e(ucfirst(str_replace('_', ' ', $oportunidad->tipo_servicio))); ?></p>
+                                    <p class="mb-1 small text-muted"><i class="bi bi-wrench me-1"></i>Servicio</p>
+                                    <p class="mb-0 fw-bold"><?php echo e($oportunidad->servicio->name); ?></p>
+                                    <span class="badge bg-<?php echo e($oportunidad->servicio->tipo_servicio === 'publico' ? 'primary' : 'secondary'); ?> bg-opacity-25 text-<?php echo e($oportunidad->servicio->tipo_servicio === 'publico' ? 'primary' : 'secondary'); ?> mt-1">
+                                        <?php echo e($oportunidad->servicio->tipo_servicio === 'publico' ? 'Servicio Público' : 'Servicio Privado'); ?>
+
+                                    </span>
                                     <?php if($oportunidad->descripcion_servicio): ?>
-                                        <p class="mb-0 mt-1 small text-muted"><?php echo e($oportunidad->descripcion_servicio); ?></p>
+                                        <p class="mb-0 mt-2 small text-muted"><?php echo e($oportunidad->descripcion_servicio); ?></p>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -130,14 +118,36 @@
                             <?php if($oportunidad->requiere_visita_tecnica): ?>
                             <div class="col-12">
                                 <div class="bg-warning bg-opacity-10 rounded p-3">
-                                    <p class="mb-1 small text-muted"><i class="bi bi-geo-alt me-1"></i>Visita Técnica</p>
-                                    <div class="row">
+                                    <p class="mb-2 small text-muted fw-bold"><i class="bi bi-geo-alt me-1"></i>Visita Técnica</p>
+                                    <div class="row g-2">
                                         <div class="col-md-4">
-                                            <p class="mb-0"><strong>Fecha programada:</strong> <?php echo e($oportunidad->fecha_visita_programada?->format('d/m/Y') ?? 'Por definir'); ?></p>
+                                            <small class="text-muted d-block">Fecha y Hora</small>
+                                            <p class="mb-0 fw-bold">
+                                                <?php echo e($oportunidad->fecha_visita_programada?->format('d/m/Y H:i') ?? 'Por definir'); ?>
+
+                                            </p>
                                         </div>
+                                        <?php if($oportunidad->ubicacion_visita): ?>
+                                        <div class="col-md-5">
+                                            <small class="text-muted d-block">Ubicación</small>
+                                            <p class="mb-0"><?php echo e($oportunidad->ubicacion_visita); ?></p>
+                                        </div>
+                                        <?php endif; ?>
+                                        <?php if($oportunidad->tecnicoVisita): ?>
+                                        <div class="col-md-3">
+                                            <small class="text-muted d-block">Técnico Asignado</small>
+                                            <p class="mb-0 fw-bold">
+                                                <?php echo e($oportunidad->tecnicoVisita->persona?->name ?? $oportunidad->tecnicoVisita->email); ?>
+
+                                                <?php echo e($oportunidad->tecnicoVisita->persona?->surnames ?? ''); ?>
+
+                                            </p>
+                                        </div>
+                                        <?php endif; ?>
                                         <?php if($oportunidad->resultado_visita): ?>
-                                        <div class="col-md-8">
-                                            <p class="mb-0"><strong>Resultado:</strong> <?php echo e($oportunidad->resultado_visita); ?></p>
+                                        <div class="col-12">
+                                            <small class="text-muted d-block">Resultado</small>
+                                            <p class="mb-0 text-success fw-bold"><?php echo e($oportunidad->resultado_visita); ?></p>
                                         </div>
                                         <?php endif; ?>
                                     </div>
@@ -301,18 +311,26 @@
                 <div class="card border-4 borde-top-secondary shadow-sm mb-4" style="border-radius: 20px" data-aos="fade-up" data-aos-delay="100">
                     <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-currency-dollar me-2"></i>Valoración</h6></div>
                     <div class="card-body text-center">
-                        <h2 class="text-primary fw-bold mb-3">S/ <?php echo e(number_format($oportunidad->monto_estimado, 0)); ?></h2>
-                        <div class="mb-3">
+                        <?php if($oportunidad->monto_final): ?>
+                            
+                            <h2 class="text-success fw-bold mb-0">S/ <?php echo e(number_format($oportunidad->monto_final, 0)); ?></h2>
+                            <small class="text-muted d-block mb-3">Monto real (cotización aceptada)</small>
+                            <small class="text-muted">Estimación inicial: S/ <?php echo e(number_format($oportunidad->monto_estimado, 0)); ?></small>
+                        <?php else: ?>
+                            
+                            <h2 class="text-primary fw-bold mb-3">S/ <?php echo e(number_format($oportunidad->monto_estimado, 0)); ?></h2>
+                        <?php endif; ?>
+                        <div class="mb-3 mt-2">
                             <small class="text-muted">Probabilidad</small>
                             <div class="progress mt-1" style="height: 20px;">
                                 <div class="progress-bar bg-<?php echo e($oportunidad->probabilidad >= 70 ? 'success' : ($oportunidad->probabilidad >= 40 ? 'warning' : 'danger')); ?>"
                                      style="width: <?php echo e($oportunidad->probabilidad); ?>%"><?php echo e($oportunidad->probabilidad); ?>%</div>
                             </div>
                         </div>
-                        <p class="mb-0"><strong>Valor Ponderado:</strong> S/ <?php echo e(number_format($oportunidad->monto_estimado * $oportunidad->probabilidad / 100, 0)); ?></p>
-                        <?php if($oportunidad->monto_final): ?>
-                            <p class="mt-2 mb-0 text-success"><strong>Monto Final:</strong> S/ <?php echo e(number_format($oportunidad->monto_final, 0)); ?></p>
-                        <?php endif; ?>
+                        <?php
+                            $montoBase = $oportunidad->monto_final ?? $oportunidad->monto_estimado;
+                        ?>
+                        <p class="mb-0"><strong>Valor Ponderado:</strong> S/ <?php echo e(number_format($montoBase * $oportunidad->probabilidad / 100, 0)); ?></p>
                     </div>
                 </div>
 
@@ -338,28 +356,62 @@
                             </div>
                         <?php else: ?>
                             <div class="text-center mb-3 py-2 bg-light rounded">
-                                <small class="text-muted"><i class="bi bi-flag-fill text-success me-1"></i>Última etapa activa — Solo puede marcar como Ganada o Perdida</small>
+                                <small class="text-muted"><i class="bi bi-flag-fill text-warning me-1"></i>Última etapa activa — Aprueba una cotización para cerrar como Ganada, o márcala como Perdida</small>
                             </div>
                         <?php endif; ?>
 
                         <div class="d-grid gap-2">
                             <?php if($siguienteEtapa): ?>
-                            <form action="<?php echo e(route('admin.crm.oportunidades.avanzar', $oportunidad)); ?>" method="POST" id="form-avanzar"><?php echo csrf_field(); ?>
-                                <button type="button" class="btn btn-outline-primary btn-sm w-100 btn-avanzar">
-                                    <i class="bi bi-arrow-right me-2"></i>Avanzar a <?php echo e($siguienteEtapa['nombre']); ?>
+                            <?php
+                                $proximaEtapaKey = $etapas[$indiceActual + 1] ?? null;
+                                // Bloquear avance a cotizacion si está en evaluacion
+                                // con visita técnica requerida pero sin resultado
+                                $bloqueado = $oportunidad->etapa === 'evaluacion'
+                                    && in_array($oportunidad->tipo_oportunidad, ['servicio', 'mixto'])
+                                    && $oportunidad->requiere_visita_tecnica
+                                    && empty($oportunidad->resultado_visita);
+                                // El próximo paso es cotizacion = crear cotización
+                                $esPropuesta = $proximaEtapaKey === 'cotizacion';
+                                // Ya está en cotizacion o más → también mostrar "Nueva Cotización"
+                                $yaEnPropuesta = in_array($oportunidad->etapa, ['cotizacion', 'negociacion']);
+                                $tieneCotizaciones = $oportunidad->cotizaciones?->count() > 0;
+                            ?>
+                            <?php if($bloqueado): ?>
+                                <button type="button" class="btn btn-secondary btn-sm w-100" disabled
+                                        data-bs-toggle="tooltip"
+                                        title="Completa la visita técnica y registra el resultado para avanzar">
+                                    <i class="bi bi-lock me-2"></i>Crear Cotización
+                                </button>
+                                <div class="alert alert-warning py-2 px-3 mb-0 small">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    Completa la actividad de <strong>visita técnica</strong> y registra el resultado para desbloquear este avance.
+                                </div>
+                            <?php elseif($esPropuesta || $yaEnPropuesta): ?>
+                                
+                                <form action="<?php echo e(route('admin.crm.oportunidades.crear-cotizacion', $oportunidad)); ?>" method="POST" id="form-cotizacion">
+                                    <?php echo csrf_field(); ?>
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                        <i class="bi bi-file-earmark-plus me-2"></i>
+                                        <?php echo e($tieneCotizaciones ? 'Nueva Cotización' : 'Crear Cotización'); ?>
 
-                                </button>
-                            </form>
+                                    </button>
+                                </form>
+                                <?php if($tieneCotizaciones): ?>
+                                <small class="text-muted text-center d-block">
+                                    <i class="bi bi-info-circle me-1"></i>Ya tiene <?php echo e($oportunidad->cotizaciones->count()); ?> cotización(es)
+                                </small>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                
+                                <form action="<?php echo e(route('admin.crm.oportunidades.avanzar', $oportunidad)); ?>" method="POST" id="form-avanzar"><?php echo csrf_field(); ?>
+                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 btn-avanzar">
+                                        <i class="bi bi-arrow-right me-2"></i>Avanzar a <?php echo e($siguienteEtapa['nombre']); ?>
+
+                                    </button>
+                                </form>
                             <?php endif; ?>
-                            <?php if($oportunidad->etapa === 'negociacion'): ?>
-                            <form action="<?php echo e(route('admin.crm.oportunidades.ganada', $oportunidad)); ?>" method="POST" id="form-ganada"><?php echo csrf_field(); ?>
-                                <input type="hidden" name="fecha_cierre_real" id="input-fecha-cierre">
-                                <input type="hidden" name="monto_final" id="input-monto-final">
-                                <button type="button" class="btn btn-outline-success btn-sm w-100 btn-ganada">
-                                    <i class="bi bi-trophy me-2"></i>Marcar Ganada
-                                </button>
-                            </form>
                             <?php endif; ?>
+
                             <form action="<?php echo e(route('admin.crm.oportunidades.perdida', $oportunidad)); ?>" method="POST" id="form-perdida"><?php echo csrf_field(); ?>
                                 <input type="hidden" name="motivo_perdida" id="input-motivo-perdida">
                                 <button type="button" class="btn btn-outline-danger btn-sm w-100 btn-perdida">
@@ -373,20 +425,18 @@
                 <div class="card border-4 shadow-sm mb-4" style="border-radius: 20px; border-top: 4px solid #198754 !important;" data-aos="fade-up" data-aos-delay="200">
                     <div class="card-header bg-success text-white" style="border-radius: 16px 16px 0 0;"><h6 class="mb-0"><i class="bi bi-trophy me-2"></i>¡Oportunidad Ganada!</h6></div>
                     <div class="card-body">
-                        <?php if($oportunidad->prospecto && !$oportunidad->prospecto->es_cliente): ?>
-                            <p class="text-muted mb-3">El prospecto aún no ha sido convertido a cliente.</p>
-                            <form action="<?php echo e(route('admin.crm.oportunidades.convertir-cliente', $oportunidad)); ?>" method="POST" id="form-convertir"><?php echo csrf_field(); ?>
-                                <button type="button" class="btn btn-success w-100 btn-convertir">
-                                    <i class="bi bi-person-check me-2"></i>Convertir a Cliente
-                                </button>
-                            </form>
-                        <?php elseif($oportunidad->cliente || ($oportunidad->prospecto && $oportunidad->prospecto->es_cliente)): ?>
-                            <div class="alert alert-success mb-0">
-                                <i class="bi bi-check-circle me-2"></i><strong>Cliente registrado:</strong> <?php echo e($oportunidad->cliente?->codigo ?? $oportunidad->prospecto?->cliente?->codigo); ?>
+                        <?php $cotizacionAceptada = $oportunidad->cotizaciones->where('estado','aceptada')->first(); ?>
+                        <?php if($cotizacionAceptada): ?>
+                            <div class="mb-2">
+                                <small class="text-muted">Cotización aprobada</small>
+                                <p class="mb-0 fw-bold"><?php echo e($cotizacionAceptada->codigo); ?></p>
+                            </div>
+                        <?php endif; ?>
+                        <?php if($oportunidad->cliente): ?>
+                            <div class="alert alert-success mb-0 py-2">
+                                <i class="bi bi-person-check me-2"></i><strong>Cliente:</strong> <?php echo e($oportunidad->cliente->codigo); ?>
 
                             </div>
-                        <?php else: ?>
-                            <p class="text-muted mb-0">Sin prospecto asociado para convertir.</p>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -443,7 +493,7 @@
         </div>
     </div>
     <!-- Modal Nueva Actividad -->
-    <div class="modal fade" id="modalActividad" tabindex="-1">
+    <div class="modal fade" id="modalActividad" tabindex="-1" style="display:none">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
@@ -568,61 +618,6 @@ $(document).ready(function() {
     });
     <?php endif; ?>
 
-    // ==================== MARCAR GANADA ====================
-    <?php if($oportunidad->etapa === 'negociacion'): ?>
-    <?php
-        $cotizacionAceptada = $oportunidad->cotizaciones->where('estado', 'aceptada')->first();
-        $montoDefault = $cotizacionAceptada ? $cotizacionAceptada->total : $oportunidad->monto_estimado;
-    ?>
-    $('.btn-ganada').on('click', function() {
-        Swal.fire({
-            title: '🏆 ¿Marcar como Ganada?',
-            html: `
-                <p class="mb-3">La oportunidad <strong><?php echo e($oportunidad->codigo); ?></strong> se marcará como <strong class="text-success">GANADA</strong>.</p>
-                <div class="text-start">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Fecha de Cierre Real <span class="text-danger">*</span></label>
-                        <input type="date" id="swal-fecha-cierre" class="form-control form-control-sm" value="<?php echo e(now()->format('Y-m-d')); ?>" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">Monto Final (S/) <span class="text-danger">*</span></label>
-                        <input type="number" id="swal-monto-final" class="form-control form-control-sm" value="<?php echo e(number_format($montoDefault, 2, '.', '')); ?>" step="0.01" min="0" required>
-                        <?php if($cotizacionAceptada): ?>
-                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Tomado de cotización aceptada <?php echo e($cotizacionAceptada->codigo); ?></small>
-                        <?php else: ?>
-                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Tomado del monto estimado</small>
-                        <?php endif; ?>
-                    </div>
-                </div>`,
-            icon: 'success',
-            showCancelButton: true,
-            confirmButtonColor: '#1C3146',
-            cancelButtonColor: '#FF9C00',
-            confirmButtonText: '<i class="bi bi-trophy me-1"></i> Sí, marcar Ganada',
-            cancelButtonText: 'Cancelar',
-            preConfirm: () => {
-                const fecha = document.getElementById('swal-fecha-cierre').value;
-                const monto = document.getElementById('swal-monto-final').value;
-                if (!fecha) {
-                    Swal.showValidationMessage('Debe ingresar la fecha de cierre');
-                    return false;
-                }
-                if (!monto || parseFloat(monto) <= 0) {
-                    Swal.showValidationMessage('Debe ingresar un monto final válido');
-                    return false;
-                }
-                return { fecha, monto };
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $('#input-fecha-cierre').val(result.value.fecha);
-                $('#input-monto-final').val(result.value.monto);
-                $('#form-ganada').submit();
-            }
-        });
-    });
-    <?php endif; ?>
-
     // ==================== MARCAR PERDIDA ====================
     <?php if(!in_array($oportunidad->etapa, ['ganada', 'perdida'])): ?>
     $('.btn-perdida').on('click', function() {
@@ -653,24 +648,6 @@ $(document).ready(function() {
     });
     <?php endif; ?>
 
-    // ==================== CONVERTIR A CLIENTE ====================
-    $('.btn-convertir').on('click', function() {
-        Swal.fire({
-            title: '¿Convertir a Cliente?',
-            html: `El prospecto <strong><?php echo e($oportunidad->prospecto->nombre_completo ?? 'N/A'); ?></strong> será registrado como <strong class="text-success">Cliente</strong> en el sistema.<br><br>
-                   <small class="text-muted">Se creará un registro de cliente con toda la información del prospecto.</small>`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#1C3146',
-            cancelButtonColor: '#FF9C00',
-            confirmButtonText: '<i class="bi bi-person-check me-1"></i> Sí, convertir',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $('#form-convertir').submit();
-            }
-        });
-    });
 
 });
 </script>

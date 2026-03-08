@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Pedido extends Model
 {
     use HasFactory;
-    
+
     protected static function booted(): void
     {
         static::creating(function ($pedido) {
@@ -25,13 +25,16 @@ class Pedido extends Model
     }
 
     protected $table = 'pedidos';
-    
+
     protected $fillable = [
         'codigo',
         'slug',
         'cliente_id',
         'user_id',
+        'tipo_id',
+        'categoria_id',
         'subtotal',
+        'condicion_pago',
         'incluye_igv',
         'descuento_porcentaje',
         'descuento_monto',
@@ -47,6 +50,7 @@ class Pedido extends Model
         'vigencia_dias',
         'almacen_id',
         'observaciones',
+        'cotizacion_id',
         'origen',
         'created_by',
         'updated_by',
@@ -58,7 +62,6 @@ class Pedido extends Model
         'prioridad',
         'observaciones_operativas',
         'campania_id',
-        'cotizacion_id',
         // Pagos
         'pago_banco',
         'pago_operacion',
@@ -69,15 +72,17 @@ class Pedido extends Model
 
     protected $casts = [
         'fecha_entrega_estimada' => 'date',
-        'subtotal' => 'decimal:2',
-        'incluye_igv' => 'boolean',
-        'descuento_porcentaje' => 'decimal:2',
-        'descuento_monto' => 'decimal:2',
-        'igv' => 'decimal:2',
-        'total' => 'decimal:2',
-        'aprobacion_finanzas' => 'boolean',
-        'aprobacion_stock' => 'boolean',
-        'fecha_asignacion' => 'datetime',
+        'fecha_asignacion'       => 'datetime',
+        'subtotal'               => 'decimal:2',
+        'incluye_igv'            => 'boolean',
+        'descuento_porcentaje'   => 'decimal:2',
+        'descuento_monto'        => 'decimal:2',
+        'igv'                    => 'decimal:2',
+        'total'                  => 'decimal:2',
+        'aprobacion_finanzas'    => 'boolean',
+        'aprobacion_stock'       => 'boolean',
+        'pago_monto'             => 'decimal:2',
+        'pago_fecha'             => 'date',
     ];
 
     public function getRouteKeyName()
@@ -85,7 +90,10 @@ class Pedido extends Model
         return 'slug';
     }
 
-    // Relaciones
+    // =====================================================
+    // RELACIONES PRINCIPALES
+    // =====================================================
+
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'cliente_id');
@@ -94,6 +102,16 @@ class Pedido extends Model
     public function usuario()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function tipo()
+    {
+        return $this->belongsTo(Tipo::class, 'tipo_id');
+    }
+
+    public function categoria()
+    {
+        return $this->belongsTo(Category::class, 'categoria_id');
     }
 
     public function distrito()
@@ -106,24 +124,24 @@ class Pedido extends Model
         return $this->belongsTo(Almacen::class, 'almacen_id');
     }
 
+    public function cotizacion()
+    {
+        return $this->belongsTo(CotizacionCrm::class, 'cotizacion_id');
+    }
+
     public function detalles()
     {
         return $this->hasMany(DetallePedido::class, 'pedido_id');
     }
 
-    public function venta()
-    {
-        return $this->hasOne(Sale::class, 'pedido_id');
-    }
-
-    public function cotizacionCrm()
-    {
-        return $this->belongsTo(CotizacionCrm::class, 'cotizacion_id');
-    }
-
     public function cuotas()
     {
         return $this->hasMany(PedidoCuota::class, 'pedido_id');
+    }
+
+    public function venta()
+    {
+        return $this->hasOne(Sale::class, 'pedido_id');
     }
 
     public function creadoPor()
@@ -169,7 +187,6 @@ class Pedido extends Model
         return $this->hasManyThrough(PedidoVerificacion::class, PedidoCalidad::class);
     }
 
-    // Scopes
     public function scopeEnKanban($query)
     {
         return $query->whereHas('venta', function ($q) {
@@ -182,7 +199,6 @@ class Pedido extends Model
         return $query->where('estado_operativo', $estado);
     }
 
-    // Transiciones de estado operativo
     public function moverEstado($nuevoEstado, $datos = [])
     {
         $estadoActual = $this->estado_operativo;
@@ -196,7 +212,7 @@ class Pedido extends Model
         }
 
         $this->estado_operativo = $nuevoEstado;
-        $this->area_actual = $nuevoEstado;
+        $this->area_actual      = $nuevoEstado;
 
         if (isset($datos['tecnico_asignado_id'])) {
             $this->tecnico_asignado_id = $datos['tecnico_asignado_id'];

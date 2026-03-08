@@ -124,12 +124,12 @@ class Cliente extends Model
 
     public function oportunidades()
     {
-        return $this->hasMany(Oportunidad::class, 'prospecto_id', 'prospecto_id');
+        return $this->hasMany(Oportunidad::class, 'cliente_id');
     }
 
     public function cotizaciones()
     {
-        return $this->hasMany(CotizacionCrm::class, 'prospecto_id', 'prospecto_id');
+        return $this->hasMany(CotizacionCrm::class, 'cliente_id');
     }
 
     public function actividades()

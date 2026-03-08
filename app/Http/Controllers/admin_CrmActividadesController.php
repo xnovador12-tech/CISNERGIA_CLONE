@@ -18,7 +18,15 @@ class admin_CrmActividadesController extends Controller
      */
     public function index(Request $request)
     {
+        $user    = auth()->user();
+        $esAdmin = in_array(strtolower($user->role->slug ?? ''), ['cuantica', 'administrador']);
+
         $query = ActividadCrm::with(['usuario.persona', 'actividadable', 'asignadoA.persona']);
+
+        // Rol no-admin solo ve sus actividades
+        if (!$esAdmin) {
+            $query->where('user_id', $user->id);
+        }
 
         // Filtros
         if ($request->filled('buscar')) {
@@ -55,32 +63,38 @@ class admin_CrmActividadesController extends Controller
                   ->where('actividadable_id', $request->entidad_id);
         }
 
-        $orderBy = $request->get('order_by', 'fecha_programada');
+        $orderBy  = $request->get('order_by', 'fecha_programada');
         $orderDir = $request->get('order_dir', 'desc');
         $query->orderBy($orderBy, $orderDir);
 
         $actividades = $query->get();
 
-        // Estadísticas
-        $completadasMes = ActividadCrm::completadas()->whereMonth('fecha_realizada', now()->month)->whereYear('fecha_realizada', now()->year)->count();
-        $cerradasMes = ActividadCrm::whereIn('estado', ['completada', 'cancelada', 'no_realizada'])
+        // Estadísticas (respetan el filtro de rol)
+        $baseStats = $esAdmin
+            ? ActividadCrm::query()
+            : ActividadCrm::where('user_id', $user->id);
+
+        $completadasMes = (clone $baseStats)->where('estado', 'completada')
+            ->whereMonth('fecha_realizada', now()->month)
+            ->whereYear('fecha_realizada', now()->year)->count();
+
+        $cerradasMes = (clone $baseStats)->whereIn('estado', ['completada', 'cancelada', 'no_realizada'])
             ->whereMonth('updated_at', now()->month)->whereYear('updated_at', now()->year)->count();
 
         $stats = [
-            'pendientes' => ActividadCrm::where('estado', 'programada')->count(),
-            'completadas_mes' => $completadasMes,
-            'vencidas' => ActividadCrm::vencidas()->count(),
-            'tasa_cumplimiento' => $cerradasMes > 0
-                ? round(($completadasMes / $cerradasMes) * 100, 1)
-                : 0,
+            'pendientes'        => (clone $baseStats)->where('estado', 'programada')->count(),
+            'completadas_mes'   => $completadasMes,
+            'vencidas'          => (clone $baseStats)->where('estado', 'programada')->where('fecha_programada', '<', now())->count(),
+            'tasa_cumplimiento' => $cerradasMes > 0 ? round(($completadasMes / $cerradasMes) * 100, 1) : 0,
         ];
 
-        $usuarios = User::all();
+        $usuarios = User::with('persona')->get();
 
         return view('ADMINISTRADOR.CRM.actividades.index', compact(
             'actividades',
             'stats',
-            'usuarios'
+            'usuarios',
+            'esAdmin'
         ));
     }
 
@@ -89,17 +103,19 @@ class admin_CrmActividadesController extends Controller
      */
     public function create(Request $request)
     {
-        $prospectos = Prospecto::activos()->orderBy('nombre')->get();
+        $prospectos   = Prospecto::activos()->orderBy('nombre')->get();
         $oportunidades = Oportunidad::activas()->with('prospecto')->orderByDesc('created_at')->get();
-        $usuarios = User::with('persona')->get();
+        $clientes     = \App\Models\Cliente::where('estado', 'activo')->orderBy('nombre')->get();
+        $usuarios     = User::with('persona')->get();
 
         // Pre-seleccionar entidad
         $entidadTipo = $request->get('entidad_tipo');
-        $entidadId = $request->get('entidad_id');
+        $entidadId   = $request->get('entidad_id');
 
         return view('ADMINISTRADOR.CRM.actividades.create', compact(
             'prospectos',
             'oportunidades',
+            'clientes',
             'usuarios',
             'entidadTipo',
             'entidadId'
@@ -119,7 +135,7 @@ class admin_CrmActividadesController extends Controller
             'prioridad' => 'nullable|in:alta,media,baja',
             'ubicacion' => 'nullable|string|max:255',
             'recordatorio_minutos' => 'nullable|integer|min:5',
-            'estado' => 'nullable|in:programada,completada,cancelada,reprogramada,no_realizada',
+            'estado' => 'nullable|in:programada,en_evaluacion,completada,cancelada,reprogramada,no_realizada',
             'user_id' => 'required|exists:users,id',
             'activable_type' => 'nullable|string',
             'activable_id' => 'nullable|integer',
@@ -176,14 +192,16 @@ class admin_CrmActividadesController extends Controller
      */
     public function edit(ActividadCrm $actividad)
     {
-        $prospectos = Prospecto::orderBy('nombre')->get();
+        $prospectos    = Prospecto::orderBy('nombre')->get();
         $oportunidades = Oportunidad::with('prospecto')->orderByDesc('created_at')->get();
-        $usuarios = User::with('persona')->get();
+        $clientes      = \App\Models\Cliente::where('estado', 'activo')->orderBy('nombre')->get();
+        $usuarios      = User::with('persona')->get();
 
         return view('ADMINISTRADOR.CRM.actividades.edit', compact(
             'actividad',
             'prospectos',
             'oportunidades',
+            'clientes',
             'usuarios'
         ));
     }
@@ -199,7 +217,7 @@ class admin_CrmActividadesController extends Controller
             'descripcion' => 'nullable|string',
             'fecha_programada' => 'required|date',
             'prioridad' => 'nullable|in:alta,media,baja',
-            'estado' => 'nullable|in:programada,completada,cancelada,reprogramada,no_realizada',
+            'estado' => 'nullable|in:programada,en_evaluacion,completada,cancelada,reprogramada,no_realizada',
             'ubicacion' => 'nullable|string|max:255',
             'recordatorio_minutos' => 'nullable|integer|min:5',
             'user_id' => 'required|exists:users,id',
@@ -246,15 +264,64 @@ class admin_CrmActividadesController extends Controller
     /**
      * Marcar actividad como completada
      */
+    /**
+     * Completar actividad.
+     * Para visita_tecnica: resultado obligatorio, se copia a la oportunidad.
+     */
     public function completar(Request $request, ActividadCrm $actividad)
     {
-        $validated = $request->validate([
-            'resultado' => 'nullable|string',
+        $rules = ['resultado' => 'nullable|string'];
+
+        // Resultado obligatorio para visitas técnicas
+        if ($actividad->tipo === 'visita_tecnica') {
+            $rules['resultado'] = 'required|string|min:10';
+        }
+
+        $validated = $request->validate($rules, [
+            'resultado.required' => 'El resultado de la visita técnica es obligatorio.',
+            'resultado.min'      => 'El resultado debe tener al menos 10 caracteres.',
         ]);
 
         $actividad->completar($validated['resultado'] ?? 'Actividad completada');
 
         return back()->with('success', 'Actividad completada exitosamente.');
+    }
+
+    /**
+     * Iniciar evaluación (solo visita_tecnica: programada → en_evaluacion)
+     * Avanza automáticamente la oportunidad de calificacion → evaluacion
+     */
+    public function iniciarEvaluacion(Request $request, ActividadCrm $actividad)
+    {
+        if ($actividad->tipo !== 'visita_tecnica') {
+            return back()->with('error', 'Solo las visitas técnicas pueden iniciarse como evaluación.');
+        }
+
+        if ($actividad->estado !== 'programada') {
+            return back()->with('error', 'La actividad debe estar en estado programada.');
+        }
+
+        $actividad->iniciarEvaluacion();
+
+        return back()->with('success', 'Visita técnica iniciada. La oportunidad avanzó a Evaluación.');
+    }
+
+    /**
+     * Marcar actividad como no realizada (requiere motivo)
+     * La oportunidad permanece en evaluacion, cotizacion sigue bloqueado
+     */
+    public function noRealizada(Request $request, ActividadCrm $actividad)
+    {
+        $validated = $request->validate([
+            'motivo_cancelacion' => 'required|string|min:5|max:500',
+        ], [
+            'motivo_cancelacion.required' => 'El motivo es obligatorio.',
+            'motivo_cancelacion.min'      => 'El motivo debe tener al menos 5 caracteres.',
+        ]);
+
+        $actividad->marcarNoRealizada($validated['motivo_cancelacion']);
+
+        return back()->with('warning', 'Visita marcada como no realizada. Puede reprogramarla cuando esté listo.');
     }
 
     /**
@@ -359,7 +426,7 @@ class admin_CrmActividadesController extends Controller
                     'estado' => $actividad->estado,
                     'prioridad' => $actividad->prioridad,
                     'entidad' => $actividad->activable?->nombre_completo ?? $actividad->activable?->nombre,
-                    'url' => route('ADMINISTRADOR.CRM.actividades.show', $actividad),
+                    'url' => route('admin.crm.actividades.show', $actividad->slug),
                 ],
             ];
         });
@@ -418,13 +485,13 @@ class admin_CrmActividadesController extends Controller
         $esAdmin = in_array(strtolower($user->role->slug ?? ''), $rolesAdmin);
 
         // IDs de notificaciones ya descartadas por este usuario
-        $descartadas = NotificacionCrmLeida::where('user_id', $user->id)
-            ->get()
-            ->groupBy('tipo')
-            ->mapWithKeys(fn($items, $tipo) => [$tipo => $items->pluck('actividad_crm_id')->toArray()]);
+        $leidas = NotificacionCrmLeida::where('user_id', $user->id)->get();
 
-        $descartadasRecordatorio = $descartadas->get('recordatorio', []);
-        $descartadasProxima = $descartadas->get('proxima', []);
+        // Actividades: usan actividad_crm_id
+        $descartadasRecordatorio = $leidas->where('tipo', 'recordatorio')->pluck('actividad_crm_id')->filter()->toArray();
+        $descartadasProxima      = $leidas->where('tipo', 'proxima')->pluck('actividad_crm_id')->filter()->toArray();
+        // Prospectos: usan prospecto_id
+        $descartadasSeguimiento  = $leidas->where('tipo', 'seguimiento')->pluck('prospecto_id')->filter()->toArray();
 
         $notificaciones = collect();
 
@@ -486,16 +553,53 @@ class admin_CrmActividadesController extends Controller
             $notificaciones->push($this->formatearNotificacion($act, 'danger', 'Vencida', 'vencida'));
         }
 
+        // ============================================================
+        // 4. SEGUIMIENTO PROSPECTOS: fecha_proximo_contacto <= hoy
+        //    Descartable al hacer click
+        // ============================================================
+        $querySeguimiento = Prospecto::whereNotNull('fecha_proximo_contacto')
+            ->where('fecha_proximo_contacto', '<=', $ahora->toDateString())
+            ->whereNotIn('estado', ['descartado', 'convertido']);
+
+        if (!$esAdmin) {
+            $querySeguimiento->where('user_id', $user->id);
+        }
+        if (!empty($descartadasSeguimiento)) {
+            $querySeguimiento->whereNotIn('id', $descartadasSeguimiento);
+        }
+
+        foreach ($querySeguimiento->orderBy('fecha_proximo_contacto')->take(10)->get() as $prospecto) {
+            $notificaciones->push([
+                'id'            => $prospecto->id,
+                'slug'          => $prospecto->slug,
+                'titulo'        => 'Seguimiento: ' . $prospecto->nombre_completo,
+                'tipo_actividad' => 'Próximo Contacto',
+                'icono'         => 'bi-person-lines-fill',
+                'color'         => 'info',
+                'etiqueta'      => 'Seguimiento',
+                'categoria'     => 'seguimiento',
+                'descartable'   => true,
+                'fecha'         => $prospecto->fecha_proximo_contacto->format('d/m/Y'),
+                'tiempo'        => $prospecto->fecha_proximo_contacto->diffForHumans(),
+                'prioridad'     => '',
+                'responsable'   => $prospecto->vendedor?->persona?->name ?? '',
+                'relacionado'   => null,
+                'url'           => route('admin.crm.prospectos.show', $prospecto->slug),
+                'prospecto_id'  => $prospecto->id,
+            ]);
+        }
+
         // Contadores por categoría
         $conteo = $notificaciones->countBy('categoria');
 
         return response()->json([
-            'total' => $notificaciones->count(),
-            'recordatorios' => $conteo->get('recordatorio', 0),
-            'proximas' => $conteo->get('proxima', 0),
-            'vencidas' => $conteo->get('vencida', 0),
-            'items' => $notificaciones->take(20)->values(),
-            'es_admin' => $esAdmin,
+            'total'          => $notificaciones->count(),
+            'recordatorios'  => $conteo->get('recordatorio', 0),
+            'proximas'       => $conteo->get('proxima', 0),
+            'vencidas'       => $conteo->get('vencida', 0),
+            'seguimientos'   => $conteo->get('seguimiento', 0),
+            'items'          => $notificaciones->take(20)->values(),
+            'es_admin'       => $esAdmin,
         ]);
     }
 
@@ -538,15 +642,33 @@ class admin_CrmActividadesController extends Controller
     public function descartarNotificacion(Request $request)
     {
         $validated = $request->validate([
-            'actividad_id' => 'required|exists:actividades_crm,id',
-            'categoria' => 'required|in:recordatorio,proxima',
+            'actividad_id'  => 'nullable|exists:actividades_crm,id',
+            'prospecto_id'  => 'nullable|exists:prospectos,id',
+            'categoria'     => 'required|in:recordatorio,proxima,seguimiento',
         ]);
 
-        NotificacionCrmLeida::firstOrCreate([
-            'user_id' => auth()->id(),
-            'actividad_crm_id' => $validated['actividad_id'],
-            'tipo' => $validated['categoria'],
-        ]);
+        if ($validated['categoria'] === 'seguimiento') {
+            // Notificación de próximo contacto de prospecto
+            // Usamos updateOrInsert para evitar problemas con NULL en índices únicos de MySQL
+            \DB::table('notificaciones_crm_leidas')->updateOrInsert(
+                [
+                    'user_id'      => auth()->id(),
+                    'prospecto_id' => $validated['prospecto_id'],
+                    'tipo'         => 'seguimiento',
+                ],
+                ['created_at' => now()]
+            );
+        } else {
+            // Notificación de actividad (recordatorio / proxima)
+            \DB::table('notificaciones_crm_leidas')->updateOrInsert(
+                [
+                    'user_id'          => auth()->id(),
+                    'actividad_crm_id' => $validated['actividad_id'],
+                    'tipo'             => $validated['categoria'],
+                ],
+                ['created_at' => now()]
+            );
+        }
 
         return response()->json(['success' => true]);
     }

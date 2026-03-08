@@ -151,6 +151,7 @@ unset($__errorArgs, $__bag); ?>
                                 <option value="">Ninguna</option>
                                 <option value="App\Models\Prospecto" <?php echo e(old('activable_type', $entidadTipo) == 'App\Models\Prospecto' ? 'selected' : ''); ?>>Prospecto</option>
                                 <option value="App\Models\Oportunidad" <?php echo e(old('activable_type', $entidadTipo) == 'App\Models\Oportunidad' ? 'selected' : ''); ?>>Oportunidad</option>
+                                <option value="App\Models\Cliente" <?php echo e(old('activable_type', $entidadTipo) == 'App\Models\Cliente' ? 'selected' : ''); ?>>Cliente</option>
                             </select>
                         </div>
 
@@ -189,8 +190,9 @@ unset($__errorArgs, $__bag); ?>
 <?php $__env->startSection('js'); ?>
 <script>
 $(document).ready(function() {
-    const prospectos = <?php echo json_encode($prospectos, 15, 512) ?>;
+    const prospectos   = <?php echo json_encode($prospectos, 15, 512) ?>;
     const oportunidades = <?php echo json_encode($oportunidades, 15, 512) ?>;
+    const clientes     = <?php echo json_encode($clientes, 15, 512) ?>;
     const entidadIdInicial = "<?php echo e(old('activable_id', $entidadId ?? '')); ?>";
 
     // Cambiar opciones según tipo de entidad
@@ -207,12 +209,17 @@ $(document).ready(function() {
 
         if (tipo === 'App\\Models\\Prospecto') {
             prospectos.forEach(p => {
-                selectEntidad.append(`<option value="${p.id}">${p.nombre}</option>`);
+                selectEntidad.append(`<option value="${p.id}">${p.nombre} ${p.apellidos ?? ''}</option>`);
             });
         } else if (tipo === 'App\\Models\\Oportunidad') {
             oportunidades.forEach(o => {
                 const nombre = o.prospecto ? o.prospecto.nombre : 'Sin nombre';
                 selectEntidad.append(`<option value="${o.id}">${o.codigo} - ${nombre}</option>`);
+            });
+        } else if (tipo === 'App\\Models\\Cliente') {
+            clientes.forEach(c => {
+                const nombre = c.razon_social ?? `${c.nombre} ${c.apellidos ?? ''}`.trim();
+                selectEntidad.append(`<option value="${c.id}">${nombre}</option>`);
             });
         }
 

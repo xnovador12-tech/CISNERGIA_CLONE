@@ -73,7 +73,7 @@ if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" name="nombre" value="<?php echo e(old('nombre')); ?>" required placeholder="Nombre o razón comercial">
+unset($__errorArgs, $__bag); ?>" name="nombre" id="campo_nombre_input" value="<?php echo e(old('nombre')); ?>" required placeholder="Nombre completo">
                             <?php $__errorArgs = ['nombre'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -119,13 +119,32 @@ unset($__errorArgs, $__bag); ?>
                             <input type="text" class="form-control form-control-sm" name="direccion" value="<?php echo e(old('direccion')); ?>" placeholder="Av. Principal 123">
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">Distrito</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="distrito_id" data-placeholder="Seleccionar...">
+                        
+                        <div class="col-md-4">
+                            <label class="form-label">Departamento</label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100"
+                                    id="select_departamento" data-placeholder="Seleccionar...">
                                 <option value="">Seleccionar...</option>
-                                <?php $__currentLoopData = $distritos ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $distrito): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($distrito->id); ?>" <?php echo e(old('distrito_id') == $distrito->id ? 'selected' : ''); ?>><?php echo e($distrito->nombre); ?></option>
+                                <?php $__currentLoopData = $departamentos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dep): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($dep->id); ?>"><?php echo e($dep->nombre); ?></option>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Provincia</label>
+                            <select class="form-select form-select-sm w-100"
+                                    id="select_provincia" data-placeholder="Seleccione un departamento" disabled>
+                                <option value="">Seleccione un departamento</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Distrito</label>
+                            <select class="form-select form-select-sm w-100"
+                                    name="distrito_id" id="select_distrito"
+                                    data-placeholder="Seleccione una provincia" disabled>
+                                <option value="">Seleccione una provincia</option>
                             </select>
                         </div>
 
@@ -138,7 +157,7 @@ unset($__errorArgs, $__bag); ?>
                             <label class="form-label">Origen <span class="text-danger">*</span></label>
                             <select class="form-select form-select-sm select2_bootstrap w-100" name="origen" required data-placeholder="Seleccionar...">
                                 <option value="">Seleccionar...</option>
-                                <?php $__currentLoopData = ['sitio_web' => 'Sitio Web', 'redes_sociales' => 'Redes Sociales', 'llamada' => 'Llamada', 'referido' => 'Referido', 'ecommerce' => 'E-commerce', 'otro' => 'Otro']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php $__currentLoopData = ['sitio_web' => 'Sitio Web', 'redes_sociales' => 'Redes Sociales', 'llamada' => 'Llamada', 'referido' => 'Referido', 'otro' => 'Otro']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($key); ?>" <?php echo e(old('origen') == $key ? 'selected' : ''); ?>><?php echo e($label); ?></option>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
@@ -165,7 +184,8 @@ unset($__errorArgs, $__bag); ?>
 
                         <div class="col-md-3">
                             <label class="form-label">Asignar a</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" data-placeholder="Seleccionar vendedor...">
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" data-placeholder="Sin asignar">
+                                <option value="">Sin asignar</option>
                                 <?php $__currentLoopData = $vendedores ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vendedor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($vendedor->id); ?>" <?php echo e(old('user_id', auth()->id()) == $vendedor->id ? 'selected' : ''); ?>>
                                         <?php echo e($vendedor->persona?->name ?? $vendedor->email); ?> <?php echo e($vendedor->persona?->surnames ?? ''); ?>
@@ -173,6 +193,37 @@ unset($__errorArgs, $__bag); ?>
                                     </option>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
+                        </div>
+
+                        
+                        <div class="col-12 mt-3">
+                            <p class="text-secondary mb-2 small text-uppercase fw-bold">Seguimiento</p>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Nivel de Interés</label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="nivel_interes" data-placeholder="Sin definir">
+                                <option value="">Sin definir</option>
+                                <?php $__currentLoopData = ['bajo' => 'Bajo', 'medio' => 'Medio', 'alto' => 'Alto', 'muy_alto' => 'Muy Alto']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($key); ?>" <?php echo e(old('nivel_interes') == $key ? 'selected' : ''); ?>><?php echo e($label); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Urgencia</label>
+                            <select class="form-select form-select-sm select2_bootstrap w-100" name="urgencia" data-placeholder="Sin definir">
+                                <option value="">Sin definir</option>
+                                <?php $__currentLoopData = ['inmediata' => 'Inmediata', 'corto_plazo' => 'Corto Plazo', 'mediano_plazo' => 'Mediano Plazo', 'largo_plazo' => 'Largo Plazo']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($key); ?>" <?php echo e(old('urgencia') == $key ? 'selected' : ''); ?>><?php echo e($label); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Próximo Contacto</label>
+                            <input type="date" class="form-control form-control-sm" name="fecha_proximo_contacto"
+                                   value="<?php echo e(old('fecha_proximo_contacto')); ?>">
                         </div>
 
                         
@@ -203,14 +254,96 @@ unset($__errorArgs, $__bag); ?>
 <?php $__env->startSection('js'); ?>
 <script>
 $(document).ready(function() {
-    // Toggle Persona Natural / Jurídica (jQuery para compatibilidad con Select2)
+
+    // ===== TOGGLE PERSONA NATURAL / JURÍDICA =====
     $('#tipo_persona').on('change', function() {
         var esJuridica = $(this).val() === 'juridica';
         $('#campo_apellidos').toggle(!esJuridica);
         $('#campo_razon_social').toggle(esJuridica);
         $('#campo_dni').toggle(!esJuridica);
         $('#campo_ruc').toggle(esJuridica);
+        $('#campo_nombre_input').attr('placeholder', esJuridica ? 'Nombre comercial' : 'Nombre completo');
     }).trigger('change');
+
+    // ===== UBIGEO CASCADING =====
+    var urlProvincias = '<?php echo e(route("ajax.provincias")); ?>';
+    var urlDistritos  = '<?php echo e(route("ajax.distritos")); ?>';
+
+    function destroySelect2(selector) {
+        if ($(selector).hasClass('select2-hidden-accessible')) {
+            $(selector).select2('destroy');
+        }
+    }
+
+    function initSelect2(selector, placeholder) {
+        $(selector).select2({
+            theme: 'bootstrap-5',
+            placeholder: placeholder,
+            width: '100%'
+        });
+    }
+
+    function resetSelect(selector, msg) {
+        destroySelect2(selector);
+        $(selector).empty()
+                   .append('<option value="">' + msg + '</option>')
+                   .prop('disabled', true);
+    }
+
+    // Al cambiar Departamento → cargar Provincias
+    // Usamos $(document).on para que funcione incluso si Select2 reinicia el elemento
+    $(document).on('change', '#select_departamento', function() {
+        var depId = $(this).val();
+
+        resetSelect('#select_provincia', 'Seleccione un departamento');
+        resetSelect('#select_distrito',  'Seleccione una provincia');
+
+        if (!depId) return;
+
+        $.getJSON(urlProvincias, { departamento_id: depId })
+            .done(function(data) {
+                destroySelect2('#select_provincia');
+                var $prov = $('#select_provincia').empty()
+                    .append('<option value="">Seleccionar...</option>');
+
+                $.each(data, function(i, p) {
+                    $prov.append('<option value="' + p.id + '">' + p.nombre + '</option>');
+                });
+
+                $prov.prop('disabled', false);
+                initSelect2('#select_provincia', 'Seleccionar provincia...');
+            })
+            .fail(function() {
+                alert('Error al cargar provincias. Intente nuevamente.');
+            });
+    });
+
+    // Al cambiar Provincia → cargar Distritos (delegado en document para capturar Select2)
+    $(document).on('change', '#select_provincia', function() {
+        var provId = $(this).val();
+
+        resetSelect('#select_distrito', 'Seleccione una provincia');
+
+        if (!provId) return;
+
+        $.getJSON(urlDistritos, { provincia_id: provId })
+            .done(function(data) {
+                destroySelect2('#select_distrito');
+                var $dist = $('#select_distrito').empty()
+                    .append('<option value="">Seleccionar...</option>');
+
+                $.each(data, function(i, d) {
+                    $dist.append('<option value="' + d.id + '">' + d.nombre + '</option>');
+                });
+
+                $dist.prop('disabled', false);
+                initSelect2('#select_distrito', 'Seleccionar distrito...');
+            })
+            .fail(function() {
+                alert('Error al cargar distritos. Intente nuevamente.');
+            });
+    });
+
 });
 </script>
 <?php $__env->stopSection(); ?>

@@ -44,11 +44,12 @@ class ActividadCrm extends Model
      * Tipos de actividad con iconos
      */
     public const TIPOS = [
-        'llamada' => ['nombre' => 'Llamada', 'icono' => 'bi-telephone', 'color' => 'primary'],
-        'email' => ['nombre' => 'Email', 'icono' => 'bi-envelope', 'color' => 'info'],
-        'reunion' => ['nombre' => 'Reunión', 'icono' => 'bi-people', 'color' => 'success'],
-        'visita_tecnica' => ['nombre' => 'Visita Técnica', 'icono' => 'bi-house-gear', 'color' => 'warning'],
-        'whatsapp' => ['nombre' => 'WhatsApp', 'icono' => 'bi-whatsapp', 'color' => 'success'],
+        'llamada'        => ['nombre' => 'Llamada',         'icono' => 'bi-telephone',   'color' => 'primary'],
+        'email'          => ['nombre' => 'Email',           'icono' => 'bi-envelope',    'color' => 'info'],
+        'reunion'        => ['nombre' => 'Reunión',         'icono' => 'bi-people',      'color' => 'success'],
+        'visita_tecnica' => ['nombre' => 'Visita Técnica',  'icono' => 'bi-house-gear',  'color' => 'warning'],
+        'whatsapp'       => ['nombre' => 'WhatsApp',        'icono' => 'bi-whatsapp',    'color' => 'success'],
+        'seguimiento'    => ['nombre' => 'Seguimiento',     'icono' => 'bi-arrow-repeat', 'color' => 'secondary'],
     ];
 
     /**
@@ -77,7 +78,7 @@ class ActividadCrm extends Model
     public static function generarCodigo(): string
     {
         $year = date('Y');
-        $ultimo = self::whereYear('created_at', $year)->max('id') ?? 0;
+        $ultimo = self::withTrashed()->whereYear('created_at', $year)->count();
         $numero = str_pad($ultimo + 1, 5, '0', STR_PAD_LEFT);
         return "ACT-{$year}-{$numero}";
     }
@@ -255,7 +256,39 @@ class ActividadCrm extends Model
     // ==================== MÉTODOS ====================
 
     /**
+     * Iniciar evaluación (solo visita_tecnica: programada → en_evaluacion)
+     * Dispara el cambio de etapa en la oportunidad vinculada
+     */
+    public function iniciarEvaluacion(): void
+    {
+        $this->estado = 'en_evaluacion';
+        $this->save();
+
+        // Si está vinculada a una oportunidad, avanzar a evaluacion
+        if ($this->actividadable_type === \App\Models\Oportunidad::class) {
+            $oportunidad = $this->actividadable;
+            if ($oportunidad && $oportunidad->etapa === 'calificacion') {
+                $oportunidad->etapa = 'evaluacion';
+                $oportunidad->probabilidad = \App\Models\Oportunidad::ETAPAS['evaluacion']['probabilidad'];
+                $oportunidad->save();
+            }
+        }
+    }
+
+    /**
+     * Marcar como no realizada (requiere motivo obligatorio)
+     * La oportunidad permanece en evaluacion, botón cotizacion sigue bloqueado
+     */
+    public function marcarNoRealizada(string $motivo): void
+    {
+        $this->estado = 'no_realizada';
+        $this->motivo_cancelacion = $motivo;
+        $this->save();
+    }
+
+    /**
      * Marcar como completada
+     * Para visita_tecnica: el resultado es obligatorio y se copia a la oportunidad
      */
     public function completar(?string $resultado = null): void
     {
@@ -265,6 +298,16 @@ class ActividadCrm extends Model
             $this->resultado = $resultado;
         }
         $this->save();
+
+        // Para visita_tecnica: copiar resultado a oportunidad
+        if ($this->tipo === 'visita_tecnica' && $resultado &&
+            $this->actividadable_type === \App\Models\Oportunidad::class) {
+            $oportunidad = $this->actividadable;
+            if ($oportunidad) {
+                $oportunidad->resultado_visita = $resultado;
+                $oportunidad->save();
+            }
+        }
 
         // Actualizar fecha de último contacto en el relacionado
         $this->actualizarUltimoContacto();
@@ -286,7 +329,7 @@ class ActividadCrm extends Model
     public function reprogramar(\DateTime $nuevaFecha, ?string $motivo = null): void
     {
         $this->fecha_programada = $nuevaFecha;
-        $this->estado = 'programada';
+        $this->estado = 'reprogramada';
 
         if ($motivo) {
             $nota = "\n\n[Reprogramada el " . now()->format('d/m/Y H:i') . "]\nMotivo: {$motivo}";
@@ -306,6 +349,15 @@ class ActividadCrm extends Model
                 $this->actividadable->update([
                     'fecha_ultimo_contacto' => now()
                 ]);
+
+                // Si el relacionado es un Prospecto en estado "nuevo",
+                // avanzar automáticamente a "contactado" al completar la actividad
+                if (
+                    $this->actividadable instanceof \App\Models\Prospecto &&
+                    $this->actividadable->estado === 'nuevo'
+                ) {
+                    $this->actividadable->update(['estado' => 'contactado']);
+                }
             }
         }
     }

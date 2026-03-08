@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Prospecto;
+use App\Models\Departamento;
 use App\Models\Distrito;
 use App\Models\User;
+use App\Http\Requests\StoreActividadProspectoRequest;
+use App\Http\Requests\StoreProspectoRequest;
+use App\Http\Requests\UpdateProspectoRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -16,12 +20,21 @@ class admin_CrmProspectosController extends Controller
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $rolesAdmin = ['cuantica', 'administrador'];
+        $esAdmin = in_array(strtolower($user->role->slug ?? ''), $rolesAdmin);
+
         $query = Prospecto::with(['vendedor', 'distrito', 'cliente'])
             ->addSelect(['wishlist_count' => \DB::table('wish_lists')
                 ->selectRaw('COUNT(*)')
                 ->whereColumn('wish_lists.user_id', 'prospectos.registered_user_id')
                 ->where('wish_lists.deseo', true)
             ]);
+
+        // Solo admins ven todos; otros solo los asignados a ellos
+        if (!$esAdmin) {
+            $query->where('user_id', $user->id);
+        }
 
         // Filtros
         if ($request->filled('buscar')) {
@@ -59,19 +72,29 @@ class admin_CrmProspectosController extends Controller
         // Cargar todos para DataTables del lado cliente
         $prospectos = $query->get();
 
-        // Estadísticas
+        // Estadísticas — una sola query agrupada por estado
+        $conteoEstados = Prospecto::selectRaw('estado, COUNT(*) as total')
+            ->groupBy('estado')
+            ->pluck('total', 'estado');
+
+        $totalGeneral = $conteoEstados->sum();
+        $convertidos  = $conteoEstados->get('convertido', 0);
+
         $estadisticas = [
-            'total' => Prospecto::count(),
-            'nuevos_mes' => Prospecto::nuevosEsteMes()->count(),
-            'calificados' => Prospecto::porEstado('calificado')->count(),
-            'tasa_conversion' => Prospecto::count() > 0
-                ? round((Prospecto::porEstado('calificado')->count() / Prospecto::count()) * 100, 1)
+            'total'           => $totalGeneral,
+            'nuevos_mes'      => Prospecto::nuevosEsteMes()->count(),
+            'calificados'     => $conteoEstados->get('calificado', 0),
+            'tasa_conversion' => $totalGeneral > 0
+                ? round(($convertidos / $totalGeneral) * 100, 1)
                 : 0,
         ];
 
+        $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+
         return view('ADMINISTRADOR.CRM.prospectos.index', compact(
             'prospectos',
-            'estadisticas'
+            'estadisticas',
+            'vendedores'
         ));
     }
 
@@ -80,37 +103,18 @@ class admin_CrmProspectosController extends Controller
      */
     public function create()
     {
-        $distritos = Distrito::orderBy('nombre')->get();
+        $departamentos = Departamento::orderBy('nombre')->get();
         $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
 
-        return view('ADMINISTRADOR.CRM.prospectos.create', compact('distritos', 'vendedores'));
+        return view('ADMINISTRADOR.CRM.prospectos.create', compact('departamentos', 'vendedores'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreProspectoRequest $request)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:100',
-            'apellidos' => 'nullable|string|max:100',
-            'razon_social' => 'nullable|string|max:200',
-            'ruc' => 'nullable|string|size:11|unique:prospectos,ruc',
-            'dni' => 'nullable|string|size:8|unique:prospectos,dni',
-            'email' => 'nullable|email|max:150|unique:prospectos,email',
-            'telefono' => 'nullable|string|max:20',
-            'celular' => 'nullable|string|max:20',
-            'direccion' => 'nullable|string|max:255',
-            'distrito_id' => 'nullable|exists:distritos,id',
-            'tipo_persona' => 'required|in:natural,juridica',
-            'origen' => 'required|in:sitio_web,redes_sociales,llamada,referido,ecommerce,otro',
-            'segmento' => 'required|in:residencial,comercial,industrial,agricola',
-            'tipo_interes' => 'required|in:producto,servicio,ambos',
-            'nivel_interes' => 'nullable|in:muy_alto,alto,medio,bajo',
-            'urgencia' => 'nullable|in:inmediata,corto_plazo,mediano_plazo,largo_plazo',
-            'user_id' => 'nullable|exists:users,id',
-            'observaciones' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $validated['estado'] = 'nuevo';
         $validated['fecha_primer_contacto'] = now();
@@ -133,9 +137,9 @@ class admin_CrmProspectosController extends Controller
         $prospecto->load([
             'vendedor',
             'distrito.provincia.departamento',
+            'cliente',
             'oportunidades' => fn($q) => $q->latest()->take(5),
             'actividades' => fn($q) => $q->latest()->take(10),
-            'cotizaciones' => fn($q) => $q->latest()->take(5),
         ]);
 
         // Timeline de actividades
@@ -173,40 +177,21 @@ class admin_CrmProspectosController extends Controller
      */
     public function edit(Prospecto $prospecto)
     {
-        $distritos = Distrito::orderBy('nombre')->get();
+        $departamentos = Departamento::orderBy('nombre')->get();
         $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
 
-        return view('ADMINISTRADOR.CRM.prospectos.edit', compact('prospecto', 'distritos', 'vendedores'));
+        // Cargar relaciones del distrito actual para pre-seleccionar los cascading selects
+        $prospecto->load('distrito.provincia.departamento');
+
+        return view('ADMINISTRADOR.CRM.prospectos.edit', compact('prospecto', 'departamentos', 'vendedores'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Prospecto $prospecto)
+    public function update(UpdateProspectoRequest $request, Prospecto $prospecto)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:100',
-            'apellidos' => 'nullable|string|max:100',
-            'razon_social' => 'nullable|string|max:200',
-            'ruc' => 'nullable|string|size:11|unique:prospectos,ruc,' . $prospecto->id,
-            'dni' => 'nullable|string|size:8|unique:prospectos,dni,' . $prospecto->id,
-            'email' => 'nullable|email|max:150|unique:prospectos,email,' . $prospecto->id,
-            'telefono' => 'nullable|string|max:20',
-            'celular' => 'nullable|string|max:20',
-            'direccion' => 'nullable|string|max:255',
-            'distrito_id' => 'nullable|exists:distritos,id',
-            'tipo_persona' => 'required|in:natural,juridica',
-            'origen' => 'required|in:sitio_web,redes_sociales,llamada,referido,ecommerce,otro',
-            'segmento' => 'required|in:residencial,comercial,industrial,agricola',
-            'tipo_interes' => 'required|in:producto,servicio,ambos',
-            'estado' => 'required|in:nuevo,contactado,calificado,descartado',
-            'motivo_descarte' => 'nullable|required_if:estado,descartado|string|max:255',
-            'nivel_interes' => 'nullable|in:muy_alto,alto,medio,bajo',
-            'urgencia' => 'nullable|in:inmediata,corto_plazo,mediano_plazo,largo_plazo',
-            'user_id' => 'nullable|exists:users,id',
-            'fecha_proximo_contacto' => 'nullable|date',
-            'observaciones' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $prospecto->update($validated);
 
@@ -220,6 +205,18 @@ class admin_CrmProspectosController extends Controller
      */
     public function destroy(Prospecto $prospecto)
     {
+        if ($prospecto->estado === 'convertido') {
+            return redirect()
+                ->route('admin.crm.prospectos.show', $prospecto)
+                ->with('error', 'No se puede eliminar un prospecto convertido a cliente.');
+        }
+
+        if ($prospecto->oportunidades()->exists()) {
+            return redirect()
+                ->route('admin.crm.prospectos.show', $prospecto)
+                ->with('error', 'No se puede eliminar un prospecto con oportunidades asociadas.');
+        }
+
         $prospecto->delete();
 
         return redirect()
@@ -228,44 +225,20 @@ class admin_CrmProspectosController extends Controller
     }
 
     /**
-     * Convertir prospecto a cliente
-     */
-    public function convertirACliente(Prospecto $prospecto)
-    {
-        try {
-            $cliente = $prospecto->convertirACliente();
-            
-            return redirect()
-                ->route('admin.crm.prospectos.index')
-                ->with('success', "Prospecto '{$prospecto->nombre_completo}' convertido a cliente exitosamente. Código: {$cliente->codigo}");
-        } catch (\Exception $e) {
-            return back()->with('error', 'Error al convertir: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Crear oportunidad desde prospecto
-     */
-    /**
      * Registrar actividad para prospecto
      */
-    public function registrarActividad(Request $request, Prospecto $prospecto)
+    public function registrarActividad(StoreActividadProspectoRequest $request, Prospecto $prospecto)
     {
-        $validated = $request->validate([
-            'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,whatsapp',
-            'titulo' => 'required|string|max:200',
-            'descripcion' => 'nullable|string',
-            'fecha_programada' => 'required|date',
-            'prioridad' => 'nullable|in:alta,media,baja',
-            'estado' => 'nullable|in:programada,en_progreso,completada,cancelada,reprogramada,no_realizada',
-            'user_id' => 'nullable|exists:users,id',
-        ]);
+        $validated = $request->validated();
 
         $validated['estado'] = $validated['estado'] ?? 'programada';
         $validated['user_id'] = $validated['user_id'] ?? auth()->id();
         $validated['created_by'] = auth()->id();
 
         $prospecto->actividades()->create($validated);
+
+        // Actualizar fecha de último contacto del prospecto
+        $prospecto->update(['fecha_ultimo_contacto' => now()]);
 
         return back()->with('success', 'Actividad registrada exitosamente.');
     }
@@ -279,7 +252,7 @@ class admin_CrmProspectosController extends Controller
     public function actualizarEstado(Request $request, Prospecto $prospecto)
     {
         $validated = $request->validate([
-            'estado' => 'required|in:nuevo,contactado,calificado,descartado',
+            'estado' => 'required|in:nuevo,contactado,calificado,descartado', // convertido se asigna automáticamente al aprobar una cotización
             'motivo_descarte' => 'nullable|required_if:estado,descartado|string',
         ]);
 
@@ -300,61 +273,5 @@ class admin_CrmProspectosController extends Controller
             ->with('success', 'Estado actualizado a ' . ucfirst(str_replace('_', ' ', $validated['estado'])));
     }
 
-
-    /**
-     * Exportar prospectos a Excel/CSV
-     */
-    public function exportar(Request $request)
-    {
-        $query = Prospecto::with(['vendedor', 'distrito']);
-
-        // Aplicar mismos filtros que index
-        if ($request->filled('estado')) {
-            $query->where('estado', $request->estado);
-        }
-        if ($request->filled('segmento')) {
-            $query->where('segmento', $request->segmento);
-        }
-
-        $prospectos = $query->get();
-
-        $filename = 'prospectos_' . date('Y-m-d_His') . '.csv';
-        
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        $callback = function() use ($prospectos) {
-            $file = fopen('php://output', 'w');
-            
-            // Encabezados
-            fputcsv($file, [
-                'Código', 'Nombre', 'Email', 'Teléfono', 'Segmento', 
-                'Estado', 'Origen', 'Nivel Interés', 'Urgencia',
-                'Vendedor', 'Fecha Registro'
-            ]);
-
-            foreach ($prospectos as $p) {
-                fputcsv($file, [
-                    $p->codigo,
-                    $p->nombre_completo,
-                    $p->email,
-                    $p->celular ?? $p->telefono,
-                    $p->segmento,
-                    $p->estado,
-                    $p->origen,
-                    $p->nivel_interes,
-                    $p->urgencia,
-                    $p->vendedor?->persona?->name ?? '',
-                    $p->created_at->format('d/m/Y'),
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
 }
 

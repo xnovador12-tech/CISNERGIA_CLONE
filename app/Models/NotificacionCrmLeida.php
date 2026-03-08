@@ -13,6 +13,7 @@ class NotificacionCrmLeida extends Model
     protected $fillable = [
         'user_id',
         'actividad_crm_id',
+        'prospecto_id',
         'tipo',
     ];
 
@@ -24,5 +25,10 @@ class NotificacionCrmLeida extends Model
     public function actividad()
     {
         return $this->belongsTo(ActividadCrm::class, 'actividad_crm_id');
+    }
+
+    public function prospecto()
+    {
+        return $this->belongsTo(Prospecto::class, 'prospecto_id');
     }
 }

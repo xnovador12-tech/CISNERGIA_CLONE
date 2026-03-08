@@ -1,474 +1,533 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Cotización {{ $cotizacion->codigo }}</title>
-    <style>
-        @page {
-            margin: 0;
-            padding: 0;
-        }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 10px;
-            color: #333;
-            line-height: 1.4;
-        }
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>{{ $cotizacion->codigo }}</title>
+<style>
+/* ── PÁGINA ──────────────────────────────────────── */
+@page {
+    margin: 0;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family: 'DejaVu Sans', sans-serif;
+    font-size: 8.5px;
+    color: #222;
+    line-height: 1.5;
+    padding: 18mm 20mm 20mm 20mm;
+}
 
-        /* ===== HEADER ===== */
-        .header {
-            background-color: #1C3146;
-            color: #fff;
-            padding: 25px 40px 20px;
-            position: relative;
-        }
-        .header-table {
-            width: 100%;
-        }
-        .header-table td {
-            vertical-align: middle;
-        }
-        .logo-img {
-            max-width: 160px;
-            max-height: 45px;
-        }
-        .header-right {
-            text-align: right;
-        }
-        .header-right h1 {
-            font-size: 22px;
-            font-weight: 700;
-            margin: 0;
-            letter-spacing: 1px;
-        }
-        .header-right p {
-            font-size: 10px;
-            opacity: 0.85;
-            margin: 2px 0 0 0;
-        }
-        .header-codigo {
-            background-color: rgba(255,255,255,0.15);
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-top: 5px;
-        }
+/* ── ENCABEZADO ──────────────────────────────────── */
+.header-table { width:100%; border-collapse:collapse; margin-bottom:10px; }
+.header-table td { vertical-align:middle; }
+.logo img { max-height:38px; max-width:130px; }
+.logo .brand { font-size:17px; font-weight:700; color:#1C3146; letter-spacing:1px; }
+.doc-info { text-align:right; }
+.doc-tipo {
+    font-size:18px; font-weight:700; color:#1C3146;
+    letter-spacing:3px; line-height:1;
+}
+.doc-codigo {
+    font-size:10px; color:#444; font-weight:600;
+    margin-top:3px; letter-spacing:0.5px;
+}
+.doc-version { font-size:8px; color:#999; margin-top:1px; }
 
-        /* ===== FRANJA ACCENT ===== */
-        .accent-bar {
-            height: 4px;
-            background: linear-gradient(90deg, #E8A723, #1C3146);
-        }
+/* Línea divisora */
+.divider {
+    border:none; border-top:1.5px solid #1C3146;
+    margin:8px 0 10px;
+}
+.divider-gold {
+    border:none; border-top:2px solid #E8A723;
+    margin:0 0 10px;
+}
 
-        /* ===== CONTENIDO ===== */
-        .content {
-            padding: 25px 40px 20px;
-        }
+/* ── NOMBRE PROYECTO ─────────────────────────────── */
+.project-name {
+    font-size:10px; font-weight:700; color:#1C3146;
+    margin-bottom:10px;
+    padding-left:8px;
+    border-left:3px solid #E8A723;
+}
 
-        /* ===== INFO BOXES ===== */
-        .info-row {
-            width: 100%;
-            margin-bottom: 18px;
-        }
-        .info-row td {
-            vertical-align: top;
-            padding: 0;
-        }
-        .info-box {
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 12px 15px;
-            background: #fafafa;
-        }
-        .info-box-title {
-            font-size: 8px;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: #1C3146;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            border-bottom: 1px solid #e8e8e8;
-            padding-bottom: 4px;
-        }
-        .info-box p {
-            margin: 2px 0;
-            font-size: 9.5px;
-        }
-        .info-box .label {
-            color: #888;
-            font-size: 8.5px;
-        }
-        .info-box .value {
-            font-weight: 600;
-            color: #333;
-        }
+/* ── BLOQUES INFO ─────────────────────────────────── */
+.info-table { width:100%; border-collapse:collapse; margin-bottom:10px; }
+.info-table td { vertical-align:top; }
+.info-block { font-size:8px; }
+.info-block .block-title {
+    font-size:7px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.8px; color:#1C3146;
+    border-bottom:1px solid #ddd;
+    padding-bottom:3px; margin-bottom:5px;
+}
+.info-block p { margin:1.5px 0; }
+.info-block .lbl { color:#888; }
+.info-block .val { font-weight:600; color:#111; }
+.info-block .name { font-size:9.5px; font-weight:700; color:#1C3146; margin-bottom:2px; }
 
-        /* ===== TABLA ITEMS ===== */
-        .section-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: #1C3146;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            padding-bottom: 4px;
-            border-bottom: 2px solid #E8A723;
-        }
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-            font-size: 9px;
-        }
-        .items-table thead th {
-            background-color: #1C3146;
-            color: #fff;
-            padding: 7px 8px;
-            text-align: left;
-            font-size: 8px;
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
-        .items-table thead th.text-center { text-align: center; }
-        .items-table thead th.text-right { text-align: right; }
-        .items-table tbody td {
-            padding: 6px 8px;
-            border-bottom: 1px solid #eee;
-        }
-        .items-table tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .items-table .text-center { text-align: center; }
-        .items-table .text-right { text-align: right; }
-        .items-table .cat-row {
-            background-color: #f0f4f8 !important;
-            font-weight: 600;
-            font-size: 8.5px;
-            color: #1C3146;
-        }
-        .items-table .subtotal-row {
-            background-color: #f5f5f5 !important;
-            font-weight: 600;
-        }
+/* ── META DATOS (fila compacta) ──────────────────── */
+.meta-table {
+    width:100%; border-collapse:collapse;
+    border:1px solid #ddd; border-radius:3px;
+    margin-bottom:12px; font-size:8px;
+}
+.meta-table td {
+    padding:5px 8px;
+    border-right:1px solid #ddd;
+    text-align:center;
+}
+.meta-table td:last-child { border-right:none; }
+.meta-lbl { color:#888; font-size:7px; display:block; }
+.meta-val { font-weight:700; color:#1C3146; display:block; margin-top:1px; }
 
-        /* ===== TOTALES ===== */
-        .totales-wrapper {
-            width: 100%;
-            margin-bottom: 18px;
-        }
-        .totales-table {
-            width: 260px;
-            float: right;
-            border-collapse: collapse;
-        }
-        .totales-table td {
-            padding: 5px 10px;
-            font-size: 9.5px;
-        }
-        .totales-table .label-td {
-            text-align: right;
-            color: #666;
-        }
-        .totales-table .value-td {
-            text-align: right;
-            font-weight: 600;
-            width: 100px;
-        }
-        .totales-table .total-row td {
-            border-top: 2px solid #1C3146;
-            padding-top: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #1C3146;
-        }
-        .totales-table .descuento-row td {
-            color: #dc3545;
-        }
+/* ── TABLA ÍTEMS ─────────────────────────────────── */
+.section-label {
+    font-size:8px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.8px; color:#1C3146;
+    border-bottom:1.5px solid #1C3146;
+    padding-bottom:3px; margin-bottom:6px;
+}
+.items-table {
+    width:100%; border-collapse:collapse;
+    margin-bottom:12px; font-size:8px;
+}
+.items-table th {
+    background:#1C3146; color:#fff;
+    padding:5px 7px; font-size:7px;
+    text-transform:uppercase; font-weight:700;
+    letter-spacing:0.3px;
+}
+.items-table th.c { text-align:center; }
+.items-table th.r { text-align:right; }
 
-        /* ===== CONDICIONES ===== */
-        .condiciones {
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 12px 15px;
-            margin-bottom: 15px;
-            background: #fafafa;
-        }
-        .condiciones h4 {
-            font-size: 9px;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: #1C3146;
-            margin-bottom: 6px;
-        }
-        .condiciones p {
-            font-size: 8.5px;
-            color: #555;
-            margin: 2px 0;
-        }
+.items-table td {
+    padding:5px 7px;
+    border-bottom:1px solid #eee;
+    vertical-align:top;
+}
+.items-table tr:nth-child(even) td { background:#fafafa; }
+.items-table .c { text-align:center; }
+.items-table .r { text-align:right; }
 
-        /* ===== FOOTER ===== */
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: #1C3146;
-            color: #fff;
-            padding: 10px 40px;
-            font-size: 7.5px;
-            text-align: center;
-        }
-        .footer p {
-            margin: 1px 0;
-            opacity: 0.8;
-        }
+/* Cabecera categoría */
+.cat-row td {
+    background:#f4f6f9 !important;
+    font-weight:700; font-size:7.5px; color:#444;
+    padding:4px 7px;
+    border-top:1px solid #ddd;
+    border-bottom:1px solid #ddd;
+    text-transform:uppercase; letter-spacing:0.4px;
+}
+/* Subtotal cat */
+.subcat-row td {
+    text-align:right; font-weight:700;
+    font-size:7.8px; color:#1C3146;
+    background:#eef1f5 !important;
+    padding:4px 7px;
+    border-bottom:1.5px solid #ccd3dc;
+}
+.item-desc { font-weight:600; }
+.item-spec { color:#888; font-size:7.5px; margin-top:1px; }
+.dto-badge { color:#c0392b; font-weight:700; }
 
-        /* ===== UTILIDADES ===== */
-        .clearfix::after { content: ""; display: table; clear: both; }
-        .text-accent { color: #E8A723; }
-        .badge-estado {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 10px;
-            font-size: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .badge-borrador { background: #e2e3e5; color: #41464b; }
-        .badge-enviada { background: #cfe2ff; color: #084298; }
-        .badge-aceptada { background: #d1e7dd; color: #0f5132; }
-        .badge-rechazada { background: #f8d7da; color: #842029; }
+/* ── TOTALES + CONDICIONES ───────────────────────── */
+.lower-table { width:100%; border-collapse:collapse; }
+.lower-table td { vertical-align:top; }
 
-        /* Firma */
-        .firma-section {
-            margin-top: 40px;
-            width: 100%;
-        }
-        .firma-section td {
-            width: 50%;
-            text-align: center;
-            vertical-align: bottom;
-            padding: 0 30px;
-        }
-        .firma-line {
-            border-top: 1px solid #999;
-            padding-top: 5px;
-            font-size: 9px;
-            color: #666;
-        }
-    </style>
+/* Condiciones */
+.cond { font-size:7.8px; color:#333; }
+.cond .cond-title {
+    font-size:7.5px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.7px; color:#1C3146;
+    border-bottom:1px solid #ddd;
+    padding-bottom:3px; margin-bottom:5px;
+}
+.cond p { margin:2.5px 0; }
+.cond .cl { font-weight:700; color:#333; }
+.cond .cv { color:#555; }
+.cond .nota {
+    margin-top:6px; font-size:7px; color:#aaa;
+    border-top:1px dashed #ddd; padding-top:5px;
+}
+
+/* Totales */
+.totales { width:100%; border-collapse:collapse; }
+.totales td { padding:4px 8px; font-size:8.5px; }
+.totales .tl { text-align:right; color:#666; }
+.totales .tv { text-align:right; font-weight:700; }
+.totales .sep td { border-top:1px solid #ddd; }
+.totales .dto td { color:#c0392b; }
+.totales .igv-row td { color:#666; font-size:8px; }
+.totales .total-row td {
+    border-top:2px solid #1C3146;
+    font-size:11px; font-weight:700;
+    color:#1C3146; padding-top:6px;
+}
+.total-row .tv { color:#1C3146; }
+.letras {
+    margin-top:6px; font-size:7.5px; color:#555;
+    font-style:italic; border-top:1px dashed #ddd; padding-top:5px;
+}
+
+/* ── FIRMAS ──────────────────────────────────────── */
+.firmas { width:100%; border-collapse:collapse; margin-top:22px; }
+.firmas td { text-align:center; vertical-align:bottom; padding:0 20px; width:50%; }
+.firma-space { height:40px; }
+.firma-line { border-top:1px solid #555; padding-top:5px; }
+.firma-name { font-weight:700; font-size:8.5px; color:#1C3146; }
+.firma-rol  { font-size:7.5px; color:#888; margin-top:1px; }
+
+/* ── NOTA FINAL ──────────────────────────────────── */
+.nota-legal {
+    margin-top:14px; font-size:7px; color:#bbb;
+    text-align:center; border-top:1px dashed #eee; padding-top:6px;
+}
+
+/* ── PIE DE PÁGINA ───────────────────────────────── */
+.page-footer {
+    position:fixed; bottom:0; left:20mm; right:20mm;
+    border-top:1px solid #ddd;
+    padding:5px 0 8px;
+    font-size:7px; color:#aaa;
+}
+.page-footer table { width:100%; border-collapse:collapse; }
+.page-footer td { vertical-align:middle; padding:0 2px; }
+</style>
 </head>
 <body>
-    {{-- FOOTER FIJO --}}
-    <div class="footer">
-        <p>Cisnergia &mdash; Soluciones en Energía Solar</p>
-        <p>Este documento es una cotización referencial y está sujeta a confirmación.</p>
-    </div>
 
-    {{-- HEADER --}}
-    <div class="header">
-        <table class="header-table">
-            <tr>
-                <td style="width: 50%;">
-                    @php
-                        $logoPath = public_path('images/logo_v.png');
-                    @endphp
-                    @if(file_exists($logoPath))
-                        <img src="{{ $logoPath }}" alt="Cisnergia" class="logo-img">
-                    @else
-                        <span style="font-size: 20px; font-weight: 700;">CISNERGIA</span>
+{{-- PIE FIJO --}}
+<div class="page-footer">
+    <table>
+        <tr>
+            <td style="text-align:left;">CISNERGIA S.A.C. &mdash; Pisco, Ica, Perú</td>
+            <td style="text-align:center;">{{ $cotizacion->codigo }}{{ $cotizacion->version > 1 ? ' · Rev.'.$cotizacion->version : '' }}</td>
+            <td style="text-align:right;">Vigente hasta {{ $cotizacion->fecha_vigencia?->format('d/m/Y') }}</td>
+        </tr>
+    </table>
+</div>
+
+@php
+    $prospecto   = $cotizacion->oportunidad?->prospecto;
+    $oportunidad = $cotizacion->oportunidad;
+    $vendedor    = $cotizacion->usuario;
+    $catInfo     = \App\Models\DetalleCotizacionCrm::CATEGORIAS;
+    $conDto      = $cotizacion->detalles->sum(fn($d)=>(float)$d->descuento_monto) > 0;
+    $cols        = $conDto ? 7 : 6;
+
+    $segmentos = ['residencial'=>'Residencial','comercial'=>'Comercial','industrial'=>'Industrial','agricola'=>'Agrícola'];
+
+    function cifraEnLetras(float $n): string {
+        $ent = (int)$n;
+        $cts = (int)round(($n - $ent)*100);
+        $u = ['','UNO','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE',
+              'DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS',
+              'DIECISIETE','DIECIOCHO','DIECINUEVE'];
+        $d = ['','','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+        $c = ['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS',
+              'SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+        $f = function(int $x) use($u,$d,$c,&$f):string {
+            if($x==0) return '';
+            if($x==100) return 'CIEN';
+            if($x<20)   return $u[$x];
+            if($x<100)  return $d[(int)($x/10)].($x%10?' Y '.$u[$x%10]:'');
+            if($x<1000) return $c[(int)($x/100)].($x%100?' '.$f($x%100):'');
+            $m=(int)($x/1000); $r=$x%1000;
+            return ($m==1?'MIL':$f($m).' MIL').($r?' '.$f($r):'');
+        };
+        return ($ent==0?'CERO':$f($ent)).' CON '.str_pad($cts,2,'0',STR_PAD_LEFT).'/100 SOLES';
+    }
+@endphp
+
+{{-- ╔══════════════════════════════════════════════╗ --}}
+{{-- ║  ENCABEZADO                                  ║ --}}
+{{-- ╚══════════════════════════════════════════════╝ --}}
+<table class="header-table">
+    <tr>
+        <td class="logo" style="width:50%;">
+            @php
+                $logo = public_path('images/cisnergia_v.png');
+            @endphp
+            @if(file_exists($logo))
+                <img src="{{ $logo }}" alt="Cisnergia">
+            @else
+                <span class="brand">CISNERGIA</span>
+            @endif
+            <div style="font-size:7px; color:#888; margin-top:3px;">Energía Solar · Pisco, Ica, Perú</div>
+        </td>
+        <td class="doc-info">
+            <div class="doc-tipo">COTIZACIÓN</div>
+            <div class="doc-codigo">{{ $cotizacion->codigo }}</div>
+            @if($cotizacion->version > 1)
+                <div class="doc-version">Revisión {{ $cotizacion->version }}</div>
+            @endif
+        </td>
+    </tr>
+</table>
+
+<hr class="divider">
+<div class="divider-gold" style="margin-top:-9px;"></div>
+
+{{-- NOMBRE DEL PROYECTO --}}
+<div class="project-name">{{ $cotizacion->nombre_proyecto }}</div>
+
+{{-- ╔══════════════════════════════════════════════╗ --}}
+{{-- ║  EMISOR / RECEPTOR                           ║ --}}
+{{-- ╚══════════════════════════════════════════════╝ --}}
+<table class="info-table">
+    <tr>
+        {{-- Datos Cisnergia --}}
+        <td style="width:48%; padding-right:10px;">
+            <div class="info-block">
+                <div class="block-title">Empresa Oferente</div>
+                <p class="name">CISNERGIA S.A.C.</p>
+                <p><span class="lbl">RUC: </span><span class="val">20XXXXXXXXX</span></p>
+                <p><span class="lbl">Dirección: </span>Pisco, Ica, Perú</p>
+                <p><span class="lbl">Responsable: </span>
+                    <span class="val">{{ $vendedor?->persona?->name ?? $vendedor?->email ?? '—' }}</span>
+                </p>
+                <p><span class="lbl">Emisión: </span>
+                    <span class="val">{{ $cotizacion->fecha_emision?->isoFormat('D [de] MMMM [de] Y') }}</span>
+                </p>
+            </div>
+        </td>
+        {{-- Datos Cliente --}}
+        <td style="width:52%;">
+            <div class="info-block">
+                <div class="block-title">Cliente</div>
+                @if($prospecto)
+                    <p class="name">{{ $prospecto->nombre_completo }}</p>
+                    @if($prospecto->razon_social)
+                        <p><span class="lbl">Razón Social: </span><span class="val">{{ $prospecto->razon_social }}</span></p>
                     @endif
-                </td>
-                <td class="header-right">
-                    <h1>COTIZACIÓN</h1>
-                    <div class="header-codigo">{{ $cotizacion->codigo }}</div>
-                    @if($cotizacion->version > 1)
-                        <p>Versión {{ $cotizacion->version }}</p>
+                    @if($prospecto->ruc)
+                        <p><span class="lbl">RUC: </span><span class="val">{{ $prospecto->ruc }}</span></p>
+                    @elseif($prospecto->dni)
+                        <p><span class="lbl">DNI: </span><span class="val">{{ $prospecto->dni }}</span></p>
                     @endif
+                    @if($prospecto->email)
+                        <p><span class="lbl">Email: </span>{{ $prospecto->email }}</p>
+                    @endif
+                    @if($prospecto->telefono || $prospecto->celular)
+                        <p><span class="lbl">Teléfono: </span>{{ $prospecto->telefono ?? $prospecto->celular }}</p>
+                    @endif
+                    @if($prospecto->direccion)
+                        <p><span class="lbl">Dirección: </span>{{ $prospecto->direccion }}</p>
+                    @endif
+                    @if($oportunidad?->tipo_proyecto)
+                        <p><span class="lbl">Segmento: </span>
+                            <span class="val">{{ $segmentos[$oportunidad->tipo_proyecto] ?? '' }}</span>
+                        </p>
+                    @endif
+                @else
+                    <p style="color:#aaa;">Sin datos de cliente.</p>
+                @endif
+            </div>
+        </td>
+    </tr>
+</table>
+
+{{-- ╔══════════════════════════════════════════════╗ --}}
+{{-- ║  META DATOS                                  ║ --}}
+{{-- ╚══════════════════════════════════════════════╝ --}}
+<table class="meta-table">
+    <tr>
+        <td>
+            <span class="meta-lbl">N° Cotización</span>
+            <span class="meta-val">{{ $cotizacion->codigo }}</span>
+        </td>
+        <td>
+            <span class="meta-lbl">Fecha Emisión</span>
+            <span class="meta-val">{{ $cotizacion->fecha_emision?->format('d/m/Y') }}</span>
+        </td>
+        <td>
+            <span class="meta-lbl">Válida Hasta</span>
+            <span class="meta-val">{{ $cotizacion->fecha_vigencia?->format('d/m/Y') }}</span>
+        </td>
+        <td>
+            <span class="meta-lbl">Ejecución</span>
+            <span class="meta-val">{{ $cotizacion->tiempo_ejecucion_dias }} días hábiles</span>
+        </td>
+        <td>
+            <span class="meta-lbl">Moneda</span>
+            <span class="meta-val">S/ (PEN)</span>
+        </td>
+        <td>
+            <span class="meta-lbl">IGV</span>
+            <span class="meta-val">{{ $cotizacion->incluye_igv ? 'Incluido' : 'No incluido' }}</span>
+        </td>
+    </tr>
+</table>
+
+{{-- ╔══════════════════════════════════════════════╗ --}}
+{{-- ║  DETALLE DE ÍTEMS                            ║ --}}
+{{-- ╚══════════════════════════════════════════════╝ --}}
+<div class="section-label">Detalle de la Oferta</div>
+
+<table class="items-table">
+    <thead>
+        <tr>
+            <th style="width:24px;" class="c">N°</th>
+            <th>Descripción</th>
+            <th style="width:40px;" class="c">Cant.</th>
+            <th style="width:38px;" class="c">Und.</th>
+            <th style="width:68px;" class="r">P. Unit.</th>
+            @if($conDto)
+                <th style="width:36px;" class="c">Dto.</th>
+            @endif
+            <th style="width:72px;" class="r">Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        @php $n = 1; @endphp
+        @foreach($detallesPorCategoria as $cat => $items)
+            <tr class="cat-row">
+                <td colspan="{{ $cols }}">
+                    {{ $catInfo[$cat]['nombre'] ?? ucfirst($cat) }}s
                 </td>
             </tr>
-        </table>
-    </div>
-    <div class="accent-bar"></div>
 
-    {{-- CONTENIDO --}}
-    <div class="content">
-        {{-- Información del Cliente y Cotización --}}
-        <table class="info-row">
-            <tr>
-                <td style="width: 55%; padding-right: 10px;">
-                    <div class="info-box">
-                        <div class="info-box-title">Datos del Cliente</div>
-                        @if($cotizacion->oportunidad && $cotizacion->oportunidad->prospecto)
-                            @php $prospecto = $cotizacion->oportunidad->prospecto; @endphp
-                            <p><span class="value">{{ $prospecto->nombre_completo }}</span></p>
-                            @if($prospecto->razon_social)
-                                <p><span class="label">Razón Social:</span> <span class="value">{{ $prospecto->razon_social }}</span></p>
-                            @endif
-                            @if($prospecto->ruc)
-                                <p><span class="label">RUC:</span> <span class="value">{{ $prospecto->ruc }}</span></p>
-                            @endif
-                            @if($prospecto->email)
-                                <p><span class="label">Email:</span> {{ $prospecto->email }}</p>
-                            @endif
-                            @if($prospecto->telefono)
-                                <p><span class="label">Teléfono:</span> {{ $prospecto->telefono }}</p>
-                            @endif
-                            @if($prospecto->direccion)
-                                <p><span class="label">Dirección:</span> {{ $prospecto->direccion }}</p>
-                            @endif
-                        @else
-                            <p class="label">Sin datos de cliente</p>
-                        @endif
-                    </div>
-                </td>
-                <td style="width: 45%;">
-                    <div class="info-box">
-                        <div class="info-box-title">Datos de la Cotización</div>
-                        <p><span class="label">Proyecto:</span> <span class="value">{{ $cotizacion->nombre_proyecto }}</span></p>
-                        <p><span class="label">Oportunidad:</span> {{ $cotizacion->oportunidad->nombre ?? '-' }}</p>
-                        <p><span class="label">Tipo:</span> {{ ucfirst($cotizacion->oportunidad->tipo_oportunidad ?? '-') }}</p>
-                        <p><span class="label">Fecha Emisión:</span> {{ $cotizacion->fecha_emision?->format('d/m/Y') }}</p>
-                        <p><span class="label">Válida Hasta:</span> <span class="value">{{ $cotizacion->fecha_vigencia?->format('d/m/Y') }}</span></p>
-                        <p><span class="label">Ejecución:</span> {{ $cotizacion->tiempo_ejecucion_dias }} días</p>
-                        <p><span class="label">Responsable:</span> {{ $cotizacion->usuario->persona->name ?? $cotizacion->usuario->email ?? '-' }}</p>
-                    </div>
-                </td>
-            </tr>
-        </table>
-
-        {{-- Tabla de Ítems --}}
-        <div class="section-title">Detalle de la Cotización</div>
-
-        <table class="items-table">
-            <thead>
+            @foreach($items as $item)
                 <tr>
-                    <th style="width: 30px;" class="text-center">N°</th>
-                    <th>Descripción</th>
-                    <th style="width: 50px;" class="text-center">Cant.</th>
-                    <th style="width: 45px;" class="text-center">Und.</th>
-                    <th style="width: 75px;" class="text-right">P. Unit.</th>
-                    <th style="width: 45px;" class="text-center">Dto.</th>
-                    <th style="width: 80px;" class="text-right">Subtotal</th>
+                    <td class="c" style="color:#aaa;">{{ $n++ }}</td>
+                    <td>
+                        <span class="item-desc">{{ $item->descripcion }}</span>
+                        @if($item->especificaciones)
+                            <div class="item-spec">{{ $item->especificaciones }}</div>
+                        @endif
+                    </td>
+                    <td class="c">{{ rtrim(rtrim(number_format((float)$item->cantidad,4,'.',''),'0'),'.') }}</td>
+                    <td class="c">{{ $item->nombre_unidad }}</td>
+                    <td class="r">S/ {{ number_format((float)$item->precio_unitario,2) }}</td>
+                    @if($conDto)
+                        <td class="c">
+                            @if((float)$item->descuento_porcentaje > 0)
+                                <span class="dto-badge">{{ number_format((float)$item->descuento_porcentaje,0) }}%</span>
+                            @else
+                                <span style="color:#ddd;">—</span>
+                            @endif
+                        </td>
+                    @endif
+                    <td class="r" style="font-weight:700;">S/ {{ number_format((float)$item->subtotal,2) }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                @php
-                    $numero = 1;
-                    $catInfo = \App\Models\DetalleCotizacionCrm::CATEGORIAS;
-                @endphp
+            @endforeach
 
-                @foreach($detallesPorCategoria as $categoria => $items)
-                    {{-- Fila de categoría --}}
-                    <tr class="cat-row">
-                        <td colspan="7">{{ $catInfo[$categoria]['nombre'] ?? ucfirst($categoria) }}</td>
-                    </tr>
-                    @foreach($items as $item)
-                        <tr>
-                            <td class="text-center">{{ $numero++ }}</td>
-                            <td>
-                                {{ $item->descripcion }}
-                                @if($item->especificaciones)
-                                    <br><span style="color: #888; font-size: 8px;">{{ $item->especificaciones }}</span>
-                                @endif
-                            </td>
-                            <td class="text-center">{{ number_format($item->cantidad, $item->cantidad == intval($item->cantidad) ? 0 : 2) }}</td>
-                            <td class="text-center">{{ $item->nombre_unidad }}</td>
-                            <td class="text-right">S/ {{ number_format($item->precio_unitario, 2) }}</td>
-                            <td class="text-center">
-                                @if($item->descuento_porcentaje > 0)
-                                    {{ number_format($item->descuento_porcentaje, 0) }}%
-                                @else
-                                    -
-                                @endif
-                            </td>
-                            <td class="text-right">S/ {{ number_format($item->subtotal, 2) }}</td>
-                        </tr>
-                    @endforeach
-                    {{-- Subtotal por categoría --}}
-                    <tr class="subtotal-row">
-                        <td colspan="6" style="text-align: right; font-size: 8.5px;">Subtotal {{ $catInfo[$categoria]['nombre'] ?? '' }}:</td>
-                        <td class="text-right">S/ {{ number_format($items->sum('subtotal'), 2) }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+            <tr class="subcat-row">
+                <td colspan="{{ $cols - 1 }}">Subtotal {{ $catInfo[$cat]['nombre'] ?? '' }}s:</td>
+                <td style="text-align:right;">S/ {{ number_format((float)$items->sum('subtotal'),2) }}</td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+
+{{-- ╔══════════════════════════════════════════════╗ --}}
+{{-- ║  CONDICIONES + TOTALES                       ║ --}}
+{{-- ╚══════════════════════════════════════════════╝ --}}
+<table class="lower-table">
+    <tr>
+        {{-- Condiciones --}}
+        <td style="width:57%; padding-right:14px; vertical-align:top;">
+            <div class="cond">
+                <div class="cond-title">Términos y Condiciones</div>
+
+                <p><span class="cl">Condiciones de pago: </span>
+                    <span class="cv">{{ $cotizacion->condiciones_comerciales ?: '50% anticipo, 50% contra entrega.' }}</span>
+                </p>
+
+                <p><span class="cl">Garantía: </span>
+                    <span class="cv">{{ $cotizacion->garantia_servicio ?: 'Según fabricante — paneles 25 años rendimiento, inversor 5 años.' }}</span>
+                </p>
+
+                <p><span class="cl">Tiempo de ejecución: </span>
+                    <span class="cv">{{ $cotizacion->tiempo_ejecucion_dias }} días hábiles desde confirmación del pedido.</span>
+                </p>
+
+                <p><span class="cl">Validez de la oferta: </span>
+                    <span class="cv">Hasta el {{ $cotizacion->fecha_vigencia?->format('d/m/Y') }}.</span>
+                </p>
+
+                @if($cotizacion->observaciones)
+                    <p style="margin-top:4px;"><span class="cl">Observaciones: </span>
+                        <span class="cv">{{ $cotizacion->observaciones }}</span>
+                    </p>
+                @endif
+
+                <p class="nota">
+                    Precios en Soles {{ $cotizacion->incluye_igv ? 'incluyen IGV (18%)' : 'no incluyen IGV' }}.
+                    Incluye materiales, mano de obra y trámites indicados.
+                    Equipos y modelos sujetos a disponibilidad en almacén.
+                </p>
+            </div>
+        </td>
 
         {{-- Totales --}}
-        <div class="totales-wrapper clearfix">
-            <table class="totales-table">
+        <td style="width:43%; vertical-align:top;">
+            <table class="totales">
                 <tr>
-                    <td class="label-td">Subtotal:</td>
-                    <td class="value-td">S/ {{ number_format($cotizacion->subtotal, 2) }}</td>
+                    <td class="tl">Subtotal:</td>
+                    <td class="tv">S/ {{ number_format((float)$cotizacion->subtotal,2) }}</td>
                 </tr>
-                @if($cotizacion->descuento_monto > 0)
-                    <tr class="descuento-row">
-                        <td class="label-td">Descuento ({{ number_format($cotizacion->descuento_porcentaje, 0) }}%):</td>
-                        <td class="value-td">- S/ {{ number_format($cotizacion->descuento_monto, 2) }}</td>
+
+                @if((float)$cotizacion->descuento_monto > 0)
+                    <tr class="dto">
+                        <td class="tl">Descuento ({{ number_format((float)$cotizacion->descuento_porcentaje,1) }}%):</td>
+                        <td class="tv">– S/ {{ number_format((float)$cotizacion->descuento_monto,2) }}</td>
+                    </tr>
+                    <tr class="sep">
+                        <td class="tl">Base imponible:</td>
+                        <td class="tv">S/ {{ number_format((float)$cotizacion->subtotal - (float)$cotizacion->descuento_monto,2) }}</td>
                     </tr>
                 @endif
+
                 @if($cotizacion->incluye_igv)
-                    <tr>
-                        <td class="label-td">IGV (18%):</td>
-                        <td class="value-td">S/ {{ number_format($cotizacion->igv, 2) }}</td>
+                    <tr class="igv-row">
+                        <td class="tl">IGV (18%):</td>
+                        <td class="tv">S/ {{ number_format((float)$cotizacion->igv,2) }}</td>
                     </tr>
                 @endif
+
                 <tr class="total-row">
-                    <td class="label-td">TOTAL:</td>
-                    <td class="value-td">S/ {{ number_format($cotizacion->total, 2) }}</td>
+                    <td class="tl">TOTAL:</td>
+                    <td class="tv">S/ {{ number_format((float)$cotizacion->total,2) }}</td>
                 </tr>
             </table>
-        </div>
-
-        {{-- Condiciones --}}
-        @if($cotizacion->condiciones_comerciales || $cotizacion->garantia_servicio || $cotizacion->observaciones)
-            <div class="condiciones">
-                <h4>Términos y Condiciones</h4>
-                @if($cotizacion->condiciones_comerciales)
-                    <p><strong>Condiciones Comerciales:</strong> {{ $cotizacion->condiciones_comerciales }}</p>
-                @endif
-                @if($cotizacion->garantia_servicio)
-                    <p><strong>Garantía de Servicio:</strong> {{ $cotizacion->garantia_servicio }}</p>
-                @endif
-                @if($cotizacion->observaciones)
-                    <p><strong>Observaciones:</strong> {{ $cotizacion->observaciones }}</p>
-                @endif
-                <p><strong>Vigencia:</strong> Esta cotización es válida hasta el {{ $cotizacion->fecha_vigencia?->format('d/m/Y') }}.</p>
-                <p><strong>Tiempo de ejecución:</strong> {{ $cotizacion->tiempo_ejecucion_dias }} días hábiles después de la confirmación del pedido.</p>
+            <div class="letras">
+                <strong>Son:</strong> {{ cifraEnLetras((float)$cotizacion->total) }}
             </div>
-        @endif
+        </td>
+    </tr>
+</table>
 
-        {{-- Firmas --}}
-        <table class="firma-section">
-            <tr>
-                <td>
-                    <div style="margin-top: 50px;">
-                        <div class="firma-line">
-                            {{ $cotizacion->usuario->persona->name ?? $cotizacion->usuario->email ?? 'Representante' }}<br>
-                            <span style="font-size: 8px;">Cisnergia</span>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div style="margin-top: 50px;">
-                        <div class="firma-line">
-                            {{ $cotizacion->oportunidad?->prospecto?->nombre_completo ?? 'Cliente' }}<br>
-                            <span style="font-size: 8px;">Aceptación del cliente</span>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
+{{-- ╔══════════════════════════════════════════════╗ --}}
+{{-- ║  FIRMAS                                      ║ --}}
+{{-- ╚══════════════════════════════════════════════╝ --}}
+<table class="firmas">
+    <tr>
+        <td>
+            <div class="firma-space"></div>
+            <div class="firma-line">
+                <div class="firma-name">{{ $vendedor?->persona?->name ?? $vendedor?->email ?? 'Representante Comercial' }}</div>
+                <div class="firma-rol">Por: CISNERGIA S.A.C.</div>
+            </div>
+        </td>
+        <td>
+            <div class="firma-space"></div>
+            <div class="firma-line">
+                <div class="firma-name">{{ $prospecto?->nombre_completo ?? 'Cliente' }}</div>
+                <div class="firma-rol">
+                    {{ $prospecto?->ruc ? 'RUC: '.$prospecto->ruc : ($prospecto?->dni ? 'DNI: '.$prospecto->dni : 'Documento: _______________') }}
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<p class="nota-legal">
+    Documento referencial emitido por CISNERGIA S.A.C. La aceptación se formaliza con firma y pago de anticipo.
+    Generado el {{ now()->format('d/m/Y H:i') }}.
+</p>
+
 </body>
 </html>

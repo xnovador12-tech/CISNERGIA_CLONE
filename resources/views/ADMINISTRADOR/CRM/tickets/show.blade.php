@@ -40,7 +40,7 @@
                         <h5 class="mb-0 fw-bold">{{ $ticket->asunto }}</h5>
                         <div class="d-flex gap-2">
                             @php
-                                $estadoColors = ['abierto' => 'danger', 'asignado' => 'primary', 'en_progreso' => 'warning', 'pendiente_cliente' => 'info', 'pendiente_proveedor' => 'info', 'resuelto' => 'success', 'cerrado' => 'secondary', 'reabierto' => 'danger'];
+                                $estadoColors = ['abierto' => 'danger', 'asignado' => 'primary', 'en_progreso' => 'warning', 'pendiente_cliente' => 'info', 'pendiente_proveedor' => 'info', 'resuelto' => 'success', 'reabierto' => 'danger'];
                                 $prioridadColors = ['baja' => 'success', 'media' => 'warning', 'alta' => 'danger', 'critica' => 'dark'];
                             @endphp
                             <span class="badge bg-{{ $estadoColors[$ticket->estado] ?? 'secondary' }}">
@@ -59,7 +59,12 @@
                             </div>
                             <div class="col-md-6">
                                 <p class="text-muted mb-1 small">Categoría</p>
-                                <p class="mb-0">{{ $ticket->categoria_label }}</p>
+                                <p class="mb-0">
+                                    {{ $ticket->categoria_label }}
+                                    @if($ticket->componente_afectado)
+                                        <br><small class="text-muted"><i class="bi bi-cpu me-1"></i>{{ $ticket->componente_afectado }}</small>
+                                    @endif
+                                </p>
                             </div>
                             <div class="col-md-6">
                                 <p class="text-muted mb-1 small">Creado</p>
@@ -127,31 +132,47 @@
                                 <i class="bi bi-pencil me-2"></i>Editar Ticket
                             </a>
                             
-                            @if(!in_array($ticket->estado, ['resuelto', 'cerrado']))
-                                {{-- Mantenimiento: Programar si no tiene uno vinculado --}}
-                                @if($ticket->es_mantenimiento && !$ticket->mantenimiento)
-                                    <form action="{{ route('admin.crm.tickets.cambiar-estado', $ticket) }}" method="POST" id="form-programar">
+                            @if($ticket->estado !== 'resuelto')
+                                @php
+                                    $tieneMantenimientoActivo = $ticket->mantenimiento
+                                        && !in_array($ticket->mantenimiento->estado, ['completado', 'cancelado']);
+                                    // Bloqueado solo si hay mantenimiento activo pendiente
+                                    // Si el mantenimiento está completado/cancelado se permite resolver manualmente
+                                    $resolucionBloqueada = $tieneMantenimientoActivo;
+                                @endphp
+
+                                {{-- Soporte/Garantía sin mantenimiento: botón agendar visita --}}
+                                @if(in_array($ticket->categoria, ['soporte_tecnico', 'garantia']) && !$ticket->mantenimiento)
+                                    <button type="button" class="btn btn-info btn-sm w-100 btn-agendar-visita">
+                                        <i class="bi bi-calendar-check me-2"></i>No se pudo resolver — Agendar Visita
+                                    </button>
+
+                                    {{-- Form oculto que se submittea desde el SweetAlert --}}
+                                    <form action="{{ route('admin.crm.tickets.agendar-visita', $ticket) }}" method="POST" id="form-agendar-visita">
                                         @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="estado" value="en_progreso">
-                                        <input type="hidden" name="programar_mantenimiento" value="1">
-                                        <button type="button" class="btn btn-info btn-sm w-100 btn-programar">
-                                            <i class="bi bi-tools me-2"></i>Programar Mantenimiento
-                                        </button>
+                                        <input type="hidden" name="tipo_mantenimiento"  id="hidden-tipo">
+                                        <input type="hidden" name="fecha_mantenimiento" id="hidden-fecha">
+                                        <input type="hidden" name="hora_mantenimiento"  id="hidden-hora">
+                                        <input type="hidden" name="tecnico_id"          id="hidden-tecnico">
                                     </form>
                                 @endif
 
-                                {{-- Mantenimiento pendiente: aviso --}}
-                                @if($ticket->mantenimiento && !in_array($ticket->mantenimiento->estado, ['completado', 'cancelado']))
-                                    <div class="alert alert-info small mb-0 py-2">
-                                        <i class="bi bi-hourglass-split me-1"></i>
-                                        El ticket se resolverá automáticamente al completar el mantenimiento
-                                        <a href="{{ route('admin.crm.mantenimientos.show', $ticket->mantenimiento) }}">{{ $ticket->mantenimiento->codigo }}</a>.
+                                @if($resolucionBloqueada)
+                                    <div class="alert alert-warning small mb-0 py-2">
+                                        <i class="bi bi-tools me-1"></i>
+                                        <strong>Resolución bloqueada.</strong>
+                                        @if($ticket->mantenimiento)
+                                            Completa el mantenimiento
+                                            <a href="{{ route('admin.crm.mantenimientos.show', $ticket->mantenimiento) }}" class="fw-bold">
+                                                {{ $ticket->mantenimiento->codigo }}
+                                            </a> para resolver este ticket automáticamente.
+                                        @else
+                                            Este ticket se resuelve automáticamente al completar el mantenimiento vinculado.
+                                        @endif
                                     </div>
                                 @endif
 
-                                {{-- Resolver manual: solo si NO es tipo mantenimiento, o si mantenimiento ya completado/cancelado --}}
-                                @if(!$ticket->es_mantenimiento || ($ticket->mantenimiento && in_array($ticket->mantenimiento->estado, ['completado', 'cancelado'])))
+                                @if(!$resolucionBloqueada)
                                     <form action="{{ route('admin.crm.tickets.cambiar-estado', $ticket) }}" method="POST" id="form-resolver">
                                         @csrf
                                         @method('PATCH')
@@ -162,12 +183,7 @@
                                     </form>
                                 @endif
 
-                                <form action="{{ route('admin.crm.tickets.escalar', $ticket) }}" method="POST" id="form-escalar">
-                                    @csrf
-                                    <button type="button" class="btn btn-warning btn-sm w-100 btn-escalar">
-                                        <i class="bi bi-arrow-up-circle me-2"></i>Escalar Ticket
-                                    </button>
-                                </form>
+
                             @endif
 
                             <hr class="my-1">
@@ -185,9 +201,9 @@
                 {{-- Asignación --}}
                 <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px" data-aos="fade-left">
                     <div class="card-body">
-                        <h6 class="fw-bold mb-3"><i class="bi bi-person-check me-2"></i>Asignación</h6>
+                        <h6 class="fw-bold mb-3"><i class="bi bi-person-check me-2"></i>Técnico / Agente</h6>
                         <p class="mb-2">
-                            <strong>Asignado a:</strong><br>
+                            <strong>Responsable:</strong><br>
                             {{ $ticket->asignado?->persona?->name ?? $ticket->asignado?->name ?? 'Sin asignar' }}
                         </p>
                         <p class="mb-3">
@@ -195,7 +211,7 @@
                             {{ $ticket->creador?->persona?->name ?? $ticket->creador?->name ?? 'Sistema' }}
                         </p>
                         
-                        @if(!in_array($ticket->estado, ['resuelto', 'cerrado']))
+                        @if($ticket->estado !== 'resuelto')
                             <form action="{{ route('admin.crm.tickets.asignar', $ticket) }}" method="POST">
                                 @csrf
                                 <select name="user_id" class="form-select form-select-sm mb-2">
@@ -207,7 +223,7 @@
                                     @endforeach
                                 </select>
                                 <button type="submit" class="btn btn-outline-primary btn-sm w-100">
-                                    <i class="bi bi-person-plus me-2"></i>Reasignar
+                                    <i class="bi bi-person-plus me-2"></i>Asignar Responsable
                                 </button>
                             </form>
                         @endif
@@ -220,29 +236,128 @@
                         <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Información</h6>
                         <table class="table table-sm table-borderless">
                             <tr>
-                                <td class="text-muted">Canal:</td>
-                                <td>{{ ucfirst($ticket->canal) }}</td>
+                                <td class="text-muted small">Canal:</td>
+                                <td class="small">{{ ucfirst($ticket->canal) }}</td>
+                            </tr>
+                            @if($ticket->componente_afectado)
+                            <tr>
+                                <td class="text-muted small">Componente:</td>
+                                <td class="small"><i class="bi bi-cpu me-1 text-muted"></i>{{ $ticket->componente_afectado }}</td>
+                            </tr>
+                            @endif
+                            @if($ticket->pedido)
+                            <tr>
+                                <td class="text-muted small">Pedido:</td>
+                                <td class="small">
+                                    <span class="badge bg-secondary">{{ $ticket->pedido->codigo }}</span>
+                                    <small class="text-muted ms-1">S/ {{ number_format($ticket->pedido->total, 2) }}</small>
+                                </td>
+                            </tr>
+                            @endif
+                            @if($ticket->venta)
+                            <tr>
+                                <td class="text-muted small">Venta:</td>
+                                <td class="small">
+                                    <span class="badge bg-success">{{ $ticket->venta->codigo }}</span>
+                                    @if($ticket->venta->numero_comprobante)
+                                        <small class="text-muted ms-1">{{ $ticket->venta->numero_comprobante }}</small>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endif
+                            @if($ticket->direccion_sistema)
+                            <tr>
+                                <td class="text-muted small">Dirección:</td>
+                                <td class="small"><i class="bi bi-geo-alt text-muted me-1"></i>{{ $ticket->direccion_sistema }}</td>
+                            </tr>
+                            @endif
+                            <tr>
+                                <td class="text-muted small">Primera atención:</td>
+                                <td class="small">{{ $ticket->fecha_primera_respuesta?->format('d/m/Y H:i') ?? 'Pendiente' }}</td>
                             </tr>
                             <tr>
-                                <td class="text-muted">Primera Respuesta:</td>
-                                <td>{{ $ticket->fecha_primera_respuesta?->format('d/m/Y H:i') ?? 'Pendiente' }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">Resolución:</td>
-                                <td>{{ $ticket->fecha_resolucion?->format('d/m/Y H:i') ?? 'Pendiente' }}</td>
+                                <td class="text-muted small">Resolución:</td>
+                                <td class="small">{{ $ticket->fecha_resolucion?->format('d/m/Y H:i') ?? 'Pendiente' }}</td>
                             </tr>
                             @if($ticket->mantenimiento)
                                 <tr>
-                                    <td class="text-muted">Mantenimiento:</td>
-                                    <td>
+                                    <td class="text-muted small">Mantenimiento:</td>
+                                    <td class="small">
                                         <a href="{{ route('admin.crm.mantenimientos.show', $ticket->mantenimiento) }}" class="text-decoration-none">
                                             <span class="badge bg-info">{{ $ticket->mantenimiento->codigo }}</span>
                                             <i class="bi bi-box-arrow-up-right small"></i>
                                         </a>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td class="text-muted small">Tipo:</td>
+                                    <td class="small">{{ ucfirst($ticket->mantenimiento->tipo) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small">Fecha programada:</td>
+                                    <td class="small">
+                                        @if($ticket->mantenimiento->fecha_programada)
+                                            <span class="{{ $ticket->mantenimiento->fecha_programada->isPast() && $ticket->mantenimiento->estado !== 'completado' ? 'text-danger fw-bold' : '' }}">
+                                                {{ $ticket->mantenimiento->fecha_programada->format('d/m/Y') }}
+                                                @if($ticket->mantenimiento->hora_programada)
+                                                    — {{ \Carbon\Carbon::parse($ticket->mantenimiento->hora_programada)->format('H:i') }}
+                                                @endif
+                                            </span>
+                                        @else
+                                            <span class="text-muted">Sin fecha</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small">Estado mant.:</td>
+                                    <td class="small">
+                                        @php
+                                            $mantEstadoColors = [
+                                                'programado'  => 'primary',
+                                                'confirmado'  => 'info',
+                                                'en_progreso' => 'warning',
+                                                'completado'  => 'success',
+                                                'cancelado'   => 'secondary',
+                                            ];
+                                        @endphp
+                                        <span class="badge bg-{{ $mantEstadoColors[$ticket->mantenimiento->estado] ?? 'secondary' }} bg-opacity-75">
+                                            {{ ucfirst(str_replace('_', ' ', $ticket->mantenimiento->estado)) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @elseif($ticket->es_mantenimiento && $ticket->fecha_mantenimiento)
+                                {{-- Ticket mantenimiento recién creado, sin mantenimiento vinculado aún --}}
+                                <tr>
+                                    <td class="text-muted small">Tipo programado:</td>
+                                    <td class="small">{{ ucfirst($ticket->tipo_mantenimiento ?? 'preventivo') }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small">Fecha programada:</td>
+                                    <td class="small">
+                                        {{ $ticket->fecha_mantenimiento->format('d/m/Y') }}
+                                        @if($ticket->hora_mantenimiento)
+                                            — {{ \Carbon\Carbon::parse($ticket->hora_mantenimiento)->format('H:i') }}
+                                        @endif
+                                    </td>
+                                </tr>
                             @endif
                         </table>
+
+                        {{-- Adjuntos --}}
+                        @if($ticket->adjuntos && count($ticket->adjuntos) > 0)
+                        <hr class="my-2">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-paperclip me-2"></i>Adjuntos</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach($ticket->adjuntos as $i => $path)
+                                @php $ext = pathinfo($path, PATHINFO_EXTENSION); @endphp
+                                <a href="{{ Storage::url($path) }}" target="_blank"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-{{ $ext === 'pdf' ? 'file-pdf text-danger' : 'image text-info' }} me-1"></i>
+                                    {{ $ext === 'pdf' ? 'PDF' : 'Imagen' }} {{ $i + 1 }}
+                                </a>
+                            @endforeach
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -260,55 +375,124 @@
 <script>
 $(document).ready(function() {
 
-    // ==================== PROGRAMAR MANTENIMIENTO ====================
-    $('.btn-programar').on('click', function() {
-        Swal.fire({
-            title: 'Programar Mantenimiento',
-            html: `El ticket <strong>{{ $ticket->codigo }}</strong> pasará a <strong class="text-warning">En progreso</strong> y se creará un mantenimiento.<br><br>
-                   <small class="text-muted">El ticket se resolverá automáticamente al completar el mantenimiento.</small>`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#1C3146',
-            cancelButtonColor: '#FF9C00',
-            confirmButtonText: '<i class="bi bi-tools me-1"></i> Programar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $('#form-programar').submit();
-            }
-        });
-    });
-
-    // ==================== MARCAR RESUELTO (con solución) ====================
+    // ==================== AGENDAR VISITA TÉCNICA ====================
+    @if(in_array($ticket->categoria, ['soporte_tecnico', 'garantia']))
     @php
-        $tiposSolucion = [
-            'resuelto_remoto' => 'Resuelto remoto',
-            'visita_tecnica' => 'Visita técnica',
-            'cambio_equipo' => 'Cambio de equipo',
-            'ajuste_configuracion' => 'Ajuste de configuración',
-            'capacitacion' => 'Capacitación',
-            'sin_solucion' => 'Sin solución',
-            'otro' => 'Otro',
-        ];
+        $tecnicos = \App\Models\User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $tecnicoOptions = '<option value="">Sin asignar</option>';
+        foreach ($tecnicos as $tec) {
+            $nombre = e($tec->persona?->name ?? $tec->name);
+            $sel = $ticket->user_id == $tec->id ? 'selected' : '';
+            $tecnicoOptions .= "<option value=\"{$tec->id}\" {$sel}>{$nombre}</option>";
+        }
     @endphp
 
-    $('.btn-resolver').on('click', function() {
+    $('.btn-agendar-visita').on('click', function() {
+        const hoy = new Date().toISOString().split('T')[0];
         Swal.fire({
-            title: 'Resolver Ticket',
+            title: 'Agendar Visita Técnica',
+            width: 520,
+            padding: '1.5rem',
             html: `
                 <div class="text-start">
                     <div class="mb-3">
-                        <label class="form-label fw-bold small">Tipo de solución</label>
-                        <select id="swal-tipo-solucion" class="form-select form-select-sm">
-                            <option value="">Seleccionar...</option>
-                            @foreach($tiposSolucion as $key => $label)
-                                <option value="{{ $key }}">{{ $label }}</option>
-                            @endforeach
+                        <label class="form-label fw-bold small">Tipo de mantenimiento <span class="text-danger">*</span></label>
+                        <select id="swal-tipo" class="form-select form-select-sm">
+                            <option value="correctivo" selected>Correctivo</option>
+                            <option value="preventivo">Preventivo</option>
+                            <option value="limpieza">Limpieza</option>
+                            <option value="inspeccion">Inspección</option>
+                            <option value="predictivo">Predictivo</option>
                         </select>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-bold small">Descripción de la solución</label>
+                    <div style="display:flex; gap:10px; margin-bottom:1rem;">
+                        <div style="flex:1">
+                            <label class="form-label fw-bold small">Fecha <span class="text-danger">*</span></label>
+                            <input type="date" id="swal-fecha" class="form-control form-control-sm" min="${hoy}">
+                        </div>
+                        <div style="flex:0 0 130px">
+                            <label class="form-label fw-bold small">Hora</label>
+                            <input type="time" id="swal-hora" class="form-control form-control-sm" value="09:00">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Técnico responsable</label>
+                        <select id="swal-tecnico" class="form-select form-select-sm">
+                            {!! $tecnicoOptions !!}
+                        </select>
+                    </div>
+                    <div class="alert alert-info py-2 mb-0 small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        El ticket pasará a <strong>En progreso</strong> y se resolverá al completar la visita.
+                    </div>
+                </div>`,
+            showCancelButton: true,
+            confirmButtonColor: '#1C3146',
+            cancelButtonColor: '#FF9C00',
+            confirmButtonText: '<i class="bi bi-calendar-check me-1"></i> Agendar Visita',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const fecha = document.getElementById('swal-fecha').value;
+                if (!fecha) {
+                    Swal.showValidationMessage('La fecha es requerida');
+                    return false;
+                }
+                return {
+                    tipo:    document.getElementById('swal-tipo').value,
+                    fecha:   fecha,
+                    hora:    document.getElementById('swal-hora').value,
+                    tecnico: document.getElementById('swal-tecnico').value,
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#hidden-tipo').val(result.value.tipo);
+                $('#hidden-fecha').val(result.value.fecha);
+                $('#hidden-hora').val(result.value.hora);
+                $('#hidden-tecnico').val(result.value.tecnico);
+                $('#form-agendar-visita').submit();
+            }
+        });
+    });
+    @endif
+
+    // ==================== MARCAR RESUELTO (con solución) ====================
+    $('.btn-resolver').on('click', function() {
+        Swal.fire({
+            title: 'Resolver Ticket',
+            width: 520,
+            padding: '1.5rem',
+            html: `
+                <div class="text-start">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Tipo de resolución</label>
+                        <select id="swal-tipo-solucion" class="form-select form-select-sm">
+                            <option value="">Seleccionar...</option>
+                            <option value="resuelto_remoto">Resuelto de forma remota</option>
+                            <option value="visita_tecnica">Visita técnica realizada</option>
+                            <option value="cambio_equipo">Cambio / reemplazo de equipo</option>
+                            <option value="ajuste_configuracion">Ajuste de configuración</option>
+                            <option value="garantia_aplicada">Garantía aplicada</option>
+                            <option value="derivado_proveedor">Derivado al proveedor</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Descripción de la solución <span class="text-danger">*</span></label>
                         <textarea id="swal-solucion" class="form-control form-control-sm" rows="3" placeholder="Describe cómo se resolvió el ticket..."></textarea>
+                    </div>
+                    <div class="border rounded p-2 bg-light">
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" id="swal-seguimiento">
+                            <label class="form-check-label fw-bold small" for="swal-seguimiento">
+                                Requiere seguimiento
+                            </label>
+                        </div>
+                        <div id="bloque-dias" style="display:none; margin-top:8px;">
+                            <label class="form-label small mb-1">Verificar en (días)</label>
+                            <input type="number" id="swal-dias" class="form-control form-control-sm" value="7" min="1" max="90" style="width:100px">
+                            <small class="text-muted">Se creará una actividad de seguimiento para recordártelo.</small>
+                        </div>
                     </div>
                 </div>`,
             icon: 'success',
@@ -317,39 +501,31 @@ $(document).ready(function() {
             cancelButtonColor: '#FF9C00',
             confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Resolver',
             cancelButtonText: 'Cancelar',
+            didOpen: () => {
+                document.getElementById('swal-seguimiento').addEventListener('change', function() {
+                    document.getElementById('bloque-dias').style.display = this.checked ? 'block' : 'none';
+                });
+            },
             preConfirm: () => {
                 const solucion = document.getElementById('swal-solucion').value;
-                const tipoSolucion = document.getElementById('swal-tipo-solucion').value;
                 if (!solucion.trim()) {
                     Swal.showValidationMessage('La descripción de la solución es requerida');
                     return false;
                 }
-                return { solucion, tipoSolucion };
+                return {
+                    solucion,
+                    tipoSolucion:       document.getElementById('swal-tipo-solucion').value,
+                    requiereSeguimiento: document.getElementById('swal-seguimiento').checked,
+                    diasSeguimiento:    document.getElementById('swal-dias').value,
+                };
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                $('<input>').attr({ type: 'hidden', name: 'solucion', value: result.value.solucion }).appendTo('#form-resolver');
-                $('<input>').attr({ type: 'hidden', name: 'tipo_solucion', value: result.value.tipoSolucion }).appendTo('#form-resolver');
+                $('<input>').attr({ type: 'hidden', name: 'solucion',             value: result.value.solucion }).appendTo('#form-resolver');
+                $('<input>').attr({ type: 'hidden', name: 'tipo_solucion',        value: result.value.tipoSolucion }).appendTo('#form-resolver');
+                $('<input>').attr({ type: 'hidden', name: 'requiere_seguimiento', value: result.value.requiereSeguimiento ? '1' : '0' }).appendTo('#form-resolver');
+                $('<input>').attr({ type: 'hidden', name: 'dias_seguimiento',     value: result.value.diasSeguimiento }).appendTo('#form-resolver');
                 $('#form-resolver').submit();
-            }
-        });
-    });
-
-    // ==================== ESCALAR TICKET ====================
-    $('.btn-escalar').on('click', function() {
-        Swal.fire({
-            title: '¿Escalar ticket?',
-            html: `El ticket <strong>{{ $ticket->codigo }}</strong> será escalado a un nivel superior de atención.<br><br>
-                   <small class="text-muted">Se incrementará la prioridad.</small>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#1C3146',
-            cancelButtonColor: '#FF9C00',
-            confirmButtonText: '<i class="bi bi-arrow-up-circle me-1"></i> Sí, escalar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $('#form-escalar').submit();
             }
         });
     });
