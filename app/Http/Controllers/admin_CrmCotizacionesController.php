@@ -164,11 +164,16 @@ class admin_CrmCotizacionesController extends Controller
 
         $detallesPorCategoria = $cotizacion->detalles->groupBy('categoria');
 
-        // Si la cotización está aceptada, buscar el pedido generado
+        // Si la cotización está aceptada, buscar el pedido generado por cotizacion_id
         $pedidoGenerado = null;
         if ($cotizacion->estado === 'aceptada') {
-            $pedidoGenerado = Pedido::where('observaciones', 'LIKE', "%{$cotizacion->codigo}%")
-                ->first();
+            $pedidoGenerado = Pedido::where('cotizacion_id', $cotizacion->id)->first();
+            
+            // Fallback por observaciones si no tiene cotizacion_id (pedidos antiguos)
+            if (!$pedidoGenerado) {
+                $pedidoGenerado = Pedido::where('observaciones', 'LIKE', "%{$cotizacion->codigo}%")
+                    ->first();
+            }
         }
 
         return view('ADMINISTRADOR.CRM.cotizaciones.show', compact('cotizacion', 'detallesPorCategoria', 'pedidoGenerado'));

@@ -143,10 +143,11 @@ Route::put('/admin-pedidos/estado/{admin_pedido}', [admin_PedidosController::cla
 Route::post('/admin-pedidos/aprobar-finanzas/{admin_pedido}', [admin_PedidosController::class, 'aprobarFinanzas'])->name('admin-pedidos.aprobar-finanzas');
 Route::post('/admin-pedidos/aprobar-stock/{admin_pedido}', [admin_PedidosController::class, 'aprobarStock'])->name('admin-pedidos.aprobar-stock');
 Route::post('/admin-pedidos/generar-comprobante/{admin_pedido}', [admin_PedidosController::class, 'generarComprobante'])->name('admin-pedidos.generar-comprobante');
-Route::post('/admin-pedidos/desde-ecommerce/{admin_venta}', [admin_PedidosController::class, 'storeFromEcommerce'])->name('admin-pedidos.desde-ecommerce');
+Route::get('/admin-pedidos/{pedido}/voucher', [admin_PedidosController::class, 'voucher'])->name('admin-pedidos.voucher');
 
 Route::resource('admin-ventas', admin_VentasController::class);
 Route::put('/admin-ventas/estado/{admin_venta}', [admin_VentasController::class, 'estado']);
+Route::get('/admin-ventas/{admin_venta}/voucher', [admin_VentasController::class, 'voucher'])->name('admin-ventas.voucher');
 // =====================================================
 // CRM ROUTES - Sistema de Gestión de Relaciones
 // =====================================================

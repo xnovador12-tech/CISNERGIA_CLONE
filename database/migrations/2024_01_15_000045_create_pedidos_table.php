@@ -29,8 +29,11 @@ return new class extends Migration
             $table->decimal('total', 11, 2)->default(0);
 
             // Estado y tipo
-            $table->enum('estado', ['pendiente', 'proceso', 'entregado', 'cancelado'])->default('pendiente');
+            $table->enum('estado', ['pendiente', 'proceso', 'entregado', 'cancelado', 'confirmado'])->default('pendiente');
             $table->enum('tipo', ['producto', 'servicio'])->default('producto');
+            $table->foreignId('tipo_id')->nullable()->constrained('tipos')->onDelete('set null');
+            $table->foreignId('categoria_id')->nullable()->constrained('categories')->onDelete('set null');
+            $table->string('condicion_pago')->default('Contado'); // Contado, Crédito, etc.
 
             // Flags de Aprobación del Flujo
             $table->boolean('aprobacion_finanzas')->default(false); // ¿Pagó el anticipo?
@@ -51,15 +54,31 @@ return new class extends Migration
             $table->enum('prioridad', ['alta', 'media', 'baja'])->default('media');
             $table->text('observaciones_operativas')->nullable();
             $table->unsignedBigInteger('campania_id')->nullable();
-            $table->unsignedBigInteger('cotizacion_id')->nullable();
+            $table->foreignId('cotizacion_id')->nullable()->constrained('cotizaciones_crm')->onDelete('set null');
 
             // Extras
             $table->text('observaciones')->nullable();
-            $table->string('origen')->default('manual'); // manual, ecommerce
+            $table->enum('origen', ['directo', 'ecommerce', 'cotizacion'])->default('directo'); // SOLO 3 formas permitidas
+
+            // Detalles de Pago (Voucher)
+            $table->string('pago_banco')->nullable();
+            $table->string('pago_operacion')->nullable();
+            $table->decimal('pago_monto', 11, 2)->nullable();
+            $table->date('pago_fecha')->nullable();
+            $table->string('pago_comprobante')->nullable(); // Path del voucher
 
             // Auditoría
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamps();
+        });
+
+        Schema::create('pedido_cuotas', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade');
+            $table->integer('numero_cuota');
+            $table->decimal('importe', 11, 2);
+            $table->date('fecha_vencimiento')->nullable();
             $table->timestamps();
         });
 
@@ -71,6 +90,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('pedido_cuotas');
         Schema::dropIfExists('detalle_pedidos');
         Schema::dropIfExists('pedidos');
     }

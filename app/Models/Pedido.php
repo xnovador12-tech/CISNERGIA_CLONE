@@ -59,6 +59,12 @@ class Pedido extends Model
         'observaciones_operativas',
         'campania_id',
         'cotizacion_id',
+        // Pagos
+        'pago_banco',
+        'pago_operacion',
+        'pago_monto',
+        'pago_fecha',
+        'pago_comprobante',
     ];
 
     protected $casts = [
@@ -108,6 +114,16 @@ class Pedido extends Model
     public function venta()
     {
         return $this->hasOne(Sale::class, 'pedido_id');
+    }
+
+    public function cotizacionCrm()
+    {
+        return $this->belongsTo(CotizacionCrm::class, 'cotizacion_id');
+    }
+
+    public function cuotas()
+    {
+        return $this->hasMany(PedidoCuota::class, 'pedido_id');
     }
 
     public function creadoPor()
