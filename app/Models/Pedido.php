@@ -124,9 +124,14 @@ class Pedido extends Model
         return $this->belongsTo(Almacen::class, 'almacen_id');
     }
 
-    public function cotizacion()
+    public function cotizacionCrm()
     {
         return $this->belongsTo(CotizacionCrm::class, 'cotizacion_id');
+    }
+
+    public function cotizacion()
+    {
+        return $this->cotizacionCrm();
     }
 
     public function detalles()
