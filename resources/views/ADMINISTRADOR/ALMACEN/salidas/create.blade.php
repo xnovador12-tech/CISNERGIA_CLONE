@@ -118,15 +118,17 @@
                                                         
                             <div class="col-12 col-md-3 col-lg-2" id="codventa_div">
                                 <div class="mb-3">
-                                    <label for="categoria_id" class=" d-block">Codigo de venta</label>
-                                    <select class="form-select form-select-sm select2_bootstrap_2 w-100" name="cventa" id="cventa_id">
+                                    <label for="cventa_id" class=" d-block">Codigo de venta</label>
+                                    <select class="form-select form-select-sm select2_bootstrap_2 w-100" name="cventa" id="cventa_id" style="width: 100%">
                                         <option value="{{ old('cventa') }}" selected="selected" hidden="hidden">{{ old('cventa') }}</option>
-                                        
+                                        @foreach ($venta as $ventas)
+                                            <option value="{{ $ventas->id }}">{{ $ventas->codigo }}</option>
+                                        @endforeach
                                     </select>
                                     @error('cventa')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
-                                    <input hidden name="codigo_venta" id="codigo_venta_id">  
+                                    <input hidden name="id_venta" id="id_venta">  
                                 </div>
                             </div>
                         </div>
@@ -273,6 +275,19 @@ $(document).ready(function() {
         }
     });
 
+    $('#cventa_id').on('change', function(){
+        valor_venta = $(this).val();
+        valor_almacen = $('#salida_de_id').val();
+        $('#id_venta').val(valor_venta);
+        $.get('/busqueda_producto_inventario', {valormotivo: valormotivo, valor_almacen: valor_almacen,valor_venta:valor_venta}, function(productos){
+            $('#bienes_id').empty();
+            $('#bienes_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
+            $.each(productos, function(index, value){
+                $('#bienes_id').append("<option value='"+index+'_'+value[0]+'_'+value[1]+'_'+value[2]+'_'+value[3]+'_'+value[4]+'_'+value[5]+'_'+value[6]+'_'+value[7]+"'>"+value[1]+"</option>");
+            });
+        });
+    });
+    
     $('#bienes_id').on('change', function(){
         var valor_producto = document.getElementById('bienes_id').value.split('_');
         valormotivo = $('#motivo_id').val();

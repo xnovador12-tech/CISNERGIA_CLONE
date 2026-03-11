@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use App\Models\Tipo;
 
 class InventarioSeeder extends Seeder
 {
@@ -28,6 +29,7 @@ class InventarioSeeder extends Seeder
         $cantidadPorProducto = 20; // Stock de prueba inicial
 
         foreach ($productos as $producto) {
+            $valor_tipo = Tipo::where('id', $producto->tipo_id)->first();
             // Verificar si ya existe inventario para evitar duplicados
             $existe = DB::table('inventarios')
                 ->where('id_producto', $producto->id)
@@ -37,9 +39,9 @@ class InventarioSeeder extends Seeder
             if (!$existe) {
                 DB::table('inventarios')->insert([
                     'id_producto'   => $producto->id,
-                    'tipo_producto' => 'Producto terminado',
+                    'tipo_producto' => $valor_tipo->name,
                     'producto'      => $producto->name ?? $producto->nombre ?? 'Producto',
-                    'lote'          => 'LOTE-INICIAL-' . date('Y'),
+                    'lote'          => $producto->id. date('Y').$producto->id+1,
                     'umedida'       => 'UND',
                     'cantidad'      => $cantidadPorProducto,
                     'precio'        => $producto->precio ?? 0,
