@@ -50,23 +50,54 @@
                         <tbody>
                             @php
                                 $contador = 1;
-                                $mov_ingresos = DB::table('ingresos as ings')->join('detalleingresos as dtll','dtll.ingreso_id','=','ings.id')->select('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')->where('dtll.id_producto',$alm_tipo_productos->id_producto)->groupby('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')->get();
+                                $mov_ingresos = DB::table('ingresos as ings')
+                                    ->join('detalleingresos as dtll','dtll.ingreso_id','=','ings.id')
+                                    ->select(
+                                        DB::raw("'INGRESO' as movimiento"),
+                                        'ings.codigo_ocompra as codigo_movimiento',
+                                        'dtll.lote',
+                                        'ings.motivo',
+                                        'ings.created_at',
+                                        'ings.fecha',
+                                        'dtll.cantidad'
+                                    )
+                                    ->where('dtll.id_producto',$alm_tipo_productos->id_producto)
+                                    ->groupBy('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')
+                                    ->get();
+
+                                $mov_salidas = DB::table('salidas as sal')
+                                    ->join('detallesalidas as dtll','dtll.salida_id','=','sal.id')
+                                    ->select(
+                                        DB::raw("'SALIDA' as movimiento"),
+                                        'sal.codigo as codigo_movimiento',
+                                        'dtll.lote',
+                                        'sal.motivo',
+                                        'sal.created_at',
+                                        'sal.fecha',
+                                        'dtll.cantidad'
+                                    )
+                                    ->where('dtll.producto_id',$alm_tipo_productos->id_producto)
+                                    ->groupBy('sal.codigo','dtll.lote','sal.motivo','sal.created_at','sal.fecha','dtll.cantidad')
+                                    ->get();
+
+                                $movimientos = $mov_ingresos
+                                    ->merge($mov_salidas)
+                                    ->sortByDesc('created_at')
+                                    ->values();
                             @endphp
-                            @foreach($mov_ingresos as $mov_ingreso)
+                            @foreach($movimientos as $movimiento)
                             <tr>
                                 <td class="align-middle text-uppercase text-center">{{$contador}}</td>
-                                    @if($mov_ingreso->motivo == 'Inventario')
-                                        <td class="align-middle text-uppercase text-center text-success">
-                                        INGRESO</td>
-                                        @else
-                                        <td class="align-middle text-uppercase text-center text-danger">
-                                        SALIDA</td>
-                                    @endif
-                                <td class="align-middle text-uppercase text-center">{{$mov_ingreso->motivo}}</td>
-                                <td class="align-middle text-uppercase text-center">{{$mov_ingreso->codigo_ocompra}}</td>
-                                <td class="align-middle text-uppercase text-center">{{$mov_ingreso->lote}}</td>
-                                <td class="align-middle text-uppercase text-center">{{$mov_ingreso->fecha}}</td>
-                                <td class="align-middle text-uppercase text-center text-sucess">{{$mov_ingreso->cantidad}}</td>
+                                @if($movimiento->movimiento === 'INGRESO')
+                                    <td class="align-middle text-uppercase text-center text-success">INGRESO</td>
+                                @else
+                                    <td class="align-middle text-uppercase text-center text-danger">SALIDA</td>
+                                @endif
+                                <td class="align-middle text-uppercase text-center">{{$movimiento->motivo}}</td>
+                                <td class="align-middle text-uppercase text-center">{{$movimiento->codigo_movimiento}}</td>
+                                <td class="align-middle text-uppercase text-center">{{$movimiento->lote}}</td>
+                                <td class="align-middle text-uppercase text-center">{{$movimiento->fecha}}</td>
+                                <td class="align-middle text-uppercase text-center text-success">{{$movimiento->cantidad}}</td>
                             </tr>
                                 @php
                                     $contador++;
