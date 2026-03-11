@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade');
             $table->foreignId('producto_id')->nullable()->constrained('productos')->onDelete('cascade');
             $table->foreignId('servicio_id')->nullable()->constrained('servicios')->onDelete('cascade');
+            $table->foreignId('subcategory_id')->nullable()->constrained('subcategories')->onDelete('set null');
             $table->string('tipo')->default('producto'); // producto, servicio
             $table->string('descripcion');
             $table->decimal('cantidad', 10, 2)->default(1);
