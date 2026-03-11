@@ -72,7 +72,7 @@
                                 <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->total }}</td>
                                 <td class="fw-normal align-middle">
                                     @if($admin_ordencompra->estado == 'Inventariado')
-                                        <span class="badge border-0" style="color: #0af1cb;">{{ $admin_ordencompra->estado }}</span>
+                                        <span class="badge bg-dark border-0">{{ $admin_ordencompra->estado }}</span>
                                     @elseif($admin_ordencompra->estado == 'En progreso')
                                         <span class="badge bg-info border-0">{{ $admin_ordencompra->estado }}</span>
                                     @else
