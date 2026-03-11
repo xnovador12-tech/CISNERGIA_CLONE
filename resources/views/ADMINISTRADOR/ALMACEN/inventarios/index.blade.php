@@ -8,6 +8,32 @@
     .select2-container--open .select2-dropdown {
         z-index: 2000 !important;
     }
+
+    /* Scroll desde el 6to item en la lista de tipos por almacen */
+    .tipo-producto-list.scroll-enabled {
+        overflow-y: auto;
+        padding-right: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: #50bb30 #d9f2e3;
+    }
+
+    .tipo-producto-list.scroll-enabled::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .tipo-producto-list.scroll-enabled::-webkit-scrollbar-track {
+        background: #d9f2e3;
+        border-radius: 10px;
+    }
+
+    .tipo-producto-list.scroll-enabled::-webkit-scrollbar-thumb {
+        background: #50bb30;
+        border-radius: 10px;
+    }
+
+    .tipo-producto-list.scroll-enabled::-webkit-scrollbar-thumb:hover {
+        background: #50bb30;
+    }
 </style>
 @endsection
  
@@ -40,24 +66,11 @@
                     </div>
                     <div class="row">
                         @php
-                            $alm_accesorios_sum = 0;
-                            $alm_repuestos_sum = 0;
-                            $alm_modulo_solar_sum = 0;
+                            $alm_tipos_sum = 0;
                         @endphp
                         @foreach($sedes as $sede)
                             @php
-                                $almacenes_accesorios = App\Models\Inventario::where('tipo_producto','Accesorios')->where('sede_id',$sede->id)->get();
-                                foreach($almacenes_accesorios as $almacenes_accesorio){
-                                    $alm_accesorios_sum = $alm_accesorios_sum+($almacenes_accesorio?$almacenes_accesorio->cantidad:'0');
-                                }
-                                $almacenes_repuestos = App\Models\Inventario::where('tipo_producto','Repuestos')->where('sede_id',$sede->id)->get();
-                                foreach($almacenes_repuestos as $almacenes_repuesto){
-                                    $alm_repuestos_sum = $alm_repuestos_sum+($almacenes_repuesto?$almacenes_repuesto->cantidad:'0');
-                                }
-                                $almacenes_modulo_solar = App\Models\Inventario::where('tipo_producto','Modulo Solar')->where('sede_id',$sede->id)->get();
-                                foreach($almacenes_modulo_solar as $almacenes_modulo_solar_item){
-                                    $alm_modulo_solar_sum = $alm_modulo_solar_sum+($almacenes_modulo_solar_item?$almacenes_modulo_solar_item->cantidad:'0');
-                                }
+                                $almacenes_por_tipos = DB::table('inventarios')->select('tipo_producto', DB::raw('SUM(cantidad) as cantidad'))->where('sede_id',$sede->id)->groupBy('tipo_producto')->get();
                             @endphp
                             <div class="col-12 col-md-4 col-xl-3">
                                 <div class="card border-3 borde-top-primary box-shadow">
@@ -71,41 +84,24 @@
                                                 <p class="mb-0 fw-bold text-uppercase text-white">{{ $sede->name }}</p>
                                             </div>
                                         </div>
-                                        <div class="card mb-3 shadow-sm border-0 bg-light">
-                                            <div class="card-body">
-                                                <div class="clearfix text-uppercase fw-bold">
-                                                    <span class="float-start">
-                                                        <button class="stretched-link text-uppercase text-dark fw-bold bg-transparent border-0 p-0 m-0" onclick="accesorios({{$sede->id}})" data-bs-toggle="modal" data-bs-target="#showaccesorios{{$sede->id}}" data-id="areaalmacen" >Accesorios</button>
-                                                    </span>
-                                                    <span class="float-end">
-                                                        {{$alm_accesorios_sum?round($alm_accesorios_sum, 2):'0'}}
-                                                    </span>
+                                        <div class="tipo-producto-list" id="tipo_producto_list_{{$sede->id}}">
+                                            @foreach($almacenes_por_tipos as $almacenes_por_tipo)
+                                            @php
+                                                $alm_tipos_sum = $alm_tipos_sum+($almacenes_por_tipo?$almacenes_por_tipo->cantidad:'0');
+                                            @endphp
+                                            <div class="card mb-3 shadow-sm border-0 bg-light tipo-producto-item">
+                                                <div class="card-body">
+                                                    <div class="clearfix text-uppercase fw-bold">
+                                                        <span class="float-start">
+                                                            <button class="stretched-link text-uppercase text-dark fw-bold bg-transparent border-0 p-0 m-0" onclick="tipo_productos(this)" data-tipo-producto="{{$almacenes_por_tipo->tipo_producto}}" data-modal-id="showtipoproducto{{$sede->id}}_{{ \Illuminate\Support\Str::slug($almacenes_por_tipo->tipo_producto, '-') }}" data-bs-toggle="modal" data-bs-target="#showtipoproducto{{$sede->id}}_{{ \Illuminate\Support\Str::slug($almacenes_por_tipo->tipo_producto, '-') }}" data-id="areaalmacen">{{$almacenes_por_tipo->tipo_producto}}</button>
+                                                        </span>
+                                                        <span class="float-end">
+                                                            {{$alm_tipos_sum?round($alm_tipos_sum, 2):'0'}}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="card mb-3 shadow-sm border-0 bg-light">
-                                            <div class="card-body">
-                                                <div class="clearfix text-uppercase fw-bold">
-                                                    <span class="float-start">
-                                                        <button class="stretched-link text-uppercase text-dark fw-bold bg-transparent border-0 p-0 m-0" onclick="repuestos({{$sede->id}})" data-bs-toggle="modal" data-bs-target="#showrepuestos{{$sede->id}}" data-id="areaalmacen" >Repuestos</button>
-                                                    </span>
-                                                    <span class="float-end">
-                                                        {{$alm_repuestos_sum?round($alm_repuestos_sum, 2):'0'}}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card mb-3 shadow-sm border-0 bg-light">
-                                            <div class="card-body">
-                                                <div class="clearfix text-uppercase fw-bold">
-                                                    <span class="float-start">
-                                                        <button class="stretched-link text-uppercase text-dark fw-bold bg-transparent border-0 p-0 m-0" onclick="modulo_solar({{$sede->id}})" data-bs-toggle="modal" data-bs-target="#showmodulo_solar{{$sede->id}}" data-id="modulo_solar" >Modulo Solar</button>
-                                                    </span>
-                                                    <span class="float-end">
-                                                        {{$alm_modulo_solar_sum?$alm_modulo_solar_sum:'0'}}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                            @endforeach
                                         </div>
                                     </div>
                                 </div>
@@ -118,9 +114,19 @@
     </div>
 {{-- Fin contenido --}}
     @foreach($sedes as $sede)
-        @include('ADMINISTRADOR.ALMACEN.inventarios.showaccesorios', ['sede_id' => $sede->id])
-        @include('ADMINISTRADOR.ALMACEN.inventarios.showrepuestos', ['sede_id' => $sede->id])
-        @include('ADMINISTRADOR.ALMACEN.inventarios.showmodulo_solar', ['sede_id' => $sede->id])
+        @php
+            $tipos_modal = DB::table('inventarios')
+                ->select('tipo_producto')
+                ->where('sede_id', $sede->id)
+                ->groupBy('tipo_producto')
+                ->get();
+        @endphp
+        @foreach($tipos_modal as $tipo_modal)
+            @include('ADMINISTRADOR.ALMACEN.inventarios.showaccesorios', [
+                'sede_id' => $sede->id,
+                'tipo_producto' => $tipo_modal->tipo_producto,
+            ])
+        @endforeach
     @endforeach
 @endsection
 
@@ -247,52 +253,48 @@
     </script>
 
     <script>
-        function accesorios(x) {
-            $filtro_inventario = $('#tipo_accesorios'+x).val();
-            $('#filtro_tipo').val($filtro_inventario);
-            $('#filtro_tipo').val('accesorios_request');
-            $('#filtro_tipo_total').val('accesorios_request');
-            
-            $('#filtro_tipo'+x).val('accesorios_request');
-            $('#filtro_tipo_total'+x).val('accesorios_request');
-            console.log($filtro_inventario);
-            
-            $('#sede_id_value'+x).on('change', function(){
-                var valor_sede = $(this).val();
-                $('#sede_id_val'+x).val(valor_sede);
+        function tipo_productos(el) {
+            var y = $(el).data('tipo-producto');
+            var modal = $('#' + $(el).data('modal-id'));
+            var filas = modal.find('#inventario_table tr');
+            var visibles = 0;
+
+            modal.find('[id^="tipo_producto_modal"]').text(y);
+            modal.find('[id^="tipo_producto_value"]').val(y);
+
+            filas.each(function () {
+                var tipoFila = $(this).data('tipo');
+                if (tipoFila === y) {
+                    $(this).show();
+                    visibles++;
+                } else {
+                    $(this).hide();
+                }
             });
+
+                modal.find('[id^="total_registros_tipo"]').text(visibles);
                 
          }
-        function repuestos(x) {
-            $filtro_inventario = $('#tipo_repuestos'+x).val();
-            $('#filtro_tipo').val($filtro_inventario);
-            $('#filtro_tipo').val('repuestos_request');
-            $('#filtro_tipo_total').val('repuestos_request');
-            
-            $('#filtro_tipo'+x).val('repuestos_request');
-            $('#filtro_tipo_total'+x).val('repuestos_request');
-            console.log($filtro_inventario);
-            
-            $('#sede_id_value'+x).on('change', function(){
-                var valor_sede = $(this).val();
-                $('#sede_id_val'+x).val(valor_sede);
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('.tipo-producto-list').each(function () {
+                var $lista = $(this);
+                var $items = $lista.find('.tipo-producto-item');
+
+                if ($items.length > 5) {
+                    var alturaVisible = 0;
+
+                    $items.slice(0, 5).each(function () {
+                        alturaVisible += $(this).outerHeight(true);
+                    });
+
+                    $lista.addClass('scroll-enabled');
+                    $lista.css('max-height', alturaVisible + 'px');
+                }
             });
-         }
-         function modulo_solar(x) {
-            $filtro_inventario = $('#tipo_modulo_solar'+x).val();
-            $('#filtro_tipo').val($filtro_inventario);
-            $('#filtro_tipo').val('modulo_solar_request');
-            $('#filtro_tipo_total').val('modulo_solar_request');
-            
-            $('#filtro_tipo'+x).val('modulo_solar_request');
-            $('#filtro_tipo_total'+x).val('modulo_solar_request');
-            console.log($filtro_inventario);
-            
-            $('#sede_id_value'+x).on('change', function(){
-                var valor_sede = $(this).val();
-                $('#sede_id_val'+x).val(valor_sede);
-            });
-         }
+        });
     </script>
 
     <script>
@@ -305,7 +307,7 @@
     </script>
 
     <script>
-        function accesoriosdetalle(el, sedeId, productoId){
+        function tipoproductodetalle(el, sedeId, productoId){
             console.log('compradetalle called:', { el: el, sedeId: sedeId, productoId: productoId });
         }
         function repuestosdetalle(el, sedeId, productoId){

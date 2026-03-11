@@ -1,30 +1,29 @@
 @php
     $sede = \App\Models\Sede::find($sede_id);
+    $tipo_producto = $tipo_producto ?? null;
+    $modal_suffix = \Illuminate\Support\Str::slug((string) $tipo_producto, '-');
     
-    $alm_accesorios = App\Models\Inventario::where('tipo_producto', 'Accesorios')->where('sede_id',$sede->id)->get();
-    foreach($alm_accesorios as $alm_accesorio){
-        $alm_accesorios_sum = $alm_accesorios_sum+($alm_accesorio?$alm_accesorio->cantidad:'0');
-    }
-    $alm_repuestos = App\Models\Inventario::where('tipo_producto', 'Repuestos')->where('sede_id',$sede->id)->get();
-    foreach($alm_repuestos as $alm_repuestos){
-        $alm_repuestos_sum = $alm_repuestos_sum+($alm_repuestos?$alm_repuestos->cantidad:'0');
-    }
-    $alm_modulo_solar = App\Models\Inventario::where('tipo_producto', 'Modulo Solar')->where('sede_id',$sede->id)->get();
-    foreach($alm_modulo_solar as $alm_modulo_solares){
-        $alm_modulo_solares_sum = $alm_modulo_solares_sum+($alm_modulo_solares?$alm_modulo_solares->cantidad:'0');
+    $alm_tipo_producto = App\Models\Inventario::where('sede_id',$sede->id)
+        ->when($tipo_producto, function ($query) use ($tipo_producto) {
+            $query->where('tipo_producto', $tipo_producto);
+        })
+        ->get();
+    foreach($alm_tipo_producto as $alm_tipo_productos){
+        $alm_tipos_sum = $alm_tipos_sum+($alm_tipo_productos?$alm_tipo_productos->cantidad:'0');
     }
 @endphp
-<div class="modal fade" id="showaccesorios{{$sede->id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal fade" id="showtipoproducto{{$sede->id}}_{{$modal_suffix}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-secondary text-white py-2">
-                <span class="modal-title text-uppercase small" id="staticBackdropLabel">Almacén de accesorios - Sede {{Auth::user()->persona->sede?Auth::user()->persona->sede->name:'General'}}</span>
+                <span class="modal-title text-uppercase small" id="staticBackdropLabel">Almacén - Sede {{Auth::user()->persona->sede?Auth::user()->persona->sede->name:'General'}} | Tipo: <span id="tipo_producto_modal{{$sede->id}}_{{$modal_suffix}}">{{ $tipo_producto ?? 'Todos' }}</span></span>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="row justify-content-beetween mb-3">
                     <div class="col-12 col-md-6 col-xl-3 mb-2 mb-lg-0">
                         <input hidden id="tipo_compras{{$sede->id}}" value="compras_request">
+                        <input hidden id="tipo_producto_value{{$sede->id}}_{{$modal_suffix}}" value="{{ $tipo_producto }}">
                     </div>
                     <div class="col-12 col-md-1 col-xl-8"></div>
                     <div class="col-12 col-md-6 col-lg-3 col-xl-1 mb-2 mb-lg-0">
@@ -40,7 +39,7 @@
                     </div>
                 </div>
                 <div class="mb-2">
-                    <span class="text-uppercase">Total de registros encontrados: <span class="fw-bold">{{--$admin_formulas->count()--}}</span></span>
+                    <span class="text-uppercase">Total de registros encontrados: <span class="fw-bold" id="total_registros_tipo{{$sede->id}}_{{$modal_suffix}}">{{ $alm_tipo_producto->count() }}</span></span>
                 </div>
                 <table id="" class="display table table-hover table-sm py-2" cellspacing="0" style="width:100%">
                     <thead class="bg-light">
@@ -58,26 +57,26 @@
                         $contador = 1;
                     @endphp  
                     <tbody id="inventario_table">
-                        @foreach ($al_accesorios as $al_accesorio)
+                        @foreach ($alm_tipo_producto as $alm_tipo_productos)
                             @php
-                                $codigo_producto = \App\Models\Producto::where('id',$al_accesorio->id_producto)->first();
+                                $codigo_producto = \App\Models\Producto::where('id',$alm_tipo_productos->id_producto)->first();
                             @endphp
-                            <tr class="">
+                            <tr class="" data-tipo="{{ $alm_tipo_productos->tipo_producto }}">
                                 <td class="fw-normal align-middle">{{ $contador }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $codigo_producto?$codigo_producto->codigo:'' }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $codigo_producto?$codigo_producto->tipo->name:'' }}</td>
-                                <td class="fw-normal align-middle text-uppercase small">{{ $al_accesorio->producto }}</td>
-                                <td class="fw-normal align-middle">{{ $al_accesorio->umedida }}</td>
+                                <td class="fw-normal align-middle text-uppercase small">{{ $alm_tipo_productos->producto }}</td>
+                                <td class="fw-normal align-middle">{{ $alm_tipo_productos->umedida }}</td>
                                 <td class="fw-normal align-middle">
-                                    @if($al_accesorio->cantidad <= 10)
-                                        <span class="badge w-100 bg-danger">{{ $al_accesorio->cantidad }}</span>
-                                    @elseif($al_accesorio->cantidad <= 20)
-                                        <span class="badge w-100 bg-warning">{{ $al_accesorio->cantidad }}</span>
-                                    @elseif($al_accesorio->cantidad >= 21)
-                                        <span class="badge w-100 bg-success">{{ $al_accesorio->cantidad }}</span>
+                                    @if($alm_tipo_productos->cantidad <= 10)
+                                        <span class="badge w-100 bg-danger">{{ $alm_tipo_productos->cantidad }}</span>
+                                    @elseif($alm_tipo_productos->cantidad <= 20)
+                                        <span class="badge w-100 bg-warning">{{ $alm_tipo_productos->cantidad }}</span>
+                                    @elseif($alm_tipo_productos->cantidad >= 21)
+                                        <span class="badge w-100 bg-success">{{ $alm_tipo_productos->cantidad }}</span>
                                     @endif
                                 </td>
-                                <td class="fw-normal align-middle text-center"><button type="button" data-bs-toggle="modal" onclick="accesoriosdetalle(this,{{$sede->id}},{{$al_accesorio->id_producto}})" data-bs-target="#showaccesorio{{$al_accesorio->id_producto}}"  class="btn btn-sm btn-secondary"><i class="bi bi-eye-fill text-white"></i></button></td>
+                                <td class="fw-normal align-middle text-center"><button type="button" data-bs-toggle="modal" onclick="tipoproductodetalle(this,{{$sede->id}},{{$alm_tipo_productos->id_producto}})" data-bs-target="#showtipoproducto{{$alm_tipo_productos->id_producto}}"  class="btn btn-sm btn-secondary"><i class="bi bi-eye-fill text-white"></i></button></td>
                             </tr>
                         @php
                             $contador++;
@@ -93,6 +92,6 @@
         </div>
     </div>
 </div>
-@foreach ($al_accesorios as $al_accesorio)
+@foreach ($alm_tipo_producto as $alm_tipo_productos)
     @include('ADMINISTRADOR.ALMACEN.inventarios.show_dtlleaccesorios')
 @endforeach

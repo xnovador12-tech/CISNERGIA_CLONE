@@ -540,21 +540,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <script>
-        new DataTable('#display', {
-            responsive: true,
-            fixedHeader: true,
-            order: [
-                [0, "desc"]
-            ],
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "zeroRecords": "No se encontró nada, lo siento",
-                "info": "Mostrando página _PAGE_ de _PAGES_",
-                "infoEmpty": "No hay registros disponibles",
-                "infoFiltered": "(Filtrado de _MAX_ registros totales)",
-                "search": "Buscar:"
-            }
-        });
+        if (document.querySelector('#display')) {
+            new DataTable('#display', {
+                responsive: true,
+                fixedHeader: true,
+                order: [
+                    [0, "desc"]
+                ],
+                "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros",
+                    "zeroRecords": "No se encontró nada, lo siento",
+                    "info": "Mostrando página _PAGE_ de _PAGES_",
+                    "infoEmpty": "No hay registros disponibles",
+                    "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                    "search": "Buscar:"
+                }
+            });
+        }
     </script>
 
     <script>

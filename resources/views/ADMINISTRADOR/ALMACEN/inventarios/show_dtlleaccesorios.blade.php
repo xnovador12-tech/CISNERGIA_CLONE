@@ -1,4 +1,4 @@
-<div class="modal fade" id="showaccesorio{{ $al_accesorio->id_producto }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal fade" id="showtipoproducto{{ $alm_tipo_productos->id_producto }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white py-2">
@@ -7,7 +7,7 @@
             </div>
             <div class="modal-body">
                 @php
-                    $producto_tipo = \App\Models\Producto::where('id',$al_accesorio->id_producto)->first();
+                    $producto_tipo = \App\Models\Producto::where('id',$alm_tipo_productos->id_producto)->first();
                 @endphp
                 <div class="row">
                     <div class="col-12 col-md-4 col-lg-2">
@@ -27,10 +27,10 @@
                     </div>
                     <div class="col-12 col-md-8 col-lg-10 d-flex">
                         <div class="align-self-center">
-                            <p class="text-uppercase small mb-0">{{ $al_accesorio->producto }} - {{ $al_accesorio->umedida }}</p>
+                            <p class="text-uppercase small mb-0">{{ $alm_tipo_productos->producto }} - {{ $alm_tipo_productos->umedida }}</p>
                             <span class="border rounded px-2 fw-bold border-dark text-uppercase" style="font-size: 12px">{{$producto_tipo?$producto_tipo->tipo->name:''}}</span>
                             <p class="small text-uppercase text-primary fw-bold mb-0" style="font-size: 12px">{{$producto_tipo?$producto_tipo->tipo_costo:''}}</p>
-                            <p class="float-start text-uppercase small">Stock: <span class="float-end badge bg-primary ms-2">{{$al_accesorio->cantidad}}</span></p>
+                            <p class="float-start text-uppercase small">Stock: <span class="float-end badge bg-primary ms-2">{{$alm_tipo_productos->cantidad}}</span></p>
                         </div>
                     </div>
                 </div>
@@ -50,7 +50,7 @@
                         <tbody>
                             @php
                                 $contador = 1;
-                                $mov_ingresos = DB::table('ingresos as ings')->join('detalleingresos as dtll','dtll.ingreso_id','=','ings.id')->select('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')->where('dtll.id_producto',$al_accesorio->id_producto)->groupby('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')->get();
+                                $mov_ingresos = DB::table('ingresos as ings')->join('detalleingresos as dtll','dtll.ingreso_id','=','ings.id')->select('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')->where('dtll.id_producto',$alm_tipo_productos->id_producto)->groupby('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')->get();
                             @endphp
                             @foreach($mov_ingresos as $mov_ingreso)
                             <tr>

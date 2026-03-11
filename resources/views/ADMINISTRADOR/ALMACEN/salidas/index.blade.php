@@ -66,13 +66,11 @@
                         @foreach ($admin_salidas as $admin_salida)
                             <tr>
                                 <td class="fw-normal align-middle">{{ $contador }}</td>
-                                @if($admin_salida->motivo == 'Venta')
-                                    <td class="fw-normal align-middle">{{ $admin_salida->codigo_venta }}</td>
-                                @endif
+                                <td class="fw-normal align-middle">{{ $admin_salida->codigo }}</td>
                                 <td class="fw-normal align-middle">{{ $admin_salida->motivo }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $admin_salida->almacen->name }}</td>
                                 <td class="fw-normal align-middle text-uppercase">{{ $admin_salida->created_at->format('d-m-Y') }}</td>
-                                <td class="fw-normal align-middle text-end">{{ number_format($admin_salida->total, 3, '.', ',') }}</td> 
+                                <td class="fw-normal align-middle text-end">{{ number_format($admin_salida->total_producto, 2, '.', ',') }}</td> 
                                 <td class="align-middle">                                        
                                     <div class="dropstart">
                                         <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px; padding: 0;">

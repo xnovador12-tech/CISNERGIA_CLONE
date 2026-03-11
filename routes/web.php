@@ -147,6 +147,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('busqueda_pterminado', [admin_IngresosController::class, 'getbusqueda_pterminado']);
 
     Route::resource('admin-salidas', admin_SalidasController::class);
+    Route::get('busqueda_producto_inventario', [admin_SalidasController::class, 'getbusqueda_producto_inventario']);
+    route::get('busqueda_lotes', [admin_SalidasController::class, 'getbusqueda_lotes']);
+
     Route::resource('admin-inventarios', admin_InventarioController::class);
 
     // ---------------------------------------------------------

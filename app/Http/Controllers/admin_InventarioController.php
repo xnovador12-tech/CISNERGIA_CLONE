@@ -17,11 +17,9 @@ class admin_InventarioController extends Controller
         $admin_inventarios = Inventario::all();
         $sedes = Sede::all();
 
-        $al_accesorios = DB::table('inventarios')->select('id_producto','producto','umedida',DB::raw('sum(cantidad) as cantidad'))->groupby('id_producto','producto','umedida')->where('tipo_producto', 'Accesorios')->where('sede_id', 1)->get();
-        $al_repuestos = DB::table('inventarios')->select('id_producto','producto','umedida',DB::raw('sum(cantidad) as cantidad'))->groupby('id_producto','producto','umedida')->where('tipo_producto', 'Repuestos')->where('sede_id', 1)->get();
-        $al_modulo_solar = DB::table('inventarios')->select('id_producto','producto','umedida',DB::raw('sum(cantidad) as cantidad'))->groupby('id_producto','producto','umedida')->where('tipo_producto', 'Modulo Solar')->where('sede_id', 1)->get();
+        $al_por_tipos = DB::table('inventarios')->select('id_producto','producto','umedida',DB::raw('sum(cantidad) as cantidad'))->groupby('id_producto','producto','umedida')->where('sede_id', 1)->get();
 
-        return view('ADMINISTRADOR.ALMACEN.inventarios.index',compact('admin_inventarios', 'sedes', 'al_accesorios', 'al_repuestos', 'al_modulo_solar'));
+        return view('ADMINISTRADOR.ALMACEN.inventarios.index',compact('admin_inventarios', 'sedes', 'al_por_tipos'));
     }
 
     /**

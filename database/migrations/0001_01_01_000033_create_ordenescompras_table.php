@@ -21,6 +21,7 @@ class CreateOrdenescomprasTable extends Migration
             $table->string('total');
             $table->string('total_pago');
             $table->string('tipo_moneda')->nullable();
+            $table->string('comprobante')->nullable();
             $table->string('nro_comprobante')->nullable();
             $table->string('forma_pago')->nullable();
             $table->string('plazo_pago')->nullable();

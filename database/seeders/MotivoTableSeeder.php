@@ -32,7 +32,21 @@ class MotivoTableSeeder extends Seeder
 
         $motivo = new Motivo();
         $motivo->name = "Devolucion de Venta";
-        $motivo->slug = "Devolucion de Venta";
+        $motivo->slug = "devolucion-de-venta";
+        $motivo->tipo_motivo = "ALMACEN";
+        $motivo->estado = "Activo";
+        $motivo->save();
+
+        $motivo = new Motivo();
+        $motivo->name = "Merma";
+        $motivo->slug = "merma";
+        $motivo->tipo_motivo = "ALMACEN";
+        $motivo->estado = "Activo";
+        $motivo->save();
+
+        $motivo = new Motivo();
+        $motivo->name = "Robo o perdida";
+        $motivo->slug = "robo-o-perdida";
         $motivo->tipo_motivo = "ALMACEN";
         $motivo->estado = "Activo";
         $motivo->save();

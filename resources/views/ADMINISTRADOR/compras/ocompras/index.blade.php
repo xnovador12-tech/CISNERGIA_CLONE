@@ -72,7 +72,7 @@
                                 <td class="fw-normal text-center align-middle">{{ $admin_ordencompra->total }}</td>
                                 <td class="fw-normal align-middle">
                                     @if($admin_ordencompra->estado == 'Inventariado')
-                                        <span class="badge bg-success border-0">{{ $admin_ordencompra->estado }}</span>
+                                        <span class="badge border-0" style="color: #0af1cb;">{{ $admin_ordencompra->estado }}</span>
                                     @elseif($admin_ordencompra->estado == 'En progreso')
                                         <span class="badge bg-info border-0">{{ $admin_ordencompra->estado }}</span>
                                     @else
@@ -80,10 +80,8 @@
                                     @endif
                                 </td>    
                                 <td class="fw-normal text-center align-middle">
-                                    @if($admin_ordencompra->estado_proceso == 'Procesado')    
+                                    @if($admin_ordencompra->estado_proceso == 'Completado')    
                                         <span class="badge bg-success border-0">{{ $admin_ordencompra->estado_proceso }}</span>
-                                    @elseif($admin_ordencompra->estado_proceso == 'Aprobado')    
-                                        <span class="badge bg-info border-0">{{ $admin_ordencompra->estado_proceso }}</span>
                                     @else
                                         <span class="badge bg-warning border-0">{{ $admin_ordencompra->estado_proceso }}</span>
                                     @endif
@@ -104,9 +102,12 @@
                                             <li>
                                                 <a href="{{ url("/admin-ordencompras/$admin_ordencompra->slug") }}" class="dropdown-item d-flex align-items-center"><i class="bi bi-eye text-secondary me-2"></i>Detalles</a>
                                             </li> 
-                                            <li>
-                                                <a href="{{ url("/admin-ordencompras/$admin_ordencompra->slug/edit") }}" class="dropdown-item d-flex align-items-center"><i class="bi bi-pencil text-secondary me-2"></i>Editar</a>
-                                            </li>
+                                            @if($admin_ordencompra->estado == 'Completado')
+                                            @else
+                                                <li>
+                                                    <a href="{{ url("/admin-ordencompras/$admin_ordencompra->slug/edit") }}" class="dropdown-item d-flex align-items-center"><i class="bi bi-pencil text-secondary me-2"></i>Editar</a>
+                                                </li>
+                                            @endif
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <form method="POST" action="{{ route('admin-ordencompras.destroy',$admin_ordencompra->slug) }}" class="form-delete">

@@ -94,8 +94,6 @@ class admin_IngresosController extends Controller
             $orden_c->save();
         }
 
-        $ingresos->total_mat = $request->input('total_mat');
-        $ingresos->total_act = $request->input('total_act');
         $ingresos->total = $request->input('total');
         $ingresos->descripcion = $request->input('descripcion');
         $ingresos->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;

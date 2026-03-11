@@ -3,6 +3,7 @@
 @section('title', 'SALIDAS')
 
 @section('css')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 @endsection
 
 @section('content')
@@ -76,10 +77,10 @@
                             <div class="col-12 col-md-3 col-lg-2">
                                 <div class="mb-3">
                                     <label for="categoria_id" class=" d-block">Motivo<span class="text-danger">*</span></label>
-                                    <select class="form-select form-select-sm @error ('motivo') is-invalid @enderror" required name="motivo" id="motivo_id" required>
+                                    <select class="form-select form-select-sm @error ('motivo') is-invalid @enderror select2_bootstrap_2" required name="motivo" id="motivo_id" required>
                                         <option value="{{ old('motivo') }}" selected="selected" hidden="hidden">{{ old('motivo') }}</option>
                                         @foreach ($motivos as $motivo)
-                                            @if($motivo->id == '2')
+                                            @if($motivo->id == '2' || $motivo->id == '4' || $motivo->id == '5')
                                                 <option value="{{ $motivo->name }}">{{ $motivo->name }}</option>
                                             @endif
                                         @endforeach
@@ -89,7 +90,7 @@
                                     @enderror  
                                 </div>
                             </div>
-                            <div class="col-12 col-md-6 col-lg-3" id="concepto_div">
+                            <!-- <div class="col-12 col-md-6 col-lg-3" id="concepto_div">
                                 <label for="Concepto_id" class=" d-block">Concepto<span class="text-danger">*</span></label>
                                 <select class="form-select form-select-sm @error ('Concepto_id') is-invalid @enderror" required name="concepto" id="Concepto_id" required>
                                     <option value="{{ old('concepto') }}" selected="selected" hidden="hidden">{{ old('concepto') }}</option>
@@ -98,28 +99,27 @@
                                 @error('concepto')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror  
-                            </div>
+                            </div> -->
                             <div class="col-12 col-md-6 col-lg-3">
                                 <div class="mb-3">
                                     <label for="codigo_id" class="">Sale de<span class="text-danger">*</span></label>
-                                    <select class="form-select form-select-sm @error ('salida_de') is-invalid @enderror" required id="salida_de_id">
+                                    <select class="form-select form-select-sm @error ('salida_de') is-invalid @enderror select2_bootstrap_2" required id="salida_de_id">
                                         <option value="{{ old('salida_de') }}" selected="selected" hidden="hidden">{{ old('salida_de') }}</option>
                                         @foreach ($almacen as $almacenes)
-                                            <option value="{{ $almacenes->name.' | '.$almacenes->sede->name }}_{{ $almacenes->id }}_{{ $almacenes->clasificacion }}">{{ $almacenes->name.' | '.$almacenes->sede->name }}</option>
+                                            <option @if($almacenes->id == 1) selected @endif value="{{ $almacenes->id }}">{{ $almacenes->name.' | '.$almacenes->sede->name }}</option>
                                         @endforeach
                                     </select>
-                                    <input type="text" name="salida_de"  hidden id="salida_de_id">
-                                    <input type="text" name="id_almacen"  hidden id="id_almacen_id">
+                                    <input type="text" name="id_almacen" hidden id="id_almacen_id">
                                     @error('salida_de')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror  
                                 </div>
                             </div>
                                                         
-                            <div class="col-12 col-md-3 col-lg-2" id="ocompra_div">
+                            <div class="col-12 col-md-3 col-lg-2" id="codventa_div">
                                 <div class="mb-3">
                                     <label for="categoria_id" class=" d-block">Codigo de venta</label>
-                                    <select class="form-select form-select-sm select2" name="cventa" id="cventa_id" style="width: 100%">
+                                    <select class="form-select form-select-sm select2_bootstrap_2 w-100" name="cventa" id="cventa_id">
                                         <option value="{{ old('cventa') }}" selected="selected" hidden="hidden">{{ old('cventa') }}</option>
                                         
                                     </select>
@@ -134,25 +134,27 @@
                         <div class="row g-2">
                             <div class="col-6 col-md-4 col-lg-4 mb-3">
                                 <label for="categoria_id" class=" d-block">Bienes</label>
-                                <select class="form-select select2 form-select-sm" id="bienes_id" >
+                                <select class="form-select select2_bootstrap_2 form-select-sm w-100" id="bienes_id" >
                                 </select>  
                             </div>
                             <div class="col-6 col-md-3 col-lg-1 mb-3">
                                 <label for="lote__id" class=" d-block">Lote</label>
-                                <input type="text" class="form-control form-control-sm bg-white" id="lote_id">
+                                <select class="form-select select2_bootstrap_2 form-select-sm" id="lote_id">
+                                </select>
                             </div>
                             <div class="col-6 col-md-3 col-lg-2 mb-3">
                                 <label for="monto__id" class=" d-block">Cantidad</label>
                                 <div class="input-group input-group-sm">
                                     <input type="number" min="0" id="cantidad_id" class="float-end form-control form-control-sm">
-                                    <span class="input-group-text" id="basic-addon1">U.M.</span>
+                                    <span class="input-group-text" id="umedida_id">U.M.</span>
+                                    <span class="input-group-text text-danger" id="cantidad_disponible_text">0</span>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3 col-lg-2 mb-3">
                                 <label for="monto__id" class=" d-block">Precio</label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text" id="basic-addon1">S/</span>
-                                    <input type="number" step="0.05" min="0" id="precio_id" class="float-end form-control form-control-sm">
+                                    <input type="number" disabled step="0.05" min="0" id="precio_id" class="float-end form-control form-control-sm">
                                 </div>
                             </div>
                             <!-- <div class="col-6 col-md-3 col-lg-2 mb-3">
@@ -179,7 +181,7 @@
                                 <th class="fw-bold small text-uppercase"></th>
                             </tr>
                             </thead>
-                            <tbody id="dtll_ingreso">
+                            <tbody id="dtll_salida">
                                 
                             </tbody>
                         </table>
@@ -192,51 +194,6 @@
                             <div class="col-2"></div>
                             <div class="col-12 col-md-5">
                                 <table class="w-100">
-                                    <tr>
-                                        <td class="border-0 ps-2 py-1" style="width: 50%">
-                                            Accesorios
-                                        </td>
-                                        <td class="border-0 pe-2 py-1" style="width: 50%">
-                                            <div class="clearfix">
-                                                <span class="float-start ps-2">- </span>
-                                                <span class="float-end" id="tmaterial">
-                                                    0
-                                                </span>
-                                                <input hidden name="total_mat" value="0" id="tmaterial_id">
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td class="border-0 ps-2 py-1 bg-light" style="width: 50%">
-                                            Repuestos
-                                        </td>
-                                        <td class="border-0 pe-2 py-1 bg-light" style="width: 50%">
-                                            <div class="clearfix">
-                                                <span class="float-start ps-2">- </span>
-                                                <span class="float-end" id="tactivo">
-                                                    0
-                                                </span>
-                                                 <input hidden name="total_act" value="0" id="tactivo_id">
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td class="border-0 ps-2 py-1" style="width: 50%">
-                                            Modulo Solar
-                                        </td>
-                                        <td class="border-0 pe-2 py-1" style="width: 50%">
-                                            <div class="clearfix">
-                                                <span class="float-start ps-2">- </span>
-                                                <span class="float-end" id="tprot">
-                                                    0
-                                                </span>
-                                            </div>
-                                            <input hidden name="total_pte" value="0" id="tprot_id">
-                                        </td>
-                                    </tr>
-
                                     <tr>
                                         <td class="border-0 fw-bold ps-2 py-1 bg-light" style="width: 50%">
                                             TOTAL
@@ -270,151 +227,77 @@
 @endsection
 
 @section('js')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2_bootstrap_2').select2();
+    });
+</script>
 <script>
 
 $('#concepto_div').hide();
-$('#ocompra_div').hide();
+$('#codventa_div').hide();
 
 $(document).ready(function() {
 
+    function syncAlmacenId() {
+        $('#id_almacen_id').val($('#salida_de_id').val());
+    }
+
+    // Carga inicial: toma el option seleccionado por defecto
+    syncAlmacenId();
+
+    // Mantiene sincronizado cuando cambie el select
+    $('#salida_de_id').on('change', syncAlmacenId);
+
     $('#motivo_id').on('change', function(){
         valormotivo = $(this).val();
-        
+
         if(valormotivo == 'Venta'){
-            $('#concepto_div').show();
+            $('#codventa_div').show();
+            $('#cventa_id').attr('disabled',false);
         }
-    });
 
-    $('#Concepto_id').on('change', function(){
-        valor_concepto = $(this).val();
-        if(valor_concepto == 'P_TERMINADO'){
-            $('#ocompra_div').show();
-            $('#ocompra_id').attr('disabled',false);
-        }else{
-            $('#ocompra_div').hide();
-            $('#ocompra_id').attr('disabled',true);
-
-            $.get('/busqueda_pterminado', {pterm:pterminado}, function(productos){
+        if(valormotivo == 'Merma' || valormotivo == 'Robo o perdida'){
+            $('#cventa_id').attr('disabled',true);
+            $('#codventa_div').hide();
+            valor_almacen = $('#salida_de_id').val();
+            console.log(valormotivo, valor_almacen);
+            $.get('/busqueda_producto_inventario', {valormotivo: valormotivo, valor_almacen: valor_almacen}, function(productos){
                 $('#bienes_id').empty();
                 $('#bienes_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
                 $.each(productos, function(index, value){
-                    $('#bienes_id').append("<option value='"+index+'_'+value[0]+'_'+value[1]+'_'+value[2]+'_'+value[3]+'_'+value[4]+'_'+value[5]+'_'+value[6]+"'>"+value[1]+"</option>");
+                    $('#bienes_id').append("<option value='"+index+'_'+value[0]+'_'+value[1]+'_'+value[2]+'_'+value[3]+'_'+value[4]+'_'+value[5]+'_'+value[6]+'_'+value[7]+"'>"+value[1]+"</option>");
                 });
             });
         }
     });
-    
-    $('#ocompra_id').on('change', function(){
-        $('#ocompra_id').attr('disabled',true);
-        var codigo_orden = document.getElementById('ocompra_id').value.split('_');
-        $('#codigo_ocompra_id').val(codigo_orden[0]);
-        $.get('/busqueda_dtll_oc', {codigo_orden:codigo_orden[0]}, function(productos){
-            $('#bienes_id').empty();
-            $('#bienes_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
+
+    $('#bienes_id').on('change', function(){
+        var valor_producto = document.getElementById('bienes_id').value.split('_');
+        valormotivo = $('#motivo_id').val();
+        valor_almacen = $('#salida_de_id').val();
+        console.log(valor_producto[2], valormotivo, valor_almacen);
+        $.get('/busqueda_lotes', {valor_id_producto:valor_producto[3], valormotivo:valormotivo, valor_almacen:valor_almacen}, function(productos){
+            $('#lote_id').empty();
+            $('#lote_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
+            $('#umedida_id').html('U.M.');
+            $('#cantidad_id').val("");
+            $('#precio_id').val("");
             $.each(productos, function(index, value){
-                $('#bienes_id').append("<option value='"+index+'_'+value[0]+'_'+value[1]+'_'+value[2]+'_'+value[3]+'_'+value[4]+'_'+value[5]+'_'+value[6]+"'>"+value[1]+"</option>");
-            
-            
-                var producto = document.getElementById('bienes_id').value.split('_');
-                valormotivo = $('#motivo_id').val();
-                if (producto != "") {
-                    if(valormotivo == 'Inventario'){
-                        if(value[2] == 'Accesorios'){
-                            tipo_b = 'Accesorios';
-                            cantidades_tma[contador_mps]= null; 
-                            cantidades_tma[contador_mps]=Number(value[4])
-                            cantidad_totalma=cantidad_totalma+cantidades_tma[contador_mps];
-                        }if(value[2] == 'Repuestos'){
-                            tipo_b = 'Repuestos';
-                            cantidades_tac[contador_mps]= null; 
-                            cantidades_tac[contador_mps]=Number(value[4])
-                            cantidad_totalac=cantidad_totalac+cantidades_tac[contador_mps];
-                        }if(value[2] == 'Modulo Solar'){
-                            tipo_b = 'Modulo Solar';
-                            cantidades_tpt[contador_mps]= null; 
-                            cantidades_tpt[contador_mps]=Number(value[4])
-                            cantidad_totalpt=cantidad_totalpt+cantidades_tpt[contador_mps];
-                        }
-                            cantidad_totalg=cantidad_totalma+cantidad_totalac+cantidad_totalpt;
-                                var fila = '<tr class="selected igv_carta" id="filamp' + contador_mps +
-                                    '"><td class="align-middle fw-normal">' + contador_mps + '</td><td class="align-middle fw-normal">' + tipo_b +
-                                    '</td><td class="align-middle fw-normal">' + value[1] +
-                                    '</td><td class="align-middle fw-normal"><input type="text" class="form-control form-control-sm w-50" required name="lote[]" ></td><td class="align-middle fw-normal">' + value[3] +
-                                    '</td><td class="align-middle fw-normal"><input type="text" class="form-control form-control-sm w-50" required name="cantidad[]" value="' + value[4] +
-                                    '"></td><td class="align-middle fw-normal">' + value[5] +
-                                    '</td><td><input type="hidden" name="producto_id[]" value="' + value[0] +
-                                    '"><input type="hidden" name="producto_tipo_id[]" value="' + value[2] +
-                                    '"><input type="hidden" name="producto[]" value="' + value[1] +
-                                    '"><input type="hidden" name="medida[]" value="' + value[3] +
-                                    '"><input type="hidden" name="precio[]" value="' + value[5] +
-                                    '"></td><td class="align-middle"><button type="button" class="btn btn-sm btn-danger" onclick="eliminardtc(' +
-                            contador_mps +','+value[4]+',\'' +value[2]+ '\');"><i class="bi bi-trash"></i></button></td></tr>';
-                            contador_mps++;
-                            cont++;
-                            if(value[2] == 'Accesorios'){
-                                $("#tmaterial").html(cantidad_totalma);
-                                $("#tmaterial_id").val(cantidad_totalma);
-                            }if(value[2] == 'Repuestos'){
-                                $("#tactivo").html(cantidad_totalac);
-                                $("#tactivo_id").val(cantidad_totalac);
-                            }if(value[2] == 'Modulo Solar'){
-                                $("#tprot").html(cantidad_totalpt);
-                                $("#tprot_id").val(cantidad_totalpt);
-                            }
-                            $('#bienes_id').prop('selectedIndex', 0).change();
-                            $('#cantidad_id').val("");
-                            $('#precio_id').val("");
-                            $('#lote_id').val("");
-                            // $('#fecha_vencimiento_id').val("");
-                            $('#total_id').html(cantidad_totalg);
-                            $('#total_ids').val(cantidad_totalg);
-                            $('#dtll_ingreso').append(fila);
-                        
-                    }else{
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Error al ingresar el detalle del ingreso, revise los datos del requerimiento',
-                        })
-                    }
-                }
-            
+                $('#lote_id').append("<option value='"+value[0]+'_'+value[1]+'_'+value[2]+'_'+value[3]+"'>"+value[0]+"</option>");
             });
         });
     });
 
-    $('#bienes_id').on('change', function(){
-        var select_oc = document.getElementById('bienes_id').value.split('_');
-        valormotivo = $('#motivo_id').val();
-        if(valormotivo == 'Inventario'){
-            $('#cantidad_id').val(select_oc[7]);
-            $('#precio_id').val(select_oc[6]);
+    $('#lote_id').on('change', function(){
+        valor_lotes = document.getElementById('lote_id').value.split('_');
+        if(valor_lotes){
+            $('#umedida_id').html(valor_lotes[1]);
+            $('#cantidad_id').val('');
+            $('#cantidad_disponible_text').html(valor_lotes[2]);
+            $('#precio_id').val(valor_lotes[3]);
         }
-    });
-
-    $('#ingresoa_id').on('change', function(){
-        var valor_ingresoa = document.getElementById('ingresoa_id').value.split('_');
-        $('#ingreso_a_id').val(valor_ingresoa[0]);
-        $('#id_almacen_id').val(valor_ingresoa[1]);
-        
-        /*if(valor_ingresoa[2] == 'Compras'){
-            $('#motivo_id').empty();
-            $('#motivo_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
-            $('#motivo_id').append("<option value='Inventario'>Inventario</option>");
-        }if(valor_ingresoa[2] == 'Producto Terminado'){
-            $('#motivo_id').empty();
-            $('#motivo_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
-            $('#motivo_id').append("<option value='Produccion'>Produccion</option>");
-        }if(valor_ingresoa[2] == 'Merma'){
-            $('#motivo_id').empty();
-            $('#motivo_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
-            //$('#motivo_id').append("<option value='Merma'>Merma</option>");
-            $('#motivo_id').append("<option value='Devolucion por Produccion'>Devolucion por Produccion</option>");
-        }if(valor_ingresoa[2] == 'Devolucion de Venta'){
-            $('#motivo_id').empty();
-            $('#motivo_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
-            $('#motivo_id').append("<option value='Devolucion de Venta'>Devolucion de Venta</option>");
-        }*/
     });
 
 });
@@ -431,110 +314,49 @@ $(document).ready(function() {
         cantidad_totalal=0;
         var tipo_b;
         $('#btnasignar').click(function() {
-                if(valormotivo == 'Inventario'){
-                    var producto = document.getElementById('bienes_id').value.split('_');
-                    var lote = $('#lote_id').val();
-                    var cantidad = $('#cantidad_id').val();
-                    var precio = $('#precio_id').val();
+                var producto = document.getElementById('bienes_id').value.split('_');
+                var lote = document.getElementById('lote_id').value.split('_');
+                var cantidad = Number($('#cantidad_id').val() || 0);
+                var precio = Number($('#precio_id').val() || 0);
                     valormotivo = $('#motivo_id').val();
-                    
-                    if (producto != "" && cantidad > 0 && precio > 0) {
-                        if(producto[3] == 'Accesorios'){
-                            tipo_b = 'Accesorios';
-                            cantidades_tma[contador_mps]= null; 
-                            cantidades_tma[contador_mps]=Number(cantidad)
-                            cantidad_totalma=cantidad_totalma+cantidades_tma[contador_mps];
-                            console.log(cantidad_totalma);
-                        }if(producto[3] == 'Repuestos'){
-                            tipo_b = 'Repuestos';
-                            cantidades_tac[contador_mps]= null; 
-                            cantidades_tac[contador_mps]=Number(cantidad)
-                            cantidad_totalac=cantidad_totalac+cantidades_tac[contador_mps];
-                        }if(producto[3] == 'Modulo Solar'){
-                            tipo_b = 'Modulo Solar';
-                            cantidades_tpt[contador_mps]= null; 
-                            cantidades_tpt[contador_mps]=Number(cantidad)
-                            cantidad_totalpt=cantidad_totalpt+cantidades_tpt[contador_mps];
-                        }
-                            cantidad_totalg=cantidad_totalma+cantidad_totalac+cantidad_totalpt;
-                                var fila = '<tr class="selected igv_carta" id="filamp' + contador_mps +
-                                    '"><td class="align-middle fw-normal">' + contador_mps + '</td><td class="align-middle fw-normal">' + tipo_b +
-                                    '</td><td class="align-middle fw-normal">' + producto[2] +
-                                    '</td><td class="align-middle fw-normal">' + lote +
-                                    '</td><td class="align-middle fw-normal">' + producto[4] +
-                                    '</td><td class="align-middle fw-normal">' + cantidad +
-                                    '</td><td class="align-middle fw-normal">' + producto[6] +
-                                    '</td><input type="hidden" name="producto_id[]" value="' + producto[1] +
-                                    '"><input type="hidden" name="producto_tipo_id[]" value="' + producto[3] +
-                                    '"><input type="hidden" name="producto[]" value="' + producto[2] +
-                                    '"><input type="hidden" name="lote[]" value="' + lote +
-                                    '"><input type="hidden" name="medida[]" value="' + producto[4] +
-                                    '"><input type="hidden" name="cantidad[]" value="' + cantidad +
-                                    '"><input type="hidden" name="precio[]" value="' + producto[6] +
-                                    '"><td class="align-middle"><button type="button" class="btn btn-sm btn-danger" onclick="eliminardtc(' +
-                            contador_mps +','+cantidad+',\'' +producto[3]+ '\');"><i class="bi bi-trash"></i></button></td></tr>';
-                            contador_mps++;
-                            cont++;
-                            if(producto[3] == 'Accesorios'){
-                                $("#tmaterial").html(cantidad_totalma);
-                                $("#tmaterial_id").val(cantidad_totalma);
-                            }if(producto[3] == 'Repuestos'){
-                                $("#tactivo").html(cantidad_totalac);
-                                $("#tactivo_id").val(cantidad_totalac);
-                            }
-                            if(producto[3] == 'Modulo Solar'){
-                                $("#tprot").html(cantidad_totalpt);
-                                $("#tpt_id").val(cantidad_totalpt);
-                            }
-                            $('#bienes_id').prop('selectedIndex', 0).change();
-                            $('#cantidad_id').val("");
-                            $('#precio_id').val("");
-                            $('#lote_id').val("");
-                            $('#total_id').html(cantidad_totalg);
-                            $('#total_ids').val(cantidad_totalg);
-                            $('#dtll_ingreso').append(fila);
-                    }else{
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Error al ingresar el detalle del ingreso, revise los datos del requerimiento',
-                        })
-                    }
+                var cantidad_disponible = Number(lote[2] || 0);
+                
+                if (producto != "" && cantidad > 0 && cantidad <= cantidad_disponible && precio > 0) {
+                            cantidad_totalg = Number(cantidad_totalg) + cantidad;
+                            var fila = '<tr class="selected igv_carta" id="filamp' + contador_mps +
+                                '"><td class="align-middle fw-normal">' + contador_mps + '</td><td class="align-middle fw-normal">' + producto[7] +
+                                '</td><td class="align-middle fw-normal">' + producto[2] +
+                                '</td><td class="align-middle fw-normal">'+lote[0]+'</td><td class="align-middle fw-normal">' + lote[1] +
+                                '</td><td class="align-middle fw-normal">'+cantidad+'</td><td class="align-middle fw-normal">' + precio +
+                                '</td><td><input type="hidden" name="producto_id[]" value="' + producto[0] +
+                                '"><input type="hidden" name="producto_tipo_id[]" value="' + producto[7] +
+                                '"><input type="hidden" name="producto[]" value="' + producto[2] +
+                                '"><input type="hidden" class="form-control form-control-sm w-50" required name="lote[]" value="'+lote[0]+'"><input type="hidden" name="medida[]" value="' + lote[1] +
+                                '"><input type="hidden" class="form-control form-control-sm w-50" required name="cantidad[]" value="' + cantidad +
+                                '"><input type="hidden" name="precio[]" value="' + precio +
+                                '"></td><td class="align-middle text-center"><button type="button" class="btn btn-sm btn-danger" onclick="eliminardtc(' + contador_mps +','+cantidad+',\'' +producto[2]+ '\');"><i class="bi bi-trash"></i></button></td></tr>';
+                        contador_mps++;
+                        cont++;
+                        $('#bienes_id').prop('selectedIndex', 0).change();
+                        $('#cantidad_id').val("");
+                        $('#precio_id').val("");
+                        $('#lote_id').val("");
+                        $('#umedida_id').html('U.M.');
+                        $('#cantidad_recepcionada_id').val("");
+                        $('#total_id').html(cantidad_totalg);
+                        $('#total_ids').val(cantidad_totalg);
+                        $('#dtll_salida').append(fila);
+                }else{
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Error al ingresar el detalle del movimiento, revise los datos de lo solicitado',
+                    })
                 }
         });
         function eliminardtc(indexmp, cantidad,protipo_id) {
-            if(protipo_id == 'Accesorios'){
-                value_mt = Number($('#tmaterial_id').val());
-                cantidad_totalma=value_mt-cantidad;
-                if(cantidad_totalma>0){
-                    $("#tmaterial").html(cantidad_totalma);
-                    $("#tmaterial_id").val(cantidad_totalma);
-                }else{
-                    $("#tmaterial").html(0.00);
-                    $("#tmaterial_id").val(0.00);
-                }
-            }if(protipo_id == 'Repuestos'){
-                value_ac = Number($('#tactivo_id').val());
-                cantidad_totalac=value_ac-cantidad;
-                if(cantidad_totalac>0){
-                    $("#tactivo").html(cantidad_totalac);
-                    $("#tactivo_id").val(cantidad_totalac);
-                }else{
-                    $("#tactivo").html(0.00);
-                    $("#tactivo_id").val(0.00);
-                }
-            }if(protipo_id == 'Modulo Solar'){
-                value_pt = Number($('#tprot_id').val());
-                cantidad_totalpt=value_pt-cantidad;
-                if(cantidad_totalpt>0){
-                    $("#tprot").html(cantidad_totalpt);
-                    $("#tprot_id").val(cantidad_totalpt);
-                }else{
-                    $("#tprot").html(0.00);
-                    $("#tprot_id").val(0.00);
-                }
-            }
-            cantidad_totalg=cantidad_totalma+cantidad_totalac+cantidad_totalpt;
+            cantidad = Number(cantidad || 0);
+            cantidad_totalg=cantidad_totalg+cantidad;
             //tproductos = tproductos - cantidades[indexmp];
             $('#total_id').html(cantidad_totalg);
             $('#total_ids').val(cantidad_totalg);
