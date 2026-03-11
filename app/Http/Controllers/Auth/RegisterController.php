@@ -16,7 +16,10 @@ class RegisterController extends Controller
 {
     use RegistersUsers;
 
-    protected $redirectTo = '/home';
+    /**
+     * Después del registro el cliente va al ecommerce.
+     */
+    protected $redirectTo = '/';
 
     public function __construct()
     {
@@ -24,7 +27,7 @@ class RegisterController extends Controller
     }
 
     /**
-     * Mostrar formulario de registro con distritos
+     * Mostrar formulario de registro con distritos.
      */
     public function showRegistrationForm()
     {
@@ -33,18 +36,18 @@ class RegisterController extends Controller
     }
 
     /**
-     * Validación del formulario de registro
+     * Validación del formulario de registro público (ecommerce).
      */
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name'         => ['required', 'string', 'max:255'],
-            'surnames'     => ['required', 'string', 'max:255'],
-            'email'        => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'celular'      => ['required', 'string', 'max:20'],
-            'direccion'    => ['nullable', 'string', 'max:255'],
-            'distrito_id'  => ['nullable', 'exists:distritos,id'],
-            'password'     => ['required', 'string', 'min:8', 'confirmed'],
+            'name'        => ['required', 'string', 'max:255'],
+            'surnames'    => ['required', 'string', 'max:255'],
+            'email'       => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'celular'     => ['required', 'string', 'max:20'],
+            'direccion'   => ['nullable', 'string', 'max:255'],
+            'distrito_id' => ['nullable', 'exists:distritos,id'],
+            'password'    => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'name.required'      => 'El nombre es obligatorio.',
             'surnames.required'  => 'Los apellidos son obligatorios.',
@@ -58,13 +61,13 @@ class RegisterController extends Controller
     }
 
     /**
-     * Crear usuario al registrarse.
+     * Crear usuario al registrarse desde el ecommerce.
      *
      * Flujo:
-     * 1. Crear Persona con los datos del formulario
-     * 2. Crear User con rol Cliente (ID 6)
-     *    → El UserObserver (ya existente) crea el Prospecto automáticamente
-     * 3. Actualizar el Prospecto con campos adicionales del formulario
+     *   1. Crear Persona con los datos del formulario
+     *   2. Crear User y asignar rol 'Cliente' con Spatie (assignRole)
+     *      → El UserObserver detecta el rol 'Cliente' y crea el Prospecto automáticamente
+     *   3. Complementar el Prospecto con datos adicionales del formulario
      */
     protected function create(array $data)
     {
@@ -80,19 +83,22 @@ class RegisterController extends Controller
                 'direccion'      => $data['direccion'] ?? null,
                 'tipo_persona'   => 'Natural',
                 'registrado_por' => 'ecommerce',
-                'sede_id'        => 1, // Sede Central
+                'sede_id'        => 1,
             ]);
 
-            // 2. Crear User → el UserObserver crea el Prospecto automáticamente
+            // 2. Crear User → asignar rol Cliente con Spatie
+            // El UserObserver escucha el evento 'created' y si el usuario tiene
+            // rol 'Cliente', crea automáticamente el Prospecto en el CRM.
             $user = User::create([
                 'email'      => $data['email'],
                 'password'   => Hash::make($data['password']),
                 'estado'     => 'Activo',
-                'role_id'    => 6, // Rol Cliente
                 'persona_id' => $persona->id,
             ]);
 
-            // 3. Complementar el Prospecto con datos extra del formulario
+            $user->assignRole('Cliente');
+
+            // 3. Complementar el Prospecto generado por el Observer
             $prospecto = Prospecto::where('registered_user_id', $user->id)->first();
             if ($prospecto) {
                 $prospecto->update([

@@ -117,7 +117,7 @@ class PedidoCrmSeeder extends Seeder
                 'distrito_id'            => $cliente->distrito_id,
                 'fecha_entrega_estimada' => $fechaEntrega,
                 'almacen_id'             => $almacen?->id,
-                'origen'                 => $cliente->origen === 'ecommerce' ? 'ecommerce' : 'directo',
+                'origen'                 => 'cotizacion', // Pedido generado desde cotización CRM
                 'observaciones'          => "Pedido generado desde oportunidad {$oportunidad->codigo}. Cotización: {$cotizacion->codigo}.",
             ]);
 

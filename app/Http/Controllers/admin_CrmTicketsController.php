@@ -108,7 +108,9 @@ class admin_CrmTicketsController extends Controller
     public function create(Request $request)
     {
         $clientes  = Cliente::orderBy('nombre')->get();
-        $usuarios  = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $usuarios  = User::with('persona')
+            ->whereHas('roles', fn($q) => $q->whereIn('name', ['Tecnico', 'Operaciones']))
+            ->get()->sortBy(fn($u) => $u->persona?->name);
         $clienteId = $request->get('cliente_id');
 
         $pedidos = $clienteId
@@ -231,7 +233,9 @@ class admin_CrmTicketsController extends Controller
             ? ($ticket->sla_vencimiento->isPast() ? 'Vencido' : $ticket->sla_vencimiento->diffForHumans())
             : null;
 
-        $usuarios = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $usuarios = User::with('persona')
+            ->whereHas('roles', fn($q) => $q->whereIn('name', ['Tecnico', 'Operaciones']))
+            ->get()->sortBy(fn($u) => $u->persona?->name);
 
         return view('ADMINISTRADOR.CRM.tickets.show', compact(
             'ticket', 'tiempoTranscurrido', 'tiempoRestanteSla', 'usuarios'
@@ -243,7 +247,9 @@ class admin_CrmTicketsController extends Controller
     public function edit(Ticket $ticket)
     {
         $clientes = Cliente::orderBy('nombre')->get();
-        $usuarios = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $usuarios = User::with('persona')
+            ->whereHas('roles', fn($q) => $q->whereIn('name', ['Tecnico', 'Operaciones']))
+            ->get()->sortBy(fn($u) => $u->persona?->name);
 
         $pedidos = Pedido::where('cliente_id', $ticket->cliente_id)
             ->whereIn('estado', ['pendiente', 'proceso', 'entregado'])
@@ -468,53 +474,10 @@ class admin_CrmTicketsController extends Controller
 
     /**
      * Checklist por tipo de mantenimiento.
-     * Duplicado aquí para no crear dependencia entre controllers.
+     * Delega al model Mantenimiento para evitar duplicación de código.
      */
     protected function checklistPorTipo(string $tipo): array
     {
-        $checklists = [
-            'preventivo' => [
-                ['tarea' => 'Inspección visual de paneles y estructura', 'completado' => false],
-                ['tarea' => 'Limpieza general de paneles',               'completado' => false],
-                ['tarea' => 'Revisión de conexiones y cableado',         'completado' => false],
-                ['tarea' => 'Revisión del inversor',                     'completado' => false],
-                ['tarea' => 'Revisión de protecciones eléctricas',       'completado' => false],
-                ['tarea' => 'Verificación de funcionamiento general',    'completado' => false],
-                ['tarea' => 'Registro fotográfico',                      'completado' => false],
-            ],
-            'correctivo' => [
-                ['tarea' => 'Diagnóstico del problema',                  'completado' => false],
-                ['tarea' => 'Identificación del componente fallado',     'completado' => false],
-                ['tarea' => 'Reparación o reemplazo realizado',          'completado' => false],
-                ['tarea' => 'Pruebas posteriores a la reparación',       'completado' => false],
-                ['tarea' => 'Verificación de funcionamiento normal',     'completado' => false],
-                ['tarea' => 'Registro fotográfico',                      'completado' => false],
-            ],
-            'limpieza' => [
-                ['tarea' => 'Limpieza de superficie de paneles',         'completado' => false],
-                ['tarea' => 'Limpieza de marcos y estructura',           'completado' => false],
-                ['tarea' => 'Limpieza de área del inversor',             'completado' => false],
-                ['tarea' => 'Retiro de residuos acumulados',             'completado' => false],
-                ['tarea' => 'Verificación visual post-limpieza',         'completado' => false],
-                ['tarea' => 'Registro fotográfico',                      'completado' => false],
-            ],
-            'inspeccion' => [
-                ['tarea' => 'Inspección visual de paneles',              'completado' => false],
-                ['tarea' => 'Inspección de estructura y anclajes',       'completado' => false],
-                ['tarea' => 'Inspección de cableado y conexiones',       'completado' => false],
-                ['tarea' => 'Inspección del inversor',                   'completado' => false],
-                ['tarea' => 'Verificación de funcionamiento del sistema','completado' => false],
-                ['tarea' => 'Registro fotográfico',                      'completado' => false],
-            ],
-            'predictivo' => [
-                ['tarea' => 'Revisión del historial de producción',                    'completado' => false],
-                ['tarea' => 'Identificación de caídas o anomalías en rendimiento',    'completado' => false],
-                ['tarea' => 'Inspección visual de componentes con desgaste',          'completado' => false],
-                ['tarea' => 'Revisión de conexiones y puntos de calor visibles',      'completado' => false],
-                ['tarea' => 'Evaluación general del estado del sistema',              'completado' => false],
-                ['tarea' => 'Registro fotográfico',                                   'completado' => false],
-            ],
-        ];
-        return $checklists[$tipo] ?? [];
+        return Mantenimiento::checklistPorTipo($tipo);
     }
 }

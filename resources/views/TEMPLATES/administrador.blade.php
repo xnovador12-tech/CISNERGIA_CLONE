@@ -469,7 +469,18 @@
 
         <!-- Contenido -->
         <div class="mb-3" id="contenido">
-            @yield('content')
+            {{-- Alerta global de acceso denegado (403) --}}
+        @if(session('sin_permiso'))
+        <div class="container-fluid">
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert" data-aos="fade-down">
+                <i class="bi bi-shield-lock-fill fs-5"></i>
+                <div>{{ session('sin_permiso') }}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+        @endif
+
+        @yield('content')
         </div>
         <!-- Fin contenido -->
     </main>

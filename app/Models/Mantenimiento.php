@@ -217,4 +217,60 @@ class Mantenimiento extends Model
         $this->estado = 'cancelado';
         $this->save();
     }
+
+    // ==================== MÉTODOS ESTÁTICOS ====================
+
+    /**
+     * Retorna el checklist base por tipo de mantenimiento.
+     * Método centralizado — evita duplicación entre controllers.
+     * Usado por admin_CrmTicketsController y admin_CrmMantenimientosController.
+     */
+    public static function checklistPorTipo(string $tipo): array
+    {
+        $checklists = [
+            'preventivo' => [
+                ['tarea' => 'Inspección visual de paneles y estructura', 'completado' => false],
+                ['tarea' => 'Limpieza general de paneles',               'completado' => false],
+                ['tarea' => 'Revisión de conexiones y cableado',         'completado' => false],
+                ['tarea' => 'Revisión del inversor',                     'completado' => false],
+                ['tarea' => 'Revisión de protecciones eléctricas',       'completado' => false],
+                ['tarea' => 'Verificación de funcionamiento general',    'completado' => false],
+                ['tarea' => 'Registro fotográfico',                      'completado' => false],
+            ],
+            'correctivo' => [
+                ['tarea' => 'Diagnóstico del problema',              'completado' => false],
+                ['tarea' => 'Identificación del componente fallado', 'completado' => false],
+                ['tarea' => 'Reparación o reemplazo realizado',      'completado' => false],
+                ['tarea' => 'Pruebas posteriores a la reparación',   'completado' => false],
+                ['tarea' => 'Verificación de funcionamiento normal', 'completado' => false],
+                ['tarea' => 'Registro fotográfico',                  'completado' => false],
+            ],
+            'limpieza' => [
+                ['tarea' => 'Limpieza de superficie de paneles',  'completado' => false],
+                ['tarea' => 'Limpieza de marcos y estructura',    'completado' => false],
+                ['tarea' => 'Limpieza de área del inversor',      'completado' => false],
+                ['tarea' => 'Retiro de residuos acumulados',      'completado' => false],
+                ['tarea' => 'Verificación visual post-limpieza',  'completado' => false],
+                ['tarea' => 'Registro fotográfico',               'completado' => false],
+            ],
+            'inspeccion' => [
+                ['tarea' => 'Inspección visual de paneles',               'completado' => false],
+                ['tarea' => 'Inspección de estructura y anclajes',        'completado' => false],
+                ['tarea' => 'Inspección de cableado y conexiones',        'completado' => false],
+                ['tarea' => 'Inspección del inversor',                    'completado' => false],
+                ['tarea' => 'Verificación de funcionamiento del sistema', 'completado' => false],
+                ['tarea' => 'Registro fotográfico',                       'completado' => false],
+            ],
+            'predictivo' => [
+                ['tarea' => 'Revisión del historial de producción',                 'completado' => false],
+                ['tarea' => 'Identificación de caídas o anomalías en rendimiento', 'completado' => false],
+                ['tarea' => 'Inspección visual de componentes con desgaste',       'completado' => false],
+                ['tarea' => 'Revisión de conexiones y puntos de calor visibles',   'completado' => false],
+                ['tarea' => 'Evaluación general del estado del sistema',           'completado' => false],
+                ['tarea' => 'Registro fotográfico',                                'completado' => false],
+            ],
+        ];
+
+        return $checklists[$tipo] ?? [];
+    }
 }

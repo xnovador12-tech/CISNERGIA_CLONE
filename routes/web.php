@@ -33,17 +33,14 @@ use App\Http\Controllers\admin_CrmActividadesController;
 use App\Http\Controllers\admin_CrmClientesController;
 use App\Http\Controllers\admin_CrmTicketsController;
 use App\Http\Controllers\admin_OperacionesController;
-
 use App\Http\Controllers\admin_CrmMantenimientosController;
 use App\Http\Controllers\admin_ModeloController;
 use App\Http\Controllers\admin_UbigeoController;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
-// ECOMMERCE
+// =============================================================
+// ECOMMERCE — Rutas públicas (sin auth)
+// =============================================================
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
 Route::get('/products', [ecommerceController::class, 'products'])->name('ecommerce.products');
 Route::get('/product/{slug}', [ecommerceController::class, 'show'])->name('ecommerce.product.show');
@@ -60,226 +57,230 @@ Route::get('/checkout', [ecommerceController::class, 'checkout'])->name('ecommer
 Route::post('/checkout/process', [ecommerceController::class, 'processCheckout'])->name('ecommerce.checkout.process');
 Route::get('/order-confirmation/{slug}', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmation');
 
-// ADMINISTRADOR
-Route::get('admin-dashboard', [admin_DashboardController::class, 'index'])->name('admin-dashboard.index');
+// =============================================================
+// ADMINISTRADOR — Todas las rutas protegidas con auth
+// =============================================================
+Route::middleware(['auth'])->group(function () {
 
-Route::get('admin-configuraciones', [admin_ConfiguracionesController::class, 'index'])->name('admin-configuraciones.index');
+    // ---------------------------------------------------------
+    // DASHBOARD & CONFIGURACIONES GENERALES
+    // ---------------------------------------------------------
+    Route::get('admin-dashboard', [admin_DashboardController::class, 'index'])->name('admin-dashboard.index');
+    Route::get('admin-configuraciones', [admin_ConfiguracionesController::class, 'index'])->name('admin-configuraciones.index');
+    Route::get('admin-reportes', [admin_ReportesController::class, 'index'])->name('admin-reportes.index');
 
-Route::resource('admin-informacion', admin_InformacionController::class);
-Route::resource('admin-roles', admin_RolesController::class);
-Route::resource('admin-usuarios', admin_UsuariosController::class);
-Route::put('/admin-usuarios/estado/{admin_usuario}', [admin_UsuariosController::class, 'estado']);
-Route::resource('admin-perfil', admin_PerfilController::class);
+    // ---------------------------------------------------------
+    // CONFIGURACIONES — Roles y Usuarios
+    // ---------------------------------------------------------
+    Route::resource('admin-informacion', admin_InformacionController::class);
+    Route::resource('admin-roles', admin_RolesController::class);
+    Route::resource('admin-usuarios', admin_UsuariosController::class);
+    Route::put('/admin-usuarios/estado/{admin_usuario}', [admin_UsuariosController::class, 'estado']);
+    Route::resource('admin-perfil', admin_PerfilController::class);
 
-Route::resource('admin-modelos', admin_ModeloController::class);
-Route::put('/admin-modelos/estado/{admin_modelo}', [admin_ModeloController::class, 'estado']);
+    // ---------------------------------------------------------
+    // CONFIGURACIONES — Catálogo
+    // ---------------------------------------------------------
+    Route::resource('admin-modelos', admin_ModeloController::class);
+    Route::put('/admin-modelos/estado/{admin_modelo}', [admin_ModeloController::class, 'estado']);
 
-// UBIGEO AJAX
-Route::get('/ajax/provincias', [admin_UbigeoController::class, 'provincias'])->name('ajax.provincias');
-Route::get('/ajax/distritos', [admin_UbigeoController::class, 'distritos'])->name('ajax.distritos');
+    Route::resource('admin-tipos', admin_TiposController::class);
+    Route::put('/admin-tipos/estado/{admin_tipo}', [admin_TiposController::class, 'estado']);
 
-Route::resource('admin-tipos', admin_TiposController::class);
-Route::put('/admin-tipos/estado/{admin_tipo}', [admin_TiposController::class, 'estado']);
-Route::resource('admin-categorias', admin_CategoriasController::class);
-Route::put('/admin-categorias/estado/{admin_categoria}', [admin_CategoriasController::class, 'estado']);
-Route::get('/detalle_subcategorias', [admin_CategoriasController::class, 'getDetalleSubcategorias']);
+    Route::resource('admin-categorias', admin_CategoriasController::class);
+    Route::put('/admin-categorias/estado/{admin_categoria}', [admin_CategoriasController::class, 'estado']);
+    Route::get('/detalle_subcategorias', [admin_CategoriasController::class, 'getDetalleSubcategorias']);
 
-Route::resource('admin-marcas', admin_MarcasController::class);
-Route::put('/admin-marcas/estado/{admin_marca}', [admin_MarcasController::class, 'estado']);
-Route::resource('admin-etiquetas', admin_EtiquetasController::class);
-Route::put('/admin-etiquetas/estado/{admin_etiqueta}', [admin_EtiquetasController::class, 'estado']);
+    Route::resource('admin-marcas', admin_MarcasController::class);
+    Route::put('/admin-marcas/estado/{admin_marca}', [admin_MarcasController::class, 'estado']);
 
-Route::resource('admin-proveedores', admin_ProveedoresController::class);
-Route::put('/admin-proveedores/estado/{admin_proveedor}', [admin_ProveedoresController::class, 'estado']);
-Route::get('busqueda_list_cuentas', [admin_ProveedoresController::class, 'getbusqueda_list_cuentas']);
+    Route::resource('admin-etiquetas', admin_EtiquetasController::class);
+    Route::put('/admin-etiquetas/estado/{admin_etiqueta}', [admin_EtiquetasController::class, 'estado']);
 
-Route::resource('admin-productos', admin_ProductosController::class);
-Route::put('/admin-productos/estado/{admin_producto}', [admin_ProductosController::class, 'estado']);
-Route::get('busqueda_categoria_productos', [admin_ProductosController::class, 'getBusqueda_categoria_productos']);
-Route::get('busqueda_proved', [admin_ProductosController::class, 'getBusquedaproved']);
-Route::get('busqueda_proved_edit', [admin_ProductosController::class, 'getbusqueda_proved_edit']);
-Route::get('busqueda_codigo_producto', [admin_ProductosController::class, 'getbusqueda_codigo_producto']);
-Route::get('busqueda_subcategoria_productos', [admin_ProductosController::class, 'getbusqueda_subcategoria_productos']);
+    Route::resource('admin-proveedores', admin_ProveedoresController::class);
+    Route::put('/admin-proveedores/estado/{admin_proveedor}', [admin_ProveedoresController::class, 'estado']);
+    Route::get('busqueda_list_cuentas', [admin_ProveedoresController::class, 'getbusqueda_list_cuentas']);
 
-Route::resource('admin-kits', admin_KitsController::class);
-Route::get('/dtlle_kits', [admin_KitsController::class, 'getdtlle_kits']);
-Route::get('/images/{id}/delete', [admin_KitsController::class, 'deleteImage']);
-Route::put('/admin-kits/estado/{admin_kit}', [admin_KitsController::class, 'estado']);
-Route::resource('admin-descuentos', admin_DescuentosController::class);
-Route::put('/admin-descuentos/estado/{admin_descuento}', [admin_DescuentosController::class, 'estado']);
-Route::get('/descuentos_productos/filtro', [admin_DescuentosController::class, 'getfiltro_producto']);
-Route::get('/ver_descuento', [admin_DescuentosController::class, 'getver_descuento']);
+    Route::resource('admin-productos', admin_ProductosController::class);
+    Route::put('/admin-productos/estado/{admin_producto}', [admin_ProductosController::class, 'estado']);
+    Route::get('busqueda_categoria_productos', [admin_ProductosController::class, 'getBusqueda_categoria_productos']);
+    Route::get('busqueda_proved', [admin_ProductosController::class, 'getBusquedaproved']);
+    Route::get('busqueda_proved_edit', [admin_ProductosController::class, 'getbusqueda_proved_edit']);
+    Route::get('busqueda_codigo_producto', [admin_ProductosController::class, 'getbusqueda_codigo_producto']);
+    Route::get('busqueda_subcategoria_productos', [admin_ProductosController::class, 'getbusqueda_subcategoria_productos']);
 
-Route::resource('admin-cupones', admin_CuponesController::class);
-Route::put('/admin-cupones/estado/{admin_cupon}', [admin_CuponesController::class, 'estado']);
-Route::get('/search_codigo/cupons', [admin_CuponesController::class, 'getsearch_codigo']);
-Route::get('/ver_cuponera', [admin_CuponesController::class, 'getver_cuponera']);
+    Route::resource('admin-kits', admin_KitsController::class);
+    Route::get('/dtlle_kits', [admin_KitsController::class, 'getdtlle_kits']);
+    Route::get('/images/{id}/delete', [admin_KitsController::class, 'deleteImage']);
+    Route::put('/admin-kits/estado/{admin_kit}', [admin_KitsController::class, 'estado']);
 
-Route::resource('admin-coberturas', admin_CoberturasController::class);
-Route::put('/admin-coberturas/estado/{admin_cobertura}', [admin_CoberturasController::class, 'estado']);
+    Route::resource('admin-descuentos', admin_DescuentosController::class);
+    Route::put('/admin-descuentos/estado/{admin_descuento}', [admin_DescuentosController::class, 'estado']);
+    Route::get('/descuentos_productos/filtro', [admin_DescuentosController::class, 'getfiltro_producto']);
+    Route::get('/ver_descuento', [admin_DescuentosController::class, 'getver_descuento']);
 
-Route::resource('admin-servicios', admin_ServiciosController::class);
-Route::put('/admin-servicios/estado/{admin_servicio}', [admin_ServiciosController::class, 'estado']);
+    Route::resource('admin-cupones', admin_CuponesController::class);
+    Route::put('/admin-cupones/estado/{admin_cupon}', [admin_CuponesController::class, 'estado']);
+    Route::get('/search_codigo/cupons', [admin_CuponesController::class, 'getsearch_codigo']);
+    Route::get('/ver_cuponera', [admin_CuponesController::class, 'getver_cuponera']);
 
-Route::resource('admin-ordenservicios', admin_OrdenesserviciosController::class);
-Route::put('/admin-ordenservicios/estado/{admin_servicio}', [admin_OrdenesserviciosController::class, 'estado']);
-Route::get('/busqueda_tipos', [admin_OrdenesserviciosController::class, 'getver_tipos']);
-Route::get('/fecha_vigencia', [admin_OrdenesserviciosController::class, 'getver_fecha_vigencia']);
-Route::get('/dt_servicio', [admin_OrdenesserviciosController::class, 'getver_dt_servicio']);
+    Route::resource('admin-coberturas', admin_CoberturasController::class);
+    Route::put('/admin-coberturas/estado/{admin_cobertura}', [admin_CoberturasController::class, 'estado']);
 
-Route::resource('admin-ordencompras', admin_OrdenescomprasController::class);
-Route::put('/admin-ordencompras/estado/{admin_ordencompra}', [admin_OrdenescomprasController::class, 'estado']);
-Route::get('busqueda_biene_compra', [admin_OrdenescomprasController::class, 'getBusqueda_compra_biene']);
-Route::get('busqueda_detalle_compra', [admin_OrdenescomprasController::class, 'getBusqueda_detalle_compra']);
-Route::get('fecha_cuotas', [admin_OrdenescomprasController::class, 'getFechacuota']);
+    Route::resource('admin-servicios', admin_ServiciosController::class);
+    Route::put('/admin-servicios/estado/{admin_servicio}', [admin_ServiciosController::class, 'estado']);
 
-Route::resource('admin-ingresos', admin_IngresosController::class);
-Route::get('busqueda_dtll_oc', [admin_IngresosController::class, 'getbusqueda_det_oc']);
-Route::get('busqueda_pterminado', [admin_IngresosController::class, 'getbusqueda_pterminado']);
+    Route::resource('admin-ordenservicios', admin_OrdenesserviciosController::class);
+    Route::put('/admin-ordenservicios/estado/{admin_servicio}', [admin_OrdenesserviciosController::class, 'estado']);
+    Route::get('/busqueda_tipos', [admin_OrdenesserviciosController::class, 'getver_tipos']);
+    Route::get('/fecha_vigencia', [admin_OrdenesserviciosController::class, 'getver_fecha_vigencia']);
+    Route::get('/dt_servicio', [admin_OrdenesserviciosController::class, 'getver_dt_servicio']);
 
-Route::resource('admin-salidas', admin_SalidasController::class);
+    Route::resource('admin-ordencompras', admin_OrdenescomprasController::class);
+    Route::put('/admin-ordencompras/estado/{admin_ordencompra}', [admin_OrdenescomprasController::class, 'estado']);
+    Route::get('busqueda_biene_compra', [admin_OrdenescomprasController::class, 'getBusqueda_compra_biene']);
+    Route::get('busqueda_detalle_compra', [admin_OrdenescomprasController::class, 'getBusqueda_detalle_compra']);
+    Route::get('fecha_cuotas', [admin_OrdenescomprasController::class, 'getFechacuota']);
 
-Route::resource('admin-inventarios', admin_InventarioController::class);
+    Route::resource('admin-ingresos', admin_IngresosController::class);
+    Route::get('busqueda_dtll_oc', [admin_IngresosController::class, 'getbusqueda_det_oc']);
+    Route::get('busqueda_pterminado', [admin_IngresosController::class, 'getbusqueda_pterminado']);
 
-// VENTAS
-Route::post('admin-clientes', [admin_CrmClientesController::class, 'store'])->name('admin-clientes.store');
-Route::resource('admin-pedidos', admin_PedidosController::class);
-Route::put('/admin-pedidos/estado/{admin_pedido}', [admin_PedidosController::class, 'estado'])->name('admin-pedidos.estado');
-Route::post('/admin-pedidos/aprobar-finanzas/{admin_pedido}', [admin_PedidosController::class, 'aprobarFinanzas'])->name('admin-pedidos.aprobar-finanzas');
-Route::post('/admin-pedidos/aprobar-stock/{admin_pedido}', [admin_PedidosController::class, 'aprobarStock'])->name('admin-pedidos.aprobar-stock');
-Route::post('/admin-pedidos/generar-comprobante/{admin_pedido}', [admin_PedidosController::class, 'generarComprobante'])->name('admin-pedidos.generar-comprobante');
-Route::get('/admin-pedidos/{pedido}/voucher', [admin_PedidosController::class, 'voucher'])->name('admin-pedidos.voucher');
+    Route::resource('admin-salidas', admin_SalidasController::class);
+    Route::resource('admin-inventarios', admin_InventarioController::class);
 
-Route::resource('admin-ventas', admin_VentasController::class);
-Route::put('/admin-ventas/estado/{admin_venta}', [admin_VentasController::class, 'estado']);
-Route::get('/admin-ventas/{admin_venta}/voucher', [admin_VentasController::class, 'voucher'])->name('admin-ventas.voucher');
-// =====================================================
-// CRM ROUTES - Sistema de Gestión de Relaciones
-// =====================================================
+    // ---------------------------------------------------------
+    // UBIGEO AJAX
+    // ---------------------------------------------------------
+    Route::get('/ajax/provincias', [admin_UbigeoController::class, 'provincias'])->name('ajax.provincias');
+    Route::get('/ajax/distritos', [admin_UbigeoController::class, 'distritos'])->name('ajax.distritos');
 
-Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
+    // ---------------------------------------------------------
+    // VENTAS
+    // ---------------------------------------------------------
+    Route::post('admin-clientes', [admin_CrmClientesController::class, 'store'])->name('admin-clientes.store');
 
-    // -------------------------------------------------
-    // PROSPECTOS (Leads)
-    // -------------------------------------------------
-    Route::resource('prospectos', admin_CrmProspectosController::class);
-    Route::post('prospectos/{prospecto}/actividad', [admin_CrmProspectosController::class, 'registrarActividad'])->name('prospectos.actividad');
-    Route::patch('prospectos/{prospecto}/estado', [admin_CrmProspectosController::class, 'actualizarEstado'])->name('prospectos.actualizar-estado');
+    Route::resource('admin-pedidos', admin_PedidosController::class);
+    Route::put('/admin-pedidos/estado/{admin_pedido}', [admin_PedidosController::class, 'estado'])->name('admin-pedidos.estado');
+    Route::post('/admin-pedidos/aprobar-finanzas/{admin_pedido}', [admin_PedidosController::class, 'aprobarFinanzas'])->name('admin-pedidos.aprobar-finanzas');
+    Route::post('/admin-pedidos/aprobar-stock/{admin_pedido}', [admin_PedidosController::class, 'aprobarStock'])->name('admin-pedidos.aprobar-stock');
+    Route::post('/admin-pedidos/generar-comprobante/{admin_pedido}', [admin_PedidosController::class, 'generarComprobante'])->name('admin-pedidos.generar-comprobante');
+    Route::get('/admin-pedidos/{pedido}/voucher', [admin_PedidosController::class, 'voucher'])->name('admin-pedidos.voucher');
 
+    Route::resource('admin-ventas', admin_VentasController::class);
+    Route::put('/admin-ventas/estado/{admin_venta}', [admin_VentasController::class, 'estado']);
+    Route::get('/admin-ventas/{admin_venta}/voucher', [admin_VentasController::class, 'voucher'])->name('admin-ventas.voucher');
 
-    // -------------------------------------------------
-    // OPORTUNIDADES (Pipeline de Ventas)
-    // -------------------------------------------------
-    Route::resource('oportunidades', admin_CrmOportunidadesController::class)->parameters(['oportunidades' => 'oportunidad']);
-    Route::post('oportunidades/{oportunidad}/avanzar', [admin_CrmOportunidadesController::class, 'avanzarEtapa'])->name('oportunidades.avanzar');
-    Route::post('oportunidades/{oportunidad}/crear-cotizacion', [admin_CrmOportunidadesController::class, 'crearCotizacion'])->name('oportunidades.crear-cotizacion');
-    Route::post('oportunidades/{oportunidad}/perdida', [admin_CrmOportunidadesController::class, 'marcarPerdida'])->name('oportunidades.perdida');
-    Route::post('oportunidades/{oportunidad}/actividad', [admin_CrmOportunidadesController::class, 'registrarActividad'])->name('oportunidades.actividad');
+    // ---------------------------------------------------------
+    // CRM
+    // ---------------------------------------------------------
+    Route::prefix('admin/crm')->name('admin.crm.')->group(function () {
 
-    Route::get('prospectos/{prospecto}/wishlist', [admin_CrmOportunidadesController::class, 'getWishlist'])->name('prospectos.wishlist');
+        // Prospectos
+        Route::resource('prospectos', admin_CrmProspectosController::class);
+        Route::post('prospectos/{prospecto}/actividad', [admin_CrmProspectosController::class, 'registrarActividad'])->name('prospectos.actividad');
+        Route::patch('prospectos/{prospecto}/estado', [admin_CrmProspectosController::class, 'actualizarEstado'])->name('prospectos.actualizar-estado');
 
-    // -------------------------------------------------
-    // COTIZACIONES
-    // -------------------------------------------------
-    Route::resource('cotizaciones', admin_CrmCotizacionesController::class)->parameters(['cotizaciones' => 'cotizacion']);
-    Route::post('cotizaciones/{cotizacion}/enviar', [admin_CrmCotizacionesController::class, 'enviar'])->name('cotizaciones.enviar');
-    Route::post('cotizaciones/{cotizacion}/aprobar', [admin_CrmCotizacionesController::class, 'aprobar'])->name('cotizaciones.aprobar');
-    Route::post('cotizaciones/{cotizacion}/rechazar', [admin_CrmCotizacionesController::class, 'rechazar'])->name('cotizaciones.rechazar');
-    Route::post('cotizaciones/{cotizacion}/duplicar', [admin_CrmCotizacionesController::class, 'duplicar'])->name('cotizaciones.duplicar');
-    Route::get('cotizaciones/{cotizacion}/pdf', [admin_CrmCotizacionesController::class, 'generarPdf'])->name('cotizaciones.pdf');
-    Route::get('cotizaciones/{cotizacion}/preview', [admin_CrmCotizacionesController::class, 'previsualizarPdf'])->name('cotizaciones.preview');
-    Route::post('cotizaciones/{cotizacion}/recalcular', [admin_CrmCotizacionesController::class, 'recalcular'])->name('cotizaciones.recalcular');
+        // Oportunidades
+        Route::resource('oportunidades', admin_CrmOportunidadesController::class)->parameters(['oportunidades' => 'oportunidad']);
+        Route::post('oportunidades/{oportunidad}/avanzar', [admin_CrmOportunidadesController::class, 'avanzarEtapa'])->name('oportunidades.avanzar');
+        Route::post('oportunidades/{oportunidad}/crear-cotizacion', [admin_CrmOportunidadesController::class, 'crearCotizacion'])->name('oportunidades.crear-cotizacion');
+        Route::post('oportunidades/{oportunidad}/perdida', [admin_CrmOportunidadesController::class, 'marcarPerdida'])->name('oportunidades.perdida');
+        Route::post('oportunidades/{oportunidad}/actividad', [admin_CrmOportunidadesController::class, 'registrarActividad'])->name('oportunidades.actividad');
+        Route::get('prospectos/{prospecto}/wishlist', [admin_CrmOportunidadesController::class, 'getWishlist'])->name('prospectos.wishlist');
 
+        // Cotizaciones
+        Route::resource('cotizaciones', admin_CrmCotizacionesController::class)->parameters(['cotizaciones' => 'cotizacion']);
+        Route::post('cotizaciones/{cotizacion}/enviar', [admin_CrmCotizacionesController::class, 'enviar'])->name('cotizaciones.enviar');
+        Route::post('cotizaciones/{cotizacion}/aprobar', [admin_CrmCotizacionesController::class, 'aprobar'])->name('cotizaciones.aprobar');
+        Route::post('cotizaciones/{cotizacion}/rechazar', [admin_CrmCotizacionesController::class, 'rechazar'])->name('cotizaciones.rechazar');
+        Route::post('cotizaciones/{cotizacion}/duplicar', [admin_CrmCotizacionesController::class, 'duplicar'])->name('cotizaciones.duplicar');
+        Route::get('cotizaciones/{cotizacion}/pdf', [admin_CrmCotizacionesController::class, 'generarPdf'])->name('cotizaciones.pdf');
+        Route::get('cotizaciones/{cotizacion}/preview', [admin_CrmCotizacionesController::class, 'previsualizarPdf'])->name('cotizaciones.preview');
+        Route::post('cotizaciones/{cotizacion}/recalcular', [admin_CrmCotizacionesController::class, 'recalcular'])->name('cotizaciones.recalcular');
+        Route::post('cotizaciones/{cotizacion}/items-guardar', [admin_CrmCotizacionesController::class, 'guardarItems'])->name('cotizaciones.guardarItems');
 
-    // Ítems de cotización
-    Route::post('cotizaciones/{cotizacion}/items-guardar', [admin_CrmCotizacionesController::class, 'guardarItems'])->name('cotizaciones.guardarItems');
+        // Actividades
+        Route::resource('actividades', admin_CrmActividadesController::class)->parameters(['actividades' => 'actividad']);
+        Route::post('actividades/{actividad}/completar', [admin_CrmActividadesController::class, 'completar'])->name('actividades.completar');
+        Route::post('actividades/{actividad}/cancelar', [admin_CrmActividadesController::class, 'cancelar'])->name('actividades.cancelar');
+        Route::post('actividades/{actividad}/reprogramar', [admin_CrmActividadesController::class, 'reprogramar'])->name('actividades.reprogramar');
+        Route::post('actividades/{actividad}/iniciar-evaluacion', [admin_CrmActividadesController::class, 'iniciarEvaluacion'])->name('actividades.iniciar-evaluacion');
+        Route::post('actividades/{actividad}/no-realizada', [admin_CrmActividadesController::class, 'noRealizada'])->name('actividades.no-realizada');
+        Route::post('actividades/{actividad}/seguimiento', [admin_CrmActividadesController::class, 'crearSeguimiento'])->name('actividades.seguimiento');
+        Route::get('actividades-eventos', [admin_CrmActividadesController::class, 'eventosCalendario'])->name('actividades.eventos');
+        Route::patch('actividades/{actividad}/fecha', [admin_CrmActividadesController::class, 'actualizarFecha'])->name('actividades.actualizar-fecha');
+        Route::get('actividades-pendientes', [admin_CrmActividadesController::class, 'misPendientes'])->name('actividades.pendientes');
+        Route::get('actividades-notificaciones', [admin_CrmActividadesController::class, 'notificacionesCampana'])->name('actividades.notificaciones');
+        Route::post('actividades-notificaciones/descartar', [admin_CrmActividadesController::class, 'descartarNotificacion'])->name('actividades.notificaciones.descartar');
 
-    // -------------------------------------------------
-    // ACTIVIDADES (Agenda CRM)
-    // -------------------------------------------------
-    Route::resource('actividades', admin_CrmActividadesController::class)->parameters(['actividades' => 'actividad']);
-    Route::post('actividades/{actividad}/completar', [admin_CrmActividadesController::class, 'completar'])->name('actividades.completar');
-    Route::post('actividades/{actividad}/cancelar', [admin_CrmActividadesController::class, 'cancelar'])->name('actividades.cancelar');
-    Route::post('actividades/{actividad}/reprogramar', [admin_CrmActividadesController::class, 'reprogramar'])->name('actividades.reprogramar');
-    Route::post('actividades/{actividad}/iniciar-evaluacion', [admin_CrmActividadesController::class, 'iniciarEvaluacion'])->name('actividades.iniciar-evaluacion');
-    Route::post('actividades/{actividad}/no-realizada', [admin_CrmActividadesController::class, 'noRealizada'])->name('actividades.no-realizada');
-    Route::post('actividades/{actividad}/seguimiento', [admin_CrmActividadesController::class, 'crearSeguimiento'])->name('actividades.seguimiento');
-    Route::get('actividades-eventos', [admin_CrmActividadesController::class, 'eventosCalendario'])->name('actividades.eventos');
-    Route::patch('actividades/{actividad}/fecha', [admin_CrmActividadesController::class, 'actualizarFecha'])->name('actividades.actualizar-fecha');
-    Route::get('actividades-pendientes', [admin_CrmActividadesController::class, 'misPendientes'])->name('actividades.pendientes');
-    Route::get('actividades-notificaciones', [admin_CrmActividadesController::class, 'notificacionesCampana'])->name('actividades.notificaciones');
-    Route::post('actividades-notificaciones/descartar', [admin_CrmActividadesController::class, 'descartarNotificacion'])->name('actividades.notificaciones.descartar');
+        // Clientes
+        Route::resource('clientes', admin_CrmClientesController::class)->except(['create', 'store']);
+        Route::post('clientes/{cliente}/cambiar-estado', [admin_CrmClientesController::class, 'cambiarEstado'])->name('clientes.cambiar-estado');
 
-    // -------------------------------------------------
-    // CLIENTES
-    // -------------------------------------------------
-    Route::resource('clientes', admin_CrmClientesController::class)->except(['create', 'store']);
-    Route::post('clientes/{cliente}/cambiar-estado', [admin_CrmClientesController::class, 'cambiarEstado'])->name('clientes.cambiar-estado');
+        // Tickets
+        Route::get('tickets/pedidos-por-cliente/{clienteId}', [admin_CrmTicketsController::class, 'pedidosPorCliente'])->name('tickets.pedidos-por-cliente');
+        Route::get('tickets/ventas-por-cliente/{clienteId}', [admin_CrmTicketsController::class, 'ventasPorCliente'])->name('tickets.ventas-por-cliente');
+        Route::post('tickets/{ticket}/agendar-visita', [admin_CrmTicketsController::class, 'agendarVisita'])->name('tickets.agendar-visita');
+        Route::resource('tickets', admin_CrmTicketsController::class);
+        Route::patch('tickets/{ticket}/estado', [admin_CrmTicketsController::class, 'cambiarEstado'])->name('tickets.cambiar-estado');
+        Route::post('tickets/{ticket}/asignar', [admin_CrmTicketsController::class, 'asignar'])->name('tickets.asignar');
 
-    // -------------------------------------------------
-    // TICKETS (Soporte)
-    // -------------------------------------------------
-    Route::get('tickets/pedidos-por-cliente/{clienteId}', [admin_CrmTicketsController::class, 'pedidosPorCliente'])->name('tickets.pedidos-por-cliente');
-    Route::get('tickets/ventas-por-cliente/{clienteId}', [admin_CrmTicketsController::class, 'ventasPorCliente'])->name('tickets.ventas-por-cliente');
-    Route::post('tickets/{ticket}/agendar-visita', [admin_CrmTicketsController::class, 'agendarVisita'])->name('tickets.agendar-visita');
-    Route::resource('tickets', admin_CrmTicketsController::class);
-    Route::patch('tickets/{ticket}/estado', [admin_CrmTicketsController::class, 'cambiarEstado'])->name('tickets.cambiar-estado');
-    Route::post('tickets/{ticket}/asignar', [admin_CrmTicketsController::class, 'asignar'])->name('tickets.asignar');
+        // Mantenimientos
+        Route::resource('mantenimientos', admin_CrmMantenimientosController::class)->except(['create', 'store']);
+        Route::post('mantenimientos/{mantenimiento}/confirmar', [admin_CrmMantenimientosController::class, 'confirmar'])->name('mantenimientos.confirmar');
+        Route::post('mantenimientos/{mantenimiento}/iniciar', [admin_CrmMantenimientosController::class, 'iniciar'])->name('mantenimientos.iniciar');
+        Route::post('mantenimientos/{mantenimiento}/completar', [admin_CrmMantenimientosController::class, 'completar'])->name('mantenimientos.completar');
+        Route::post('mantenimientos/{mantenimiento}/cancelar', [admin_CrmMantenimientosController::class, 'cancelar'])->name('mantenimientos.cancelar');
+        Route::post('mantenimientos/{mantenimiento}/reprogramar', [admin_CrmMantenimientosController::class, 'reprogramar'])->name('mantenimientos.reprogramar');
 
-    // -------------------------------------------------
-    // MANTENIMIENTOS
-    // -------------------------------------------------
-    Route::resource('mantenimientos', admin_CrmMantenimientosController::class)->except(['create', 'store']);
-    Route::post('mantenimientos/{mantenimiento}/confirmar', [admin_CrmMantenimientosController::class, 'confirmar'])->name('mantenimientos.confirmar');
-    Route::post('mantenimientos/{mantenimiento}/iniciar', [admin_CrmMantenimientosController::class, 'iniciar'])->name('mantenimientos.iniciar');
-    Route::post('mantenimientos/{mantenimiento}/completar', [admin_CrmMantenimientosController::class, 'completar'])->name('mantenimientos.completar');
-    Route::post('mantenimientos/{mantenimiento}/cancelar', [admin_CrmMantenimientosController::class, 'cancelar'])->name('mantenimientos.cancelar');
-    Route::post('mantenimientos/{mantenimiento}/reprogramar', [admin_CrmMantenimientosController::class, 'reprogramar'])->name('mantenimientos.reprogramar');
-}); // Fin del grupo CRM
+    }); // Fin CRM
 
-// =============================================
-// OPERACIONES
-// =============================================
+    // ---------------------------------------------------------
+    // OPERACIONES
+    // ---------------------------------------------------------
 
-// Asignaciones
-Route::get('admin-operaciones-asignaciones', [admin_OperacionesController::class, 'asignacionesIndex'])->name('admin-operaciones-asignaciones.index');
-Route::get('admin-operaciones-asignaciones/data', [admin_OperacionesController::class, 'asignacionesData'])->name('admin-operaciones-asignaciones.data');
-Route::get('admin-operaciones-asignaciones/stats', [admin_OperacionesController::class, 'asignacionesGetStats'])->name('admin-operaciones-asignaciones.stats');
-Route::post('admin-operaciones-asignaciones/asignar', [admin_OperacionesController::class, 'asignacionesAsignar'])->name('admin-operaciones-asignaciones.asignar');
-Route::get('admin-operaciones-asignaciones/filtrar', [admin_OperacionesController::class, 'asignacionesFiltrar'])->name('admin-operaciones-asignaciones.filtrar');
-Route::get('admin-operaciones-asignaciones/{id}', [admin_OperacionesController::class, 'asignacionesGetPedido'])->name('admin-operaciones-asignaciones.show');
+    // Asignaciones
+    Route::get('admin-operaciones-asignaciones', [admin_OperacionesController::class, 'asignacionesIndex'])->name('admin-operaciones-asignaciones.index');
+    Route::get('admin-operaciones-asignaciones/data', [admin_OperacionesController::class, 'asignacionesData'])->name('admin-operaciones-asignaciones.data');
+    Route::get('admin-operaciones-asignaciones/stats', [admin_OperacionesController::class, 'asignacionesGetStats'])->name('admin-operaciones-asignaciones.stats');
+    Route::post('admin-operaciones-asignaciones/asignar', [admin_OperacionesController::class, 'asignacionesAsignar'])->name('admin-operaciones-asignaciones.asignar');
+    Route::get('admin-operaciones-asignaciones/filtrar', [admin_OperacionesController::class, 'asignacionesFiltrar'])->name('admin-operaciones-asignaciones.filtrar');
+    Route::get('admin-operaciones-asignaciones/{id}', [admin_OperacionesController::class, 'asignacionesGetPedido'])->name('admin-operaciones-asignaciones.show');
 
-// Calidad
-Route::get('admin-operaciones-calidad', [admin_OperacionesController::class, 'calidadIndex'])->name('admin-operaciones-calidad.index');
-Route::post('admin-operaciones-calidad/guardar-check', [admin_OperacionesController::class, 'calidadGuardarCheck'])->name('admin-operaciones-calidad.guardar-check');
-Route::post('admin-operaciones-calidad/aprobar', [admin_OperacionesController::class, 'calidadAprobar'])->name('admin-operaciones-calidad.aprobar');
-Route::post('admin-operaciones-calidad/rechazar', [admin_OperacionesController::class, 'calidadRechazar'])->name('admin-operaciones-calidad.rechazar');
-Route::get('admin-operaciones-calidad/{id}', [admin_OperacionesController::class, 'calidadGetPedido'])->name('admin-operaciones-calidad.show');
+    // Calidad
+    Route::get('admin-operaciones-calidad', [admin_OperacionesController::class, 'calidadIndex'])->name('admin-operaciones-calidad.index');
+    Route::post('admin-operaciones-calidad/guardar-check', [admin_OperacionesController::class, 'calidadGuardarCheck'])->name('admin-operaciones-calidad.guardar-check');
+    Route::post('admin-operaciones-calidad/aprobar', [admin_OperacionesController::class, 'calidadAprobar'])->name('admin-operaciones-calidad.aprobar');
+    Route::post('admin-operaciones-calidad/rechazar', [admin_OperacionesController::class, 'calidadRechazar'])->name('admin-operaciones-calidad.rechazar');
+    Route::get('admin-operaciones-calidad/{id}', [admin_OperacionesController::class, 'calidadGetPedido'])->name('admin-operaciones-calidad.show');
 
-// Trazabilidad
-Route::get('admin-operaciones-trazabilidad', [admin_OperacionesController::class, 'trazabilidadIndex'])->name('admin-operaciones-trazabilidad.index');
-Route::get('admin-operaciones-trazabilidad/buscar', [admin_OperacionesController::class, 'trazabilidadBuscar'])->name('admin-operaciones-trazabilidad.buscar');
-Route::get('admin-operaciones-trazabilidad/{id}', [admin_OperacionesController::class, 'trazabilidadGetPedido'])->name('admin-operaciones-trazabilidad.show');
+    // Trazabilidad
+    Route::get('admin-operaciones-trazabilidad', [admin_OperacionesController::class, 'trazabilidadIndex'])->name('admin-operaciones-trazabilidad.index');
+    Route::get('admin-operaciones-trazabilidad/buscar', [admin_OperacionesController::class, 'trazabilidadBuscar'])->name('admin-operaciones-trazabilidad.buscar');
+    Route::get('admin-operaciones-trazabilidad/{id}', [admin_OperacionesController::class, 'trazabilidadGetPedido'])->name('admin-operaciones-trazabilidad.show');
 
-// Campañas
-Route::get('admin-operaciones-campanias', [admin_OperacionesController::class, 'campaniasIndex'])->name('admin-operaciones-campanias.index');
-Route::get('admin-operaciones-campanias/crear', [admin_OperacionesController::class, 'campaniasCreate'])->name('admin-operaciones-campanias.create');
-Route::post('admin-operaciones-campanias', [admin_OperacionesController::class, 'campaniasStore'])->name('admin-operaciones-campanias.store');
-Route::get('admin-operaciones-campanias/ajax/productos', [admin_OperacionesController::class, 'campaniasGetProductos'])->name('admin-operaciones-campanias.ajax.productos');
-Route::get('admin-operaciones-campanias/{id}', [admin_OperacionesController::class, 'campaniasShow'])->name('admin-operaciones-campanias.show');
-Route::get('admin-operaciones-campanias/{id}/editar', [admin_OperacionesController::class, 'campaniasEdit'])->name('admin-operaciones-campanias.edit');
-Route::put('admin-operaciones-campanias/{id}', [admin_OperacionesController::class, 'campaniasUpdate'])->name('admin-operaciones-campanias.update');
-Route::delete('admin-operaciones-campanias/{id}', [admin_OperacionesController::class, 'campaniasDestroy'])->name('admin-operaciones-campanias.destroy');
-Route::post('admin-operaciones-campanias/{id}/activar', [admin_OperacionesController::class, 'campaniasActivar'])->name('admin-operaciones-campanias.activar');
-Route::post('admin-operaciones-campanias/{id}/pausar', [admin_OperacionesController::class, 'campaniasPausar'])->name('admin-operaciones-campanias.pausar');
-Route::post('admin-operaciones-campanias/{id}/reanudar', [admin_OperacionesController::class, 'campaniasReanudar'])->name('admin-operaciones-campanias.reanudar');
-Route::post('admin-operaciones-campanias/{id}/finalizar', [admin_OperacionesController::class, 'campaniasFinalizar'])->name('admin-operaciones-campanias.finalizar');
-Route::post('admin-operaciones-campanias/{id}/duplicar', [admin_OperacionesController::class, 'campaniasDuplicar'])->name('admin-operaciones-campanias.duplicar');
-Route::get('admin-operaciones-campanias/{id}/metricas', [admin_OperacionesController::class, 'campaniasGetMetricas'])->name('admin-operaciones-campanias.metricas');
+    // Campañas
+    Route::get('admin-operaciones-campanias', [admin_OperacionesController::class, 'campaniasIndex'])->name('admin-operaciones-campanias.index');
+    Route::get('admin-operaciones-campanias/crear', [admin_OperacionesController::class, 'campaniasCreate'])->name('admin-operaciones-campanias.create');
+    Route::post('admin-operaciones-campanias', [admin_OperacionesController::class, 'campaniasStore'])->name('admin-operaciones-campanias.store');
+    Route::get('admin-operaciones-campanias/ajax/productos', [admin_OperacionesController::class, 'campaniasGetProductos'])->name('admin-operaciones-campanias.ajax.productos');
+    Route::get('admin-operaciones-campanias/{id}', [admin_OperacionesController::class, 'campaniasShow'])->name('admin-operaciones-campanias.show');
+    Route::get('admin-operaciones-campanias/{id}/editar', [admin_OperacionesController::class, 'campaniasEdit'])->name('admin-operaciones-campanias.edit');
+    Route::put('admin-operaciones-campanias/{id}', [admin_OperacionesController::class, 'campaniasUpdate'])->name('admin-operaciones-campanias.update');
+    Route::delete('admin-operaciones-campanias/{id}', [admin_OperacionesController::class, 'campaniasDestroy'])->name('admin-operaciones-campanias.destroy');
+    Route::post('admin-operaciones-campanias/{id}/activar', [admin_OperacionesController::class, 'campaniasActivar'])->name('admin-operaciones-campanias.activar');
+    Route::post('admin-operaciones-campanias/{id}/pausar', [admin_OperacionesController::class, 'campaniasPausar'])->name('admin-operaciones-campanias.pausar');
+    Route::post('admin-operaciones-campanias/{id}/reanudar', [admin_OperacionesController::class, 'campaniasReanudar'])->name('admin-operaciones-campanias.reanudar');
+    Route::post('admin-operaciones-campanias/{id}/finalizar', [admin_OperacionesController::class, 'campaniasFinalizar'])->name('admin-operaciones-campanias.finalizar');
+    Route::post('admin-operaciones-campanias/{id}/duplicar', [admin_OperacionesController::class, 'campaniasDuplicar'])->name('admin-operaciones-campanias.duplicar');
+    Route::get('admin-operaciones-campanias/{id}/metricas', [admin_OperacionesController::class, 'campaniasGetMetricas'])->name('admin-operaciones-campanias.metricas');
 
+}); // Fin middleware auth
 
-Route::get('admin-reportes', [admin_ReportesController::class, 'index'])->name('admin-reportes.index');
-
+// =============================================================
+// AUTH — Login, registro, password reset (públicos)
+// =============================================================
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

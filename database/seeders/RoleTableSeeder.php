@@ -3,72 +3,32 @@
 namespace Database\Seeders;
 
 use App\Models\Role;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class RoleTableSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $role = new Role();
-        $role->name = "Cuantica"; //Usuario Cuantica
-        $role->slug = Str::slug($role->name);
-        $role->estado = "Activo";
-        $role->nivel = "PRINCIPAL";
-        $role->save();
+        $roles = [
+            ['name' => 'Gerencia',       'descripcion' => 'Acceso de alto nivel, visibilidad total'],
+            ['name' => 'Administrador',  'descripcion' => 'Control total del sistema'],
+            ['name' => 'Ventas',         'descripcion' => 'CRM: prospectos, oportunidades, cotizaciones'],
+            ['name' => 'Finanzas',       'descripcion' => 'Cobros, ventas, reportes económicos'],
+            ['name' => 'Compras',        'descripcion' => 'Órdenes de compra y proveedores'],
+            ['name' => 'Almacen',        'descripcion' => 'Inventario, ingresos y salidas'],
+            ['name' => 'Operaciones',    'descripcion' => 'Supervisión de tickets, mantenimientos y asignaciones'],
+            ['name' => 'Tecnico',        'descripcion' => 'Personal de campo: recibe tickets y mantenimientos'],
+            ['name' => 'Cliente',        'descripcion' => 'Solo ecommerce'],
+        ];
 
-        $role = new Role();
-        $role->name = "Administrador"; //Administrador general
-        $role->slug = Str::slug($role->name);
-        $role->estado = "Activo";
-        $role->nivel = "PRINCIPAL";
-        $role->save();
-
-        $role = new Role();
-        $role->name = "Logistica"; //Instructores
-        $role->slug = Str::slug($role->name);
-        $role->estado = "Activo";
-        $role->nivel = "PRINCIPAL";
-        $role->save();
-
-        $role = new Role();
-        $role->name = "Almacen"; //Clientes
-        $role->slug = Str::slug($role->name);
-        $role->estado = "Activo";
-        $role->nivel = "PRINCIPAL";
-        $role->save();
-
-        $role = new Role();
-        $role->name = "Tesoreria"; //Clientes
-        $role->slug = Str::slug($role->name);
-        $role->estado = "Activo";
-        $role->nivel = "PRINCIPAL";
-        $role->save();
-
-        // $role = new Role();
-        // $role->name = "Reparto"; //Clientes
-        // $role->slug = Str::slug($role->name);
-        // $role->estado = "Activo";
-        // $role->nivel = "PRINCIPAL";
-        // $role->save();
-
-        $role = new Role();
-        $role->name = "Tecnico"; // Técnico de campo
-        $role->slug = Str::slug($role->name);
-        $role->estado = "Activo";
-        $role->nivel = "PRINCIPAL";
-        $role->save();
-
-        $role = new Role();
-        $role->name = "Cliente"; //Clientes
-        $role->slug = Str::slug($role->name);
-        $role->estado = "Activo";
-        $role->nivel = "PRINCIPAL";
-        $role->save();
-        
+        foreach ($roles as $data) {
+            Role::create([
+                'name'        => $data['name'],
+                'guard_name'  => 'web',
+                'descripcion' => $data['descripcion'],
+                'estado'      => 'Activo',
+                // slug se genera automáticamente en el boot() del modelo
+            ]);
+        }
     }
 }

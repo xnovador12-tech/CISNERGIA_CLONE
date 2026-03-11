@@ -144,7 +144,7 @@ class CotizacionApprovalService
             'distrito_id'            => $cliente->distrito_id,
             'fecha_entrega_estimada' => now()->addDays($cotizacion->tiempo_ejecucion_dias ?? 7),
             'vigencia_dias'          => 15,
-            'origen'                 => 'cotizacion',
+            'origen'                 => 'directo', // Clientes CRM siempre son directos (ENUM: ecommerce|directo)
             'observaciones'          => "Generado desde cotización {$cotizacion->codigo}."
                 . " Oportunidad: {$oportunidad->codigo}."
                 . " Proyecto: {$oportunidad->nombre}.",

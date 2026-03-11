@@ -19,7 +19,7 @@ class admin_CrmActividadesController extends Controller
     public function index(Request $request)
     {
         $user    = auth()->user();
-        $esAdmin = in_array(strtolower($user->role->slug ?? ''), ['cuantica', 'administrador']);
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
 
         $query = ActividadCrm::with(['usuario.persona', 'actividadable', 'asignadoA.persona']);
 
@@ -481,8 +481,7 @@ class admin_CrmActividadesController extends Controller
     {
         $user = auth()->user();
         $ahora = now();
-        $rolesAdmin = ['cuantica', 'administrador'];
-        $esAdmin = in_array(strtolower($user->role->slug ?? ''), $rolesAdmin);
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
 
         // IDs de notificaciones ya descartadas por este usuario
         $leidas = NotificacionCrmLeida::where('user_id', $user->id)->get();

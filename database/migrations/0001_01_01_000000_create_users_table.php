@@ -7,7 +7,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tabla principal de usuarios.
+     *
+     * NOTA: Se elimina la columna role_id ya que Spatie Laravel Permission
+     * maneja la relación usuario ↔ rol a través de la tabla pivot model_has_roles.
      */
     public function up(): void
     {
@@ -17,7 +20,6 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('estado')->default('Activo');
-            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->foreignId('persona_id')->constrained('personas')->onDelete('cascade');
             $table->rememberToken();
             $table->timestamps();
@@ -39,9 +41,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

@@ -8,58 +8,36 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
-    */
-
     use AuthenticatesUsers;
 
     /**
-     * Where to redirect users after login.
-     *
-     * @var string
+     * Ruta de fallback (no se usa realmente, la sobreescribe redirectTo()).
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
-    /**
-     * Get the post-login redirect path based on user role.
-     *
-     * @return string
-     */
-    protected function redirectTo()
-    {
-        // Redirigir según el rol del usuario
-        if (Auth::user()->role_id) {
-            if (Auth::user()->role_id == '1') {
-                return '/admin-configuraciones';
-            }
-            if (Auth::user()->role_id == '2') {
-                return '/admin-configuraciones';
-            }
-            if (Auth::user()->role_id == '3') {
-                return '/admin-configuraciones';
-            }
-        }
-        //falta mas valifaciones
-        // Redirección por defecto
-        return '/';
-    }
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
+    }
+
+    /**
+     * Redirección post-login según el rol del usuario.
+     *
+     * - Personal interno (Gerencia, Admin, Ventas, etc.) → panel admin
+     * - Cliente → ecommerce
+     *
+     * Usa el helper esPersonalInterno() del modelo User, que internamente
+     * llama a $user->hasRole('Cliente') de Spatie.
+     */
+    protected function redirectTo(): string
+    {
+        $user = Auth::user();
+
+        if ($user->esPersonalInterno()) {
+            return '/admin-dashboard';
+        }
+
+        return '/';
     }
 }

@@ -7,23 +7,30 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Tabla de roles compatible con Spatie Laravel Permission.
+     *
+     * Campos propios de Spatie:
+     *   - name       → nombre del rol (ej: "Administrador")
+     *   - guard_name → guard de autenticación (siempre "web" en este proyecto)
+     *
+     * Campos propios del proyecto:
+     *   - slug        → para URLs amigables (ej: "administrador")
+     *   - descripcion → descripción visible en el panel de configuraciones
+     *   - estado      → Activo / Inactivo
      */
     public function up(): void
     {
         Schema::create('roles', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
             $table->string('name');
-            $table->string('slug');
-            $table->string('estado');
-            $table->string('nivel');
+            $table->string('slug')->unique();
+            $table->string('guard_name')->default('web');
+            $table->string('descripcion')->nullable();
+            $table->string('estado')->default('Activo');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('roles');

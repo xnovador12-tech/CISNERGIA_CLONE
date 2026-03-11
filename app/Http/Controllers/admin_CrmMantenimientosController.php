@@ -76,7 +76,9 @@ class admin_CrmMantenimientosController extends Controller
                 ->whereNotIn('estado', ['completado', 'cancelado'])->count(),
         ];
 
-        $tecnicos = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $tecnicos = User::with('persona')
+            ->whereHas('roles', fn($q) => $q->whereIn('name', ['Tecnico', 'Operaciones']))
+            ->get()->sortBy(fn($u) => $u->persona?->name);
         $clientes = Cliente::orderBy('nombre')->get();
 
         return view('ADMINISTRADOR.CRM.mantenimientos.index', compact(
@@ -94,12 +96,12 @@ class admin_CrmMantenimientosController extends Controller
             ->take(5)
             ->get();
 
-        $tecnicos = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $tecnicos = User::with('persona')
+            ->whereHas('roles', fn($q) => $q->whereIn('name', ['Tecnico', 'Operaciones']))
+            ->get()->sortBy(fn($u) => $u->persona?->name);
 
-        $rolesAdmin = ['cuantica', 'administrador'];
-        $userSlug   = strtolower(auth()->user()->role->slug ?? '');
-        $esAdmin    = in_array($userSlug, $rolesAdmin);
-        $esTecnico  = $userSlug === 'tecnico';
+        $esAdmin   = auth()->user()->hasAnyRole(['Gerencia', 'Administrador']);
+        $esTecnico = auth()->user()->hasRole('Tecnico');
 
         return view('ADMINISTRADOR.CRM.mantenimientos.show', compact(
             'mantenimiento', 'historial', 'tecnicos', 'esAdmin', 'esTecnico'
@@ -114,7 +116,9 @@ class admin_CrmMantenimientosController extends Controller
                 ->with('info', 'Los mantenimientos completados o cancelados no pueden editarse.');
         }
 
-        $tecnicos = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $tecnicos = User::with('persona')
+            ->whereHas('roles', fn($q) => $q->whereIn('name', ['Tecnico', 'Operaciones']))
+            ->get()->sortBy(fn($u) => $u->persona?->name);
 
         return view('ADMINISTRADOR.CRM.mantenimientos.edit', compact('mantenimiento', 'tecnicos'));
     }
@@ -346,52 +350,12 @@ class admin_CrmMantenimientosController extends Controller
             ->with('success', 'Mantenimiento reprogramado para el ' . \Carbon\Carbon::parse($validated['fecha_programada'])->format('d/m/Y') . '.');
     }
 
+    /**
+     * Checklist por tipo de mantenimiento.
+     * Delega al model Mantenimiento para evitar duplicación de código.
+     */
     protected function getChecklistPorTipo(string $tipo): array
     {
-        $checklists = [
-            'preventivo' => [
-                ['tarea' => 'Inspección visual de paneles y estructura', 'completado' => false],
-                ['tarea' => 'Limpieza general de paneles', 'completado' => false],
-                ['tarea' => 'Revisión de conexiones y cableado', 'completado' => false],
-                ['tarea' => 'Revisión del inversor', 'completado' => false],
-                ['tarea' => 'Revisión de protecciones eléctricas', 'completado' => false],
-                ['tarea' => 'Verificación de funcionamiento general', 'completado' => false],
-                ['tarea' => 'Registro fotográfico', 'completado' => false],
-            ],
-            'correctivo' => [
-                ['tarea' => 'Diagnóstico del problema', 'completado' => false],
-                ['tarea' => 'Identificación del componente fallado', 'completado' => false],
-                ['tarea' => 'Reparación o reemplazo realizado', 'completado' => false],
-                ['tarea' => 'Pruebas posteriores a la reparación', 'completado' => false],
-                ['tarea' => 'Verificación de funcionamiento normal', 'completado' => false],
-                ['tarea' => 'Registro fotográfico', 'completado' => false],
-            ],
-            'limpieza' => [
-                ['tarea' => 'Limpieza de superficie de paneles', 'completado' => false],
-                ['tarea' => 'Limpieza de marcos y estructura', 'completado' => false],
-                ['tarea' => 'Limpieza de área del inversor', 'completado' => false],
-                ['tarea' => 'Retiro de residuos acumulados', 'completado' => false],
-                ['tarea' => 'Verificación visual post-limpieza', 'completado' => false],
-                ['tarea' => 'Registro fotográfico', 'completado' => false],
-            ],
-            'inspeccion' => [
-                ['tarea' => 'Inspección visual de paneles', 'completado' => false],
-                ['tarea' => 'Inspección de estructura y anclajes', 'completado' => false],
-                ['tarea' => 'Inspección de cableado y conexiones', 'completado' => false],
-                ['tarea' => 'Inspección del inversor', 'completado' => false],
-                ['tarea' => 'Verificación de funcionamiento del sistema', 'completado' => false],
-                ['tarea' => 'Registro fotográfico', 'completado' => false],
-            ],
-            'predictivo' => [
-                ['tarea' => 'Revisión del historial de producción', 'completado' => false],
-                ['tarea' => 'Identificación de caídas o anomalías en rendimiento', 'completado' => false],
-                ['tarea' => 'Inspección visual de componentes con desgaste', 'completado' => false],
-                ['tarea' => 'Revisión de conexiones y puntos de calor visibles', 'completado' => false],
-                ['tarea' => 'Evaluación general del estado del sistema', 'completado' => false],
-                ['tarea' => 'Registro fotográfico', 'completado' => false],
-            ],
-        ];
-
-        return $checklists[$tipo] ?? [];
+        return Mantenimiento::checklistPorTipo($tipo);
     }
 }

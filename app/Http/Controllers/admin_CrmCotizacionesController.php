@@ -27,8 +27,7 @@ class admin_CrmCotizacionesController extends Controller
     public function index(Request $request)
     {
         $user       = auth()->user();
-        $rolesAdmin = ['cuantica', 'administrador'];
-        $esAdmin    = in_array(strtolower($user->role->slug ?? ''), $rolesAdmin);
+        $esAdmin    = $user->hasAnyRole(['Gerencia', 'Administrador']);
 
         $query = CotizacionCrm::with(['oportunidad.prospecto', 'oportunidad.cliente', 'usuario']);
 

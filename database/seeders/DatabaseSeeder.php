@@ -2,13 +2,18 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
+     *
+     * ORDEN CRÍTICO:
+     *   1. RoleTableSeeder        → crea los 8 roles
+     *   2. PermissionSeeder       → crea los ~70 permisos
+     *   3. RolePermissionSeeder   → asigna permisos a Gerencia y Administrador
+     *   4. UserTableSeeder        → crea usuarios y les asigna roles (usa assignRole)
      *
      * NOTA: NO usar WithoutModelEvents aquí.
      * Los modelos CRM (Prospecto, Oportunidad, Cliente, etc.) dependen
@@ -22,8 +27,14 @@ class DatabaseSeeder extends Seeder
         $this->call(IdentificacionTableSeeder::class);
         $this->call(TipoTableSeeder::class);
         $this->call(SedeTableSeeder::class);
-        $this->call(RoleTableSeeder::class);
-        $this->call(UserTableSeeder::class);
+
+        // ─── Auth (Spatie) ────────────────────────────────────────────────
+        $this->call(RoleTableSeeder::class);       // 1. Roles
+        $this->call(PermissionSeeder::class);      // 2. Permisos
+        $this->call(RolePermissionSeeder::class);  // 3. Asignación rol ↔ permiso
+        $this->call(UserTableSeeder::class);       // 4. Usuarios con assignRole()
+
+        // ─── Catálogos ────────────────────────────────────────────────────
         $this->call(CategoryTableSeeder::class);
         $this->call(BancoTableSeeder::class);
         $this->call(TipocuentaTableSeeder::class);
@@ -49,6 +60,5 @@ class DatabaseSeeder extends Seeder
         $this->call(ChecklistItemTableSeeder::class);
         $this->call(KanbanTestDataSeeder::class);
         $this->call(CampaniaTableSeeder::class);
-
     }
 }

@@ -91,10 +91,10 @@ class KanbanTestDataSeeder extends Seeder
         // 4. TÉCNICOS (personas + users)
         // =============================================
         $tecnicosData = [
-            ['name' => 'Carlos', 'surnames' => 'Mendoza Ríos', 'email' => 'carlos.mendoza@cisnergia.pe', 'role_id' => 3],
-            ['name' => 'María', 'surnames' => 'López Herrera', 'email' => 'maria.lopez@cisnergia.pe', 'role_id' => 3],
-            ['name' => 'Juan', 'surnames' => 'Pérez Soto', 'email' => 'juan.perez@cisnergia.pe', 'role_id' => 4],
-            ['name' => 'Ana', 'surnames' => 'García Vega', 'email' => 'ana.garcia@cisnergia.pe', 'role_id' => 4],
+            ['name' => 'Carlos', 'surnames' => 'Mendoza Ríos', 'email' => 'carlos.mendoza@cisnergia.pe', 'rol' => 'Operaciones'],
+            ['name' => 'María', 'surnames' => 'López Herrera', 'email' => 'maria.lopez@cisnergia.pe', 'rol' => 'Operaciones'],
+            ['name' => 'Juan', 'surnames' => 'Pérez Soto', 'email' => 'juan.perez@cisnergia.pe', 'rol' => 'Almacen'],
+            ['name' => 'Ana', 'surnames' => 'García Vega', 'email' => 'ana.garcia@cisnergia.pe', 'rol' => 'Almacen'],
         ];
 
         $tecnicoUserIds = [];
@@ -115,15 +115,17 @@ class KanbanTestDataSeeder extends Seeder
                 'updated_at' => now(),
             ]);
 
-            $tecnicoUserIds[] = DB::table('users')->insertGetId([
-                'email' => $t['email'],
-                'password' => Hash::make('password'),
-                'estado' => 'Activo',
-                'role_id' => $t['role_id'],
-                'persona_id' => $personaId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            $tecnicoUser = \App\Models\User::withoutEvents(function () use ($t, $personaId) {
+                $u = \App\Models\User::create([
+                    'email'      => $t['email'],
+                    'password'   => Hash::make('password'),
+                    'estado'     => 'Activo',
+                    'persona_id' => $personaId,
+                ]);
+                $u->assignRole($t['rol']);
+                return $u;
+            });
+            $tecnicoUserIds[] = $tecnicoUser->id;
         }
 
         // =============================================
@@ -167,15 +169,17 @@ class KanbanTestDataSeeder extends Seeder
                 'updated_at' => now(),
             ]);
 
-            $userId = DB::table('users')->insertGetId([
-                'email' => $c['email'],
-                'password' => Hash::make('password'),
-                'estado' => 'Activo',
-                'role_id' => 6, // Cliente
-                'persona_id' => $personaId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            $clienteUser = \App\Models\User::withoutEvents(function () use ($c, $personaId) {
+                $u = \App\Models\User::create([
+                    'email'      => $c['email'],
+                    'password'   => Hash::make('password'),
+                    'estado'     => 'Activo',
+                    'persona_id' => $personaId,
+                ]);
+                $u->assignRole('Cliente');
+                return $u;
+            });
+            $userId = $clienteUser->id;
 
             $clienteIds[] = Cliente::create([
                 'nombre'    => $c['name'],

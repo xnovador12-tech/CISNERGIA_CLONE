@@ -113,12 +113,8 @@
                         <span class="text-uppercase text-secondary fw-bold">E-commerce</span>
                     </div>
                     <div class="card-body pb-0">
-                        <p class="fw-normal" align="justify">Administra la información de clientes, coberturas y descuento para la tienda.</p>
+                        <p class="fw-normal" align="justify">Administra las coberturas, descuentos y cupones para la tienda.</p>
                         <ul class="list-unstyled">
-                            <li class="text-primary menu_item">
-                                <i class="bi bi-person-check me-2"></i>
-                                <a href="<?php echo e(route('admin.crm.clientes.index')); ?>" class="link-primary text-decoration-none">Clientes</a>
-                            </li>
                             <li class="text-primary menu_item">
                                 <i class="bi bi-map me-2"></i>
                                 <a href="<?php echo e(route('admin-coberturas.index')); ?>" class="link-primary text-decoration-none">Cobertura</a>
