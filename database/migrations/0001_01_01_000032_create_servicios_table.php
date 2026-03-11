@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('descripcion');
             $table->string('estado')->default('Inactivo');
             $table->string('registrado_por')->nullable();
-            $table->foreignId('proveedor_id')->nullable()->constrained('proveedors')->onDelete('cascade');
             $table->foreignId('sede_id')->constrained('sedes');
             $table->timestamps();
         });

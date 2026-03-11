@@ -37,14 +37,12 @@ class admin_ServiciosController extends Controller
         $now = Carbon::now();
         $servici = Servicio::orderBy('id','desc')->first();
         $nubRow =$servici?$servici->id+1:1;
-        $codigo = 'SERV-'.$now->format('Ymd').'-'.$nubRow;
+        $codigo = 'SERV-'.$now->format('Y').'-'.(str_pad($nubRow, 3, '0', STR_PAD_LEFT));
 
         $servicios = new Servicio();
         $servicios->name = $request->input('name');
         $servicios->slug = Str::slug($codigo);
         $servicios->codigo = $codigo;
-        $servicios->tipo_servicio = $request->input('tipo_servicio');
-        $servicios->proveedor_id = $request->input('proveedor_id');
         $servicios->descripcion = $request->input('descripcion');
         $servicios->sede_id = Auth::user()->persona->sede_id;
         $servicios->save();
@@ -92,6 +90,7 @@ class admin_ServiciosController extends Controller
      */
     public function destroy(Servicio $admin_servicio)
     {
-        //
+        $admin_servicio->delete();
+        return redirect()->route('admin-servicios.index')->with('delete', 'ok');
     }
 }
