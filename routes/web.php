@@ -26,6 +26,9 @@ use App\Http\Controllers\admin_VentasController;
 use App\Http\Controllers\admin_SalidasController;
 use App\Http\Controllers\admin_InventarioController;
 use App\Http\Controllers\ecommerceController;
+use App\Http\Controllers\admin_CuentabancoController;
+use App\Http\Controllers\admin_ComprobantesController;
+use App\Http\Controllers\admin_ComprobantesComprasController;
 use App\Http\Controllers\admin_CrmProspectosController;
 use App\Http\Controllers\admin_CrmOportunidadesController;
 use App\Http\Controllers\admin_CrmCotizacionesController;
@@ -151,6 +154,11 @@ Route::middleware(['auth'])->group(function () {
     route::get('busqueda_lotes', [admin_SalidasController::class, 'getbusqueda_lotes']);
 
     Route::resource('admin-inventarios', admin_InventarioController::class);
+    Route::resource('admin-cuentasbancarias', admin_CuentabancoController::class);
+    Route::resource('admin-comprobantes', admin_ComprobantesController::class);
+    Route::resource('admin-comprobantes-compras', admin_ComprobantesComprasController::class);
+    Route::get('/admin-comprobantes/{admin_comprobante}/voucher', [admin_ComprobantesController::class, 'voucher'])->name('admin-comprobantes.voucher');
+    Route::get('/admin-comprobantes/api/pedido/{id}', [admin_ComprobantesController::class, 'getPedidoDetails'])->name('admin-comprobantes.getPedido');
 
     // ---------------------------------------------------------
     // UBIGEO AJAX

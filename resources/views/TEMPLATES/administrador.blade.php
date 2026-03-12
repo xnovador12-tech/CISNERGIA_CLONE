@@ -299,36 +299,37 @@
                             </a>
                         </li>
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-cobros.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-cobros*']) ? 'active-item' : null }} menu">
-                                <span class="fw-bold">
-                                    <i class="bi bi-cart me-2"></i>
-                                </span>
-                                <span>
-                                    Cobros
-                                </span>
-                            </a>
-                        </li>
-                        <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-pagos.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-pagos*']) ? 'active-item' : null }} menu">
+                            <a href="{{ route('admin-comprobantes-compras.index') }}"
+                                class="nav-link px-3 {{ (request()->is('admin-comprobantes-compras') || request()->is('admin-comprobantes-compras/*')) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-cash-coin me-2"></i>
                                 </span>
                                 <span>
-                                    Pagos
+                                    Comprobantes de Pagos
                                 </span>
                             </a>
                         </li>
 
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-comprobantes.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-comprobantes*']) ? 'active-item' : null }} menu">
+                            <a href="{{ route('admin-cuentasbancarias.index') }}"
+                                class="nav-link px-3 {{ request()->is(['admin-cuentasbancarias*']) ? 'active-item' : null }} menu">
+                                <span class="fw-bold">
+                                    <i class="bi bi-bank me-2"></i>
+                                </span>
+                                <span>
+                                    Cuentas Bancarias
+                                </span>
+                            </a>
+                        </li>
+
+                        <li class="mx-2 my-1">
+                            <a href="{{ route('admin-comprobantes.index') }}"
+                                class="nav-link px-3 {{ (request()->is('admin-comprobantes') || request()->is('admin-comprobantes/*')) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-receipt me-2"></i>
                                 </span>
                                 <span>
-                                    Comprobantes
+                                    Comprobantes de Ventas
                                 </span>
                             </a>
                         </li>

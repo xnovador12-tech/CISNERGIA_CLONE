@@ -44,6 +44,23 @@ class DatabaseSeeder extends Seeder
         $this->call(ComprobanteTableSeeder::class);
         $this->call(MarcaTableSeeder::class);
         $this->call(AlmacenTableSeeder::class);
+        $this->call(TipoOperacionSeeder::class);
+        $this->call(TipoComprobanteSeeder::class);
+        $this->call(SerieSeeder::class);
+        $this->call(FinanceSeeds::class);
+        $this->call(CuentabancoSeeder::class);
+        $this->call(TipoIngresoSeeder::class);
+        $this->call(AperturaCierreCajaSeeder::class);
+        $this->call(IngresoFinancieroSeeder::class);
+        $this->call(ComprobanteVentaSeeder::class);
+        $this->call(ComprobanteVentaCuotaSeeder::class);
+        $this->call(MedioPagoDetraccionSeeder::class);
+        $this->call(TipoDetraccionSeeder::class);
+        $this->call(ComprobanteVentaDetraccionSeeder::class);
+        $this->call(MovimientoCuentaDetraccionSeeder::class);
+        $this->call(TipoAfectacionSeeder::class);
+        $this->call(UnidadMedidaSeeder::class);
+        $this->call(ItemVentaSeeder::class);
 
         // Productos (necesario antes del CRM para las cotizaciones)
         $this->call(ModeloSeeder::class);
