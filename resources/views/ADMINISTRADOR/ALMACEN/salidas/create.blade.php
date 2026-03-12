@@ -80,7 +80,7 @@
                                     <select class="form-select form-select-sm @error ('motivo') is-invalid @enderror select2_bootstrap_2" required name="motivo" id="motivo_id" required>
                                         <option value="{{ old('motivo') }}" selected="selected" hidden="hidden">{{ old('motivo') }}</option>
                                         @foreach ($motivos as $motivo)
-                                            @if($motivo->id == '2' || $motivo->id == '4' || $motivo->id == '5')
+                                            @if($motivo->id == '2' || $motivo->id == '4' || $motivo->id == '5' || $motivo->id == '6')
                                                 <option value="{{ $motivo->name }}">{{ $motivo->name }}</option>
                                             @endif
                                         @endforeach

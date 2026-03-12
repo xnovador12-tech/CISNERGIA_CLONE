@@ -51,5 +51,12 @@ class MotivoTableSeeder extends Seeder
         $motivo->estado = "Activo";
         $motivo->save();
 
+        $motivo = new Motivo();
+        $motivo->name = "Muestra";
+        $motivo->slug = "muestra";
+        $motivo->tipo_motivo = "ALMACEN";
+        $motivo->estado = "Activo";
+        $motivo->save();
+
     }
 }
