@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Almacen;
+use App\Models\Detallemovimiento;
 use App\Models\Detallesalida;
 use App\Models\Inventario;
 use App\Models\Motivo;
+use App\Models\Movimiento;
 use App\Models\Producto;
 use App\Models\Salida;
 use App\Models\Sale;
@@ -22,7 +24,7 @@ class admin_SalidasController extends Controller
      */
     public function index()
     {
-        $admin_salidas = Salida::all();
+        $admin_salidas = Movimiento::where('tipo_movimiento', 'SALIDA')->get();
         return view('ADMINISTRADOR.ALMACEN.salidas.index',compact('admin_salidas'));
     }
 
@@ -32,7 +34,7 @@ class admin_SalidasController extends Controller
     public function create()
     {
         $now = Carbon::now();
-        $ingresos = Salida::orderBy('id','desc')->first();
+        $ingresos = Movimiento::where('tipo_movimiento', 'SALIDA')->orderBy('id','desc')->first();
         $nubRow =$ingresos?$ingresos->id+1:1;
         $codigo = 'MS'.$now->format('Ymd').''.$nubRow;
 
@@ -71,12 +73,12 @@ class admin_SalidasController extends Controller
         }
     }
 
-    public function getbusqueda_lotes(Request $request){
+    public function getbusqueda_inventarios(Request $request){
         if($request->ajax()){
-            $lotes = Inventario::where('id_producto',$request->valor_id_producto)->where('almacen_id',$request->valor_almacen)->get();
+            $list_inventario = Inventario::where('id_producto',$request->valor_id_producto)->where('almacen_id',$request->valor_almacen)->get();
 
-            foreach($lotes as $lote){
-                $Arraylist[$lote->id] = [$lote->lote, $lote->umedida,$lote->cantidad,$lote->precio];
+            foreach($list_inventario as $list_inventarios){
+                $Arraylist[$list_inventarios->id] = [$list_inventarios->umedida,$list_inventarios->cantidad,$list_inventarios->precio];
             }
             return response()->json($Arraylist);
         }
@@ -87,13 +89,14 @@ class admin_SalidasController extends Controller
      */
     public function store(Request $request)
     {
-        $salidas = new Salida();
+        $salidas = new Movimiento();
         $salidas->codigo = $request->input('codigo');
         $salidas->slug = Str::slug($request->input('codigo'));
         $salidas->motivo = $request->input('motivo');
         $salidas->fecha = $request->input('fecha');
+        $salidas->tipo_movimiento = 'SALIDA';
         $salidas->descripcion = $request->input('descripcion');
-        $salidas->total_producto = $request->input('total');
+        $salidas->total = $request->input('total');
         $salidas->almacen_id = $request->input('id_almacen');
         if($salidas->motivo == 'Venta'){
             $valor_venta = Sale::where('id',$request->input('id_venta'))->first();
@@ -114,9 +117,7 @@ class admin_SalidasController extends Controller
         }
 
         $producto_id = $request->input('producto_id');
-        $producto_tipo_id = $request->input('producto_tipo_id');
         $producto = $request->input('producto');
-        $lote_producto = $request->input('lote');
         $medida_producto = $request->input('medida');
         $cantidad_producto = $request->input('cantidad');
         $precio_producto = $request->input('precio');
@@ -125,23 +126,18 @@ class admin_SalidasController extends Controller
             foreach ($producto_id as $key => $name) {
                 $valor_producto = Producto::where('id',$producto_id[$key])->first();
 
-                $detallesalida = new Detallesalida();
-                $detallesalida->salida_id = $salidas->id;
-                $detallesalida->codigo = $valor_producto->codigo;
+                $detallesalida = new Detallemovimiento();
+                $detallesalida->movimiento_id = $salidas->id;
+                $detallesalida->id_producto = $producto_id[$key];
+                $detallesalida->tipo_producto = $valor_producto->tipo->name;
                 $detallesalida->producto = $producto[$key];
-                $detallesalida->producto_id = $producto_id[$key];
-                $detallesalida->categoria = $valor_producto->categorie->name;
-                $detallesalida->vida_util = $valor_producto->vida_util;
                 $detallesalida->umedida = $medida_producto[$key];
                 $detallesalida->cantidad = $cantidad_producto[$key];
-                $detallesalida->tipo_id = $valor_producto->tipo_id;
-                $detallesalida->lote = $lote_producto[$key];
                 $detallesalida->precio = $precio_producto[$key];
-                $detallesalida->areaalmacen_id = $salidas->almacen_id;
                 $detallesalida->save();
 
-                if(Inventario::where('id_producto',$producto_id[$key])->where('lote',$lote_producto[$key])->where('tipo_producto',$valor_producto->tipo->name)->exists()){
-                    $almacen_producto = Inventario::where('id_producto',$producto_id[$key])->where('lote',$lote_producto[$key])->where('tipo_producto',$valor_producto->tipo->name)->first();
+                if(Inventario::where('id_producto',$producto_id[$key])->where('tipo_producto',$valor_producto->tipo->name)->exists()){
+                    $almacen_producto = Inventario::where('id_producto',$producto_id[$key])->where('tipo_producto',$valor_producto->tipo->name)->first();
 
                     if($almacen_producto){
                         $almacen_producto->cantidad = $almacen_producto->cantidad - $cantidad_producto[$key];
@@ -156,9 +152,9 @@ class admin_SalidasController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, Salida $admin_salida)
+    public function show(Request $request, Movimiento $admin_salida)
     {
-        $admin_dtlle = Detallesalida::where('salida_id', $admin_salida->id)->get();
+        $admin_dtlle = Detallemovimiento::where('movimiento_id', $admin_salida->id)->get();
         return view('ADMINISTRADOR.ALMACEN.salidas.show', compact('admin_salida', 'admin_dtlle'));
     }
 

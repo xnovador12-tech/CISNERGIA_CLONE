@@ -68,7 +68,6 @@
                             <th class="fw-bold small text-uppercase">N°</th>
                             <th class="fw-bold small text-uppercase">Tipo</th>
                             <th class="fw-bold small text-uppercase">Descripción</th>
-                            <th class="fw-bold small text-uppercase">Lote</th>
                             <th class="fw-bold small text-uppercase">U.M.</th>
                             <th class="fw-bold small text-uppercase">Cantidad</th>
                             <th class="fw-bold small text-uppercase">Precio</th>
@@ -80,13 +79,12 @@
                             @endphp 
                             @foreach($admin_dtlle as $admin_dtlles)
                                 @php
-                                    $valor_producto = \App\Models\Producto::where('id',$admin_dtlles->producto_id)->first();
+                                    $valor_producto = \App\Models\Producto::where('id',$admin_dtlles->id_producto)->first();
                                 @endphp
                                 <tr class="text-center">
                                     <td class="fw-normal align-middle">{{ $contador }}</td>
                                     <td class="fw-normal align-middle">{{ $valor_producto->tipo->name }}</td>
                                     <td class="fw-normal align-middle">{{ $admin_dtlles->producto }}</td>
-                                    <td class="fw-normal align-middle">{{ $admin_dtlles->lote }}</td>
                                     <td class="fw-normal align-middle">{{ $admin_dtlles->umedida }}</td>
                                     <td class="fw-normal align-middle">{{ $admin_dtlles->cantidad }}</td>
                                     <td class="fw-normal align-middle">{{ $admin_dtlles->precio == 'null'?'No requerido':$admin_dtlles->precio }}</td>

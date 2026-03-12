@@ -9,12 +9,15 @@ use App\Models\Motivo;
 use App\Models\Ordencompra;
 use App\Models\Producto;
 use App\Models\Detalleingreso;
+use App\Models\Detallemovimiento;
 use App\Models\Inventario;
+use App\Models\Movimiento;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class admin_IngresosController extends Controller
 {
@@ -23,7 +26,7 @@ class admin_IngresosController extends Controller
      */
     public function index()
     {
-        $admin_ingresos = Ingreso::all();
+        $admin_ingresos = Movimiento::where('tipo_movimiento', 'INGRESO')->get();
         return view('ADMINISTRADOR.ALMACEN.ingresos.index',compact('admin_ingresos'));
     }
 
@@ -33,7 +36,7 @@ class admin_IngresosController extends Controller
     public function create()
     {
         $now = Carbon::now();
-        $ingresos = Ingreso::orderBy('id','desc')->first();
+        $ingresos = Movimiento::where('tipo_movimiento', 'INGRESO')->orderBy('id','desc')->first();
         $nubRow =$ingresos?$ingresos->id+1:1;
         $codigo = 'MI'.$now->format('Ymd').''.$nubRow;
 
@@ -75,11 +78,12 @@ class admin_IngresosController extends Controller
      */
     public function store(Request $request)
     {
-        $ingresos = new Ingreso();
+        $ingresos = new Movimiento();
         $ingresos->codigo = $request->input('codigo');
         $ingresos->slug = Str::slug($request->input('codigo'));
         $ingresos->motivo = $request->input('motivo');
         $ingresos->fecha = $request->input('fecha');
+        $ingresos->tipo_movimiento = 'INGRESO';
         if($request->input('motivo') == 'Inventario'){
             $ingresos->codigo_ocompra = $request->input('codigo_ocompra');
 
@@ -104,7 +108,6 @@ class admin_IngresosController extends Controller
         $producto_id = $request->input('producto_id');
         $producto_tipo_id = $request->input('producto_tipo_id');
         $producto = $request->input('producto');
-        $lote_producto = $request->input('lote');
         $medida_producto = $request->input('medida');
         $cantidad_producto = $request->input('cantidad');
         $precio_producto = $request->input('precio');
@@ -113,20 +116,19 @@ class admin_IngresosController extends Controller
             foreach ($producto_id as $key => $name) {
                 $cod_prod = Producto::where('id',$producto_id[$key])->first(); 
                 
-                $detalleingreso = new Detalleingreso();
-                $detalleingreso->ingreso_id = $ingresos->id;
+                $detalleingreso = new Detallemovimiento();
+                $detalleingreso->movimiento_id = $ingresos->id;
                 $detalleingreso->id_producto = $producto_id[$key];
                 $detalleingreso->tipo_producto = $producto_tipo_id[$key];
                 $detalleingreso->producto = $producto[$key];
-                $detalleingreso->lote = $lote_producto[$key];
                 $detalleingreso->umedida = $medida_producto[$key];
                 $detalleingreso->cantidad = $cantidad_producto[$key];
                 $detalleingreso->precio = $precio_producto[$key];
                 $detalleingreso->save();
 
                 if($request->input('motivo') == 'Inventario'){
-                    if(Inventario::where('id_producto',$producto_id[$key])->where('lote',$lote_producto[$key])->where('tipo_producto',$producto_tipo_id[$key])->exists()){
-                        $almacen_producto = Inventario::where('id_producto',$producto_id[$key])->where('lote',$lote_producto[$key])->where('tipo_producto',$producto_tipo_id[$key])->first();
+                    if(Inventario::where('id_producto',$producto_id[$key])->where('tipo_producto',$producto_tipo_id[$key])->exists()){
+                        $almacen_producto = Inventario::where('id_producto',$producto_id[$key])->where('tipo_producto',$producto_tipo_id[$key])->first();
     
                         if($almacen_producto){
                             $almacen_producto->cantidad = $almacen_producto->cantidad + $cantidad_producto[$key];
@@ -137,7 +139,6 @@ class admin_IngresosController extends Controller
                         $almacen_producto->id_producto = $producto_id[$key];
                         $almacen_producto->tipo_producto = $producto_tipo_id[$key];
                         $almacen_producto->producto = $producto[$key];
-                        $almacen_producto->lote = $lote_producto[$key];
                         $almacen_producto->umedida = $medida_producto[$key];
                         $almacen_producto->cantidad = $cantidad_producto[$key];
                         $almacen_producto->precio = $precio_producto[$key];
@@ -155,16 +156,16 @@ class admin_IngresosController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, Ingreso $admin_ingreso)
+    public function show(Request $request, Movimiento $admin_ingreso)
     {
-        $admin_dtlle = Detalleingreso::where('ingreso_id', $admin_ingreso->id)->get();
+        $admin_dtlle = Detallemovimiento::where('movimiento_id', $admin_ingreso->id)->get();
         return view('ADMINISTRADOR.ALMACEN.ingresos.show', compact('admin_ingreso', 'admin_dtlle'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, Ingreso $admin_ingreso)
+    public function edit(Request $request, Movimiento $admin_ingreso)
     {
         //
     }
@@ -184,4 +185,14 @@ class admin_IngresosController extends Controller
     {
         //
     }
+
+    // Reporte para ver de forma individual
+    public function getIngresopdf(Movimiento $admin_ingreso)
+    {
+        $now = Carbon::now();
+        $dtlle_ingreso = Detallemovimiento::where('movimiento_id',$admin_ingreso->id)->get();
+        $pdf = Pdf::loadView('ADMINISTRADOR.REPORTES.movimiento-ingresos.pdf.detalle_movingresoPDF', ['admin_ingreso'=>$admin_ingreso, 'dtlle_ingreso'=>$dtlle_ingreso, 'now'=>$now]);
+        return $pdf->stream('DETALLE-MOVIMIENTO-INGRESO-'.$admin_ingreso->codigo.'.pdf');
+    }
+    // 
 }

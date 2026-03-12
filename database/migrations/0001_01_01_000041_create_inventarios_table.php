@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('id_producto');
             $table->string('tipo_producto');
             $table->string('producto');
-            $table->string('lote');
             $table->string('umedida');
             $table->string('cantidad');
             $table->string('precio');

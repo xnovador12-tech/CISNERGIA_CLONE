@@ -186,7 +186,7 @@
     })
 </script>
     <!--sweet alert agregar-->
-    @if(session('addproveedor') == 'ok')
+    @if(session('new_registration') == 'ok')
     <script>
         Swal.fire({
         icon: 'success',

@@ -80,7 +80,7 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow"> 
                                             <li class="dropdown-item">
-                                                <a target="_blank" href="" class="link-dark text-decoration-none"><i class="bi bi-printer-fill text-secondary me-2"></i>Imprimir</a>
+                                                <a target="_blank" href="{{ route('detalle_ingreso.pdf', $admin_ingreso->slug) }}" class="link-dark text-decoration-none"><i class="bi bi-printer-fill text-secondary me-2"></i>Imprimir</a>
                                             </li>
                                             <li class="dropdown-item">
                                                 <a href="{{ url("admin-ingresos/$admin_ingreso->slug") }}" class="link-dark text-decoration-none"><i class="bi bi-eye text-secondary me-2"></i>Detalles</a>

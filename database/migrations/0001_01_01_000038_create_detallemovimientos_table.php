@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateDetalleingresosTable extends Migration
+class CreateDetallemovimientosTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,15 @@ class CreateDetalleingresosTable extends Migration
      */
     public function up()
     {
-        Schema::create('detalleingresos', function (Blueprint $table) {
+        Schema::create('detallemovimientos', function (Blueprint $table) {
             $table->id();
             $table->string('id_producto');
             $table->string('tipo_producto');
             $table->string('producto');
-            $table->string('lote');
             $table->string('umedida');
             $table->string('cantidad');
             $table->string('precio');
-            $table->foreignId('ingreso_id')->constrained('ingresos')->onDelete('cascade');
+            $table->foreignId('movimiento_id')->constrained('movimientos')->onDelete('cascade');
             $table->timestamps();
         });
     }

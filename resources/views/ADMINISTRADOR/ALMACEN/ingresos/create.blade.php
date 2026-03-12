@@ -140,10 +140,6 @@
                                 <select class="form-select select2 form-select-sm" id="bienes_id" >
                                 </select>  
                             </div>
-                            <div class="col-6 col-md-3 col-lg-1 mb-3">
-                                <label for="lote__id" class=" d-block">Lote</label>
-                                <input type="text" class="form-control form-control-sm bg-white" id="lote_id">
-                            </div>
                             <div class="col-6 col-md-3 col-lg-2 mb-3">
                                 <label for="monto__id" class=" d-block">Cantidad</label>
                                 <div class="input-group input-group-sm">
@@ -174,7 +170,6 @@
                                 <th class="fw-bold small text-uppercase">N°</th>
                                 <th class="fw-bold small text-uppercase">Tipo</th>
                                 <th class="fw-bold small text-uppercase">Descripción</th>
-                                <th class="fw-bold small text-uppercase">Lote</th>
                                 <th class="fw-bold small text-uppercase">U.M.</th>
                                 <th class="fw-bold small text-uppercase">Cantidad</th>
                                 <th class="fw-bold small text-uppercase">Precio</th>
@@ -293,7 +288,7 @@ $(document).ready(function() {
                                 var fila = '<tr class="selected igv_carta" id="filamp' + contador_mps +
                                     '"><td class="align-middle fw-normal">' + contador_mps + '</td><td class="align-middle fw-normal">' + value[2] +
                                     '</td><td class="align-middle fw-normal">' + value[1] +
-                                    '</td><td class="align-middle fw-normal"><input type="text" class="form-control form-control-sm w-50" required name="lote[]" ></td><td class="align-middle fw-normal">' + value[3] +
+                                    '</td><td class="align-middle fw-normal">' + value[3] +
                                     '</td><td class="align-middle fw-normal"><input type="text" class="form-control form-control-sm w-50" required name="cantidad[]" value="' + value[4] +
                                     '"></td><td class="align-middle fw-normal">' + value[5] +
                                     '</td><td><input type="hidden" name="producto_id[]" value="' + value[0] +
@@ -308,7 +303,6 @@ $(document).ready(function() {
                             $('#bienes_id').prop('selectedIndex', 0).change();
                             $('#cantidad_id').val("");
                             $('#precio_id').val("");
-                            $('#lote_id').val("");
                             // $('#fecha_vencimiento_id').val("");
                             $('#total_id').html(cantidad_totalg);
                             $('#total_ids').val(cantidad_totalg);
@@ -352,7 +346,6 @@ $(document).ready(function() {
         $('#btnasignar').click(function() {
                 if(valormotivo == 'Inventario'){
                     var producto = document.getElementById('bienes_id').value.split('_');
-                    var lote = $('#lote_id').val();
                     var cantidad = Number($('#cantidad_id').val() || 0);
                     var precio = Number($('#precio_id').val() || 0);
                     valormotivo = $('#motivo_id').val();
@@ -362,14 +355,12 @@ $(document).ready(function() {
                                 var fila = '<tr class="selected igv_carta" id="filamp' + contador_mps +
                                     '"><td class="align-middle fw-normal">' + contador_mps + '</td><td class="align-middle fw-normal">' + producto[3] +
                                     '</td><td class="align-middle fw-normal">' + producto[2] +
-                                    '</td><td class="align-middle fw-normal">' + lote +
                                     '</td><td class="align-middle fw-normal">' + producto[4] +
                                     '</td><td class="align-middle fw-normal">' + cantidad +
                                     '</td><td class="align-middle fw-normal">' + producto[6] +
                                     '</td><input type="hidden" name="producto_id[]" value="' + producto[1] +
                                     '"><input type="hidden" name="producto_tipo_id[]" value="' + producto[3] +
                                     '"><input type="hidden" name="producto[]" value="' + producto[2] +
-                                    '"><input type="hidden" name="lote[]" value="' + lote +
                                     '"><input type="hidden" name="medida[]" value="' + producto[4] +
                                     '"><input type="hidden" name="cantidad[]" value="' + cantidad +
                                     '"><input type="hidden" name="precio[]" value="' + producto[6] +
@@ -380,7 +371,6 @@ $(document).ready(function() {
                             $('#bienes_id').prop('selectedIndex', 0).change();
                             $('#cantidad_id').val("");
                             $('#precio_id').val("");
-                            $('#lote_id').val("");
                             $('#total_id').html(cantidad_totalg);
                             $('#total_ids').val(cantidad_totalg);
                             $('#dtll_ingreso').append(fila);

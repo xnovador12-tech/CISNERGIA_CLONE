@@ -148,10 +148,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('admin-ingresos', admin_IngresosController::class);
     Route::get('busqueda_dtll_oc', [admin_IngresosController::class, 'getbusqueda_det_oc']);
     Route::get('busqueda_pterminado', [admin_IngresosController::class, 'getbusqueda_pterminado']);
+    Route::get('admin-ingresos/detalle-ingreso-pdf/{admin_ingreso}', [admin_IngresosController::class, 'getIngresopdf'])->name('detalle_ingreso.pdf');
 
     Route::resource('admin-salidas', admin_SalidasController::class);
     Route::get('busqueda_producto_inventario', [admin_SalidasController::class, 'getbusqueda_producto_inventario']);
-    route::get('busqueda_lotes', [admin_SalidasController::class, 'getbusqueda_lotes']);
+    route::get('busqueda_inventarios', [admin_SalidasController::class, 'getbusqueda_inventarios']);
 
     Route::resource('admin-inventarios', admin_InventarioController::class);
     Route::resource('admin-cuentasbancarias', admin_CuentabancoController::class);

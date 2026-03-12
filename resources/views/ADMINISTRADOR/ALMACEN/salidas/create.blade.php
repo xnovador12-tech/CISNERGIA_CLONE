@@ -139,11 +139,6 @@
                                 <select class="form-select select2_bootstrap_2 form-select-sm w-100" id="bienes_id" >
                                 </select>  
                             </div>
-                            <div class="col-6 col-md-3 col-lg-1 mb-3">
-                                <label for="lote__id" class=" d-block">Lote</label>
-                                <select class="form-select select2_bootstrap_2 form-select-sm" id="lote_id">
-                                </select>
-                            </div>
                             <div class="col-6 col-md-3 col-lg-2 mb-3">
                                 <label for="monto__id" class=" d-block">Cantidad</label>
                                 <div class="input-group input-group-sm">
@@ -269,7 +264,7 @@ $(document).ready(function() {
                 $('#bienes_id').empty();
                 $('#bienes_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
                 $.each(productos, function(index, value){
-                    $('#bienes_id').append("<option value='"+index+'_'+value[0]+'_'+value[1]+'_'+value[2]+'_'+value[3]+'_'+value[4]+'_'+value[5]+'_'+value[6]+'_'+value[7]+"'>"+value[1]+"</option>");
+                    $('#bienes_id').append("<option value='"+value[2]+"' data-codigo='"+value[0]+"' data-producto='"+value[1]+"' data-categoria='"+value[3]+"' data-vida_util='"+value[4]+"' data-medida='"+value[5]+"' data-tipo='"+value[6]+"' data-precio='"+value[7]+"'>"+value[1]+"</option>");
                 });
             });
         }
@@ -283,81 +278,67 @@ $(document).ready(function() {
             $('#bienes_id').empty();
             $('#bienes_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
             $.each(productos, function(index, value){
-                $('#bienes_id').append("<option value='"+index+'_'+value[0]+'_'+value[1]+'_'+value[2]+'_'+value[3]+'_'+value[4]+'_'+value[5]+'_'+value[6]+'_'+value[7]+"'>"+value[1]+"</option>");
+                $('#bienes_id').append("<option value='"+value[2]+"' data-codigo='"+value[0]+"' data-producto='"+value[1]+"' data-categoria='"+value[3]+"' data-vida_util='"+value[4]+"' data-medida='"+value[5]+"' data-tipo='"+value[6]+"' data-precio='"+value[7]+"'>"+value[1]+"</option>");
             });
         });
     });
     
     $('#bienes_id').on('change', function(){
-        var valor_producto = document.getElementById('bienes_id').value.split('_');
+        var valor_id_producto = document.getElementById('bienes_id').value;
         valormotivo = $('#motivo_id').val();
         valor_almacen = $('#salida_de_id').val();
-        console.log(valor_producto[2], valormotivo, valor_almacen);
-        $.get('/busqueda_lotes', {valor_id_producto:valor_producto[3], valormotivo:valormotivo, valor_almacen:valor_almacen}, function(productos){
-            $('#lote_id').empty();
-            $('#lote_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
+        console.log(valor_id_producto, valormotivo, valor_almacen);
+        $.get('/busqueda_inventarios', {valor_id_producto:valor_id_producto, valormotivo:valormotivo, valor_almacen:valor_almacen}, function(productos){
             $('#umedida_id').html('U.M.');
             $('#cantidad_id').val("");
             $('#precio_id').val("");
+            $('#cantidad_disponible_text').html('0');
             $.each(productos, function(index, value){
-                $('#lote_id').append("<option value='"+value[0]+'_'+value[1]+'_'+value[2]+'_'+value[3]+"'>"+value[0]+"</option>");
+                $('#umedida_id').html('U.M.');
+                $('#cantidad_id').val("");
+                $('#cantidad_disponible_text').html(value[1]);
+                $('#precio_id').val(value[2]);
             });
         });
     });
-
-    $('#lote_id').on('change', function(){
-        valor_lotes = document.getElementById('lote_id').value.split('_');
-        if(valor_lotes){
-            $('#umedida_id').html(valor_lotes[1]);
-            $('#cantidad_id').val('');
-            $('#cantidad_disponible_text').html(valor_lotes[2]);
-            $('#precio_id').val(valor_lotes[3]);
-        }
-    });
-
 });
         var contador_mps = 1;
-        var cont = 0;
-        cantidad_totalma=0;
-        cantidades_tma=[];
-        cantidad_totalac=0;
-        cantidades_tac=[];
-        cantidad_totalpt=0;
-        cantidades_tpt=[];
         cantidad_totalg=0;
-        cantidad_totalglobal=[];
-        cantidad_totalal=0;
-        var tipo_b;
+        var cont = 0;
         $('#btnasignar').click(function() {
-                var producto = document.getElementById('bienes_id').value.split('_');
-                var lote = document.getElementById('lote_id').value.split('_');
+                var productoSeleccionado = $('#bienes_id option:selected');
+                var producto = {
+                    id: productoSeleccionado.val(),
+                    nombre: productoSeleccionado.data('producto'),
+                    tipo: productoSeleccionado.data('tipo'),
+                    medida: productoSeleccionado.data('medida')
+                };
                 var cantidad = Number($('#cantidad_id').val() || 0);
                 var precio = Number($('#precio_id').val() || 0);
                     valormotivo = $('#motivo_id').val();
-                var cantidad_disponible = Number(lote[2] || 0);
+                var cantidad_disponible = Number($('#cantidad_disponible_text').html() || 0);
                 
-                if (producto != "" && cantidad > 0 && cantidad <= cantidad_disponible && precio > 0) {
+                if (producto.id && cantidad > 0 && cantidad <= cantidad_disponible && precio > 0) {
                             cantidad_totalg = Number(cantidad_totalg) + cantidad;
                             var fila = '<tr class="selected igv_carta" id="filamp' + contador_mps +
-                                '"><td class="align-middle fw-normal">' + contador_mps + '</td><td class="align-middle fw-normal">' + producto[7] +
-                                '</td><td class="align-middle fw-normal">' + producto[2] +
-                                '</td><td class="align-middle fw-normal">'+lote[0]+'</td><td class="align-middle fw-normal">' + lote[1] +
+                                '"><td class="align-middle fw-normal">' + contador_mps + '</td><td class="align-middle fw-normal">' + producto.tipo +
+                                '</td><td class="align-middle fw-normal">' + producto.nombre +
+                                '</td><td class="align-middle fw-normal">' + producto.medida +
                                 '</td><td class="align-middle fw-normal">'+cantidad+'</td><td class="align-middle fw-normal">' + precio +
-                                '</td><td><input type="hidden" name="producto_id[]" value="' + producto[0] +
-                                '"><input type="hidden" name="producto_tipo_id[]" value="' + producto[7] +
-                                '"><input type="hidden" name="producto[]" value="' + producto[2] +
-                                '"><input type="hidden" class="form-control form-control-sm w-50" required name="lote[]" value="'+lote[0]+'"><input type="hidden" name="medida[]" value="' + lote[1] +
+                                '</td><td><input type="hidden" name="producto_id[]" value="' + producto.id +
+                                '"><input type="hidden" name="producto_tipo_id[]" value="' + producto.tipo +
+                                '"><input type="hidden" name="producto[]" value="' + producto.nombre +
+                                '"><input type="hidden" name="medida[]" value="' + producto.medida +
                                 '"><input type="hidden" class="form-control form-control-sm w-50" required name="cantidad[]" value="' + cantidad +
                                 '"><input type="hidden" name="precio[]" value="' + precio +
-                                '"></td><td class="align-middle text-center"><button type="button" class="btn btn-sm btn-danger" onclick="eliminardtc(' + contador_mps +','+cantidad+',\'' +producto[2]+ '\');"><i class="bi bi-trash"></i></button></td></tr>';
+                                '"></td><td class="align-middle text-center"><button type="button" class="btn btn-sm btn-danger" onclick="eliminardtc(' + contador_mps +','+cantidad+',\'' +producto.nombre+ '\');"><i class="bi bi-trash"></i></button></td></tr>';
                         contador_mps++;
                         cont++;
                         $('#bienes_id').prop('selectedIndex', 0).change();
                         $('#cantidad_id').val("");
                         $('#precio_id').val("");
-                        $('#lote_id').val("");
                         $('#umedida_id').html('U.M.');
-                        $('#cantidad_recepcionada_id').val("");
+                        $('#cantidad_recepcionada_id').html("0");
                         $('#total_id').html(cantidad_totalg);
                         $('#total_ids').val(cantidad_totalg);
                         $('#dtll_salida').append(fila);

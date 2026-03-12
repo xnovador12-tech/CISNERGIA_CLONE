@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Ingreso extends Model
+class Movimiento extends Model
 {
-    protected $table = 'ingresos';
+    protected $table = 'movimientos';
 
     public function getRouteKeyName()
     {

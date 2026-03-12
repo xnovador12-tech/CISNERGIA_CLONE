@@ -41,7 +41,6 @@ class InventarioSeeder extends Seeder
                     'id_producto'   => $producto->id,
                     'tipo_producto' => $valor_tipo->name,
                     'producto'      => $producto->name ?? $producto->nombre ?? 'Producto',
-                    'lote'          => $producto->id. date('Y').$producto->id+1,
                     'umedida'       => 'UND',
                     'cantidad'      => $cantidadPorProducto,
                     'precio'        => $producto->precio ?? 0,
