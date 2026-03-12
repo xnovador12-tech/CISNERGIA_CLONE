@@ -19,4 +19,9 @@ class Ordencompra extends Model
     {
         return $this->belongsTo(Proveedor::class);
     }
+
+    public function detallecompra()
+    {
+        return $this->hasMany(Detallecompra::class, 'ordencompra_id');
+    }
 }

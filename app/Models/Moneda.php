@@ -7,10 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Moneda extends Model
 {
     protected $fillable = [
-        'name',
-        'symbol',
-        'code',
-        'estado'
+        'descripcion',
+        'simbolo',
     ];
 
     public function getRouteKeyName()
