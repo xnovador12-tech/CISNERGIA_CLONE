@@ -31,8 +31,8 @@ class ComprobanteTableSeeder extends Seeder
         $comprobante->save();
 
         $comprobante = new Tiposcomprobante();
-        $comprobante->name = "Nota de Salida";
-        $comprobante->slug = "nota-de-salida";
+        $comprobante->name = "Nota de Venta";
+        $comprobante->slug = "nota-de-venta";
         $comprobante->codigo = "00";
         $comprobante->tipo = "ventas";
         $comprobante->estado = "Activo";
