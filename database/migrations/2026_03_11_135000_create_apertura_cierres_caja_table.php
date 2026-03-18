@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('apertura_cierres_caja', function (Blueprint $blueprint) {
             $blueprint->id();
             $blueprint->string('codigo');
-            $blueprint->foreignId('cuenta_bancaria_id')->constrained('cuentas_bancarias')->onDelete('cascade');
+            $blueprint->foreignId('cuenta_bancaria_id')->nullable()->constrained('cuentas_bancarias')->onDelete('set null');
             $blueprint->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $blueprint->foreignId('moneda_id')->constrained('monedas')->onDelete('cascade');
+            $blueprint->foreignId('moneda_id')->nullable()->constrained('monedas')->onDelete('set null');
             $blueprint->date('fecha_apertura');
             $blueprint->time('hora_apertura');
             $blueprint->decimal('saldo_inicial', 15, 2)->default(0);
