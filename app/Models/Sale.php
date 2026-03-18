@@ -113,7 +113,7 @@ class Sale extends Model
 
     public function pagos()
     {
-        return $this->hasMany(IngresoFinanciero::class, 'venta_id');
+        return $this->hasMany(MovimientoCaja::class, 'venta_id');
     }
 
     public function tipoOperacion()
@@ -124,5 +124,10 @@ class Sale extends Model
     public function tipoDetraccion()
     {
         return $this->belongsTo(TipoDetraccion::class, 'tipo_detraccion_id');
+    }
+
+    public function notas()
+    {
+        return $this->hasMany(Nota::class, 'sale_id');
     }
 }

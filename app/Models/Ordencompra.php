@@ -9,6 +9,7 @@ class Ordencompra extends Model
 {
     use HasFactory;
     protected $table = 'ordenescompras';
+    protected $guarded = [];
 
     public function getRouteKeyName()
     {
@@ -23,5 +24,15 @@ class Ordencompra extends Model
     public function detallecompra()
     {
         return $this->hasMany(Detallecompra::class, 'ordencompra_id');
+    }
+
+    public function cuotas()
+    {
+        return $this->hasMany(OrdencompraCuota::class, 'ordencompra_id');
+    }
+
+    public function pagos()
+    {
+        return $this->hasMany(MovimientoCaja::class, 'ordencompra_id');
     }
 }

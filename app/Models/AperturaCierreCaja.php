@@ -41,4 +41,19 @@ class AperturaCierreCaja extends Model
     {
         return $this->belongsTo(Moneda::class);
     }
+
+    public function movimientos()
+    {
+        return $this->hasMany(MovimientoCaja::class, 'apertura_caja_id');
+    }
+
+    public function ingresos()
+    {
+        return $this->hasMany(MovimientoCaja::class, 'apertura_caja_id')->where('tipo', 'ingreso');
+    }
+
+    public function egresos()
+    {
+        return $this->hasMany(MovimientoCaja::class, 'apertura_caja_id')->where('tipo', 'egreso');
+    }
 }

@@ -21,4 +21,9 @@ class Tiposcomprobante extends Model
     {
         return 'slug';
     }
+
+    public function series()
+    {
+        return $this->hasMany(SerieComprobante::class, 'tiposcomprobante_id');
+    }
 }
