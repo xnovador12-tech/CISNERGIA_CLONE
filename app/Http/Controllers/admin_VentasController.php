@@ -10,6 +10,7 @@ use App\Models\Tiposcomprobante;
 use App\Models\Mediopago;
 use App\Models\Producto;
 use App\Models\Cuentabanco;
+use App\Models\MovimientoCaja;
 use App\Models\TipoOperacion;
 use App\Models\TipoDetraccion;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class admin_VentasController extends Controller
 {
     public function index()
     {
-        $ventas = Sale::with(['cliente', 'tipocomprobante', 'mediopago', 'usuario', 'sede'])->orderBy('created_at', 'desc')->get();
+        $ventas = Sale::with(['cliente', 'tipocomprobante', 'mediopago', 'usuario', 'sede', 'pagos'])->orderBy('created_at', 'desc')->get();
         $pedidosPendientes = Pedido::with(['cliente', 'usuario'])
             ->where('estado', 'pendiente')
             ->orderBy('created_at', 'desc')
@@ -40,13 +41,26 @@ class admin_VentasController extends Controller
             }
         }
 
-        $tiposComprobante = Tiposcomprobante::where('tipo', 'ventas')->get();
+        $tiposComprobante = Tiposcomprobante::whereHas('series', function ($q) {
+            $q->where('activo', true);
+        })->get();
         $mediosPago = Mediopago::all();
         $cuentasBancarias = Cuentabanco::with(['banco', 'moneda', 'tipocuenta'])->get();
         $tiposOperacion = TipoOperacion::all();
         $tiposDetraccion = TipoDetraccion::all();
 
-        return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.create', compact('pedido', 'tiposComprobante', 'mediosPago', 'cuentasBancarias', 'tiposOperacion', 'tiposDetraccion'));
+        // Series con correlativos para preview
+        $seriesComprobante = \App\Models\SerieComprobante::with('correlativo')
+            ->where('activo', true)
+            ->get()
+            ->groupBy('tiposcomprobante_id')
+            ->map(function ($series) {
+                $serie = $series->first();
+                $siguiente = ($serie->correlativo->numero ?? 0) + 1;
+                return $serie->serie . '-' . str_pad($siguiente, 8, '0', STR_PAD_LEFT);
+            });
+
+        return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.create', compact('pedido', 'tiposComprobante', 'mediosPago', 'cuentasBancarias', 'tiposOperacion', 'tiposDetraccion', 'seriesComprobante'));
     }
 
     public function store(Request $request)
@@ -57,15 +71,21 @@ class admin_VentasController extends Controller
             'tipo_operacion_id' => 'required|exists:tipos_operaciones,id',
             'tipo_detraccion_id' => 'nullable|exists:tipo_detraccion,id',
             'condicion_pago' => 'required|in:Contado,Crédito',
-            'numero_comprobante' => 'nullable|string',
             'pagos' => 'nullable|array',
             'pagos.*.mediopago_id' => 'nullable|exists:mediopagos,id',
             'pagos.*.billetera' => 'nullable|string',
             'pagos.*.cuenta_bancaria_id' => 'nullable|integer',
+            'pagos.*.monto' => 'nullable|numeric|min:0',
             'cuotas' => 'nullable|array',
             'cuotas.*.importe' => 'required_with:cuotas|numeric|min:0.01',
             'cuotas.*.fecha_vencimiento' => 'required_with:cuotas|date',
         ]);
+
+        // Validar regla: Boleta solo permite Contado
+        $tipoComprobante = Tiposcomprobante::find($validated['tiposcomprobante_id']);
+        if ($tipoComprobante && str_contains(strtolower($tipoComprobante->name), 'boleta') && $validated['condicion_pago'] === 'Crédito') {
+            return back()->with('error', 'La Boleta solo permite condición de pago al Contado.');
+        }
 
         $pedido = Pedido::with('detalles')->findOrFail($validated['pedido_id']);
 
@@ -80,31 +100,16 @@ class admin_VentasController extends Controller
             $pedido->save();
         }
 
-        // Generar número de comprobante
-        $numeroComprobante = $validated['numero_comprobante'];
-        if (empty($numeroComprobante)) {
-            $tipoComprobante = Tiposcomprobante::find($validated['tiposcomprobante_id']);
-            $prefijo = match(strtolower($tipoComprobante->name)) {
-                'factura' => 'F001',
-                'boleta', 'boleta de venta' => 'B001',
-                'nota de crédito' => 'NC01',
-                'nota de débito' => 'ND01',
-                'guía de remisión' => 'GR01',
-                default => 'T001'
-            };
+        // Generar número de comprobante usando series
+        $serieComprobante = \App\Models\SerieComprobante::where('tiposcomprobante_id', $validated['tiposcomprobante_id'])
+            ->where('activo', true)
+            ->first();
 
-            $ultimoComprobante = Sale::where('numero_comprobante', 'like', $prefijo . '%')
-                ->orderBy('numero_comprobante', 'desc')
-                ->first();
-
-            if ($ultimoComprobante && preg_match('/-(\d+)$/', $ultimoComprobante->numero_comprobante, $matches)) {
-                $siguienteNumero = intval($matches[1]) + 1;
-            } else {
-                $siguienteNumero = 1;
-            }
-
-            $numeroComprobante = $prefijo . '-' . str_pad($siguienteNumero, 8, '0', STR_PAD_LEFT);
+        if (!$serieComprobante) {
+            return back()->with('error', 'No hay una serie activa para este tipo de comprobante.');
         }
+
+        $numeroComprobante = $serieComprobante->generarNumero();
 
         // Generar código de venta
         $ultimaVenta = Sale::latest('id')->first();
@@ -166,32 +171,41 @@ class admin_VentasController extends Controller
             ]);
         }
 
-        // Guardar pagos en Ingresos Financieros (solo si hay pagos)
+        // Guardar pagos como movimientos de caja (solo si hay pagos con monto > 0)
         $pagos = $validated['pagos'] ?? [];
-        $pagos = array_filter($pagos, fn($p) => !empty($p['mediopago_id']));
+        $pagos = array_filter($pagos, fn($p) => !empty($p['mediopago_id']) && !empty($p['monto']) && floatval($p['monto']) > 0);
 
-        if (count($pagos) > 0) {
-        $totalPagos = count($pagos);
-        $montoPorPago = $venta->total / $totalPagos;
+        $sumaPagos = 0;
+        $cajaAbierta = \App\Models\AperturaCierreCaja::where('estado', 'Abierto')->first();
 
         foreach ($pagos as $pagoData) {
-            \App\Models\IngresoFinanciero::create([
-                'user_id' => auth()->id(),
-                'cliente_id' => $pedido->cliente_id,
-                'fecha_movimiento' => now()->format('Y-m-d'),
-                'hora_movimiento' => now()->format('H:i:s'),
-                'venta_id' => $venta->id,
-                'monto' => $montoPorPago,
-                'moneda_id' => 1, // Soles por defecto
-                'tipo_ingreso_id' => 1, // Venta
-                'cuenta_bancaria_id' => $pagoData['cuenta_bancaria_id'] ?? 1, // Fallback si no viene, pero debería venir
-                'metodo_pago_id' => $pagoData['mediopago_id'],
-                'descripcion' => 'Pago Venta ' . $venta->codigo . (!empty($pagoData['billetera']) ? ' - Billetera: ' . $pagoData['billetera'] : ''),
-                'apertura_caja_id' => 1, // Asumimos caja 1 si no hay sistema de apertura en este flujo aún
-                'origen_tipo' => 'Venta',
-            ]);
+            $montoPago = round(floatval($pagoData['monto']), 2);
+            $sumaPagos += $montoPago;
+
+            if ($cajaAbierta) {
+                MovimientoCaja::create([
+                    'tipo' => 'ingreso',
+                    'monto' => $montoPago,
+                    'apertura_caja_id' => $cajaAbierta->id,
+                    'user_id' => auth()->id(),
+                    'fecha_movimiento' => now()->format('Y-m-d'),
+                    'hora_movimiento' => now()->format('H:i:s'),
+                    'venta_id' => $venta->id,
+                    'cliente_id' => $pedido->cliente_id,
+                    'metodo_pago_id' => $pagoData['mediopago_id'],
+                    'cuenta_bancaria_id' => $pagoData['cuenta_bancaria_id'] ?? null,
+                    'descripcion' => 'Pago Venta ' . $venta->codigo . (!empty($pagoData['billetera']) ? ' - Billetera: ' . $pagoData['billetera'] : ''),
+                ]);
+            }
         }
+
+        // Determinar estado según monto pagado
+        if ($sumaPagos >= $venta->total - 0.05) {
+            $venta->estado = 'completada';
+        } else {
+            $venta->estado = 'parcial';
         }
+        $venta->save();
 
         // Guardar cuotas si es crédito
         if ($validated['condicion_pago'] === 'Crédito' && !empty($validated['cuotas'])) {

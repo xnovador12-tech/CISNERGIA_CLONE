@@ -15,7 +15,7 @@ return new class extends Migration
             $blueprint->id();
             $blueprint->foreignId('banco_id')->constrained('bancos')->onDelete('cascade');
             $blueprint->string('numero_cuenta');
-            $blueprint->foreignId('tipocuenta_id')->constrained('tipocuentas')->onDelete('cascade');
+            $blueprint->foreignId('tipocuenta_id')->nullable()->constrained('tipocuentas')->onDelete('cascade');
             $blueprint->foreignId('moneda_id')->constrained('monedas')->onDelete('cascade');
             $blueprint->foreignId('sede_id')->nullable()->constrained('sedes')->onDelete('cascade');
             $blueprint->string('titular');

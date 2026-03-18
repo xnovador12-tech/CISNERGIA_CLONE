@@ -53,7 +53,7 @@
                         <p class="text-secondary mb-3 small text-uppercase fw-bold">Datos Requeridos</p>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label text-muted fw-bold small">Cliente Sugerido <span class="text-danger">*</span></label>
+                                <label class="form-label text-muted fw-bold small">Cliente <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <select name="cliente_id" id="cliente_id" class="form-select select2-basic" required>
                                         <option value="">Buscar o Seleccionar un cliente...</option>
@@ -69,18 +69,10 @@
                                 </div>
                              </div>
 
-                             <div class="col-md-4">
+                             <div class="col-md-6">
                                  <label class="form-label text-muted fw-bold small">Fecha de Registro</label>
                                  <input type="text" class="form-control form-control-sm bg-light" value="{{ isset($pedido) ? $pedido->created_at->format('d/m/Y') : date('d/m/Y') }}" readonly>
                                  <small class="text-muted">Se registra automáticamente al crear el pedido</small>
-                             </div>
-
-                             <div class="col-md-2">
-                                 <label class="form-label text-muted fw-bold small">Vigencia <span class="text-danger">*</span></label>
-                                 <select name="vigencia_dias" class="form-select form-select-sm" required>
-                                     <option value="15" {{ (isset($pedido) && $pedido->vigencia_dias == 15) || old('vigencia_dias') == 15 || !isset($pedido) ? 'selected' : '' }}>15 días</option>
-                                     <option value="30" {{ (isset($pedido) && $pedido->vigencia_dias == 30) || old('vigencia_dias') == 30 ? 'selected' : '' }}>30 días</option>
-                                 </select>
                              </div>
                              
                             <input type="hidden" name="tipo" value="producto">
@@ -126,10 +118,6 @@
                                  </select>
                              </div>
 
-                             <div class="col-md-12">
-                                 <label class="form-label text-muted fw-bold small">Observaciones Adicionales</label>
-                                 <textarea name="observaciones" class="form-control form-control-sm" rows="2" placeholder="Ej: Entregar guías selladas, llamar a puerta, etc.">{{ isset($pedido) ? $pedido->observaciones : old('observaciones') }}</textarea>
-                             </div>
                         </div>
                     </div>
                 </div>

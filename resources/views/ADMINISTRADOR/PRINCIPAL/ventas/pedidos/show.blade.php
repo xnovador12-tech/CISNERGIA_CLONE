@@ -283,7 +283,7 @@
                             </a>
                         @else
                             <a href="{{ route('admin-ventas.create', ['pedido' => $pedido->id]) }}" class="btn btn-primary w-100 py-2 mb-2">
-                                <i class="bi bi-plus-circle me-2"></i>Agregar Pago
+                                <i class="bi bi-receipt me-2"></i>Generar Venta
                             </a>
                         @endif
                         

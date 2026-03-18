@@ -31,27 +31,17 @@ class admin_CuentabancoController extends Controller
         $validated = $request->validate([
             'banco_id' => 'required|exists:bancos,id',
             'numero_cuenta' => 'required|string|max:255',
-            'tipocuenta_id' => 'required|exists:tipocuentas,id',
             'moneda_id' => 'required|exists:monedas,id',
             'sede_id' => 'required|exists:sedes,id',
             'titular' => 'required|string|max:255',
             'saldo_inicial' => 'required|numeric|min:0',
             'cci' => 'nullable|string|max:255',
-            'descripcion' => 'nullable|string',
-            'cuenta_principal' => 'nullable|boolean',
         ]);
-
-        // Si se marca como principal, resetear otras de la misma sede
-        if ($request->has('cuenta_principal')) {
-            Cuentabanco::where('sede_id', $validated['sede_id'])
-                ->update(['cuenta_principal' => false]);
-            $validated['cuenta_principal'] = true;
-        } else {
-            $validated['cuenta_principal'] = false;
-        }
 
         $validated['saldo_actual'] = $validated['saldo_inicial'];
         $validated['estado'] = true;
+        $validated['cuenta_principal'] = false;
+        $validated['fecha_apertura'] = now()->format('Y-m-d');
 
         Cuentabanco::create($validated);
 

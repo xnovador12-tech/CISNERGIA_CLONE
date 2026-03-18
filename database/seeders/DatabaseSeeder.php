@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
 
         // ─── Catálogos ────────────────────────────────────────────────────
         $this->call(CategoryTableSeeder::class);
+        $this->call(MonedaSeeder::class);
         $this->call(BancoTableSeeder::class);
         $this->call(TipocuentaTableSeeder::class);
         $this->call(MediopagoTableSeeder::class);
@@ -45,22 +46,11 @@ class DatabaseSeeder extends Seeder
         $this->call(MarcaTableSeeder::class);
         $this->call(AlmacenTableSeeder::class);
         $this->call(TipoOperacionSeeder::class);
-        $this->call(TipoComprobanteSeeder::class);
-        $this->call(SerieSeeder::class);
-        $this->call(FinanceSeeds::class);
         $this->call(CuentabancoSeeder::class);
-        $this->call(TipoIngresoSeeder::class);
         $this->call(AperturaCierreCajaSeeder::class);
-        $this->call(IngresoFinancieroSeeder::class);
-        $this->call(ComprobanteVentaSeeder::class);
-        $this->call(ComprobanteVentaCuotaSeeder::class);
-        $this->call(MedioPagoDetraccionSeeder::class);
         $this->call(TipoDetraccionSeeder::class);
-        $this->call(ComprobanteVentaDetraccionSeeder::class);
-        $this->call(MovimientoCuentaDetraccionSeeder::class);
-        $this->call(TipoAfectacionSeeder::class);
-        $this->call(UnidadMedidaSeeder::class);
-        $this->call(ItemVentaSeeder::class);
+        $this->call(SerieComprobanteSeeder::class);
+        $this->call(CuentaBancariaTestSeeder::class);
 
         // Productos (necesario antes del CRM para las cotizaciones)
         $this->call(ModeloSeeder::class);
@@ -77,5 +67,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ChecklistItemTableSeeder::class);
         $this->call(KanbanTestDataSeeder::class);
         $this->call(CampaniaTableSeeder::class);
+        $this->call(OrdenCompraTestSeeder::class);
+        $this->call(OrdenCompraCuotasTestSeeder::class);
     }
 }

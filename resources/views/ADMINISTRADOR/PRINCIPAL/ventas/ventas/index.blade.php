@@ -87,7 +87,7 @@
     </div>
 
     <!-- Botón Pedidos Pendientes -->
-    <div class="container-fluid mb-4">
+    <div class="container-fluid mb-4" data-aos="fade-up">
         <button type="button" class="btn btn-warning fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPedidosPendientes">
             <i class="bi bi-clock-history me-2"></i>Pedidos Pendientes
             <span class="badge bg-dark ms-2">{{ $pedidosPendientes->count() }}</span>
@@ -209,6 +209,8 @@
                             <th class="h6 small text-center text-uppercase fw-bold">Comprobante</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Fecha</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Total</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Pagado</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Saldo</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Estado</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
@@ -252,6 +254,12 @@
                             </td>
                             <td class="fw-normal text-center align-middle">{{ $venta->created_at->format('d/m/Y H:i') }}</td>
                             <td class="fw-normal text-center align-middle text-success fw-bold">S/ {{ number_format($venta->total, 2) }}</td>
+                            @php
+                                $pagado = $venta->pagos->sum('monto');
+                                $saldo = $venta->total - $pagado;
+                            @endphp
+                            <td class="fw-normal text-center align-middle fw-bold text-primary">S/ {{ number_format($pagado, 2) }}</td>
+                            <td class="fw-normal text-center align-middle fw-bold {{ $saldo > 0 ? 'text-danger' : 'text-success' }}">S/ {{ number_format($saldo, 2) }}</td>
                             <td class="fw-normal text-center align-middle">
                                 @if($venta->estado == 'completada')
                                     <span class="badge bg-success">Completada</span>
