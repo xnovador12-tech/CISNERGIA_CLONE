@@ -62,17 +62,6 @@
                                 </select>
                             </div>
 
-                            <!-- Tipo de Cuenta -->
-                            <div class="col-md-6">
-                                <label for="tipocuenta_id" class="form-label fw-semibold text-dark">Tipo de Cuenta</label>
-                                <select name="tipocuenta_id" id="tipocuenta_id" class="form-select bg-light border-0 py-3 shadow-none" required>
-                                    <option value="" disabled selected>Seleccione un tipo</option>
-                                    @foreach($tipos as $tipo)
-                                        <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
                             <!-- Moneda -->
                             <div class="col-md-6">
                                 <label for="moneda_id" class="form-label fw-semibold text-dark">Moneda</label>
@@ -102,20 +91,6 @@
                                     <span class="input-group-text bg-light border-0"><i class="bi bi-cash-stack text-primary"></i></span>
                                     <input type="number" step="0.01" name="saldo_inicial" id="saldo_inicial" class="form-control bg-light border-0 py-3 rounded-end shadow-none" placeholder="0.00" required>
                                 </div>
-                            </div>
-
-                            <!-- Cuenta Principal -->
-                            <div class="col-md-6 d-flex align-items-center mt-auto pb-2">
-                                <div class="form-check form-switch ps-5">
-                                    <input class="form-check-input ms-n5 scale-150" type="checkbox" name="cuenta_principal" id="cuenta_principal" value="1">
-                                    <label class="form-check-label ms-3 fw-semibold text-dark" for="cuenta_principal">Marcar como cuenta principal</label>
-                                </div>
-                            </div>
-
-                            <!-- Descripción -->
-                            <div class="col-12">
-                                <label for="descripcion" class="form-label fw-semibold text-dark">Descripción / Observaciones</label>
-                                <textarea name="descripcion" id="descripcion" rows="3" class="form-control bg-light border-0 shadow-none" placeholder="Detalles adicionales sobre la cuenta..."></textarea>
                             </div>
 
                             <!-- Botones de Acción -->
