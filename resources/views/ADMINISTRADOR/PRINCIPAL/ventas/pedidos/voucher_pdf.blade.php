@@ -435,6 +435,18 @@
                     <td class="label">N° COMPROBANTE:</td>
                     <td>{{ $numeroComprobante }}</td>
                 </tr>
+                @if($venta && $venta->tipoOperacion)
+                <tr>
+                    <td class="label">TIPO OPERACIÓN:</td>
+                    <td>{{ $venta->tipoOperacion->code }} - {{ $venta->tipoOperacion->descripcion }}</td>
+                    @if($venta->tipoDetraccion)
+                    <td class="label">DETRACCIÓN:</td>
+                    <td><strong>{{ $venta->tipoDetraccion->code }} - {{ $venta->tipoDetraccion->descripcion }} ({{ $venta->tipoDetraccion->porcentaje }}%)</strong></td>
+                    @else
+                    <td></td><td></td>
+                    @endif
+                </tr>
+                @endif
             </table>
         </div>
 
@@ -529,6 +541,16 @@
                     <td>TOTAL:</td>
                     <td>S/ {{ number_format($pedido->total, 2) }}</td>
                 </tr>
+                @if($venta && $venta->monto_detraccion > 0)
+                <tr>
+                    <td style="color: #dc3545; font-size: 10px;">DETRACCIÓN ({{ $venta->tipoDetraccion->porcentaje ?? 0 }}%):</td>
+                    <td style="font-weight: bold; color: #dc3545;">- S/ {{ number_format($venta->monto_detraccion, 2) }}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; font-size: 11px;">NETO A COBRAR:</td>
+                    <td style="font-weight: bold; color: #2e7d32; font-size: 13px;">S/ {{ number_format($venta->monto_neto, 2) }}</td>
+                </tr>
+                @endif
                 @if($pedido->condicion_pago === 'Crédito')
                 <tr>
                     <td style="color: #666; font-size: 10px;">SALDO PENDIENTE:</td>

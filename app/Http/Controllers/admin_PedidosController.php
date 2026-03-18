@@ -100,7 +100,7 @@ class admin_PedidosController extends Controller
         $pedido->fecha_entrega_estimada = $request->fecha_entrega_estimada;
         $pedido->vigencia_dias = $request->vigencia_dias ?? 15;
         $pedido->almacen_id = $request->almacen_id;
-        $pedido->condicion_pago = $request->condicion_pago ?? 'Contado';
+        $pedido->condicion_pago = $request->condicion_pago;
         $pedido->observaciones = $request->observaciones;
         $pedido->origen = 'directo';
         $pedido->save();
@@ -211,6 +211,12 @@ class admin_PedidosController extends Controller
             'cuotas.*.importe' => 'required_with:cuotas|numeric|min:0.01',
             'cuotas.*.fecha_vencimiento' => 'required_with:cuotas|date'
         ]);
+
+        // If 'Contado' is sent as an empty string or null from the frontend (if applicable)
+        // ensure it's saved as null if it's not actually specified.
+        if (empty($validated['condicion_pago'])) {
+            $validated['condicion_pago'] = null;
+        }
 
         // 1. Devolver Stock actual antes de los cambios (si estaba reservado)
         if ($admin_pedido->aprobacion_stock) {
