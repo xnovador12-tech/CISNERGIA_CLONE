@@ -215,6 +215,8 @@ class admin_ProductosController extends Controller
         $producto->descripcion = $request->input('descripcion');
         $producto->fabricante = $request->input('fabricante');
         $producto->registrado_por = Auth::user()->persona->name.' '.Auth::user()->persona->surnames;
+        $producto->stock_critico = $request->input('stock_min');
+        $producto->stock_seguro = $request->input('stock_max');
         $producto->estado = 'Inactivo';
         $producto->imagen = $img_producto;
         $producto->sede_id = Auth::user()->persona->sede_id;
@@ -313,8 +315,13 @@ class admin_ProductosController extends Controller
 
             $admin_producto->imagen = $imagen;
         }
-
+        // echo '<pre>';
+        // var_dump($request->input('stock_min'), $request->input('stock_max'));
+        // echo '</pre>';
+        // die();
         $admin_producto->fill($request->except(['codigo', 'slug', 'imagen']));
+        $admin_producto->stock_critico = $request->input('stock_min');
+        $admin_producto->stock_seguro = $request->input('stock_max');
         $admin_producto->precio_descuento = $request->input('precio_descuento');
         $admin_producto->save();
 

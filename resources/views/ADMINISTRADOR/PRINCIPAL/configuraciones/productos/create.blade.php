@@ -68,17 +68,63 @@
 @section('content')
 <!-- Encabezado -->
 <div class="header_section">
-        <div class="bg-transparent mb-3" style="height: 67px"></div>
+    <div class="bg-transparent mb-3" style="height: 67px"></div>
         <div class="container-fluid">
-            <div class="" data-aos="fade-right">
-                <h1 class="titulo h2 text-uppercase fw-bold mb-0">PRODUCTOS</h1>
-                <div class="" style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a class="text-decoration-none link" href="">Principal</a></li>
-                        <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-configuraciones') }}">Configuraciones</a></li>
-                        <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-productos') }}">Productos</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Nuevo registro</li>
-                    </ol>
+            <div class="row justify-content-beetween align-items-center mb-3">
+                <div class="col-4 col-md-4 col-lg-6">
+                    <div class="" data-aos="fade-right">
+                        <h1 class="titulo h2 text-uppercase fw-bold mb-0">PRODUCTOS</h1>
+                        <div class="" style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a class="text-decoration-none link" href="">Principal</a></li>
+                                <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-configuraciones') }}">Configuraciones</a></li>
+                                <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-productos') }}">Productos</a></li>
+                                <li class="breadcrumb-item" aria-current="page">Nuevo registro</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                {{-- Cartillas de stock --}}
+                <div class="col-8 col-md-8 col-lg-6 d-flex justify-content-end">
+                    <div class="d-flex gap-2">
+
+                        {{-- Stock Crítico --}}
+                        <div class="card border-danger border-2 shadow-sm" style="min-width: 220px;">
+                            <div class="card-body p-3 d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-danger bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:52px; height:52px;">
+                                    <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 text-muted fw-semibold fw-bold" style="font-size: 0.85rem;">STOCK CRÍTICO</p>
+                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                        <span class="text-muted">≤</span>
+                                        <input type="number" id="valor_stock_critico" value="10" class="form-control border-danger text-danger fw-bold text-center"style="width: 65px; font-size: 1.1rem;" min="1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Stock Seguro --}}
+                        <div class="card border-success border-2 shadow-sm" style="min-width: 220px;">
+                            <div class="card-body p-3 d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-success bg-opacity-10 p-3 d-flex align-items-center justify-content-center" style="width:52px; height:52px;">
+                                    <i class="bi bi-shield-fill-check text-success fs-4"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 text-muted fw-semibold fw-bold" style="font-size: 0.85rem;">STOCK SEGURO</p>
+                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                        <span class="text-muted">≥</span>
+                                        <input type="number"
+                                            id="valor_stock_seguro"
+                                            value="30"
+                                            class="form-control border-success text-success fw-bold text-center"
+                                            style="width: 65px; font-size: 1.1rem;"
+                                            min="1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -89,6 +135,8 @@
     <form method="POST" action="/admin-productos" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
         @csrf
         <div class="container-fluid">
+            <input hidden name="stock_min" id="stock_min_ids" value="10">
+            <input hidden name="stock_max" id="stock_max_ids" value="30">
             <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
                 <div class="card-body">
                     <div class="card border-0 rounded-0 border-start border-3 border-info mb-4" style="box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px; background-color: #f6f6f6">
@@ -450,6 +498,15 @@
 </script>
 <script>
     $(document).ready(function() {
+        // Establecer los valores en los campos ocultos de stock
+        $('#valor_stock_critico').on('keyup', function() {
+            $('#stock_min_ids').val($(this).val());
+        });
+
+        $('#valor_stock_seguro').on('keyup', function() {
+            $('#stock_max_ids').val($(this).val());
+        });
+
         $('#tipos__producto_id').on('change', function() {
             var valor_bienes = $(this).val();
             $('#tipos__producto_id').attr("disabled","disabled");

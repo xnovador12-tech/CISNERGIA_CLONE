@@ -47,6 +47,7 @@
                             <th class="h6 text-uppercase fw-bold small">N°</th>
                             <th class="h6 text-uppercase fw-bold small">Código</th>
                             <th class="h6 text-uppercase fw-bold small">Tipo</th>
+                            <th class="h6 text-uppercase fw-bold small">Categoria / Subcategoria</th>
                             <th class="h6 text-uppercase fw-bold small">Descripción</th>
                             <th class="h6 text-uppercase fw-bold small">U.M.</th>
                             <th class="h6 text-uppercase fw-bold small">Cantidad</th>
@@ -65,14 +66,15 @@
                                 <td class="fw-normal align-middle">{{ $contador }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $codigo_producto?$codigo_producto->codigo:'' }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $codigo_producto?$codigo_producto->tipo->name:'' }}</td>
+                                <td class="fw-normal align-middle text-uppercase small">{{ $codigo_producto?->categorie?->name }}{{ $codigo_producto?->subcategories?->name ? ' \ ' . $codigo_producto->subcategories->name : '' }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $alm_tipo_productos->producto }}</td>
                                 <td class="fw-normal align-middle">{{ $alm_tipo_productos->umedida }}</td>
                                 <td class="fw-normal align-middle">
-                                    @if($alm_tipo_productos->cantidad <= 10)
+                                    @if($alm_tipo_productos->cantidad <= $codigo_producto->stock_critico)
                                         <span class="badge w-100 bg-danger">{{ $alm_tipo_productos->cantidad }}</span>
-                                    @elseif($alm_tipo_productos->cantidad <= 20)
+                                    @elseif($alm_tipo_productos->cantidad <= $codigo_producto->stock_seguro)
                                         <span class="badge w-100 bg-warning">{{ $alm_tipo_productos->cantidad }}</span>
-                                    @elseif($alm_tipo_productos->cantidad >= 21)
+                                    @elseif($alm_tipo_productos->cantidad >= $codigo_producto->stock_seguro)
                                         <span class="badge w-100 bg-success">{{ $alm_tipo_productos->cantidad }}</span>
                                     @endif
                                 </td>
