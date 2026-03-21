@@ -164,8 +164,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('admin-salidas/resultadosPDF', [admin_SalidasController::class, 'reporteSalidasPrintPdfSede'])->name('admin-salidas.resultadosPDF');
 
     Route::resource('admin-inventarios', admin_InventarioController::class);
-    Route::get('admin-inventarios/resultadosPDF', [admin_InventarioController::class, 'reporteInventariosPrintPdfSede'])
+    Route::post('admin-inventarios/resultadosPDF', [admin_InventarioController::class, 'reporteInventariosPrintPdfSede'])
     ->name('admin-inventarios.resultadosPDF');
+    route::post('admin-inventarios-totales/resultadosPDF', [admin_InventarioController::class, 'getbusqueda_inventarios_general'])->name('admin-inventarios-totales.resultadosPDF');
 
     Route::resource('admin-cuentasbancarias', admin_CuentabancoController::class);
     // ---------------------------------------------------------

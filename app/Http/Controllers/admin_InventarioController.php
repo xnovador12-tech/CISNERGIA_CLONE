@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Inventario;
+use App\Models\Movimiento;
 use App\Models\Sede;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Producto;
 
 class admin_InventarioController extends Controller
 {
@@ -29,12 +32,32 @@ class admin_InventarioController extends Controller
         $now = Carbon::now();
         $fi = $request->fecha_ini. ' 00:00:00';
         $ff = $request->fecha_fin. ' 23:59:59';
-        $name_sede = Sede::where('id', 1)->first();
-        $salidas = Movimiento::where('tipo_movimiento', 'SALIDA')->whereBetween('created_at', [$fi, $ff])->where('sede_id', "=", $name_sede->id)->get();
-        $pdf = PDF::loadView('ADMINISTRADOR.REPORTES.movimiento-salidas.pdf.movsalidaPDF', ['salidas'=>$salidas, s, 'now'=>$now, 'name_sede'=>$name_sede]);
+        $name_sede = Sede::where('id', $request->sede_id)->first();
+        $alm_tipo_producto = Inventario::where('sede_id', "=", $name_sede->id)->where('tipo_producto', $request->tipo_producto)->get();
+        $pdf = PDF::loadView('ADMINISTRADOR.REPORTES.inventarios.inventariosPDF', ['alm_tipo_producto'=>$alm_tipo_producto, 'now'=>$now, 'name_sede'=>$name_sede]);
         return $pdf->stream('MOVIMIENTOS-SALIDA - '.$name_sede->name.'.pdf');
     }
     // 
+
+    // Reporte para ver de forma general por fecha - pdf
+    public function getbusqueda_inventarios_general(Request $request)
+    {
+        $now = Carbon::now();
+        $fi = $request->fecha_ini. ' 00:00:00';
+        $ff = $request->fecha_fin. ' 23:59:59';
+        $name_sede = Sede::where('id', 1)->first();
+        $ingresos = Movimiento::whereBetween('created_at', [$fi, $ff])
+                ->where('sede_id', '=', $name_sede->id)
+                ->whereHas('detallemovimientos', function ($query) use ($request) {
+                    $query->where('id_producto', $request->id_producto);
+                })
+                ->get();
+        $valor_producto = Producto::where('id', $request->id_producto)->first();
+        $pdf = PDF::loadView('ADMINISTRADOR.REPORTES.inventarios.movinventarioPDF', ['ingresos'=>$ingresos, 'fi'=>$fi, 'ff'=>$ff, 'now'=>$now, 'name_sede'=>$name_sede, 'producto'=>$valor_producto]);
+        return $pdf->stream('MOVIMIENTOS-INGRESO - '.$name_sede->name.'.pdf');
+    }
+    // 
+
     /**
      * Show the form for creating a new resource.
      */

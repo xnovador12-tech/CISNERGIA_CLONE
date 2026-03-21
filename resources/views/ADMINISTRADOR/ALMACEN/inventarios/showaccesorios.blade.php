@@ -33,11 +33,13 @@
                                 <button class="bg-transparent border-0 px-0 mx-0" data-bs-toggle="modal" data-bs-target="#reporte_Excel"><i class="bi bi-file-excel me-2"></i><small>EXCEL</small></button>
                             </li>                                             -->
                             <li class="dropdown-item">
-                                <a class="bg-transparent border-0 px-0 mx-0" href="{{ route('admin-inventarios.resultadosPDF', [
-                                    'sede_id'       => $sede->id,
-                                    'tipo_producto' => $tipo_producto
-                                ]) }}" data-bs-toggle="modal" data-bs-target="#reporte_PDF"><i class="bi bi-file-pdf me-2"></i><small>PDF</small></a>
-                            </li>                                                    
+                                <form action="{{ route('admin-inventarios.resultadosPDF') }}" method="POST" target="_blank">
+                                    @csrf
+                                    <input type="hidden" name="sede_id" value="{{ $sede->id }}">
+                                    <input type="hidden" name="tipo_producto" value="{{ $tipo_producto }}">
+                                    <button type="submit" class="bg-transparent border-0 px-0 mx-0"><i class="bi bi-file-excel me-2"></i><small>PDF</small></button>
+                                </form>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -100,3 +102,4 @@
 @foreach ($alm_tipo_producto as $alm_tipo_productos)
     @include('ADMINISTRADOR.ALMACEN.inventarios.show_dtlleaccesorios')
 @endforeach
+@include('ADMINISTRADOR.ALMACEN.inventarios.reporte_modal_pdf')

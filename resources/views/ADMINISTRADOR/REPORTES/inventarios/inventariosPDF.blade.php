@@ -16,7 +16,7 @@
 
         body {
             font-family: 'Outfit', sans-serif;
-            margin-top: 2.6cm;
+            margin-top: 2.2cm;
             margin-left: 1cm;
             margin-right: 1cm;
             margin-bottom: 1.8cm;
@@ -30,8 +30,8 @@
         header {
             position: fixed;
             top: 0; left: 0; right: 0;
-            height: 2.5cm;
-            background-color: #ffffff;
+            height: 1.9cm;
+            background-color: #eaf7fd;
             border-bottom: 2px solid #dce4e8;
         }
 
@@ -51,7 +51,7 @@
             border-right: 1px solid #dce4e8;
         }
 
-        .hdr-td-logo img { width: 78px; }
+        .hdr-td-logo img { width: 120px; }
 
         .hdr-td-text {
             vertical-align: middle;
@@ -447,12 +447,6 @@
 <body>
 
     @php
-        $sede = \App\Models\Sede::find($sede_id);
-        $tipo_producto = $tipo_producto ?? null;
-        $alm_tipo_producto = App\Models\Inventario::where('sede_id', $sede->id)
-            ->when($tipo_producto, fn($q) => $q->where('tipo_producto', $tipo_producto))
-            ->get();
-
         $total_cantidad = 0;
         $total_critico  = 0;
         $total_alerta   = 0;
@@ -486,7 +480,7 @@
                 </td>
                 <td class="hdr-td-info">
                     <span class="hdr-sede-label">Sede</span>
-                    <span class="hdr-sede-val">{{ $sede->name }}</span>
+                    <span class="hdr-sede-val">{{ $name_sede->name }}</span>
                     <span class="hdr-tipo-pill">{{ $tipo_producto ?? 'Todos los tipos' }}</span>
                     <div class="hdr-count-wrap">
                         <span class="hdr-count-num">{{ $alm_tipo_producto->count() }}</span>
@@ -623,7 +617,7 @@
                     <td class="footer-td-left">
                         <span class="footer-brand">CIS<span class="footer-brand-accent">NERGIA</span></span>
                         <span class="footer-divider"></span>
-                        <span class="footer-sub">Reporte de Inventario &nbsp;·&nbsp; {{ $sede->name }}</span>
+                        <span class="footer-sub">Reporte de Inventario &nbsp;·&nbsp; {{ $name_sede->name }}</span>
                     </td>
                     <td class="footer-td-right">
                         <script type="text/php">

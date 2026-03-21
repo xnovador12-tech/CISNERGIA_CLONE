@@ -25,13 +25,21 @@
                             ">   
                         </div>
                     </div>
-                    <div class="col-12 col-md-8 col-lg-10 d-flex">
+                    <div class="col-12 col-md-8 col-lg-8 d-flex">
                         <div class="align-self-center">
                             <p class="text-uppercase small mb-0">{{ $alm_tipo_productos->producto }} - {{ $alm_tipo_productos->umedida }}</p>
                             <span class="border rounded px-2 fw-bold border-dark text-uppercase" style="font-size: 12px">{{$producto_tipo?$producto_tipo->tipo->name:''}}</span>
                             <p class="small text-uppercase text-primary fw-bold mb-0" style="font-size: 12px">{{$producto_tipo?$producto_tipo->tipo_costo:''}}</p>
                             <p class="float-start text-uppercase small">Stock: <span class="float-end badge bg-primary ms-2">{{$alm_tipo_productos->cantidad}}</span></p>
                         </div>
+                    </div>
+                    <div class="col-12 col-md-2 col-lg-2mb-2 mb-lg-0">
+                        <button type="button" class="btn btn-dark btn-sm w-100" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download"></i></button>
+                        <ul class="dropdown-menu">      
+                            <li class="dropdown-item">
+                                <button class="bg-transparent border-0 px-0 mx-0" data-bs-toggle="modal" data-bs-target="#reporte_PDF"><i class="bi bi-file-pdf me-2"></i><small>PDF</small></button>
+                            </li>                                                    
+                        </ul>
                     </div>
                 </div>
                 <div class="table-responsive" style=" font-size: 13.5px">
@@ -52,27 +60,35 @@
                                 $mov_totales = DB::table('movimientos as mov')
                                     ->join('detallemovimientos as dtll','dtll.movimiento_id','=','mov.id')
                                     ->select(
-                                        DB::raw("'INGRESO' as movimiento"),
-                                        'mov.codigo_ocompra as codigo_movimiento',
+                                        'mov.codigo_ocompra',
+                                        'mov.codigo_venta',
+                                        'mov.cliente',
+                                        'mov.tipo_movimiento',
                                         'mov.motivo',
                                         'mov.created_at',
                                         'mov.fecha',
                                         'dtll.cantidad'
                                     )
                                     ->where('dtll.id_producto',$alm_tipo_productos->id_producto)
-                                    ->groupBy('mov.codigo_ocompra','mov.motivo','mov.created_at','mov.fecha','dtll.cantidad')
                                     ->get();
                             @endphp
                             @foreach($mov_totales as $movimiento)
+                                @php
+                                    $clientes_val = \App\Models\Cliente::where('id',$movimiento->cliente)->first();
+                                @endphp
                             <tr>
                                 <td class="align-middle text-uppercase text-center">{{$contador}}</td>
-                                @if($movimiento->movimiento === 'INGRESO')
+                                @if($movimiento->tipo_movimiento === 'INGRESO')
                                     <td class="align-middle text-uppercase text-center text-success">INGRESO</td>
                                 @else
                                     <td class="align-middle text-uppercase text-center text-danger">SALIDA</td>
                                 @endif
                                 <td class="align-middle text-uppercase text-center">{{$movimiento->motivo}}</td>
-                                <td class="align-middle text-uppercase text-center">{{$movimiento->codigo_movimiento}}</td>
+                                @if($movimiento->tipo_movimiento === 'INGRESO')
+                                    <td class="align-middle text-uppercase text-center">{{$movimiento->codigo_ocompra}}</td>
+                                @else
+                                    <td class="align-middle text-uppercase text-center">{{$movimiento->codigo_venta?$movimiento->codigo_venta:($clientes_val?$clientes_val->nombre.' '.$clientes_val->apellidos:'')}}</td>
+                                @endif
                                 <td class="align-middle text-uppercase text-center">{{$movimiento->fecha}}</td>
                                 <td class="align-middle text-uppercase text-center text-success">{{$movimiento->cantidad}}</td>
                             </tr>
