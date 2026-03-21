@@ -6,7 +6,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="{{ route('admin-ingresos.resultadosPDF') }}" method="POST">
+                <form action="{{ route('admin-salidas.resultadosPDF') }}" method="POST">
                 @csrf
                     <div class="my-3" id="">
                         <label for="">Filtrar desde</label>

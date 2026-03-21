@@ -42,7 +42,6 @@
                                 <th class="align-middle fw-bold text-uppercase small text-center" style="width: 15%">Movimiento</th>
                                 <th class="align-middle fw-bold text-uppercase small text-center" style="width: 50%">Motivo</th>
                                 <th class="align-middle fw-bold text-uppercase small text-center" style="width: 50%">Codigo de Movimiento</th>
-                                <th class="align-middle fw-bold text-uppercase small text-center" style="width: 50%">Lote</th>
                                 <th class="align-middle fw-bold text-uppercase small text-center" style="width: 10%">Fecha</th>
                                 <th class="align-middle fw-bold text-uppercase small text-center" style="width: 10%">Cantidad</th>
                             </tr>
@@ -50,42 +49,21 @@
                         <tbody>
                             @php
                                 $contador = 1;
-                                $mov_ingresos = DB::table('ingresos as ings')
-                                    ->join('detalleingresos as dtll','dtll.ingreso_id','=','ings.id')
+                                $mov_totales = DB::table('movimientos as mov')
+                                    ->join('detallemovimientos as dtll','dtll.movimiento_id','=','mov.id')
                                     ->select(
                                         DB::raw("'INGRESO' as movimiento"),
-                                        'ings.codigo_ocompra as codigo_movimiento',
-                                        'dtll.lote',
-                                        'ings.motivo',
-                                        'ings.created_at',
-                                        'ings.fecha',
+                                        'mov.codigo_ocompra as codigo_movimiento',
+                                        'mov.motivo',
+                                        'mov.created_at',
+                                        'mov.fecha',
                                         'dtll.cantidad'
                                     )
                                     ->where('dtll.id_producto',$alm_tipo_productos->id_producto)
-                                    ->groupBy('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')
+                                    ->groupBy('mov.codigo_ocompra','mov.motivo','mov.created_at','mov.fecha','dtll.cantidad')
                                     ->get();
-
-                                $mov_salidas = DB::table('salidas as sal')
-                                    ->join('detallesalidas as dtll','dtll.salida_id','=','sal.id')
-                                    ->select(
-                                        DB::raw("'SALIDA' as movimiento"),
-                                        'sal.codigo as codigo_movimiento',
-                                        'dtll.lote',
-                                        'sal.motivo',
-                                        'sal.created_at',
-                                        'sal.fecha',
-                                        'dtll.cantidad'
-                                    )
-                                    ->where('dtll.producto_id',$alm_tipo_productos->id_producto)
-                                    ->groupBy('sal.codigo','dtll.lote','sal.motivo','sal.created_at','sal.fecha','dtll.cantidad')
-                                    ->get();
-
-                                $movimientos = $mov_ingresos
-                                    ->merge($mov_salidas)
-                                    ->sortByDesc('created_at')
-                                    ->values();
                             @endphp
-                            @foreach($movimientos as $movimiento)
+                            @foreach($mov_totales as $movimiento)
                             <tr>
                                 <td class="align-middle text-uppercase text-center">{{$contador}}</td>
                                 @if($movimiento->movimiento === 'INGRESO')
@@ -95,7 +73,6 @@
                                 @endif
                                 <td class="align-middle text-uppercase text-center">{{$movimiento->motivo}}</td>
                                 <td class="align-middle text-uppercase text-center">{{$movimiento->codigo_movimiento}}</td>
-                                <td class="align-middle text-uppercase text-center">{{$movimiento->lote}}</td>
                                 <td class="align-middle text-uppercase text-center">{{$movimiento->fecha}}</td>
                                 <td class="align-middle text-uppercase text-center text-success">{{$movimiento->cantidad}}</td>
                             </tr>

@@ -21,6 +21,7 @@ class CreateMovimientosTable extends Migration
             $table->string('fecha');
             $table->string('codigo_ocompra')->nullable();
             $table->string('codigo_venta')->nullable();
+            $table->string('cliente')->nullable();
             $table->string('guia_remision')->nullable();
             $table->decimal('total', 11,2);
             $table->string('descripcion')->nullable();

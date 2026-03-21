@@ -88,7 +88,7 @@
             </div>
             <div class="modal-footer bg-transparent py-2">
                 <div class="text-end">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-sm btn-secondary text-white" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
