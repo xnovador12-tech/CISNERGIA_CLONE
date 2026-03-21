@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Inventario;
 use App\Models\Sede;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class admin_InventarioController extends Controller
@@ -22,6 +23,18 @@ class admin_InventarioController extends Controller
         return view('ADMINISTRADOR.ALMACEN.inventarios.index',compact('admin_inventarios', 'sedes', 'al_por_tipos'));
     }
 
+    // Reporte para ver de forma general por fecha - pdf
+    public function reporteInventariosPrintPdfSede(Request $request)
+    {
+        $now = Carbon::now();
+        $fi = $request->fecha_ini. ' 00:00:00';
+        $ff = $request->fecha_fin. ' 23:59:59';
+        $name_sede = Sede::where('id', 1)->first();
+        $salidas = Movimiento::where('tipo_movimiento', 'SALIDA')->whereBetween('created_at', [$fi, $ff])->where('sede_id', "=", $name_sede->id)->get();
+        $pdf = PDF::loadView('ADMINISTRADOR.REPORTES.movimiento-salidas.pdf.movsalidaPDF', ['salidas'=>$salidas, s, 'now'=>$now, 'name_sede'=>$name_sede]);
+        return $pdf->stream('MOVIMIENTOS-SALIDA - '.$name_sede->name.'.pdf');
+    }
+    // 
     /**
      * Show the form for creating a new resource.
      */

@@ -29,11 +29,14 @@
                     <div class="col-12 col-md-6 col-lg-3 col-xl-1 mb-2 mb-lg-0">
                         <button type="button" class="btn btn-dark btn-sm w-100" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download"></i></button>
                         <ul class="dropdown-menu">      
-                            <li class="dropdown-item">
+                            <!-- <li class="dropdown-item">
                                 <button class="bg-transparent border-0 px-0 mx-0" data-bs-toggle="modal" data-bs-target="#reporte_Excel"><i class="bi bi-file-excel me-2"></i><small>EXCEL</small></button>
-                            </li>                                            
+                            </li>                                             -->
                             <li class="dropdown-item">
-                                <button class="bg-transparent border-0 px-0 mx-0" id="pdf_almacen" data-bs-toggle="modal" data-bs-target="#reporte_PDF"><i class="bi bi-file-pdf me-2"></i><small>PDF</small></button>
+                                <a class="bg-transparent border-0 px-0 mx-0" href="{{ route('admin-inventarios.resultadosPDF', [
+                                    'sede_id'       => $sede->id,
+                                    'tipo_producto' => $tipo_producto
+                                ]) }}" data-bs-toggle="modal" data-bs-target="#reporte_PDF"><i class="bi bi-file-pdf me-2"></i><small>PDF</small></a>
                             </li>                                                    
                         </ul>
                     </div>
