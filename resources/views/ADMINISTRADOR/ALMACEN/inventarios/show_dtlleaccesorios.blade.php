@@ -34,10 +34,18 @@
                         </div>
                     </div>
                     <div class="col-12 col-md-2 col-lg-2mb-2 mb-lg-0">
-                        <button type="button" class="btn btn-dark btn-sm w-100" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download"></i></button>
+                        <button type="button" class="btn btn-dark btn-sm w-100" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false">
+                            <i class="bi bi-download"></i>
+                        </button>
                         <ul class="dropdown-menu">      
                             <li class="dropdown-item">
-                                <button class="bg-transparent border-0 px-0 mx-0" data-bs-toggle="modal" data-bs-target="#reporte_PDF"><i class="bi bi-file-pdf me-2"></i><small>PDF</small></button>
+                                <button class="bg-transparent border-0 px-0 mx-0" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#reporte_PDF_{{ $alm_tipo_productos->id_producto }}">
+                                    <i class="bi bi-file-pdf me-2"></i><small>PDF</small>
+                                </button>
                             </li>                                                    
                         </ul>
                     </div>
@@ -99,6 +107,46 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL PRINCIPAL --}}
+<div class="modal fade" id="showtipoproducto{{ $alm_tipo_productos->id_producto }}" ...>
+    ...
+    {{-- Botón con data-bs-dismiss para cerrar este antes de abrir PDF --}}
+    <button class="bg-transparent border-0 px-0 mx-0" 
+        data-bs-dismiss="modal"
+        data-bs-toggle="modal" 
+        data-bs-target="#reporte_PDF_{{ $alm_tipo_productos->id_producto }}">
+        <i class="bi bi-file-pdf me-2"></i><small>PDF</small>
+    </button>
+    ...
+</div>
+
+{{-- ✅ MODAL PDF AQUÍ AFUERA, al mismo nivel --}}
+<div class="modal fade" id="reporte_PDF_{{ $alm_tipo_productos->id_producto }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white py-2">
+                <span class="modal-title">Imprimir reporte en PDF</span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ route('admin-inventarios-totales.resultadosPDF') }}" method="POST" target="_blank">
+                    @csrf
+                    <div class="my-3">
+                        <label>Filtrar desde</label>
+                        <input type="date" name="fecha_ini" class="form-control form-control-sm">
+                    </div>
+                    <div class="my-3">
+                        <label>Filtrar hasta</label>
+                        <input type="date" name="fecha_fin" class="form-control form-control-sm">
+                    </div>
+                    <input type="hidden" name="id_producto" value="{{ $alm_tipo_productos->id_producto }}">
+                    <button type="submit" class="btn btn-dark w-100 mt-3">Generar Reporte</button>
+                </form>
             </div>
         </div>
     </div>

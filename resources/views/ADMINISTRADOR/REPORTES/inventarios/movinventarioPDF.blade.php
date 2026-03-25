@@ -432,9 +432,9 @@
 
                         <td>{{ $item->registrado_por }}</td>
                         @if($item->tipo_movimiento == 'INGRESO')
-                            <td class="text-success fw-bold">{{ number_format($item->total ?? 0, 2, '.', ',') }}</td>
+                            <td class="text-success fw-bold">{{ number_format($item->cantidad ?? 0, 2, '.', ',') }}</td>
                         @else
-                            <td class="text-danger fw-bold">{{ number_format($item->total ?? 0, 2, '.', ',') }}</td>
+                            <td class="text-danger fw-bold">{{ number_format($item->cantidad ?? 0, 2, '.', ',') }}</td>
                         @endif
                     </tr>
                     @php $contador++; @endphp

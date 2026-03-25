@@ -3,14 +3,14 @@
     $tipo_producto = $tipo_producto ?? null;
     $modal_suffix = \Illuminate\Support\Str::slug((string) $tipo_producto, '-');
     
-    $alm_tipo_producto = App\Models\Inventario::where('sede_id',$sede->id)
+    $alm_tipo_producto = App\Models\Inventario::where('sede_id', $sede->id)
         ->when($tipo_producto, function ($query) use ($tipo_producto) {
             $query->where('tipo_producto', $tipo_producto);
         })
         ->get();
-    foreach($alm_tipo_producto as $alm_tipo_productos){
-        $alm_tipos_sum = $alm_tipos_sum+($alm_tipo_productos?$alm_tipo_productos->cantidad:'0');
-    }
+
+    // ✅ Inicializar aquí y usar sum() de la colección
+    $alm_tipos_sum = $alm_tipo_producto->sum('cantidad');
 @endphp
 <div class="modal fade" id="showtipoproducto{{$sede->id}}_{{$modal_suffix}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
@@ -88,7 +88,8 @@
                         @php
                             $contador++;
                         @endphp  
-                        @endforeach  
+                        @endforeach 
+                    </tbody> 
                 </table>
             </div>
             <div class="modal-footer bg-transparent py-2">
@@ -99,7 +100,7 @@
         </div>
     </div>
 </div>
+{{-- Al final, solo esto: --}}
 @foreach ($alm_tipo_producto as $alm_tipo_productos)
     @include('ADMINISTRADOR.ALMACEN.inventarios.show_dtlleaccesorios')
 @endforeach
-@include('ADMINISTRADOR.ALMACEN.inventarios.reporte_modal_pdf')

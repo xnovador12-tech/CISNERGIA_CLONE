@@ -65,9 +65,7 @@
                         <span class="text-uppercase">Total de registros encontrados: <span class="fw-bold">{{$sedes->count()}}</span></span>
                     </div>
                     <div class="row">
-                        @php
-                            $alm_tipos_sum = 0;
-                        @endphp
+                        
                         @foreach($sedes as $sede)
                             @php
                                 $almacenes_por_tipos = DB::table('inventarios')->select('tipo_producto', DB::raw('SUM(cantidad) as cantidad'))->where('sede_id',$sede->id)->groupBy('tipo_producto')->get();
@@ -85,23 +83,39 @@
                                             </div>
                                         </div>
                                         <div class="tipo-producto-list" id="tipo_producto_list_{{$sede->id}}">
-                                            @foreach($almacenes_por_tipos as $almacenes_por_tipo)
                                             @php
-                                                $alm_tipos_sum = $alm_tipos_sum+($almacenes_por_tipo?$almacenes_por_tipo->cantidad:'0');
+                                                $alm_tipos_sum = $almacenes_por_tipos->sum('cantidad');
                                             @endphp
+
+                                            @foreach($almacenes_por_tipos as $almacenes_por_tipo)
                                             <div class="card mb-3 shadow-sm border-0 bg-light tipo-producto-item">
                                                 <div class="card-body">
                                                     <div class="clearfix text-uppercase fw-bold">
                                                         <span class="float-start">
-                                                            <button class="stretched-link text-uppercase text-dark fw-bold bg-transparent border-0 p-0 m-0" onclick="tipo_productos(this)" data-tipo-producto="{{$almacenes_por_tipo->tipo_producto}}" data-modal-id="showtipoproducto{{$sede->id}}_{{ \Illuminate\Support\Str::slug($almacenes_por_tipo->tipo_producto, '-') }}" data-bs-toggle="modal" data-bs-target="#showtipoproducto{{$sede->id}}_{{ \Illuminate\Support\Str::slug($almacenes_por_tipo->tipo_producto, '-') }}" data-id="areaalmacen">{{$almacenes_por_tipo->tipo_producto}}</button>
+                                                            <button class="stretched-link text-uppercase text-dark fw-bold bg-transparent border-0 p-0 m-0" 
+                                                                onclick="tipo_productos(this)" 
+                                                                data-tipo-producto="{{$almacenes_por_tipo->tipo_producto}}" 
+                                                                data-modal-id="showtipoproducto{{$sede->id}}_{{ \Illuminate\Support\Str::slug($almacenes_por_tipo->tipo_producto, '-') }}" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#showtipoproducto{{$sede->id}}_{{ \Illuminate\Support\Str::slug($almacenes_por_tipo->tipo_producto, '-') }}" 
+                                                                data-id="areaalmacen">
+                                                                {{$almacenes_por_tipo->tipo_producto}}
+                                                            </button>
                                                         </span>
                                                         <span class="float-end">
-                                                            {{$alm_tipos_sum?round($alm_tipos_sum, 2):'0'}}
+                                                            {{-- Cantidad solo de este tipo --}}
+                                                            {{ $almacenes_por_tipo->cantidad ? round($almacenes_por_tipo->cantidad, 2) : '0' }}
                                                         </span>
                                                     </div>
                                                 </div>
                                             </div>
                                             @endforeach
+
+                                            {{-- Total de todos los tipos, fuera del foreach --}}
+                                            <div class="text-end fw-bold mt-2">
+                                                Total: {{ $alm_tipos_sum ? round($alm_tipos_sum, 2) : '0' }}
+                                            </div>
+
                                         </div>
                                     </div>
                                 </div>
