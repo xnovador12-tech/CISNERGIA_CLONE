@@ -51,7 +51,25 @@
                             <div class="col-md-6">
                                 <p class="mb-1"><strong>Comprobante:</strong> {{ $venta->tipocomprobante->name ?? 'Sin comprobante' }}</p>
                                 <p class="mb-1"><strong>Número:</strong> {{ $venta->numero_comprobante ?? 'Sin número' }}</p>
-                                <p class="mb-1"><strong>Medio de Pago:</strong> {{ $venta->mediopago->name ?? 'N/A' }}</p>
+                                @if($venta->mediopago)
+                                <p class="mb-1"><strong>Medio de Pago:</strong> {{ $venta->mediopago->name }}</p>
+                                @endif
+                                <p class="mb-1"><strong>Tipo Operación:</strong>
+                                    @if($venta->tipoOperacion)
+                                        <span class="badge bg-{{ $venta->tipoOperacion->code == '1001' ? 'warning text-dark' : 'secondary' }}">
+                                            {{ $venta->tipoOperacion->code }} - {{ $venta->tipoOperacion->descripcion }}
+                                        </span>
+                                    @else
+                                        N/A
+                                    @endif
+                                </p>
+                                @if($venta->tipoDetraccion)
+                                <p class="mb-1"><strong>Detracción:</strong>
+                                    <span class="badge bg-danger">
+                                        {{ $venta->tipoDetraccion->code }} - {{ $venta->tipoDetraccion->descripcion }} ({{ $venta->tipoDetraccion->porcentaje }}%)
+                                    </span>
+                                </p>
+                                @endif
                                 <p class="mb-1"><strong>Vendedor:</strong> {{ $venta->usuario->name ?? 'N/A' }}</p>
                             </div>
                         </div>
@@ -190,6 +208,17 @@
                             <h5 class="mb-0">TOTAL:</h5>
                             <h5 class="mb-0 text-success">S/ {{ number_format($venta->total, 2) }}</h5>
                         </div>
+                        @if($venta->monto_detraccion > 0)
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-danger">Detracción ({{ $venta->tipoDetraccion->porcentaje ?? 0 }}%):</span>
+                            <strong class="text-danger">- S/ {{ number_format($venta->monto_detraccion, 2) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-0 fw-bold">NETO A COBRAR:</h6>
+                            <h6 class="mb-0 fw-bold text-primary">S/ {{ number_format($venta->monto_neto, 2) }}</h6>
+                        </div>
+                        @endif
                     </div>
                 </div>
 

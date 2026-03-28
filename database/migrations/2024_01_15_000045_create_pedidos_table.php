@@ -24,7 +24,7 @@ return new class extends Migration
 
             // Montos
             $table->decimal('subtotal', 11, 2)->default(0);
-            $table->string('condicion_pago')->default('Contado'); // Contado, Crédito, etc.
+            $table->string('condicion_pago')->nullable(); // Contado, Crédito, etc.
             $table->boolean('incluye_igv')->default(false);
             $table->decimal('descuento_porcentaje', 5, 2)->default(0);
             $table->decimal('descuento_monto', 11, 2)->default(0);

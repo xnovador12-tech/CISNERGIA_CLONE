@@ -49,6 +49,33 @@
                                 </div>
                             </div>
                         </div>
+                        @if($admin_salida->motivo == 'Venta')
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <div class="card mb-3">
+                                <div class="card-header py-1">
+                                    <p class="small text-uppercase mb-0">Código de venta</p>
+                                </div>
+                                <div class="card-body py-1">
+                                    <p class="fw-normal mb-0">{{ $admin_salida->codigo_venta }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        @if($admin_salida->motivo == 'Muestra')
+                        @php
+                            $cliente_nombre = \App\Models\Cliente::where('id', $admin_salida->cliente)->first();
+                        @endphp
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <div class="card mb-3">
+                                <div class="card-header py-1">
+                                    <p class="small text-uppercase mb-0">Cliente</p>
+                                </div>
+                                <div class="card-body py-1">
+                                    <p class="fw-normal mb-0">{{ $cliente_nombre->nombre.' '.$cliente_nombre->apellidos }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                         <div class="col-12 col-md-4 col-lg-2">
                             <div class="card mb-3">
                                 <div class="card-header py-1">
@@ -118,7 +145,7 @@
                                         <div class="clearfix">
                                             <span class="float-start ps-2">- </span>
                                             <span class="float-end">
-                                                {{ $admin_salida->total_producto }}
+                                                {{ $admin_salida->total }}
                                             </span>
                                         </div>
                                     </td>

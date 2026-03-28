@@ -35,11 +35,30 @@
         <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
             <div class="card-header bg-transparent">
                 <div class="row justify-content-beetween">
-                    <div class="col-md-3 d-flex">
+                    <div class="col-12 col-md-2 col-lg-2 col-xl-2 d-flex order-1 order-md-1">
                         <a type="button" href="{{ url('admin-ingresos/create') }}" class="btn btn-dark text-uppercase text-white btn-sm w-100">
                             <i class="bi bi-plus-circle-fill me-2"></i>
                             Nuevo Registro
                         </a>
+                    </div>
+                    <div class="col-12 col-md-5 col-lg-4 col-xl-4 mb-lg-0 order-3 order-md-3 d-flex justify-content-center">
+                        <form method="POST" action="{{ route('ingreso_general.index') }}" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>
+					    @csrf
+                            <div class="input-group input-group-sm w-100">
+                                <input type="date" class="form-control" name="fecha_inicio">
+                                <input type="date" class="form-control" name="fecha_fin">
+                                <button class="btn btn-dark" id="button_search"><i class="bi bi-search"></i></button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-12 col-md-2 col-lg-2 col-xl-1 mb-2 mb-lg-0 ms-md-auto order-4 order-md-4">
+                        <button type="button" class="btn btn-dark btn-sm w-100" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download"></i></button>
+                        <ul class="dropdown-menu">      
+                            <li class="dropdown-item">
+                                <button class="bg-transparent border-0 px-0 mx-0" data-bs-toggle="modal" data-bs-target="#reporte_PDF"><i class="bi bi-file-pdf me-2"></i><small>PDF</small></button>
+                            </li>                                                    
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -99,6 +118,8 @@
         </div>
     </div>
 {{-- Fin contenido --}}
+    @include('ADMINISTRADOR.ALMACEN.ingresos.reporte_modal_pdf')
+
 @endsection
 
 @section('js')

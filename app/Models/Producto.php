@@ -29,6 +29,8 @@ class Producto extends Model
         'precio',
         'precio_descuento',
         'peso',
+        'stock_critico',
+        'stock_seguro',
         'tipo_id',
         'medida_id',
         'tipo_adquisicion',

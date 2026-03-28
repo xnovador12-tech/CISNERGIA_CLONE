@@ -12,6 +12,7 @@ use App\Models\Detalleingreso;
 use App\Models\Detallemovimiento;
 use App\Models\Inventario;
 use App\Models\Movimiento;
+use App\Models\Sede;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,12 @@ class admin_IngresosController extends Controller
         return view('ADMINISTRADOR.ALMACEN.ingresos.index',compact('admin_ingresos'));
     }
 
+    public function ingreso_general(Request $request){
+        $fi = $request->fecha_inicio. ' 00:00:00';
+        $ff = $request->fecha_fin. ' 23:59:59';
+        $admin_ingresos = Movimiento::where('tipo_movimiento', 'INGRESO')->whereBetween('created_at', [$fi, $ff])->get();
+        return view('ADMINISTRADOR.ALMACEN.ingresos.index',compact('admin_ingresos'));
+    }
     /**
      * Show the form for creating a new resource.
      */
@@ -186,6 +193,19 @@ class admin_IngresosController extends Controller
         //
     }
 
+    // Reporte para ver de forma general por fecha - pdf
+    public function reporteIngresosPrintPdfSede(Request $request)
+    {
+        $now = Carbon::now();
+        $fi = $request->fecha_ini. ' 00:00:00';
+        $ff = $request->fecha_fin. ' 23:59:59';
+        $name_sede = Sede::where('id', 1)->first();
+        $ingresos = Movimiento::where('tipo_movimiento', 'INGRESO')->whereBetween('created_at', [$fi, $ff])->where('sede_id', "=", $name_sede->id)->get();
+        $pdf = PDF::loadView('ADMINISTRADOR.REPORTES.movimiento-ingresos.pdf.movingresoPDF', ['ingresos'=>$ingresos, 'fi'=>$fi, 'ff'=>$ff, 'now'=>$now, 'name_sede'=>$name_sede]);
+        return $pdf->stream('MOVIMIENTOS-INGRESO - '.$name_sede->name.'.pdf');
+    }
+    // 
+
     // Reporte para ver de forma individual
     public function getIngresopdf(Movimiento $admin_ingreso)
     {
@@ -195,4 +215,5 @@ class admin_IngresosController extends Controller
         return $pdf->stream('DETALLE-MOVIMIENTO-INGRESO-'.$admin_ingreso->codigo.'.pdf');
     }
     // 
+    
 }

@@ -25,13 +25,29 @@
                             ">   
                         </div>
                     </div>
-                    <div class="col-12 col-md-8 col-lg-10 d-flex">
+                    <div class="col-12 col-md-8 col-lg-8 d-flex">
                         <div class="align-self-center">
                             <p class="text-uppercase small mb-0">{{ $alm_tipo_productos->producto }} - {{ $alm_tipo_productos->umedida }}</p>
                             <span class="border rounded px-2 fw-bold border-dark text-uppercase" style="font-size: 12px">{{$producto_tipo?$producto_tipo->tipo->name:''}}</span>
                             <p class="small text-uppercase text-primary fw-bold mb-0" style="font-size: 12px">{{$producto_tipo?$producto_tipo->tipo_costo:''}}</p>
                             <p class="float-start text-uppercase small">Stock: <span class="float-end badge bg-primary ms-2">{{$alm_tipo_productos->cantidad}}</span></p>
                         </div>
+                    </div>
+                    <div class="col-12 col-md-2 col-lg-2mb-2 mb-lg-0">
+                        <button type="button" class="btn btn-dark btn-sm w-100" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false">
+                            <i class="bi bi-download"></i>
+                        </button>
+                        <ul class="dropdown-menu">      
+                            <li class="dropdown-item">
+                                <button class="bg-transparent border-0 px-0 mx-0" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#reporte_PDF_{{ $alm_tipo_productos->id_producto }}">
+                                    <i class="bi bi-file-pdf me-2"></i><small>PDF</small>
+                                </button>
+                            </li>                                                    
+                        </ul>
                     </div>
                 </div>
                 <div class="table-responsive" style=" font-size: 13.5px">
@@ -42,7 +58,6 @@
                                 <th class="align-middle fw-bold text-uppercase small text-center" style="width: 15%">Movimiento</th>
                                 <th class="align-middle fw-bold text-uppercase small text-center" style="width: 50%">Motivo</th>
                                 <th class="align-middle fw-bold text-uppercase small text-center" style="width: 50%">Codigo de Movimiento</th>
-                                <th class="align-middle fw-bold text-uppercase small text-center" style="width: 50%">Lote</th>
                                 <th class="align-middle fw-bold text-uppercase small text-center" style="width: 10%">Fecha</th>
                                 <th class="align-middle fw-bold text-uppercase small text-center" style="width: 10%">Cantidad</th>
                             </tr>
@@ -50,52 +65,38 @@
                         <tbody>
                             @php
                                 $contador = 1;
-                                $mov_ingresos = DB::table('ingresos as ings')
-                                    ->join('detalleingresos as dtll','dtll.ingreso_id','=','ings.id')
+                                $mov_totales = DB::table('movimientos as mov')
+                                    ->join('detallemovimientos as dtll','dtll.movimiento_id','=','mov.id')
                                     ->select(
-                                        DB::raw("'INGRESO' as movimiento"),
-                                        'ings.codigo_ocompra as codigo_movimiento',
-                                        'dtll.lote',
-                                        'ings.motivo',
-                                        'ings.created_at',
-                                        'ings.fecha',
+                                        'mov.codigo_ocompra',
+                                        'mov.codigo_venta',
+                                        'mov.cliente',
+                                        'mov.tipo_movimiento',
+                                        'mov.motivo',
+                                        'mov.created_at',
+                                        'mov.fecha',
                                         'dtll.cantidad'
                                     )
                                     ->where('dtll.id_producto',$alm_tipo_productos->id_producto)
-                                    ->groupBy('ings.codigo_ocompra','dtll.lote','ings.motivo','ings.created_at','ings.fecha','dtll.cantidad')
                                     ->get();
-
-                                $mov_salidas = DB::table('salidas as sal')
-                                    ->join('detallesalidas as dtll','dtll.salida_id','=','sal.id')
-                                    ->select(
-                                        DB::raw("'SALIDA' as movimiento"),
-                                        'sal.codigo as codigo_movimiento',
-                                        'dtll.lote',
-                                        'sal.motivo',
-                                        'sal.created_at',
-                                        'sal.fecha',
-                                        'dtll.cantidad'
-                                    )
-                                    ->where('dtll.producto_id',$alm_tipo_productos->id_producto)
-                                    ->groupBy('sal.codigo','dtll.lote','sal.motivo','sal.created_at','sal.fecha','dtll.cantidad')
-                                    ->get();
-
-                                $movimientos = $mov_ingresos
-                                    ->merge($mov_salidas)
-                                    ->sortByDesc('created_at')
-                                    ->values();
                             @endphp
-                            @foreach($movimientos as $movimiento)
+                            @foreach($mov_totales as $movimiento)
+                                @php
+                                    $clientes_val = \App\Models\Cliente::where('id',$movimiento->cliente)->first();
+                                @endphp
                             <tr>
                                 <td class="align-middle text-uppercase text-center">{{$contador}}</td>
-                                @if($movimiento->movimiento === 'INGRESO')
+                                @if($movimiento->tipo_movimiento === 'INGRESO')
                                     <td class="align-middle text-uppercase text-center text-success">INGRESO</td>
                                 @else
                                     <td class="align-middle text-uppercase text-center text-danger">SALIDA</td>
                                 @endif
                                 <td class="align-middle text-uppercase text-center">{{$movimiento->motivo}}</td>
-                                <td class="align-middle text-uppercase text-center">{{$movimiento->codigo_movimiento}}</td>
-                                <td class="align-middle text-uppercase text-center">{{$movimiento->lote}}</td>
+                                @if($movimiento->tipo_movimiento === 'INGRESO')
+                                    <td class="align-middle text-uppercase text-center">{{$movimiento->codigo_ocompra}}</td>
+                                @else
+                                    <td class="align-middle text-uppercase text-center">{{$movimiento->codigo_venta?$movimiento->codigo_venta:($clientes_val?$clientes_val->nombre.' '.$clientes_val->apellidos:'')}}</td>
+                                @endif
                                 <td class="align-middle text-uppercase text-center">{{$movimiento->fecha}}</td>
                                 <td class="align-middle text-uppercase text-center text-success">{{$movimiento->cantidad}}</td>
                             </tr>
@@ -106,6 +107,46 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL PRINCIPAL --}}
+<div class="modal fade" id="showtipoproducto{{ $alm_tipo_productos->id_producto }}" ...>
+    ...
+    {{-- Botón con data-bs-dismiss para cerrar este antes de abrir PDF --}}
+    <button class="bg-transparent border-0 px-0 mx-0" 
+        data-bs-dismiss="modal"
+        data-bs-toggle="modal" 
+        data-bs-target="#reporte_PDF_{{ $alm_tipo_productos->id_producto }}">
+        <i class="bi bi-file-pdf me-2"></i><small>PDF</small>
+    </button>
+    ...
+</div>
+
+{{-- ✅ MODAL PDF AQUÍ AFUERA, al mismo nivel --}}
+<div class="modal fade" id="reporte_PDF_{{ $alm_tipo_productos->id_producto }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white py-2">
+                <span class="modal-title">Imprimir reporte en PDF</span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ route('admin-inventarios-totales.resultadosPDF') }}" method="POST" target="_blank">
+                    @csrf
+                    <div class="my-3">
+                        <label>Filtrar desde</label>
+                        <input type="date" name="fecha_ini" class="form-control form-control-sm">
+                    </div>
+                    <div class="my-3">
+                        <label>Filtrar hasta</label>
+                        <input type="date" name="fecha_fin" class="form-control form-control-sm">
+                    </div>
+                    <input type="hidden" name="id_producto" value="{{ $alm_tipo_productos->id_producto }}">
+                    <button type="submit" class="btn btn-dark w-100 mt-3">Generar Reporte</button>
+                </form>
             </div>
         </div>
     </div>

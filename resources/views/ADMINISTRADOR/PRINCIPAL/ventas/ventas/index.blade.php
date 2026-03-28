@@ -86,6 +86,113 @@
         </div>
     </div>
 
+    <!-- Botón Pedidos Pendientes -->
+    <div class="container-fluid mb-4" data-aos="fade-up">
+        <button type="button" class="btn btn-warning fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPedidosPendientes">
+            <i class="bi bi-clock-history me-2"></i>Pedidos Pendientes
+            <span class="badge bg-dark ms-2">{{ $pedidosPendientes->count() }}</span>
+        </button>
+    </div>
+
+    <!-- Modal Pedidos Pendientes -->
+    <div class="modal fade" id="modalPedidosPendientes" tabindex="-1" aria-labelledby="modalPedidosPendientesLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius: 15px; overflow: hidden;">
+                <div class="modal-header bg-warning bg-opacity-10 border-bottom border-warning">
+                    <h5 class="modal-title fw-bold" id="modalPedidosPendientesLabel">
+                        <i class="bi bi-clock-history text-warning me-2"></i>Pedidos Pendientes
+                        <span class="badge bg-warning text-dark ms-2">{{ $pedidosPendientes->count() }}</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3">
+                    @if($pedidosPendientes->count() > 0)
+                        <div class="table-responsive">
+                            <table id="tablaPedidosPendientes" class="table table-hover align-middle mb-0" style="width:100%">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="small text-uppercase fw-bold text-center">N°</th>
+                                        <th class="small text-uppercase fw-bold text-center">Código</th>
+                                        <th class="small text-uppercase fw-bold text-center">Cliente</th>
+                                        <th class="small text-uppercase fw-bold text-center">Fecha</th>
+                                        <th class="small text-uppercase fw-bold text-center">Total</th>
+                                        <th class="small text-uppercase fw-bold text-center">Condición</th>
+                                        <th class="small text-uppercase fw-bold text-center">Finanzas</th>
+                                        <th class="small text-uppercase fw-bold text-center">Stock</th>
+                                        <th class="small text-uppercase fw-bold text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($pedidosPendientes as $index => $pedido)
+                                        <tr>
+                                            <td class="text-center">{{ $index + 1 }}</td>
+                                            <td class="text-center">
+                                                <strong>{{ $pedido->codigo }}</strong><br>
+                                                <small class="text-muted">{{ $pedido->created_at->format('d/m/Y') }}</small>
+                                            </td>
+                                            <td class="text-center">
+                                                @if($pedido->cliente)
+                                                    {{ $pedido->cliente->nombre }} {{ $pedido->cliente->apellidos }}
+                                                    @if($pedido->cliente->razon_social)
+                                                        <br><small class="text-muted">{{ $pedido->cliente->razon_social }}</small>
+                                                    @endif
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td>
+                                            <td class="text-center">{{ $pedido->created_at->format('d/m/Y H:i') }}</td>
+                                            <td class="text-center fw-bold text-success">S/ {{ number_format($pedido->total, 2) }}</td>
+                                            <td class="text-center">
+                                                @if($pedido->condicion_pago == 'Crédito')
+                                                    <span class="badge bg-info">Crédito</span>
+                                                @else
+                                                    <span class="badge bg-secondary">Contado</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                @if($pedido->aprobacion_finanzas)
+                                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Aprobado</span>
+                                                @else
+                                                    <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Pendiente</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                @if($pedido->aprobacion_stock)
+                                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Reservado</span>
+                                                @else
+                                                    <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Pendiente</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="{{ route('admin-ventas.create', ['pedido' => $pedido->id]) }}" class="btn btn-sm btn-outline-success" title="Generar Venta">
+                                                    <i class="bi bi-cart-plus"></i>
+                                                </a>
+                                                <a href="{{ route('admin-pedidos.show', $pedido) }}" class="btn btn-sm btn-outline-secondary ms-1" title="Ver Pedido">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-5">
+                            <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3 mb-0">No hay pedidos pendientes</p>
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <a href="{{ route('admin-pedidos.index') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-list-ul me-1"></i>Ver todos los pedidos
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tabla de Ventas -->
     <div class="container-fluid">
         <div class="card border-4 borde-top-secondary shadow-sm h-100" style="border-radius: 20px; min-height: 500px" data-aos="fade-up">
@@ -102,6 +209,8 @@
                             <th class="h6 small text-center text-uppercase fw-bold">Comprobante</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Fecha</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Total</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Pagado</th>
+                            <th class="h6 small text-center text-uppercase fw-bold">Saldo</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Estado</th>
                             <th class="h6 small text-center text-uppercase fw-bold">Acciones</th>
                         </tr>
@@ -145,6 +254,12 @@
                             </td>
                             <td class="fw-normal text-center align-middle">{{ $venta->created_at->format('d/m/Y H:i') }}</td>
                             <td class="fw-normal text-center align-middle text-success fw-bold">S/ {{ number_format($venta->total, 2) }}</td>
+                            @php
+                                $pagado = $venta->pagos->sum('monto');
+                                $saldo = $venta->total - $pagado;
+                            @endphp
+                            <td class="fw-normal text-center align-middle fw-bold text-primary">S/ {{ number_format($pagado, 2) }}</td>
+                            <td class="fw-normal text-center align-middle fw-bold {{ $saldo > 0 ? 'text-danger' : 'text-success' }}">S/ {{ number_format($saldo, 2) }}</td>
                             <td class="fw-normal text-center align-middle">
                                 @if($venta->estado == 'completada')
                                     <span class="badge bg-success">Completada</span>
@@ -180,4 +295,36 @@
 @endsection
 
 @section('js')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let tablaPedidos = null;
+        const modalEl = document.getElementById('modalPedidosPendientes');
+
+        modalEl.addEventListener('shown.bs.modal', function () {
+            if (!tablaPedidos && document.querySelector('#tablaPedidosPendientes')) {
+                tablaPedidos = new DataTable('#tablaPedidosPendientes', {
+                    responsive: true,
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50],
+                    language: {
+                        search: "Buscar:",
+                        lengthMenu: "Mostrar _MENU_ registros",
+                        info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                        infoEmpty: "No hay registros",
+                        infoFiltered: "(filtrado de _MAX_ registros totales)",
+                        zeroRecords: "No se encontraron resultados",
+                        paginate: {
+                            first: "Primero",
+                            last: "Último",
+                            next: "Siguiente",
+                            previous: "Anterior"
+                        }
+                    },
+                    order: [[3, 'desc']],
+                    dom: '<"row mb-3"<"col-sm-6"l><"col-sm-6"f>>rtip'
+                });
+            }
+        });
+    });
+</script>
 @endsection

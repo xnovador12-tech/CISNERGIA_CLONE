@@ -17,4 +17,9 @@ class Movimiento extends Model
     {
         return $this->belongsTo(Almacen::class, 'almacen_id');
     }
+
+    public function detallemovimientos()
+{
+    return $this->hasMany(DetalleMovimiento::class, 'movimiento_id');
+}
 }

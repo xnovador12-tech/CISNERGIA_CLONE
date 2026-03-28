@@ -8,16 +8,6 @@
             <div class="modal-body">
                 <form action="{{ route('admin-ingresos.resultadosPDF') }}" method="POST">
                 @csrf
-                    <!-- <div class="mb-3" id="">
-                        <label for="">Filtrar Sucursal</label>
-                        <select name="sucursal_id" id="sucursal_id" class="form-select form-select-sm select2 mb-3" required>
-                            <option value="" disabled selected>Selecciona una sucursal</option>
-                            <option value="Todos">Todas las sucursales</option>
-                            @foreach ($sucursales as $sucursal)
-                                <option value="{{ $sucursal->id }}">{{ $sucursal->name }}</option>
-                            @endforeach
-                        </select>
-                    </div> -->
                     <div class="my-3" id="">
                         <label for="">Filtrar desde</label>
                         <input type="date" id="start-date"  name="fecha_ini" class="form-control form-control-sm">

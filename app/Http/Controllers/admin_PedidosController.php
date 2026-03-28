@@ -65,11 +65,9 @@ class admin_PedidosController extends Controller
         $validated = $request->validate([
             'cliente_id' => 'required|exists:clientes,id',
             'fecha_entrega_estimada' => 'nullable|date',
-            'vigencia_dias' => 'required|in:15,30',
             'direccion_instalacion' => 'nullable|string',
             'distrito_id' => 'nullable|exists:distritos,id',
             'almacen_id' => 'nullable|exists:almacenes,id',
-            'observaciones' => 'nullable|string',
             'condicion_pago' => 'nullable|in:Contado,Crédito',
             'cuotas' => 'nullable|array',
             'cuotas.*.importe' => 'required_with:cuotas|numeric|min:0.01',
@@ -98,9 +96,8 @@ class admin_PedidosController extends Controller
         $pedido->direccion_instalacion = $request->direccion_instalacion;
         $pedido->distrito_id = $request->distrito_id;
         $pedido->fecha_entrega_estimada = $request->fecha_entrega_estimada;
-        $pedido->vigencia_dias = $request->vigencia_dias ?? 15;
         $pedido->almacen_id = $request->almacen_id;
-        $pedido->condicion_pago = $request->condicion_pago ?? 'Contado';
+        $pedido->condicion_pago = $request->condicion_pago;
         $pedido->observaciones = $request->observaciones;
         $pedido->origen = 'directo';
         $pedido->save();
@@ -196,11 +193,9 @@ class admin_PedidosController extends Controller
             'cliente_id' => 'required|exists:clientes,id',
             'estado' => 'required|in:pendiente,proceso,confirmado,cancelado',
             'fecha_entrega_estimada' => 'nullable|date',
-            'vigencia_dias' => 'required|in:15,30',
             'direccion_instalacion' => 'nullable|string',
             'distrito_id' => 'nullable|exists:distritos,id',
             'almacen_id' => 'nullable|exists:almacenes,id',
-            'observaciones' => 'nullable|string',
             'subtotal' => 'nullable|numeric',
             'descuento_porcentaje' => 'nullable|numeric',
             'descuento_monto' => 'nullable|numeric',
@@ -211,6 +206,12 @@ class admin_PedidosController extends Controller
             'cuotas.*.importe' => 'required_with:cuotas|numeric|min:0.01',
             'cuotas.*.fecha_vencimiento' => 'required_with:cuotas|date'
         ]);
+
+        // If 'Contado' is sent as an empty string or null from the frontend (if applicable)
+        // ensure it's saved as null if it's not actually specified.
+        if (empty($validated['condicion_pago'])) {
+            $validated['condicion_pago'] = null;
+        }
 
         // 1. Devolver Stock actual antes de los cambios (si estaba reservado)
         if ($admin_pedido->aprobacion_stock) {

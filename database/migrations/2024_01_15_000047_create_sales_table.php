@@ -20,6 +20,8 @@ return new class extends Migration
             $table->foreignId('pedido_id')->nullable()->constrained('pedidos')->onDelete('set null');
             $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('tiposcomprobante_id')->nullable()->constrained('tiposcomprobantes')->onDelete('set null');
+            $table->foreignId('tipo_operacion_id')->nullable()->constrained('tipos_operaciones')->nullOnDelete();
+            $table->foreignId('tipo_detraccion_id')->nullable()->constrained('tipo_detraccion')->nullOnDelete();
             $table->string('numero_comprobante')->nullable();
 
             // Montos
@@ -27,9 +29,13 @@ return new class extends Migration
             $table->decimal('descuento', 11, 2)->default(0);
             $table->decimal('igv', 11, 2)->default(0);
             $table->decimal('total', 11, 2)->default(0);
+            $table->decimal('monto_detraccion', 15, 2)->default(0);
+            $table->decimal('monto_neto', 15, 2)->default(0);
 
             // Pago y estado
             $table->foreignId('mediopago_id')->nullable()->constrained('mediopagos')->onDelete('set null');
+            $table->string('billetera')->nullable();
+            $table->unsignedBigInteger('cuenta_bancaria_id')->nullable();
             $table->string('condicion_pago')->default('Contado');
             $table->enum('estado', ['completada', 'parcial', 'anulada'])->default('completada');
             $table->string('estado_msalida')->default('0'); // 0: no generado, 1: generado

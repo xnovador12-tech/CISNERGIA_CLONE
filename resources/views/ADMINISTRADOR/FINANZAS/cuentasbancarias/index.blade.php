@@ -31,7 +31,7 @@
                     </div>
 
                     <h5 class="fw-bold text-dark mb-1">{{ $cuenta->banco->name }}</h5>
-                    <p class="text-muted small mb-3">{{ $cuenta->tipocuenta->name }} | {{ $cuenta->moneda->descripcion }}</p>
+                    <p class="text-muted small mb-3">{{ $cuenta->moneda->descripcion ?? '' }}</p>
 
                     <div class="bg-light p-3 rounded-4 mb-3">
                         <p class="text-muted small mb-1">Número de Cuenta</p>

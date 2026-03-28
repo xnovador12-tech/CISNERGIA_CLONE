@@ -154,6 +154,7 @@
                             </div>
                         </div>
 
+                        @if($pedido->condicion_pago)
                         <hr>
                         <div class="row mb-3">
                             <div class="col-md-12">
@@ -161,7 +162,7 @@
                                 <p class="mb-1">
                                     <strong>Condición de Pago:</strong> 
                                     <span class="badge {{ $pedido->condicion_pago == 'Contado' ? 'bg-success' : 'bg-primary' }}">
-                                        {{ $pedido->condicion_pago ?? 'Contado' }}
+                                        {{ $pedido->condicion_pago }}
                                     </span>
                                 </p>
                                 
@@ -192,6 +193,7 @@
                                 @endif
                             </div>
                         </div>
+                        @endif
 
                         @if($pedido->observaciones)
                         <hr>
@@ -280,29 +282,9 @@
                                 <i class="bi bi-check-circle me-2"></i>Ver Comprobante: {{ $pedido->venta->codigo }}
                             </a>
                         @else
-                            {{-- Confirmar Pago directo (sin modal) --}}
-                            @if(!$pedido->aprobacion_finanzas)
-                                <form action="{{ route('admin-pedidos.aprobar-finanzas', $pedido) }}" method="POST" class="mb-2">
-                                    @csrf
-                                    <button type="submit" class="btn btn-primary w-100 py-2">
-                                        <i class="bi bi-cash-coin me-2"></i>Confirmar Pago
-                                    </button>
-                                </form>
-                            @else
-                                <div class="alert alert-success py-2 mb-2 text-center" style="font-size:0.85rem;">
-                                    <i class="bi bi-check-all me-1"></i> Pago Verificado
-                                    <form action="{{ route('admin-pedidos.aprobar-finanzas', $pedido) }}" method="POST" class="d-inline ms-2">
-                                        @csrf
-                                        <button type="submit" class="btn btn-link p-0 text-danger text-decoration-none small" title="Revocar Pago">
-                                            <i class="bi bi-arrow-counterclockwise"></i>
-                                        </button>
-                                    </form>
-                                </div>
-
-                                <button type="button" class="btn btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#modalGenerarComprobante">
-                                    <i class="bi bi-receipt me-2"></i>Generar Comprobante
-                                </button>
-                            @endif
+                            <a href="{{ route('admin-ventas.create', ['pedido' => $pedido->id]) }}" class="btn btn-primary w-100 py-2 mb-2">
+                                <i class="bi bi-receipt me-2"></i>Generar Venta
+                            </a>
                         @endif
                         
                         {{-- Solo permitir editar si NO tiene venta generada --}}

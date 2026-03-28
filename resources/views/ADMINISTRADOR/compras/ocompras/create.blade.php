@@ -46,7 +46,7 @@
                         <div class="col-12 col-md-4 col-lg-6">
                             <div class="mb-3">
                                 <label for="proveedor_id" class=" d-block">Proveedor</label>
-                                <select class="form-select form-select-sm @error('proveedor_id') is-invalid @enderror select2_bootstrap_bootstrap" required id="proveedor_id" >
+                                <select class="form-select form-select-sm @error('proveedor_id') is-invalid @enderror select2_bootstrap" required id="proveedor_id" >
                                     <option disabled="disabled" selected="selected" hidden="hidden">{{ old('proveedor_id') }}</option>
                                     @foreach($proveedores as $proveedor)
                                         <option value="{{ $proveedor->id }}">{{ 'RS: '.$proveedor->name_contacto.' || PN: '.$proveedor->persona->name}}</option>

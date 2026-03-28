@@ -23,12 +23,15 @@ use App\Http\Controllers\admin_OrdenesserviciosController;
 use App\Http\Controllers\admin_ServiciosController;
 use App\Http\Controllers\admin_PedidosController;
 use App\Http\Controllers\admin_VentasController;
+use App\Http\Controllers\admin_CobrosController;
+use App\Http\Controllers\admin_PagosController;
+use App\Http\Controllers\admin_CajaChicaController;
+use App\Http\Controllers\admin_ComprobantesFinanzasController;
+use App\Http\Controllers\admin_NotasController;
 use App\Http\Controllers\admin_SalidasController;
 use App\Http\Controllers\admin_InventarioController;
 use App\Http\Controllers\ecommerceController;
 use App\Http\Controllers\admin_CuentabancoController;
-use App\Http\Controllers\admin_ComprobantesController;
-use App\Http\Controllers\admin_ComprobantesComprasController;
 use App\Http\Controllers\admin_CrmProspectosController;
 use App\Http\Controllers\admin_CrmOportunidadesController;
 use App\Http\Controllers\admin_CrmCotizacionesController;
@@ -148,21 +151,26 @@ Route::middleware(['auth'])->group(function () {
     Route::get('fecha_cuotas', [admin_OrdenescomprasController::class, 'getFechacuota']);
 
     Route::resource('admin-ingresos', admin_IngresosController::class);
+    route::post('admin-ingresos_general', [admin_IngresosController::class, 'ingreso_general'])->name('ingreso_general.index');
     Route::get('busqueda_dtll_oc', [admin_IngresosController::class, 'getbusqueda_det_oc']);
     Route::get('busqueda_pterminado', [admin_IngresosController::class, 'getbusqueda_pterminado']);
     Route::get('admin-ingresos/detalle-ingreso-pdf/{admin_ingreso}', [admin_IngresosController::class, 'getIngresopdf'])->name('detalle_ingreso.pdf');
+    Route::post('admin-ingresos/resultadosPDF', [admin_IngresosController::class, 'reporteIngresosPrintPdfSede'])->name('admin-ingresos.resultadosPDF');
+
 
     Route::resource('admin-salidas', admin_SalidasController::class);
+    route::post('admin-salidas_general', [admin_SalidasController::class, 'salida_general'])->name('salida_general.index');
     Route::get('busqueda_producto_inventario', [admin_SalidasController::class, 'getbusqueda_producto_inventario']);
     route::get('busqueda_inventarios', [admin_SalidasController::class, 'getbusqueda_inventarios']);
+    Route::get('admin-salidas/detalle-salida-pdf/{admin_salida}', [admin_SalidasController::class, 'getSalidapdf'])->name('detalle_salida.pdf');
+    Route::post('admin-salidas/resultadosPDF', [admin_SalidasController::class, 'reporteSalidasPrintPdfSede'])->name('admin-salidas.resultadosPDF');
 
     Route::resource('admin-inventarios', admin_InventarioController::class);
-    Route::resource('admin-cuentasbancarias', admin_CuentabancoController::class);
-    Route::resource('admin-comprobantes', admin_ComprobantesController::class);
-    Route::resource('admin-comprobantes-compras', admin_ComprobantesComprasController::class);
-    Route::get('/admin-comprobantes/{admin_comprobante}/voucher', [admin_ComprobantesController::class, 'voucher'])->name('admin-comprobantes.voucher');
-    Route::get('/admin-comprobantes/api/pedido/{id}', [admin_ComprobantesController::class, 'getPedidoDetails'])->name('admin-comprobantes.getPedido');
+    Route::post('admin-inventarios/resultadosPDF', [admin_InventarioController::class, 'reporteInventariosPrintPdfSede'])
+    ->name('admin-inventarios.resultadosPDF');
+    route::post('admin-inventarios-totales/resultadosPDF', [admin_InventarioController::class, 'getbusqueda_inventarios_general'])->name('admin-inventarios-totales.resultadosPDF');
 
+    Route::resource('admin-cuentasbancarias', admin_CuentabancoController::class);
     // ---------------------------------------------------------
     // UBIGEO AJAX
     // ---------------------------------------------------------
@@ -184,6 +192,34 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('admin-ventas', admin_VentasController::class);
     Route::put('/admin-ventas/estado/{admin_venta}', [admin_VentasController::class, 'estado']);
     Route::get('/admin-ventas/{admin_venta}/voucher', [admin_VentasController::class, 'voucher'])->name('admin-ventas.voucher');
+
+    // Cobros
+    Route::get('/admin-cobros', [admin_CobrosController::class, 'index'])->name('admin-cobros.index');
+    Route::get('/admin-cobros/{admin_cobro}', [admin_CobrosController::class, 'show'])->name('admin-cobros.show');
+    Route::post('/admin-cobros/{admin_cobro}', [admin_CobrosController::class, 'store'])->name('admin-cobros.store');
+
+    // Pagos (Egresos - Órdenes de Compra)
+    Route::get('/admin-pagos', [admin_PagosController::class, 'index'])->name('admin-pagos.index');
+    Route::get('/admin-pagos/{admin_pago}', [admin_PagosController::class, 'show'])->name('admin-pagos.show');
+    Route::post('/admin-pagos/{admin_pago}', [admin_PagosController::class, 'store'])->name('admin-pagos.store');
+
+    // Caja Chica
+    Route::get('/admin-caja-chica', [admin_CajaChicaController::class, 'index'])->name('admin-caja-chica.index');
+    Route::get('/admin-caja-chica/crear', [admin_CajaChicaController::class, 'create'])->name('admin-caja-chica.create');
+    Route::post('/admin-caja-chica', [admin_CajaChicaController::class, 'store'])->name('admin-caja-chica.store');
+    Route::get('/admin-caja-chica/{admin_caja_chica}', [admin_CajaChicaController::class, 'show'])->name('admin-caja-chica.show');
+    Route::put('/admin-caja-chica/{admin_caja_chica}/cerrar', [admin_CajaChicaController::class, 'cerrar'])->name('admin-caja-chica.cerrar');
+
+    // Comprobantes (Finanzas)
+    Route::get('/admin-comprobantes-finanzas', [admin_ComprobantesFinanzasController::class, 'index'])->name('admin-comprobantes-finanzas.index');
+    Route::get('/admin-comprobantes-finanzas/{admin_comprobante}', [admin_ComprobantesFinanzasController::class, 'show'])->name('admin-comprobantes-finanzas.show');
+
+    // Notas de Crédito / Débito (Finanzas)
+    Route::get('/admin-notas', [admin_NotasController::class, 'index'])->name('admin-notas.index');
+    Route::get('/admin-notas/crear', [admin_NotasController::class, 'create'])->name('admin-notas.create');
+    Route::post('/admin-notas', [admin_NotasController::class, 'store'])->name('admin-notas.store');
+    Route::get('/admin-notas/{admin_nota}', [admin_NotasController::class, 'show'])->name('admin-notas.show');
+    Route::put('/admin-notas/{admin_nota}/anular', [admin_NotasController::class, 'anular'])->name('admin-notas.anular');
 
     // ---------------------------------------------------------
     // CRM

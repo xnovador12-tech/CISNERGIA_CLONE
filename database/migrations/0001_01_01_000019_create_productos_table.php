@@ -35,6 +35,8 @@ class CreateProductosTable extends Migration
             $table->integer('porcentaje')->default(0);
             $table->string('tipo_afectacion')->default('0');
             $table->string('registrado_por')->nullable();
+            $table->string('stock_critico')->nullable();
+            $table->string('stock_seguro')->nullable();
             $table->foreignId('modelo_id')->nullable()->constrained('modelos');
             $table->foreignId('tipo_id')->constrained('tipos');
             $table->foreignId('medida_id')->nullable()->constrained('medidas');

@@ -3,14 +3,14 @@
     $tipo_producto = $tipo_producto ?? null;
     $modal_suffix = \Illuminate\Support\Str::slug((string) $tipo_producto, '-');
     
-    $alm_tipo_producto = App\Models\Inventario::where('sede_id',$sede->id)
+    $alm_tipo_producto = App\Models\Inventario::where('sede_id', $sede->id)
         ->when($tipo_producto, function ($query) use ($tipo_producto) {
             $query->where('tipo_producto', $tipo_producto);
         })
         ->get();
-    foreach($alm_tipo_producto as $alm_tipo_productos){
-        $alm_tipos_sum = $alm_tipos_sum+($alm_tipo_productos?$alm_tipo_productos->cantidad:'0');
-    }
+
+    // ✅ Inicializar aquí y usar sum() de la colección
+    $alm_tipos_sum = $alm_tipo_producto->sum('cantidad');
 @endphp
 <div class="modal fade" id="showtipoproducto{{$sede->id}}_{{$modal_suffix}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
@@ -29,12 +29,17 @@
                     <div class="col-12 col-md-6 col-lg-3 col-xl-1 mb-2 mb-lg-0">
                         <button type="button" class="btn btn-dark btn-sm w-100" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download"></i></button>
                         <ul class="dropdown-menu">      
-                            <li class="dropdown-item">
+                            <!-- <li class="dropdown-item">
                                 <button class="bg-transparent border-0 px-0 mx-0" data-bs-toggle="modal" data-bs-target="#reporte_Excel"><i class="bi bi-file-excel me-2"></i><small>EXCEL</small></button>
-                            </li>                                            
+                            </li>                                             -->
                             <li class="dropdown-item">
-                                <button class="bg-transparent border-0 px-0 mx-0" id="pdf_almacen" data-bs-toggle="modal" data-bs-target="#reporte_PDF"><i class="bi bi-file-pdf me-2"></i><small>PDF</small></button>
-                            </li>                                                    
+                                <form action="{{ route('admin-inventarios.resultadosPDF') }}" method="POST" target="_blank">
+                                    @csrf
+                                    <input type="hidden" name="sede_id" value="{{ $sede->id }}">
+                                    <input type="hidden" name="tipo_producto" value="{{ $tipo_producto }}">
+                                    <button type="submit" class="bg-transparent border-0 px-0 mx-0"><i class="bi bi-file-excel me-2"></i><small>PDF</small></button>
+                                </form>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -47,6 +52,7 @@
                             <th class="h6 text-uppercase fw-bold small">N°</th>
                             <th class="h6 text-uppercase fw-bold small">Código</th>
                             <th class="h6 text-uppercase fw-bold small">Tipo</th>
+                            <th class="h6 text-uppercase fw-bold small">Categoria / Subcategoria</th>
                             <th class="h6 text-uppercase fw-bold small">Descripción</th>
                             <th class="h6 text-uppercase fw-bold small">U.M.</th>
                             <th class="h6 text-uppercase fw-bold small">Cantidad</th>
@@ -65,14 +71,15 @@
                                 <td class="fw-normal align-middle">{{ $contador }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $codigo_producto?$codigo_producto->codigo:'' }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $codigo_producto?$codigo_producto->tipo->name:'' }}</td>
+                                <td class="fw-normal align-middle text-uppercase small">{{ $codigo_producto?->categorie?->name }}{{ $codigo_producto?->subcategories?->name ? ' \ ' . $codigo_producto->subcategories->name : '' }}</td>
                                 <td class="fw-normal align-middle text-uppercase small">{{ $alm_tipo_productos->producto }}</td>
                                 <td class="fw-normal align-middle">{{ $alm_tipo_productos->umedida }}</td>
                                 <td class="fw-normal align-middle">
-                                    @if($alm_tipo_productos->cantidad <= 10)
+                                    @if($alm_tipo_productos->cantidad <= $codigo_producto->stock_critico)
                                         <span class="badge w-100 bg-danger">{{ $alm_tipo_productos->cantidad }}</span>
-                                    @elseif($alm_tipo_productos->cantidad <= 20)
+                                    @elseif($alm_tipo_productos->cantidad <= $codigo_producto->stock_seguro)
                                         <span class="badge w-100 bg-warning">{{ $alm_tipo_productos->cantidad }}</span>
-                                    @elseif($alm_tipo_productos->cantidad >= 21)
+                                    @elseif($alm_tipo_productos->cantidad >= $codigo_producto->stock_seguro)
                                         <span class="badge w-100 bg-success">{{ $alm_tipo_productos->cantidad }}</span>
                                     @endif
                                 </td>
@@ -81,17 +88,19 @@
                         @php
                             $contador++;
                         @endphp  
-                        @endforeach  
+                        @endforeach 
+                    </tbody> 
                 </table>
             </div>
             <div class="modal-footer bg-transparent py-2">
                 <div class="text-end">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-sm btn-secondary text-white" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{{-- Al final, solo esto: --}}
 @foreach ($alm_tipo_producto as $alm_tipo_productos)
     @include('ADMINISTRADOR.ALMACEN.inventarios.show_dtlleaccesorios')
 @endforeach

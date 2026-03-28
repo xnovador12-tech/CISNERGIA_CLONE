@@ -131,6 +131,21 @@
                                     <input hidden name="id_venta" id="id_venta">  
                                 </div>
                             </div>
+
+                            <div class="col-12 col-md-3 col-lg-2" id="cliente_div">
+                                <div class="mb-3">
+                                    <label for="cliente_id" class=" d-block">Cliente</label>
+                                    <select class="form-select form-select-sm select2_bootstrap_2 w-100" name="cliente" id="cliente_id" style="width: 100%">
+                                        <option value="{{ old('cliente') }}" selected="selected" hidden="hidden">{{ old('cliente') }}</option>
+                                        @foreach ($clientes as $cliente)
+                                            <option value="{{ $cliente->id }}">{{ $cliente->nombre .' '. $cliente->apellidos }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('cliente')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
                         <p class="text-primary mb-2 small text-uppercase fw-bold">Detalles</p>
                         <div class="row g-2">
@@ -234,7 +249,7 @@
 
 $('#concepto_div').hide();
 $('#codventa_div').hide();
-
+$('#cliente_div').hide();
 $(document).ready(function() {
 
     function syncAlmacenId() {
@@ -255,11 +270,14 @@ $(document).ready(function() {
             $('#cventa_id').attr('disabled',false);
         }
 
-        if(valormotivo == 'Merma' || valormotivo == 'Robo o perdida'){
+        if(valormotivo == 'Merma' || valormotivo == 'Robo o perdida' || valormotivo == 'Muestra'){
             $('#cventa_id').attr('disabled',true);
             $('#codventa_div').hide();
+            $('#cliente_div').hide();
             valor_almacen = $('#salida_de_id').val();
-            console.log(valormotivo, valor_almacen);
+            if(valormotivo == 'Muestra'){
+                $('#cliente_div').show();
+            }
             $.get('/busqueda_producto_inventario', {valormotivo: valormotivo, valor_almacen: valor_almacen}, function(productos){
                 $('#bienes_id').empty();
                 $('#bienes_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");
