@@ -18,7 +18,7 @@
     <nav class="navbar navbar-expand-lg py-2">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center me-4" href="{{ route('ecommerce.index') }}">
-                <img src="images/cisnergia_v.png" alt="CISNERGIA PERÚ" height="45">
+                <img src="images/logo_v.png" alt="CISNERGIA PERÚ" height="45">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                 <span class="navbar-toggler-icon"></span>
@@ -28,8 +28,8 @@
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link px-3 fw-500" href="{{ route('ecommerce.products') }}"
                             id="navItemProductos">Productos</a></li>
-                    <li class="nav-item"><a class="nav-link px-3 fw-500" href="instalacion.html">Instalación</a></li>
-                    <li class="nav-item"><a class="nav-link px-3 fw-500" href="contacto.html">Contacto</a></li>
+                    <li class="nav-item"><a class="nav-link px-3 fw-500" href="{{ route('ecommerce.installation') }}">Instalación</a></li>
+                    <li class="nav-item"><a class="nav-link px-3 fw-500" href="{{ route('ecommerce.contact') }}">Contacto</a></li>
                 </ul>
                 <div class="d-flex align-items-center gap-0 icons__navbar">
                     <!-- Sesión de usuario -->
@@ -95,204 +95,158 @@
                         MODAL: INICIO DE SESIÓN
                         =============================================== -->
                     <div class="modal fade" id="iniciar_sesion" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content" style="border: none; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);">
-                                <!-- Header con gradiente -->
-                                <div class="modal-header border-0 position-relative" style="background: linear-gradient(135deg, #051833 0%, #020c19 100%); padding: 2.5rem 2rem 2rem; z-index: 1;">
-                                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at top right, rgba(0, 163, 224, 0.15), transparent 70%); z-index: -1;"></div>
-                                    
-                                    <div class="w-100 text-center">
-                                        <div class="mb-3">
-                                            <img src="images/logo_v.png" alt="CISNERGIA" style="height: 45px; filter: brightness(0) invert(1);">
-                                        </div>
-                                        <h4 class="text-white fw-bold mb-2" id="loginModalLabel" style="font-size: 1.75rem;">Bienvenido de vuelta</h4>
-                                        <p class="text-white-50 mb-0" style="font-size: 0.95rem;">Ingresa a tu cuenta CISNERGIA</p>
-                                    </div>
-                                    
-                                    <button type="button" class="btn-close btn-close-white position-absolute" data-bs-dismiss="modal" aria-label="Close" style="top: 1rem; right: 1rem; opacity: 0.8;"></button>
-                                </div>
-                                
-                                <!-- Body del modal -->
-                                <div class="modal-body" style="padding: 2.5rem 2rem 1.5rem; background: #ffffff;">
-                                    <form method="POST" action="{{ route('login') }}" autocomplete="off">
-                                    @csrf
-                                        <!-- Email Input -->
-                                        <div class="mb-4">
-                                            <label for="loginEmail" class="form-label fw-semibold" style="color: #334155; font-size: 0.9rem; margin-bottom: 0.5rem;">
-                                                <i class="bi bi-envelope me-1 text-primary"></i>Correo Electrónico
-                                            </label>
-                                            <input type="email" 
-                                                   class="form-control @error('email') is-invalid @enderror" 
-                                                   id="loginEmail"
-                                                   name="email" 
-                                                   value="{{ old('email') }}" 
-                                                   required 
-                                                   autocomplete="email" 
-                                                   autofocus
-                                                   placeholder="nombre@ejemplo.com"
-                                                   style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.75rem 1rem; font-size: 0.95rem; transition: all 0.3s ease; background: #f8fafc;">
-                                            @error('email')
-                                                <div class="invalid-feedback d-block mt-2" style="font-size: 0.85rem;">
-                                                    <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
-                                                </div>
-                                            @enderror
-                                        </div>
+                        <div class="modal-dialog modal-dialog-centered lm-dialog">
+                            <div class="modal-content lm-content">
+                                <div class="row g-0">
 
-                                        <!-- Password Input -->
-                                        <div class="mb-4">
-                                            <label for="loginPassword" class="form-label fw-semibold" style="color: #334155; font-size: 0.9rem; margin-bottom: 0.5rem;">
-                                                <i class="bi bi-lock me-1 text-primary"></i>Contraseña
-                                            </label>
-                                            <div class="position-relative">
-                                                <input type="password" 
-                                                       name="password" 
-                                                       id="loginPassword" 
-                                                       class="form-control @error('password') is-invalid @enderror" 
-                                                       required 
-                                                       maxlength="16" 
-                                                       autocomplete="current-password"
-                                                       placeholder="••••••••"
-                                                       style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.75rem 3rem 0.75rem 1rem; font-size: 0.95rem; transition: all 0.3s ease; background: #f8fafc;">
-                                                <button type="button" 
-                                                        class="btn position-absolute top-50 end-0 translate-middle-y pe-3" 
-                                                        style="border: none; background: transparent; z-index: 10;"
-                                                        onclick="togglePassword()">
-                                                    <i class="bi bi-eye text-secondary" id="toggleIcon" style="font-size: 1.1rem; cursor: pointer;"></i>
+                                    <!-- ── Panel izquierdo: marca ── -->
+                                    <div class="col-lg-5 d-none d-lg-flex">
+                                        <div class="lm-panel w-100">
+                                            <div class="lm-panel__content">
+                                                <img src="images/logo_v.png" alt="CISNERGIA" class="lm-panel__logo">
+                                                <h4 class="lm-panel__title" id="loginModalLabel">Tu tienda,<br>tu energía</h4>
+                                                <p class="lm-panel__sub">Inicia sesión y disfruta de una experiencia de compra personalizada en CISNERGIA.</p>
+                                                <div class="lm-feature">
+                                                    <div class="lm-feature__icon"><i class="bi bi-bag-check"></i></div>
+                                                    <div>
+                                                        <span class="lm-feature__title">Historial de pedidos</span>
+                                                        <span class="lm-feature__sub">Revisa y rastrea todas tus compras fácilmente</span>
+                                                    </div>
+                                                </div>
+                                                <div class="lm-feature">
+                                                    <div class="lm-feature__icon"><i class="bi bi-tags"></i></div>
+                                                    <div>
+                                                        <span class="lm-feature__title">Ofertas exclusivas</span>
+                                                        <span class="lm-feature__sub">Precios especiales y descuentos para clientes</span>
+                                                    </div>
+                                                </div>
+                                                <div class="lm-feature">
+                                                    <div class="lm-feature__icon"><i class="bi bi-heart"></i></div>
+                                                    <div>
+                                                        <span class="lm-feature__title">Lista de favoritos</span>
+                                                        <span class="lm-feature__sub">Guarda los productos que más te interesan</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ── Panel derecho: formulario ── -->
+                                    <div class="col-lg-7 col-12">
+                                        <div class="lm-form">
+                                            <div class="lm-form__close">
+                                                <h3 class="lm-form__title">Iniciar sesión</h3>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                            </div>
+
+                                            <form method="POST" action="{{ route('login') }}" autocomplete="off">
+                                                @csrf
+
+                                                <!-- Correo -->
+                                                <div class="mb-3">
+                                                    <label class="lm-label" for="loginEmail">
+                                                        <i class="bi bi-envelope me-1"></i>Correo electrónico
+                                                    </label>
+                                                    <input type="email"
+                                                           class="form-control @error('email') is-invalid @enderror"
+                                                           id="loginEmail"
+                                                           name="email"
+                                                           value="{{ old('email') }}"
+                                                           required
+                                                           autocomplete="email"
+                                                           autofocus
+                                                           placeholder="nombre@ejemplo.com">
+                                                    @error('email')
+                                                        <div class="invalid-feedback d-block mt-1" style="font-size:.82rem;">
+                                                            <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+
+                                                <!-- Contraseña -->
+                                                <div class="mb-3">
+                                                    <label class="lm-label" for="loginPassword">
+                                                        <i class="bi bi-lock me-1"></i>Contraseña
+                                                    </label>
+                                                    <div class="lm-pw-wrap">
+                                                        <input type="password"
+                                                               name="password"
+                                                               id="loginPassword"
+                                                               class="form-control @error('password') is-invalid @enderror"
+                                                               required
+                                                               maxlength="16"
+                                                               autocomplete="current-password"
+                                                               placeholder="••••••••">
+                                                        <button type="button" class="lm-eye" onclick="togglePassword()">
+                                                            <i class="bi bi-eye" id="toggleIcon"></i>
+                                                        </button>
+                                                    </div>
+                                                    @error('password')
+                                                        <div class="invalid-feedback d-block mt-1" style="font-size:.82rem;">
+                                                            <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+
+                                                <!-- Recordarme + ¿Olvidaste? -->
+                                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                                    <div class="form-check mb-0">
+                                                        <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" {{ old('remember') ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="rememberMe" style="font-size:.875rem;color:var(--c-text-muted);">Recordarme</label>
+                                                    </div>
+                                                    <a href="#" class="lm-link">¿Olvidaste tu contraseña?</a>
+                                                </div>
+
+                                                <!-- Submit -->
+                                                <button type="submit" class="lm-submit">
+                                                    <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                                                </button>
+                                            </form>
+
+                                            <!-- Divider social -->
+                                            <div class="lm-divider">
+                                                <span>o continúa con</span>
+                                            </div>
+
+                                            <!-- Botones sociales -->
+                                            <div class="d-grid gap-2 mb-1">
+                                                <button type="button" class="lm-social-btn">
+                                                    <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                                                        <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                                                        <path d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                                                        <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+                                                    </svg>
+                                                    <span>Continuar con Google</span>
+                                                </button>
+                                                <button type="button" class="lm-social-btn">
+                                                    <i class="bi bi-facebook" style="font-size:1.1rem;color:#1877F2;"></i>
+                                                    <span>Continuar con Facebook</span>
                                                 </button>
                                             </div>
-                                            @error('password')
-                                                <div class="invalid-feedback d-block mt-2" style="font-size: 0.85rem;">
-                                                    <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
-                                                </div>
-                                            @enderror
-                                        </div>
 
-                                        <!-- Recordarme y Olvidaste contraseña -->
-                                        <div class="d-flex justify-content-between align-items-center mb-4">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" {{ old('remember') ? 'checked' : '' }} style="border: 2px solid #cbd5e1; border-radius: 6px; width: 1.1em; height: 1.1em;">
-                                                <label class="form-check-label" for="rememberMe" style="color: #64748b; font-size: 0.9rem; margin-left: 0.25rem;">
-                                                    Recordarme
-                                                </label>
+                                            <div class="lm-register">
+                                                ¿No tienes cuenta?
+                                                <a href="{{ route('register') }}" class="lm-link fw-semibold">Regístrate gratis</a>
                                             </div>
-                                            <a href="#" style="color: #00A3E0; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.3s ease;">
-                                                ¿Olvidaste tu contraseña?
-                                            </a>
                                         </div>
-
-                                        <!-- Botón de Iniciar Sesión -->
-                                        <button type="submit" class="btn w-100 mb-3" style="background: linear-gradient(135deg, #00A3E0 0%, #0082b3 100%); color: white; border: none; border-radius: 12px; padding: 0.875rem 1.5rem; font-size: 1rem; font-weight: 600; box-shadow: 0 8px 24px rgba(0, 163, 224, 0.25); transition: all 0.3s ease;">
-                                            <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
-                                        </button>
-                                    </form>
-
-                                    <!-- Divider -->
-                                    <div class="position-relative my-4">
-                                        <hr style="border-color: #e2e8f0; margin: 0;">
-                                        <span class="position-absolute top-50 start-50 translate-middle px-3" style="background: white; color: #94a3b8; font-size: 0.85rem; font-weight: 500;">
-                                            o continúa con
-                                        </span>
                                     </div>
 
-                                    <!-- Botones sociales -->
-                                    <div class="d-grid gap-2">
-                                        <button type="button" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: 500; transition: all 0.3s ease; background: #f8fafc;">
-                                            <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-                                                <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
-                                                <path d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                                                <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
-                                            </svg>
-                                            <span style="color: #334155;">Continuar con Google</span>
-                                        </button>
-                                        
-                                        <button type="button" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: 500; transition: all 0.3s ease; background: #f8fafc;">
-                                            <i class="bi bi-facebook" style="font-size: 1.25rem; color: #1877F2;"></i>
-                                            <span style="color: #334155;">Continuar con Facebook</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Footer -->
-                                <div class="modal-footer border-0 justify-content-center" style="background: #f8fafc; padding: 1.5rem 2rem;">
-                                    <p class="mb-0" style="color: #64748b; font-size: 0.95rem;">
-                                        ¿No tienes cuenta? 
-                                        <a href="{{ route('register') }}" style="color: #00A3E0; font-weight: 600; text-decoration: none; transition: color 0.3s ease;">
-                                            Regístrate aquí
-                                        </a>
-                                    </p>
-                                </div>
+                                </div><!-- /.row -->
                             </div>
                         </div>
                     </div>
 
-                    <style>
-                        /* Estilos para el modal de login */
-                        #iniciar_sesion .form-control:focus {
-                            border-color: #00A3E0 !important;
-                            box-shadow: 0 0 0 0.2rem rgba(0, 163, 224, 0.15) !important;
-                            background: #ffffff !important;
-                        }
-
-                        #iniciar_sesion .form-check-input:checked {
-                            background-color: #00A3E0;
-                            border-color: #00A3E0;
-                        }
-
-                        #iniciar_sesion .btn-outline-secondary:hover {
-                            background: #ffffff !important;
-                            border-color: #00A3E0 !important;
-                            transform: translateY(-2px);
-                            box-shadow: 0 8px 16px rgba(0, 163, 224, 0.15);
-                        }
-
-                        #iniciar_sesion .btn-primary:hover {
-                            background: linear-gradient(135deg, #0082b3 0%, #00A3E0 100%) !important;
-                            transform: translateY(-2px);
-                            box-shadow: 0 12px 32px rgba(0, 163, 224, 0.35) !important;
-                        }
-
-                        #iniciar_sesion a:not(.btn):hover {
-                            color: #0082b3 !important;
-                        }
-
-                        #iniciar_sesion .modal.fade .modal-dialog {
-                            transition: transform 0.3s ease-out;
-                        }
-
-                        #iniciar_sesion .modal.show .modal-dialog {
-                            transform: none;
-                        }
-
-                        @keyframes fadeInModal {
-                            from {
-                                opacity: 0;
-                                transform: translateY(-20px);
-                            }
-                            to {
-                                opacity: 1;
-                                transform: translateY(0);
-                            }
-                        }
-
-                        #iniciar_sesion.show .modal-content {
-                            animation: fadeInModal 0.3s ease-out;
-                        }
-                    </style>
-
                     <script>
                         function togglePassword() {
                             const passwordInput = document.getElementById('loginPassword');
-                            const toggleIcon = document.getElementById('toggleIcon');
-                            
+                            const toggleIcon    = document.getElementById('toggleIcon');
                             if (passwordInput.type === 'password') {
                                 passwordInput.type = 'text';
-                                toggleIcon.classList.remove('bi-eye');
-                                toggleIcon.classList.add('bi-eye-slash');
+                                toggleIcon.classList.replace('bi-eye', 'bi-eye-slash');
                             } else {
                                 passwordInput.type = 'password';
-                                toggleIcon.classList.remove('bi-eye-slash');
-                                toggleIcon.classList.add('bi-eye');
+                                toggleIcon.classList.replace('bi-eye-slash', 'bi-eye');
                             }
                         }
                     </script>
@@ -485,6 +439,166 @@
     
     @yield('js')
     @stack('scripts')
-</body>
 
-</html>
+    <!-- ══════════════════════════════════════════
+         WHATSAPP FLOATING CHATBOT
+    ══════════════════════════════════════════ -->
+
+    <!-- ── Markup ── -->
+    <div id="wa-fab">
+      <div id="wa-bubble">¡Hola! ¿Necesitas ayuda? 👋</div>
+      <button id="wa-btn" aria-label="Abrir chat de WhatsApp" title="Chatea con nosotros">
+        <div id="wa-badge">1</div>
+        <!-- Ícono oficial WhatsApp SVG -->
+        <svg viewBox="0 0 24 24" fill="#fff" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.52 3.48A11.83 11.83 0 0 0 12 0C5.373 0 0 5.373 0 12a11.9 11.9 0 0 0 1.594 5.986L0 24l6.195-1.623A11.89 11.89 0 0 0 12 24c6.627 0 12-5.373 12-12 0-3.206-1.248-6.219-3.48-8.52zM12 22a9.9 9.9 0 0 1-5.031-1.374l-.361-.214-3.676.963.98-3.582-.234-.368A9.9 9.9 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm5.447-7.308c-.3-.15-1.767-.872-2.04-.97-.273-.099-.472-.15-.671.15-.198.298-.771.97-.945 1.169-.173.199-.347.224-.645.074-.298-.149-1.258-.463-2.397-1.48-.885-.79-1.482-1.765-1.656-2.063-.173-.298-.018-.459.13-.607.133-.133.298-.347.447-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.52-.074-.15-.671-1.618-.92-2.215-.242-.581-.487-.502-.671-.511l-.572-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.71.306 1.263.489 1.694.626.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.29.173-1.413-.074-.124-.272-.198-.571-.347z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ── Panel chat ── -->
+    <div id="wa-chat" role="dialog" aria-label="Chat de WhatsApp">
+
+      <!-- Encabezado -->
+      <div class="wa-header">
+        <div class="wa-avatar">🤖</div>
+        <div class="wa-header-info">
+          <strong>Soporte por WhatsApp</strong>
+          <span><span class="wa-online-dot"></span>En línea ahora</span>
+        </div>
+        <button class="wa-close" id="wa-close-btn" aria-label="Cerrar chat">&times;</button>
+      </div>
+
+      <!-- Conversación -->
+      <div class="wa-body" id="wa-body"></div>
+
+      <!-- Footer -->
+      <div class="wa-footer">
+        <svg viewBox="0 0 24 24"><path d="M20.52 3.48A11.83 11.83 0 0 0 12 0C5.373 0 0 5.373 0 12a11.9 11.9 0 0 0 1.594 5.986L0 24l6.195-1.623A11.89 11.89 0 0 0 12 24c6.627 0 12-5.373 12-12 0-3.206-1.248-6.219-3.48-8.52z"/></svg>
+        Conversación cifrada · WhatsApp
+      </div>
+
+    </div>
+
+    <script>
+    (function () {
+      /* ── Configuración ── */
+      const WA_NUMBER  = '51999999999';   // Número sin + ni espacios
+      const WA_ORIGIN  = 'Hola, me comunico desde la web de CISNERGIA.';
+
+      const OPTIONS = [
+        { icon: 'bi bi-info-circle',    label: 'Solicitar información',  msg: 'Hola 👋, me gustaría recibir más información sobre sus productos y servicios solares.' },
+        { icon: 'bi bi-tag',            label: 'Consultar precios',       msg: 'Hola, quisiera consultar los precios de sus paneles solares e instalaciones.' },
+        { icon: 'bi bi-person-lines-fill', label: 'Hablar con un asesor', msg: 'Hola, deseo hablar con un asesor comercial para recibir orientación personalizada.' },
+        { icon: 'bi bi-tools',          label: 'Soporte técnico',         msg: 'Hola, necesito soporte técnico para mi instalación solar.' },
+      ];
+
+      /* ── Referencias DOM ── */
+      const fab      = document.getElementById('wa-fab');
+      const btn      = document.getElementById('wa-btn');
+      const badge    = document.getElementById('wa-badge');
+      const bubble   = document.getElementById('wa-bubble');
+      const chat     = document.getElementById('wa-chat');
+      const body     = document.getElementById('wa-body');
+      const closeBtn = document.getElementById('wa-close-btn');
+
+      let chatInitialized = false;
+
+      /* ── Helpers ── */
+      function now() {
+        return new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      function addMsg(text, isUser = false) {
+        const div = document.createElement('div');
+        div.className = 'wa-msg' + (isUser ? ' user' : '');
+        div.innerHTML = text + '<div class="wa-msg-time">' + now() + (isUser ? ' ✓✓' : '') + '</div>';
+        body.appendChild(div);
+        body.scrollTop = body.scrollHeight;
+        return div;
+      }
+
+      function showTyping() {
+        const t = document.createElement('div');
+        t.className = 'wa-typing';
+        t.innerHTML = '<span></span><span></span><span></span>';
+        body.appendChild(t);
+        body.scrollTop = body.scrollHeight;
+        return t;
+      }
+
+      function addOptions() {
+        const wrap = document.createElement('div');
+        wrap.className = 'wa-options';
+        OPTIONS.forEach(opt => {
+          const b = document.createElement('button');
+          b.className = 'wa-option';
+          b.innerHTML = '<i class="' + opt.icon + '"></i>' + opt.label;
+          b.addEventListener('click', function () {
+            /* Mostrar elección del usuario */
+            wrap.remove();
+            addMsg(opt.label, true);
+            /* Redirigir a WhatsApp con mensaje precargado */
+            const text = encodeURIComponent(WA_ORIGIN + ' ' + opt.msg);
+            setTimeout(function () {
+              window.open('https://wa.me/' + WA_NUMBER + '?text=' + text, '_blank', 'noopener');
+            }, 500);
+          });
+          wrap.appendChild(b);
+        });
+        body.appendChild(wrap);
+        body.scrollTop = body.scrollHeight;
+      }
+
+      /* ── Inicializar conversación ── */
+      function initChat() {
+        if (chatInitialized) return;
+        chatInitialized = true;
+
+        /* Paso 1: indicador escribiendo */
+        const typing = showTyping();
+        setTimeout(function () {
+          typing.remove();
+          addMsg('Hola 👋, gracias por comunicarte con <strong>CISNERGIA</strong>. ¿En qué podemos ayudarte hoy?');
+          /* Paso 2: segundo indicador antes de opciones */
+          const typing2 = showTyping();
+          setTimeout(function () {
+            typing2.remove();
+            addMsg('Por favor selecciona una opción:');
+            addOptions();
+          }, 1000);
+        }, 1200);
+      }
+
+      /* ── Abrir chat ── */
+      function openChat() {
+        chat.classList.add('open');
+        bubble.style.display = 'none';
+        badge.style.display  = 'none';
+        initChat();
+      }
+
+      /* ── Cerrar chat ── */
+      function closeChat() {
+        chat.classList.remove('open');
+      }
+
+      /* ── Eventos ── */
+      btn.addEventListener('click', function () {
+        chat.classList.contains('open') ? closeChat() : openChat();
+      });
+      bubble.addEventListener('click', openChat);
+      closeBtn.addEventListener('click', closeChat);
+
+      /* Ocultar burbuja después de 6 s si no se interactuó */
+      setTimeout(function () {
+        if (!chat.classList.contains('open')) {
+          bubble.style.animation = 'none';
+          bubble.style.opacity   = '0';
+          bubble.style.pointerEvents = 'none';
+          setTimeout(function () { bubble.style.display = 'none'; }, 400);
+        }
+      }, 6000);
+    })();
+    </script>
+

@@ -46,7 +46,9 @@ use Illuminate\Support\Facades\Route;
 // =============================================================
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
 Route::get('/products', [ecommerceController::class, 'products'])->name('ecommerce.products');
-Route::get('/product/{slug}', [ecommerceController::class, 'show'])->name('ecommerce.product.show');
+Route::get('/product/{slug}', [ecommerceController::class, 'show_product'])->name('ecommerce.product.show');
+Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
+Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');
 
 // Carrito
 Route::post('/cart/add', [ecommerceController::class, 'addToCart'])->name('ecommerce.cart.add');
@@ -245,7 +247,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('mantenimientos/{mantenimiento}/completar', [admin_CrmMantenimientosController::class, 'completar'])->name('mantenimientos.completar');
         Route::post('mantenimientos/{mantenimiento}/cancelar', [admin_CrmMantenimientosController::class, 'cancelar'])->name('mantenimientos.cancelar');
         Route::post('mantenimientos/{mantenimiento}/reprogramar', [admin_CrmMantenimientosController::class, 'reprogramar'])->name('mantenimientos.reprogramar');
-
     }); // Fin CRM
 
     // ---------------------------------------------------------
@@ -287,7 +288,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('admin-operaciones-campanias/{id}/finalizar', [admin_OperacionesController::class, 'campaniasFinalizar'])->name('admin-operaciones-campanias.finalizar');
     Route::post('admin-operaciones-campanias/{id}/duplicar', [admin_OperacionesController::class, 'campaniasDuplicar'])->name('admin-operaciones-campanias.duplicar');
     Route::get('admin-operaciones-campanias/{id}/metricas', [admin_OperacionesController::class, 'campaniasGetMetricas'])->name('admin-operaciones-campanias.metricas');
-
 }); // Fin middleware auth
 
 // =============================================================

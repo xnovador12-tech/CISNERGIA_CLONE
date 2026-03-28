@@ -10,13 +10,13 @@
       top: 80px;
       backdrop-filter: blur(10px);
       background: rgba(255, 255, 255, 0.95);
-      border: 1px solid rgba(0, 86, 163, 0.1);
+      border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
     }
 
     .user-avatar {
       width: 80px;
       height: 80px;
-      background: linear-gradient(135deg, var(--bs-primary) 0%, #0052a3 100%);
+      background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -26,7 +26,7 @@
 
     .user-avatar:hover {
       transform: scale(1.05) rotate(5deg);
-      box-shadow: 0 8px 20px rgba(0, 86, 163, 0.3);
+      box-shadow: 0 8px 20px rgba(var(--bs-primary-rgb), 0.3);
     }
 
     .menu-item {
@@ -34,7 +34,7 @@
       align-items: center;
       gap: 12px;
       padding: 0.875rem 1rem;
-      color: #495057;
+      color: var(--c-text-muted);
       text-decoration: none;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       font-weight: 500;
@@ -68,7 +68,7 @@
     .menu-item:hover {
       color: var(--bs-primary);
       transform: translateX(8px);
-      background: rgba(0, 86, 163, 0.05);
+      background: rgba(var(--bs-primary-rgb), 0.05);
     }
 
     .menu-item:hover i {
@@ -76,9 +76,9 @@
     }
 
     .menu-item.active {
-      background: linear-gradient(135deg, var(--bs-primary), #0052a3);
+      background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
       color: white;
-      box-shadow: 0 4px 12px rgba(0, 86, 163, 0.3);
+      box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
       transform: translateX(5px);
     }
 
@@ -91,7 +91,7 @@
     }
 
     .menu-item.danger:hover {
-      background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(231, 76, 60, 0.05));
+      background: linear-gradient(135deg, rgba(var(--bs-danger-rgb), 0.1), rgba(var(--bs-danger-rgb), 0.05));
       color: var(--bs-danger);
     }
 
@@ -103,7 +103,7 @@
     .profile-card {
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.8) 100%);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 86, 163, 0.1) !important;
+      border: 1px solid rgba(var(--bs-primary-rgb), 0.1) !important;
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
@@ -116,7 +116,7 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(0, 86, 163, 0.05), transparent);
+      background: linear-gradient(90deg, transparent, rgba(var(--bs-primary-rgb), 0.05), transparent);
       transition: left 0.6s ease;
     }
 
@@ -127,7 +127,7 @@
     .profile-card:hover {
       border-color: var(--bs-primary) !important;
       transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(0, 86, 163, 0.15);
+      box-shadow: 0 12px 24px rgba(var(--bs-primary-rgb), 0.15);
     }
 
     .info-label {
@@ -141,24 +141,24 @@
     .info-value {
       font-size: 1rem;
       font-weight: 600;
-      color: #212529;
+      color: var(--c-text);
     }
 
     .btn-edit-all {
-      background: linear-gradient(135deg, var(--bs-primary), #0052a3);
+      background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
       color: white;
       border: none;
       padding: 0.75rem 2rem;
       font-weight: 600;
       letter-spacing: 0.5px;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0, 86, 163, 0.2);
+      box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.2);
     }
 
     .btn-edit-all:hover {
-      background: linear-gradient(135deg, #0052a3, var(--bs-primary));
+      background: linear-gradient(135deg, var(--bs-secondary), var(--bs-primary));
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 86, 163, 0.3);
+      box-shadow: 0 6px 20px rgba(var(--bs-primary-rgb), 0.3);
       color: white;
     }
 
@@ -178,24 +178,24 @@
 
     .address-card:hover {
       border-color: var(--bs-primary) !important;
-      box-shadow: 0 4px 12px rgba(0, 86, 163, 0.1);
+      box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.1);
     }
 
     .address-card.default {
       border-color: var(--bs-success) !important;
-      background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+      background: linear-gradient(135deg, rgba(var(--bs-success-rgb), 0.05) 0%, var(--c-surface) 100%);
     }
 
     .default-badge {
       position: absolute;
       top: -12px;
       right: 16px;
-      background: linear-gradient(135deg, var(--bs-success), #20a038);
+      background: linear-gradient(135deg, var(--bs-success), var(--bs-success));
       color: white;
       padding: 0.35rem 1rem;
       font-size: 0.75rem;
       font-weight: 700;
-      box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+      box-shadow: 0 4px 12px rgba(var(--bs-success-rgb), 0.3);
     }
 
     /* Security Items */
@@ -208,13 +208,13 @@
 
     .security-item:hover {
       border-color: var(--bs-primary) !important;
-      box-shadow: 0 4px 12px rgba(0, 86, 163, 0.1);
+      box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.1);
     }
 
     .security-icon {
       width: 48px;
       height: 48px;
-      background: linear-gradient(135deg, rgba(0, 86, 163, 0.1), rgba(0, 86, 163, 0.05));
+      background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.1), rgba(var(--bs-primary-rgb), 0.05));
       display: flex;
       align-items: center;
       justify-content: center;
@@ -243,7 +243,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #ccc;
+      background-color: var(--c-border);
       transition: 0.4s;
       border-radius: 30px;
     }
@@ -661,7 +661,7 @@
 
             <div class="security-item">
               <div class="d-flex align-items-center gap-3 flex-grow-1">
-                <div class="security-icon" style="background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));">
+                <div class="security-icon" style="background: linear-gradient(135deg, rgba(var(--bs-success-rgb), 0.1), rgba(var(--bs-success-rgb), 0.05));">
                   <i class="bi bi-laptop" style="color: var(--success-color);"></i>
                 </div>
                 <div>

@@ -6,11 +6,11 @@
   <style>
     .favorite-item {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      background: linear-gradient(135deg, var(--c-surface) 0%, var(--c-bg) 100%);
       border-radius: 16px;
       padding: 1.75rem;
       margin-bottom: 1.25rem;
-      border: 1px solid #e9ecef;
+      border: 1px solid var(--c-border);
       position: relative;
       overflow: hidden;
     }
@@ -22,14 +22,14 @@
       left: 0;
       width: 4px;
       height: 100%;
-      background: linear-gradient(180deg, #0066cc 0%, #004d99 100%);
+      background: linear-gradient(180deg, var(--bs-secondary) 0%, var(--bs-primary) 100%);
       opacity: 0;
       transition: opacity 0.3s ease;
     }
     
     .favorite-item:hover {
-      box-shadow: 0 8px 24px rgba(0, 102, 204, 0.12);
-      border-color: #0066cc;
+      box-shadow: 0 8px 24px rgba(var(--bs-secondary-rgb), 0.12);
+      border-color: var(--bs-secondary);
       transform: translateY(-2px);
     }
     
@@ -42,7 +42,7 @@
       height: 140px;
       object-fit: cover;
       border-radius: 12px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      background: linear-gradient(135deg, var(--c-bg) 0%, var(--c-border) 100%);
       box-shadow: 0 4px 12px rgba(0,0,0,0.06);
       transition: transform 0.3s ease;
     }
@@ -54,13 +54,13 @@
     .product-title {
       font-size: 1rem;
       font-weight: 600;
-      color: #212529;
+      color: var(--c-text);
       margin-bottom: 0.25rem;
     }
     
     .product-category {
       font-size: 0.75rem;
-      color: #6c757d;
+      color: var(--c-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -68,7 +68,7 @@
     .price-current {
       font-size: 1.75rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+      background: linear-gradient(135deg, var(--bs-secondary) 0%, var(--bs-primary) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -76,20 +76,20 @@
     
     .price-old {
       font-size: 1rem;
-      color: #868e96;
+      color: var(--c-muted);
       text-decoration: line-through;
       font-weight: 500;
     }
     
     .discount-badge {
       display: inline-block;
-      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      background: linear-gradient(135deg, var(--c-danger) 0%, var(--bs-danger) 100%);
       color: white;
       padding: 0.35rem 0.75rem;
       border-radius: 8px;
       font-size: 0.8rem;
       font-weight: 700;
-      box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+      box-shadow: 0 2px 8px rgba(var(--c-danger-rgb), 0.3);
       animation: pulse 2s infinite;
     }
     
@@ -110,22 +110,22 @@
     }
     
     .stock-status.available {
-      color: #28a745;
-      background: rgba(40, 167, 69, 0.08);
-      border: 1px solid rgba(40, 167, 69, 0.2);
+      color: var(--bs-success);
+      background: rgba(var(--bs-success-rgb), 0.08);
+      border: 1px solid rgba(var(--bs-success-rgb), 0.2);
     }
     
     .stock-status.limited {
-      color: #ffc107;
-      background: rgba(255, 193, 7, 0.08);
-      border: 1px solid rgba(255, 193, 7, 0.2);
+      color: var(--bs-warning);
+      background: rgba(var(--bs-warning-rgb), 0.08);
+      border: 1px solid rgba(var(--bs-warning-rgb), 0.2);
       animation: blink 2s infinite;
     }
     
     .stock-status.unavailable {
-      color: #dc3545;
-      background: rgba(220, 53, 69, 0.08);
-      border: 1px solid rgba(220, 53, 69, 0.2);
+      color: var(--c-danger);
+      background: rgba(var(--c-danger-rgb), 0.08);
+      border: 1px solid rgba(var(--c-danger-rgb), 0.2);
     }
     
     @keyframes blink {
@@ -136,8 +136,8 @@
     .qty-control {
       display: inline-flex;
       align-items: center;
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
+      background: var(--c-bg);
+      border: 2px solid var(--c-border);
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -148,7 +148,7 @@
       height: 40px;
       border: none;
       background: transparent;
-      color: #0066cc;
+      color: var(--bs-secondary);
       cursor: pointer;
       transition: all 0.2s;
       font-size: 1.3rem;
@@ -156,7 +156,7 @@
     }
     
     .qty-btn:hover {
-      background: #0066cc;
+      background: var(--bs-secondary);
       color: white;
     }
     
@@ -172,7 +172,7 @@
       font-weight: 700;
       font-size: 1.1rem;
       background: transparent;
-      color: #212529;
+      color: var(--c-text);
     }
     
     .qty-input:focus {
@@ -189,19 +189,19 @@
     }
     
     .btn-delete {
-      color: #dc3545;
-      background: rgba(220, 53, 69, 0.05);
+      color: var(--c-danger);
+      background: rgba(var(--c-danger-rgb), 0.05);
     }
     
     .btn-delete:hover {
       color: white;
-      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      background: linear-gradient(135deg, var(--c-danger) 0%, var(--bs-danger) 100%);
       transform: scale(1.1) rotate(5deg);
-      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+      box-shadow: 0 4px 12px rgba(var(--c-danger-rgb), 0.3);
     }
     
     .btn-similar {
-      color: #6c757d;
+      color: var(--c-muted);
       font-size: 0.875rem;
       text-decoration: none;
       padding: 0.5rem 1rem;
@@ -211,24 +211,24 @@
     }
     
     .btn-similar:hover {
-      color: #0066cc;
-      background: rgba(0, 102, 204, 0.05);
+      color: var(--bs-secondary);
+      background: rgba(var(--bs-secondary-rgb), 0.05);
       text-decoration: none;
     }
     
     .btn-primary {
-      background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%) !important;
+      background: linear-gradient(135deg, var(--bs-secondary) 0%, var(--bs-primary) 100%) !important;
       border: none !important;
       padding: 0.75rem 1.5rem !important;
       font-weight: 600 !important;
       border-radius: 12px !important;
-      box-shadow: 0 4px 16px rgba(0, 102, 204, 0.3) !important;
+      box-shadow: 0 4px 16px rgba(var(--bs-secondary-rgb), 0.3) !important;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 24px rgba(0, 102, 204, 0.4) !important;
+      box-shadow: 0 6px 24px rgba(var(--bs-secondary-rgb), 0.4) !important;
     }
     
     .btn-primary:active {
@@ -242,7 +242,7 @@
     
     .empty-state i {
       font-size: 6rem;
-      color: #dee2e6;
+      color: var(--c-border);
     }
     
     @keyframes fadeIn {

@@ -18,7 +18,7 @@
       left: 0;
       right: 0;
       height: 2px;
-      background: #e9ecef;
+      background: var(--c-border);
       z-index: 0;
     }
     
@@ -33,8 +33,8 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: #e9ecef;
-      color: #6c757d;
+      background: var(--c-border);
+      color: var(--c-muted);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -44,13 +44,13 @@
     }
     
     .step.active .step-circle {
-      background: #0066cc;
+      background: var(--bs-secondary);
       color: white;
-      box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.2);
+      box-shadow: 0 0 0 4px rgba(var(--bs-secondary-rgb), 0.2);
     }
     
     .step.completed .step-circle {
-      background: #28a745;
+      background: var(--bs-success);
       color: white;
     }
     
@@ -71,8 +71,8 @@
     }
     
     .payment-method input[type="radio"]:checked + .card {
-      border: 2px solid #0066cc !important;
-      background: #f0f7ff;
+      border: 2px solid var(--bs-secondary) !important;
+      background: rgba(var(--bs-secondary-rgb), 0.04);
     }
     
     .payment-method input[type="radio"]:checked + .card::after {
@@ -81,7 +81,7 @@
       position: absolute;
       top: 10px;
       right: 10px;
-      color: #0066cc;
+      color: var(--bs-secondary);
       font-size: 1.5rem;
     }
     
@@ -294,8 +294,8 @@
                 <div class="card border shadow-sm rounded-4 position-relative">
                   <div class="card-body p-4">
                     <div class="d-flex align-items-center">
-                      <div class="bg-purple bg-opacity-10 rounded-circle p-2 me-3" style="background-color: #722C85 !important; opacity: 0.1;">
-                        <i class="bi bi-phone-fill fs-3 me-2" style="color: #722C85;"></i>
+                      <div class="bg-purple bg-opacity-10 rounded-circle p-2 me-3" style="background-color: var(--bs-primary) !important; opacity: 0.1;">
+                        <i class="bi bi-phone-fill fs-3 me-2" style="color: var(--bs-primary);"></i>
                       </div>
                       <div>
                         <h5 class="mb-0 fw-bold">Yape</h5>

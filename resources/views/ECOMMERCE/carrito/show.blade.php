@@ -10,11 +10,11 @@
         transition: all 0.3s;
     }
     .thumbnail-btn.active {
-        border-color: #0066cc !important;
+        border-color: var(--bs-secondary) !important;
         border-width: 2px !important;
     }
     .thumbnail-btn:hover {
-        border-color: #0066cc !important;
+        border-color: var(--bs-secondary) !important;
     }
 </style>
 @endsection

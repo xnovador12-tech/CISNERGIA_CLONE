@@ -25,7 +25,7 @@ class ecommerceController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(8)
             ->get();
-        
+
         return view('ECOMMERCE.index', compact('productos'));
     }
 
@@ -57,7 +57,7 @@ class ecommerceController extends Controller
     }
 
     // Detalle de producto
-    public function show($slug)
+    public function show_product($slug)
     {
         $producto = Producto::where('slug', $slug)->firstOrFail();
         $relacionados = Producto::where('categoria_id', $producto->categoria_id)
@@ -67,6 +67,16 @@ class ecommerceController extends Controller
             ->get();
 
         return view('ECOMMERCE.productos.show', compact('producto', 'relacionados'));
+    }
+
+    public function installation()
+    {
+        return view('ECOMMERCE.installation');
+    }
+
+    public function contact()
+    {
+        return view('ECOMMERCE.contact');
     }
 
     // Agregar al carrito
@@ -81,7 +91,7 @@ class ecommerceController extends Controller
 
         // Validar Stock
         $stockDisponible = \App\Models\Inventario::where('id_producto', $producto->id)->sum('cantidad');
-        
+
         // Calcular cantidad actual en carrito para este producto
         $cantidadEnCarrito = 0;
         if (auth()->check()) {
@@ -102,7 +112,7 @@ class ecommerceController extends Controller
         }
 
         if (($cantidadEnCarrito + $request->cantidad) > $stockDisponible) {
-             return response()->json([
+            return response()->json([
                 'success' => false,
                 'message' => 'No hay suficiente stock disponible. Stock actual: ' . intval($stockDisponible)
             ], 422);
@@ -198,7 +208,7 @@ class ecommerceController extends Controller
     public function checkout()
     {
         $cart = $this->getOrCreateCart();
-        
+
         if ($cart->items->count() == 0) {
             return redirect()->route('ecommerce.cart')->with('error', 'El carrito está vacío');
         }
@@ -351,7 +361,6 @@ class ecommerceController extends Controller
 
             return redirect()->route('ecommerce.confirmation', $pedido->slug)
                 ->with('success', 'Pedido realizado exitosamente');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error al procesar el pedido: ' . $e->getMessage());
@@ -362,7 +371,7 @@ class ecommerceController extends Controller
     public function confirmation($slug)
     {
         $pedido = Pedido::where('slug', $slug)->with(['cliente', 'detalles.producto'])->firstOrFail();
-        
+
         return view('ECOMMERCE.confirmacion', compact('pedido'));
     }
 
@@ -378,7 +387,7 @@ class ecommerceController extends Controller
         } else {
             // Usuario invitado
             $sessionId = Session::get('cart_session_id');
-            
+
             if (!$sessionId) {
                 $sessionId = Str::uuid()->toString();
                 Session::put('cart_session_id', $sessionId);

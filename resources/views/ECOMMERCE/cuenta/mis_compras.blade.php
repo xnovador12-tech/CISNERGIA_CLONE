@@ -15,19 +15,19 @@
     }
     
     .order-card.status-delivered {
-      border-left-color: #28a745;
+      border-left-color: var(--bs-success);
     }
     
     .order-card.status-in-transit {
-      border-left-color: #0066cc;
+      border-left-color: var(--bs-secondary);
     }
     
     .order-card.status-processing {
-      border-left-color: #ffc107;
+      border-left-color: var(--bs-warning);
     }
     
     .order-card.status-cancelled {
-      border-left-color: #dc3545;
+      border-left-color: var(--c-danger);
     }
     
     .status-badge {
@@ -40,7 +40,7 @@
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background: #0066cc;
+      background: var(--bs-secondary);
       position: absolute;
       left: -6px;
       top: 5px;
@@ -52,7 +52,7 @@
       top: 20px;
       bottom: -10px;
       width: 2px;
-      background: #e9ecef;
+      background: var(--c-border);
     }
     
     .product-thumb {
@@ -72,12 +72,12 @@
     }
     
     .filter-chip.active {
-      background: #0066cc !important;
+      background: var(--bs-secondary) !important;
       color: white !important;
     }
     
     .stats-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
       color: white;
       border-radius: 1rem;
     }
@@ -297,25 +297,25 @@
                   <h6 class="fw-bold mb-3">Seguimiento del pedido</h6>
                   <div class="position-relative ps-4">
                     <div class="mb-4 position-relative">
-                      <div class="timeline-dot" style="background: #28a745;"></div>
+                      <div class="timeline-dot" style="background: var(--bs-success);"></div>
                       <div class="timeline-line"></div>
                       <h6 class="mb-1 small fw-bold">Pedido confirmado</h6>
                       <p class="mb-0 text-muted small">25 de nov, 2025 - 2:30 PM</p>
                     </div>
                     <div class="mb-4 position-relative">
-                      <div class="timeline-dot" style="background: #28a745;"></div>
+                      <div class="timeline-dot" style="background: var(--bs-success);"></div>
                       <div class="timeline-line"></div>
                       <h6 class="mb-1 small fw-bold">En preparación</h6>
                       <p class="mb-0 text-muted small">26 de nov, 2025 - 9:00 AM</p>
                     </div>
                     <div class="mb-4 position-relative">
-                      <div class="timeline-dot" style="background: #0066cc;"></div>
+                      <div class="timeline-dot" style="background: var(--bs-secondary);"></div>
                       <div class="timeline-line"></div>
                       <h6 class="mb-1 small fw-bold">En tránsito</h6>
                       <p class="mb-0 text-muted small">2 de dic, 2025 - 10:30 AM</p>
                     </div>
                     <div class="position-relative">
-                      <div class="timeline-dot" style="background: #e9ecef;"></div>
+                      <div class="timeline-dot" style="background: var(--c-border);"></div>
                       <h6 class="mb-1 small text-muted">Entrega programada</h6>
                       <p class="mb-0 text-muted small">4 de dic, 2025</p>
                     </div>
