@@ -115,11 +115,11 @@
                 </table>
             </div>
         </div>
+        @include('ADMINISTRADOR.PRINCIPAL.configuraciones.descuentos.create')
         @foreach($admin_descuentos as $admin_descuento)
             @include('ADMINISTRADOR.PRINCIPAL.configuraciones.descuentos.edit')
             @include('ADMINISTRADOR.PRINCIPAL.configuraciones.descuentos.show')            
         @endforeach
-        @include('ADMINISTRADOR.PRINCIPAL.configuraciones.descuentos.create')
     </div>
 {{-- Fin contenido --}}
 @endsection
@@ -232,65 +232,71 @@
 
     <script>
         $(document).ready(function(){
-            $('#categoria_ids').on('change',function(){
-                $("#option-all").prop('checked',false)
-                $(".producto").each(function(checkbox){
-                    $(this).prop('checked',false)
-                });
-                categoria = document.getElementById('categoria_ids').value.split('_');
+
+            // Select2
+            $('#categoria_ids').select2({
+                dropdownParent: $('#createdescuento'),
+                placeholder: 'Seleccione una categoria',
+                width: '100%'
+            });
+
+            // Sincronizar porcentaje y fechas con inputs hidden
+            $('#porcentaje_id').on('input', function() {
+                $("input[name='porcentaje[]']").val($(this).val());
+            });
+
+            $('#fecha__inicio__id, #hora__inicio__id').on('input', function() {
+                $("input[name='fecha_inicios[]']").val(
+                    $('#fecha__inicio__id').val() + ' ' + $('#hora__inicio__id').val()
+                );
+            });
+
+            $('#fecha_fin_id, #hora__fin__id').on('input', function() {
+                $("input[name='fecha_finales[]']").val(
+                    $('#fecha_fin_id').val() + ' ' + $('#hora__fin__id').val()
+                );
+            });
+
+            // Seleccionar todos
+            $("#option-all").on("change", function(){
+                $(".producto").prop('checked', $(this).prop('checked'));
+            });
+
+            // Cambio de categoría
+            $('#categoria_ids').on('change', function(){
+                $("#option-all").prop('checked', false);
+                $(".producto").prop('checked', false);
+
+                let categoria = $(this).val().split('_');
                 $('#__categoria__').val(categoria[0]);
-                if($.trim(categoria) !=''){
-                    $.get('/descuentos_productos/filtro', {categoria_id:categoria[0]}, function(productos_){
+
+                if(categoria[0] != ''){
+                    $.get('/descuentos_productos/filtro', {categoria_id: categoria[0]}, function(productos_){
                         $('#subc').html("");
-                        $.each(productos_, function(index, value){
-                            porcentaje_id.oninput = function() {
-                                porcentajes = porcentaje_id.value;
-                                $("input[name='porcentaje[]']").val(porcentajes);
-                            };
-                            fecha__inicio__id.oninput = function() {
-                                fecha_inicios = fecha__inicio__id.value;
-                                $("input[name='fecha_inicios[]']").val(fecha_inicios+' '+hora_inicios);
-                            };
-                            hora__inicio__id.oninput = function() {
-                                hora_inicios = hora__inicio__id.value;
-                                $("input[name='fecha_inicios[]']").val(fecha_inicios+' '+hora_inicios);
-                            };
-                            fecha_fin_id.oninput = function() {
-                                fecha_fins = fecha_fin_id.value;
-                                $("input[name='fecha_finales[]']").val(fecha_fins+' '+hora_fins);
-                            };
-                            hora__fin__id.oninput = function() {
-                                hora_fins = hora__fin__id.value;
-                                $("input[name='fecha_finales[]']").val(fecha_fins+' '+hora_fins);
-                            };
-                            var todo='<tr><td>'+index+'</td>';
-                                todo='<div class="col-12 col-md-12 col-lg-4 mb-2">';
-                                    todo='<div class="card border-4 borde-top-primary shadow-sm mb-3" data-aos="fade-up" data-aos-anchor-placement="top-bottom">';
-                                        todo+='<input type="checkbox" class="form-check-input me-2 producto" value="'+index+'" name="producto_id[]" id="producto1'+index+'">';
-                                        todo+='<input hidden value="'+value[2]+'" name="precio[]">';
-                                        todo+='<input hidden name="porcentaje[]" id="porcentajes__">';
-                                        todo+='<input hidden name="fecha_inicios[]">';
-                                        todo+='<input hidden name="fecha_finales[]">';
-                                        todo+='<input hidden value="'+value[4]+'" name="codigo_producto[]">';
-                                        todo+='<label class="form-check-label" for="producto1'+index+'">'+value[0]+'</label>';
-                                    todo+='</div>';
-                                todo+='</div>';
-
-                            $('#subc').append(todo);
-
-
-                        });
-                    });
-                    $("#option-all").on("change", function(){
-                        if($(this).prop('checked')){
-                            $(".producto").each(function(checkbox){
-                                $(this).prop('checked',true)
+                            $.each(productos_, function(index, value){
+                                var todo = '';
+                                todo += '<div class="col-12 col-md-6 col-lg-4 mb-3">';
+                                todo +=   '<label for="producto1'+index+'" class="w-100 h-100" style="cursor:pointer">';
+                                todo +=     '<div class="card shadow-sm h-100 producto-card" id="card'+index+'" style="border:2px solid #dee2e6; border-radius:10px; transition: all 0.2s ease;">';
+                                todo +=       '<div class="card-body p-3">';
+                                todo +=         '<div class="d-flex align-items-start gap-2">';
+                                todo +=           '<input type="checkbox" class="form-check-input producto mt-1 flex-shrink-0" value="'+index+'" name="producto_id[]" id="producto1'+index+'" style="width:18px;height:18px;">';
+                                todo +=           '<div class="flex-grow-1">';
+                                todo +=             '<p class="fw-semibold mb-1 text-dark" style="font-size:0.85rem;line-height:1.3">'+value[0]+'</p>';
+                                todo +=             '<span class="badge bg-success bg-opacity-10 text-success fw-bold" style="font-size:0.8rem;">S/ '+parseFloat(value[2]).toFixed(2)+'</span>';
+                                todo +=           '</div>';
+                                todo +=         '</div>';
+                                todo +=       '</div>';
+                                todo +=     '</div>';
+                                todo +=   '</label>';
+                                todo +=   '<input hidden value="'+value[2]+'" name="precio[]">';
+                                todo +=   '<input hidden name="porcentaje[]">';
+                                todo +=   '<input hidden name="fecha_inicios[]">';
+                                todo +=   '<input hidden name="fecha_finales[]">';
+                                todo +=   '<input hidden value="'+value[1]+'" name="codigo_producto[]">';
+                                todo += '</div>';
+                                $('#subc').append(todo);
                             });
-                        }else{
-                            $(".producto").each(function(checkbox){
-                                $(this).prop('checked',false)
-                            });
-                        }
                     });
                 }
             });

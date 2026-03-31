@@ -31,40 +31,15 @@
             {{-- Categorias --}}
             <div class="pr-filter-group">
               <div class="pr-filter-title">Filtrar por</div>
+              @foreach($tipos_producto as $tipo_id => $productos)
               <div class="pr-filter-item">
                 <div class="form-check m-0">
                   <input class="form-check-input" type="radio" name="categoryFilter" id="cat1" checked>
-                  <label class="form-check-label" for="cat1">Módulo solar</label>
+                  <label class="form-check-label" for="cat1">{{ $productos->first()->tipo->name ?? 'Sin tipo' }}</label>
                 </div>
-                <span class="pr-filter-count">794</span>
+                <span class="pr-filter-count">{{ $productos->sum(fn($p) => $p->inventarios->sum('cantidad')) }}</span>
               </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="radio" name="categoryFilter" id="cat2">
-                  <label class="form-check-label" for="cat2">Inversor</label>
-                </div>
-                <span class="pr-filter-count">2739</span>
-              </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="radio" name="categoryFilter" id="cat3">
-                  <label class="form-check-label" for="cat3">Batería</label>
-                </div>
-                <span class="pr-filter-count">1231</span>
-              </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="radio" name="categoryFilter" id="cat4">
-                  <label class="form-check-label" for="cat4">Accesorios</label>
-                </div>
-                <span class="pr-filter-count">1027</span>
-              </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="radio" name="categoryFilter" id="cat5">
-                  <label class="form-check-label" for="cat5">Todos</label>
-                </div>
-              </div>
+              @endforeach
             </div>
 
             <hr class="pr-filter-sep">
@@ -95,65 +70,18 @@
                 <span class="pr-fg-label">Marca</span>
                 <i class="bi bi-chevron-down" style="color:var(--c-text-muted); font-size:.8rem; cursor:pointer;"></i>
               </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="checkbox" id="brand1">
-                  <label class="form-check-label" for="brand1">Huawei</label>
+              @foreach($marcas_producto as $marca_id => $productos)
+                <div class="pr-filter-item">
+                  <div class="form-check m-0">
+                    <input class="form-check-input" type="checkbox" id="brand{{ $marca_id }}">
+                    <label class="form-check-label" for="brand{{ $marca_id }}">{{ $productos->first()->marca->name ?? 'Sin marca' }}</label>
+                  </div>
+                  <span class="pr-filter-count">{{ $productos->sum(fn($p) => $p->inventarios->sum('cantidad')) }}</span>
                 </div>
-                <span class="pr-filter-count">672</span>
-              </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="checkbox" id="brand2">
-                  <label class="form-check-label" for="brand2">Fronius</label>
-                </div>
-                <span class="pr-filter-count">556</span>
-              </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="checkbox" id="brand3">
-                  <label class="form-check-label" for="brand3">SolarEdge</label>
-                </div>
-                <span class="pr-filter-count">449</span>
-              </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="checkbox" id="brand4">
-                  <label class="form-check-label" for="brand4">JA Solar</label>
-                </div>
-                <span class="pr-filter-count">378</span>
-              </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="checkbox" id="brand5">
-                  <label class="form-check-label" for="brand5">BYD</label>
-                </div>
-                <span class="pr-filter-count">362</span>
-              </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="checkbox" id="brand6">
-                  <label class="form-check-label" for="brand6">Goodwe</label>
-                </div>
-                <span class="pr-filter-count">293</span>
-              </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="checkbox" id="brand7">
-                  <label class="form-check-label" for="brand7">Solis</label>
-                </div>
-                <span class="pr-filter-count">274</span>
-              </div>
-              <div class="pr-filter-item">
-                <div class="form-check m-0">
-                  <input class="form-check-input" type="checkbox" id="brand8">
-                  <label class="form-check-label" for="brand8">Sungrow</label>
-                </div>
-                <span class="pr-filter-count">222</span>
-              </div>
-              <button class="pr-show-more mt-1">
+              @endforeach
+              <!-- <button class="pr-show-more mt-1">
                 <i class="bi bi-plus-circle"></i> Ver más marcas
-              </button>
+              </button> -->
             </div>
 
             <hr class="pr-filter-sep">

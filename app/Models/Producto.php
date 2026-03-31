@@ -90,7 +90,12 @@ class Producto extends Model
     }
 
     public function producto_proveedor()
-{
-    return $this->belongsToMany(Proveedor::class); // agrega tabla/pivots si difiere del naming estándar
-}
+    {
+        return $this->belongsToMany(Proveedor::class); // agrega tabla/pivots si difiere del naming estándar
+    }
+
+    public function inventarios()
+    {
+        return $this->hasMany(Inventario::class, 'id_producto');
+    }
 }

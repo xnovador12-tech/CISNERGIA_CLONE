@@ -1,7 +1,31 @@
 @extends('TEMPLATES.ecommerce')
 
 @section('title', 'INICIO')
+@section('css')
+<style>
 
+.cis-prod-img {
+    height: 180px;
+    background-size: cover;        /* que cubra todo */
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: -1px;                  /* elimina el filo */
+}
+
+
+.productos-swiper {
+    padding-bottom: 40px; /* espacio para la paginación */
+}
+.productos-swiper .swiper-button-prev,
+.productos-swiper .swiper-button-next {
+    top: 40%;
+    color: var(--bs-primary);
+}
+.productos-swiper .swiper-pagination-bullet-active {
+    background: var(--bs-primary);
+}
+</style>
+@endsection
 @section('content')
 
     {{-- ═══════════════════════════════════════
@@ -126,7 +150,7 @@
           <p style="color:var(--c-muted);">Encuentra la solución perfecta para tu hogar o negocio</p>
         </div>
 
-        <ul class="nav cis-tabs justify-content-center mb-5" id="productTabs" role="tablist">
+        <!-- <ul class="nav cis-tabs justify-content-center mb-5" id="productTabs" role="tablist">
           <li class="nav-item">
             <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#residencial" type="button">
               <i class="bi bi-house-fill me-1"></i>Residencial
@@ -142,109 +166,61 @@
               <i class="bi bi-gear-fill me-1"></i>Industrial
             </button>
           </li>
-        </ul>
+        </ul> -->
 
         <div class="tab-content" id="productTabsContent">
 
           {{-- Residencial --}}
           <div class="tab-pane fade show active" id="residencial" role="tabpanel">
-            <div class="row g-4">
-
-              <div class="col-lg-3 col-md-6">
-                <div class="cis-prod">
-                  <div class="cis-prod-img" style="background-image:url('https://images.pexels.com/photos/356036/pexels-photo-356036.jpeg?auto=compress&cs=tinysrgb&w=600');">
-                    <span class="cis-prod-badge" style="background:rgba(var(--bs-primary-rgb),.85); color:#fff;">Eco Plus</span>
+              <div class="swiper productos-swiper">
+                  <div class="swiper-wrapper">
+                      @foreach($productos as $prod)
+                      <div class="swiper-slide">
+                          <div class="cis-prod">
+                              <div class="cis-prod-img" style="background-image: url('{{ $prod->imagen ? asset('images/productos/' . $prod->imagen) : '' }}');">
+                                  <span class="cis-prod-badge" style="
+                                      background: rgba(var(--bs-primary-rgb),.85); 
+                                      color: #fff;
+                                      display: -webkit-box;
+                                      -webkit-line-clamp: 2;
+                                      -webkit-box-orient: vertical;
+                                      overflow: hidden;
+                                      font-size: 0.75rem;
+                                      line-height: 1.2;
+                                      max-width: 90%;
+                                  ">
+                                      {{ $prod->categorie->name }}
+                                  </span>
+                              </div>
+                              <div class="cis-prod-body">
+                                  <div class="cis-prod-stars">
+                                      <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                                      <small class="ms-1" style="color:var(--c-muted);">(124)</small>
+                                  </div>
+                                  <div class="cis-prod-title">{{$prod->name}}</div>
+                                  <div class="cis-prod-spec"><i class="bi bi-lightning-charge-fill"></i> 450W &nbsp;·&nbsp; <i class="bi bi-shield-check"></i> 25 años</div>
+                                  <div class="d-flex align-items-center gap-2">
+                                      <span class="cis-prod-price">S/ {{$prod->precio_descuento != '' ? $prod->precio_descuento : $prod->precio}}</span>
+                                      @if($prod->precio_descuento == '' || $prod->precio_descuento == 0)
+                                      @else
+                                          <span class="cis-prod-old">S/ {{$prod->precio}}</span>
+                                          <span class="cis-prod-disc">-{{$prod->porcentaje}}%</span>
+                                      @endif
+                                  </div>
+                                  <div class="cis-prod-actions">
+                                      <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
+                                      <button class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</button>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                      @endforeach
                   </div>
-                  <div class="cis-prod-body">
-                    <div class="cis-prod-stars">
-                      <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
-                      <small class="ms-1" style="color:var(--c-muted);">(124)</small>
-                    </div>
-                    <div class="cis-prod-title">Panel Solar 450W Monocristalino</div>
-                    <div class="cis-prod-spec"><i class="bi bi-lightning-charge-fill"></i> 450W &nbsp;·&nbsp; <i class="bi bi-shield-check"></i> 25 años</div>
-                    <div class="d-flex align-items-center gap-2">
-                      <span class="cis-prod-price">S/ 899.00</span>
-                      <span class="cis-prod-old">S/ 1,099.00</span>
-                      <span class="cis-prod-disc">-18%</span>
-                    </div>
-                    <div class="cis-prod-actions">
-                      <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                      <button class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</button>
-                    </div>
-                  </div>
-                </div>
+                  <!-- Navegación -->
+                  <div class="swiper-button-prev"></div>
+                  <div class="swiper-button-next"></div>
+                  <div class="swiper-pagination"></div>
               </div>
-
-              <div class="col-lg-3 col-md-6">
-                <div class="cis-prod">
-                  <div class="cis-prod-img" style="background-image:url('https://images.pexels.com/photos/371900/pexels-photo-371900.jpeg?auto=compress&cs=tinysrgb&w=600');">
-                    <span class="cis-prod-badge" style="background:var(--c-success); color:#fff;">Top venta</span>
-                  </div>
-                  <div class="cis-prod-body">
-                    <div class="cis-prod-stars">
-                      <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                      <small class="ms-1" style="color:var(--c-muted);">(256)</small>
-                    </div>
-                    <div class="cis-prod-title">Kit Solar 3kW + Inversor</div>
-                    <div class="cis-prod-spec"><i class="bi bi-check-circle"></i> Kit completo &nbsp;·&nbsp; <i class="bi bi-check-circle"></i> Listo para instalar</div>
-                    <div class="d-flex align-items-center gap-2">
-                      <span class="cis-prod-price">S/ 7,490.00</span>
-                    </div>
-                    <div class="cis-prod-actions">
-                      <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                      <button class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-lg-3 col-md-6">
-                <div class="cis-prod">
-                  <div class="cis-prod-img" style="background-image:url('https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=600');">
-                    <span class="cis-prod-badge" style="background:rgba(var(--bs-primary-rgb),.85); color:#fff;">Nuevo</span>
-                  </div>
-                  <div class="cis-prod-body">
-                    <div class="cis-prod-stars">
-                      <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i>
-                      <small class="ms-1" style="color:var(--c-muted);">(89)</small>
-                    </div>
-                    <div class="cis-prod-title">Inversor Híbrido 5kW</div>
-                    <div class="cis-prod-spec"><i class="bi bi-battery-half"></i> Con batería &nbsp;·&nbsp; <i class="bi bi-wifi"></i> Monitoreo WiFi</div>
-                    <div class="d-flex align-items-center gap-2">
-                      <span class="cis-prod-price">S/ 3,250.00</span>
-                    </div>
-                    <div class="cis-prod-actions">
-                      <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                      <button class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-lg-3 col-md-6">
-                <div class="cis-prod">
-                  <div class="cis-prod-img" style="background-image:url('https://images.pexels.com/photos/159397/solar-panel-array-power-sun-electricity-159397.jpeg?auto=compress&cs=tinysrgb&w=600');">
-                    <span class="cis-prod-badge" style="background:var(--c-accent); color:#fff;">Premium</span>
-                  </div>
-                  <div class="cis-prod-body">
-                    <div class="cis-prod-stars">
-                      <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                      <small class="ms-1" style="color:var(--c-muted);">(178)</small>
-                    </div>
-                    <div class="cis-prod-title">Kit Premium 5kW</div>
-                    <div class="cis-prod-spec"><i class="bi bi-award"></i> Máxima calidad &nbsp;·&nbsp; <i class="bi bi-truck"></i> Envío gratis</div>
-                    <div class="d-flex align-items-center gap-2">
-                      <span class="cis-prod-price">S/ 11,990.00</span>
-                    </div>
-                    <div class="cis-prod-actions">
-                      <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                      <button class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
           </div>
 
           {{-- Comercial --}}
@@ -356,7 +332,7 @@
         </div>{{-- /tab-content --}}
 
         <div class="text-center mt-5">
-          <a href="#" class="btn btn-primary btn-lg rounded-pill px-5">
+          <a href="/products" class="btn btn-primary btn-lg rounded-pill px-5">
             <i class="bi bi-grid-3x3-gap me-2"></i>Ver todos los productos
           </a>
         </div>
@@ -693,4 +669,30 @@
 @endsection
 
 @section('js')
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+const productosSwiper = new Swiper('.productos-swiper', {
+    slidesPerView: 1,
+    spaceBetween: 20,
+    loop: true,
+    autoplay: {
+        delay: 4000,
+        disableOnInteraction: false,
+        pauseOnMouseEnter: true,
+    },
+    pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+    },
+    navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+    },
+    breakpoints: {
+        576: { slidesPerView: 2 },
+        768: { slidesPerView: 3 },
+        992: { slidesPerView: 4 },
+    }
+});
+</script>
 @endsection

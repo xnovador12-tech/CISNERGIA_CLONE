@@ -11,6 +11,7 @@ use App\Models\Pedido;
 use App\Models\DetallePedido;
 use App\Models\Cliente;
 use App\Models\Category;
+use App\Models\Inventario;
 use App\Models\Marca;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -21,9 +22,12 @@ class ecommerceController extends Controller
     // Página principal
     public function index()
     {
-        $productos = Producto::where('estado', 1)
+
+        $productos_inventario = Inventario::where('cantidad', '>', 0)->pluck('id_producto')->toArray();
+        $productos = Producto::where('estado', 'Activo')
+            ->whereIn('id', $productos_inventario)
             ->orderBy('created_at', 'desc')
-            ->limit(8)
+            ->take(8)
             ->get();
 
         return view('ECOMMERCE.index', compact('productos'));
@@ -32,6 +36,21 @@ class ecommerceController extends Controller
     // Lista de productos
     public function products(Request $request)
     {
+        $productos_inventario = Inventario::where('cantidad', '>', 0)->pluck('id_producto')->toArray();
+        $tipos_producto = Producto::where('estado', 'Activo')
+            ->whereIn('id', $productos_inventario)
+            ->with(['tipo', 'inventarios'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('tipo_id');
+
+        $marcas_producto = Producto::where('estado', 'Activo')
+            ->whereIn('id', $productos_inventario)
+            ->with(['marca', 'inventarios'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('marca_id');
+
         $query = Producto::where('estado', 1);
 
         // Filtrar por categoría
@@ -53,7 +72,7 @@ class ecommerceController extends Controller
         $categorias = Category::all();
         $marcas = Marca::all();
 
-        return view('ECOMMERCE.productos.index', compact('productos', 'categorias', 'marcas'));
+        return view('ECOMMERCE.productos.index', compact('productos', 'categorias', 'marcas','tipos_producto','marcas_producto'));
     }
 
     // Detalle de producto

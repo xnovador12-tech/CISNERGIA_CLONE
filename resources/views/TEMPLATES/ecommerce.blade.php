@@ -8,6 +8,7 @@
     <!-- Bootstrap 5 Local -->
     <link href="css/bootstrap.css" rel="stylesheet">
     <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
     @yield('css')
     @stack('meta')
 </head>
@@ -293,10 +294,9 @@
         </div>
         </div>
         <!-- MEGA MENÚ PRODUCTOS -->
-        <div class="megamenu-productos" id="megamenuProductos">
+        <!-- <div class="megamenu-productos" id="megamenuProductos">
             <div class="megamenu-content">
                 <div class="megamenu-grid">
-                    <!-- Columna: Categorías -->
                     <div class="megamenu-categorias">
                         <h3 class="megamenu-titulo">CATEGORÍAS</h3>
                         <ul class="megamenu-lista">
@@ -306,7 +306,6 @@
                             <li><a href="#">Accesorios</a></li>
                         </ul>
                     </div>
-                    <!-- Columna: Categorías Populares -->
                     <div class="megamenu-populares">
                         <h3 class="megamenu-titulo">Categorías populares</h3>
                         <ul class="megamenu-lista">
@@ -326,7 +325,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
     </nav>
 
     @yield('content')

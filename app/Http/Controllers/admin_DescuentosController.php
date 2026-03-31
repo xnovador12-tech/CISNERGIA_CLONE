@@ -32,17 +32,16 @@ class admin_DescuentosController extends Controller
 
     public function getfiltro_producto(Request $request)
     {
-        $categoria_id = $request->input('categoria_id');
 
         if($request->ajax()){
             $descuentos_productos = DB::table('categories as cat')
                 ->join('productos as prod','prod.categorie_id','=','cat.id')
-                ->select('prod.name','prod.precio','prod.imagen','prod.slug','prod.id','prod.slug')
+                ->select('prod.name','prod.precio','prod.imagen','prod.slug','prod.id')
                 ->where('prod.categorie_id',$request->categoria_id)
                 ->get();
     
             foreach($descuentos_productos as $descuentos_producto){
-                $Arraylist[$descuentos_producto->id] = [$descuentos_producto->name,$descuentos_producto->slug,$descuentos_producto->precio,$descuentos_producto->imagen, $descuentos_producto->slug];
+                $Arraylist[$descuentos_producto->id] = [$descuentos_producto->name,$descuentos_producto->slug,$descuentos_producto->precio,$descuentos_producto->imagen ?? ''];
             }
             return response()->json($Arraylist);
         }
