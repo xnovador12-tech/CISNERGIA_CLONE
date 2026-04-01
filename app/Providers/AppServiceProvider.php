@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Pedido;
 use App\Observers\UserObserver;
 use App\Observers\PedidoObserver;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,5 +32,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Observer Operaciones
         Pedido::observe(PedidoObserver::class);
+
+        //paginacion
+        Paginator::useBootstrapFive(); // Bootstrap 5
+        app()->setLocale('es'); // ← español
     }
 }

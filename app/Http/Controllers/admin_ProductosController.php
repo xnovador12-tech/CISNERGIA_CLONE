@@ -204,6 +204,12 @@ class admin_ProductosController extends Controller
         $producto->precio = $request->input('precio');
         $producto->precio_descuento = $request->input('precio_descuento');
         $producto->tipo_id = $request->input('tipo_id');
+        $producto->potencia_nominal = $request->input('potencia_nominal');
+        $producto->eficiencia = $request->input('eficiencia');
+        $producto->num_celdas = $request->input('num_celdas');
+        $producto->dimensiones = $request->input('dimensiones');
+        $producto->tipo_celula = $request->input('tipo_celula');
+        $producto->garantia = $request->input('garantia');
         $producto->vida_util = $request->input('vida_util');
         $producto->depreciacion = $request->input('depreciacion');
         $producto->tipo_adquisicion = $request->input('tipo_adquisicion');

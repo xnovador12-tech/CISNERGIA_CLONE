@@ -51,6 +51,12 @@ class ecommerceController extends Controller
             ->get()
             ->groupBy('marca_id');
 
+        $todos_productos = Producto::where('estado', 'Activo')
+            ->whereIn('id', $productos_inventario)
+            ->with(['inventarios'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(6);
+
         $query = Producto::where('estado', 1);
 
         // Filtrar por categoría
@@ -72,33 +78,50 @@ class ecommerceController extends Controller
         $categorias = Category::all();
         $marcas = Marca::all();
 
-        return view('ECOMMERCE.productos.index', compact('productos', 'categorias', 'marcas','tipos_producto','marcas_producto'));
+        return view('ECOMMERCE.productos.index', compact('productos', 'categorias', 'marcas','tipos_producto','marcas_producto', 'todos_productos'));
     }
 
-    public function getbusqueda_pmarca (Request $request){
+    public function getbusqueda_pmarca(Request $request)
+    {
         if($request->ajax()){
-            $productos_inventario = Inventario::where('cantidad', '>', 0)->pluck('id_producto')->toArray();
-            $tipos_producto = Producto::where('estado', 'Activo')
+            $productos_inventario = Inventario::where('cantidad', '>', 0)
+                ->pluck('id_producto')
+                ->toArray();
+
+            $productos = Producto::where('estado', 'Activo')
                 ->whereIn('id', $productos_inventario)
                 ->where('tipo_id', $request->valor_check_tipo)
-                ->with(['tipo', 'inventarios'])
+                ->with(['marca', 'inventarios'])  // ← quita tipo, agrega marca
                 ->orderBy('created_at', 'desc')
                 ->get()
-                ->groupBy('tipo_id');
+                ->groupBy('marca_id');  // ← agrupa por marca, no tipo
 
-            foreach($tipos_producto as $tipo_id => $productos){
-                $arraylist[$productos->first()->id] = [$productos->first()->marca->id, $productos->first()->marca->name, $productos->first()->categoria->id, $productos->first()->tipo->name ?? 'Sin tipo', $productos->sum(fn($p) => $p->inventarios->sum('cantidad'))];
+            $arraylist = [];  // ← inicializa siempre
+
+            foreach($productos as $marca_id => $prods){
+                $arraylist[] = [
+                    $marca_id,                          // value[0] = marca_id
+                    $prods->first()->marca->name ?? 'Sin marca', // value[1] = nombre marca
+                    $prods->sum(fn($p) => $p->inventarios->sum('cantidad')), // value[2] = stock total
+                ];
             }
-            return response()->json($arraylist);
 
+            return response()->json($arraylist);
         }
     }
     // Detalle de producto
     public function show_product($slug)
     {
-        $producto = Producto::where('slug', $slug)->firstOrFail();
+        $productos_inventario = Inventario::where('cantidad', '>', 0)
+                ->pluck('id_producto')
+                ->toArray();
+        $producto = Producto::where('slug', $slug)->whereIn('id', $productos_inventario)->with(['inventarios'])->firstOrFail();
+
+                
         $relacionados = Producto::where('categorie_id', $producto->categorie_id)
+            ->whereIn('id', $productos_inventario)
             ->where('id', '!=', $producto->id)
+            ->with(['inventarios'])
             ->where('estado', 'Activo')
             ->limit(4)
             ->get();

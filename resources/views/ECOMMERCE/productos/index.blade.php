@@ -34,8 +34,8 @@
               @foreach($tipos_producto as $tipo_id => $productos)
               <div class="pr-filter-item">
                 <div class="form-check m-0">
-                  <input class="form-check-input" type="radio" value="{{ $tipo_id }}" id="tipos_id_val">
-                  <label class="form-check-label" for="cat1">{{ $productos->first()->tipo->name ?? 'Sin tipo' }}</label>
+                    <input class="form-check-input" type="radio" value="{{ $tipo_id }}" id="tipo_{{ $tipo_id }}" name="categoryFilter">
+                    <label class="form-check-label" for="tipo_{{ $tipo_id }}">{{ $productos->first()->tipo->name ?? 'Sin tipo' }}</label>
                 </div>
                 <span class="pr-filter-count">{{ $productos->sum(fn($p) => $p->inventarios->sum('cantidad')) }}</span>
               </div>
@@ -70,15 +70,17 @@
                 <span class="pr-fg-label">Marca</span>
                 <i class="bi bi-chevron-down" style="color:var(--c-text-muted); font-size:.8rem; cursor:pointer;"></i>
               </div>
-              @foreach($marcas_producto as $marca_id => $productos)
-                <div class="pr-filter-item" id="div_marca">
-                  <div class="form-check m-0">
-                    <input class="form-check-input" type="checkbox" id="brand{{ $marca_id }}">
-                    <label class="form-check-label" for="brand{{ $marca_id }}">{{ $productos->first()->marca->name ?? 'Sin marca' }}</label>
-                  </div>
+              <div id="div_marca">
+                  @foreach($marcas_producto as $marca_id => $productos)
+                  <div class="pr-filter-item">
+                    <div class="form-check m-0">
+                      <input class="form-check-input" type="checkbox" id="brand{{ $marca_id }}">
+                      <label class="form-check-label" for="brand{{ $marca_id }}">{{ $productos->first()->marca->name ?? 'Sin marca' }}</label>
+                    </div>
                   <span class="pr-filter-count">{{ $productos->sum(fn($p) => $p->inventarios->sum('cantidad')) }}</span>
-                </div>
-              @endforeach
+                  </div>
+                  @endforeach
+              </div>
               <!-- <button class="pr-show-more mt-1">
                 <i class="bi bi-plus-circle"></i> Ver más marcas
               </button> -->
@@ -99,7 +101,7 @@
           {{-- Sort Bar --}}
           <div class="pr-sort-bar">
             <div class="pr-sort-info">
-              <strong>193</strong> resultados encontrados
+              <strong>{{ $productos->count() }}</strong> resultados encontrados
             </div>
             <div class="pr-sort-right">
               <span class="pr-sort-label">Ordenar por:</span>
@@ -119,26 +121,27 @@
           </div>
 
           {{-- Producto 1: Panel Solar Monocristalino 450W --}}
+          @foreach($todos_productos as $prod)
           <div class="pr-prod-row">
             <div class="pr-prod-img-wrap">
-              <img src="https://images.pexels.com/photos/356036/pexels-photo-356036.jpeg?auto=compress&cs=tinysrgb&w=400" alt="Panel Solar 450W">
+              <img src="{{ $prod->imagen ? asset('images/productos/' . $prod->imagen) : '' }}?auto=compress&cs=tinysrgb&w=400" alt="{{$prod->name}}">
               <button class="pr-wishlist-btn"><i class="bi bi-heart"></i></button>
               <span class="pr-img-badge accent">Eco Plus</span>
             </div>
             <div class="pr-prod-body">
-              <div class="pr-prod-brand">Jinko Solar</div>
-              <div class="pr-prod-name">Panel Solar Monocristalino 450W</div>
+              <div class="pr-prod-brand">{{$prod->marca->name}}</div>
+              <div class="pr-prod-name">{{$prod->name}}</div>
               <div class="pr-prod-stars">
                 <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
                 <small class="ms-1">(124 valoraciones)</small>
               </div>
               <div class="pr-specs-grid">
-                <div class="pr-spec-cell"><span class="pr-spec-label">Potencia nominal</span><span class="pr-spec-val">450 W</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Eficiencia</span><span class="pr-spec-val">21.3%</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">N.° de celdas</span><span class="pr-spec-val">144</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Dimensiones</span><span class="pr-spec-val">2094x1038x35</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Tipo célula</span><span class="pr-spec-val">Mono PERC</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Garantía</span><span class="pr-spec-val">25 años</span></div>
+                <div class="pr-spec-cell"><span class="pr-spec-label">Potencia nominal</span><span class="pr-spec-val">{{$prod->potencia_nominal}}</span></div>
+                <div class="pr-spec-cell"><span class="pr-spec-label">Eficiencia</span><span class="pr-spec-val">{{$prod->eficiencia}}</span></div>
+                <div class="pr-spec-cell"><span class="pr-spec-label">N.° de celdas</span><span class="pr-spec-val">{{$prod->num_celdas}}</span></div>
+                <div class="pr-spec-cell"><span class="pr-spec-label">Dimensiones</span><span class="pr-spec-val">{{$prod->dimensiones}}</span></div>
+                <div class="pr-spec-cell"><span class="pr-spec-label">Tipo célula</span><span class="pr-spec-val">{{$prod->tipo_celula}}</span></div>
+                <div class="pr-spec-cell"><span class="pr-spec-label">Garantía</span><span class="pr-spec-val">{{$prod->garantia}}</span></div>
               </div>
               <div class="d-flex flex-wrap gap-2 mt-auto">
                 <span class="pr-tag"><i class="bi bi-patch-check"></i> Certificado</span>
@@ -147,231 +150,26 @@
             </div>
             <div class="pr-prod-price-col">
               <div>
-                <span class="pr-discount-badge">-18% OFF</span>
-                <div class="pr-old-price">S/ 1,099</div>
-                <div class="pr-price">S/ 899</div>
-                <div class="pr-price-label">Por unidad</div>
+                @if($prod->precio_descuento == '' || $prod->precio_descuento == 0)
+                  <div class="pr-price">S/ {{$prod->precio}}</div>
+                @else
+                  <span class="pr-discount-badge">- {{$prod->porcentaje}}% OFF</span>
+                  <div class="pr-old-price">S/ {{$prod->precio}}</div>
+                  <div class="pr-price">S/ {{$prod->precio_descuento}}</div>
+                  <div class="pr-price-label">Por unidad</div>
+                @endif
               </div>
               <div class="d-flex flex-column gap-2">
                 <button class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</button>
+                <a href="/product/{{ $prod->slug }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</a>
               </div>
             </div>
           </div>
-
-          {{-- Producto 2: Kit Solar 3kW --}}
-          <div class="pr-prod-row">
-            <div class="pr-prod-img-wrap">
-              <img src="https://images.pexels.com/photos/371900/pexels-photo-371900.jpeg?auto=compress&cs=tinysrgb&w=400" alt="Kit Solar 3kW">
-              <button class="pr-wishlist-btn"><i class="bi bi-heart"></i></button>
-              <span class="pr-img-badge success">Top Venta</span>
-            </div>
-            <div class="pr-prod-body">
-              <div class="pr-prod-brand">Canadian Solar</div>
-              <div class="pr-prod-name">Kit Solar Completo 3kW con Inversor On-Grid</div>
-              <div class="pr-prod-stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <small class="ms-1">(256 valoraciones)</small>
-              </div>
-              <div class="pr-specs-grid">
-                <div class="pr-spec-cell"><span class="pr-spec-label">Potencia sistema</span><span class="pr-spec-val">3 kW</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Paneles</span><span class="pr-spec-val">6 x 550W</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Tipo inversor</span><span class="pr-spec-val">On-Grid</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Ahorro estimado</span><span class="pr-spec-val">80%</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Instalación</span><span class="pr-spec-val">Incluida</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Garantía</span><span class="pr-spec-val">10 años</span></div>
-              </div>
-              <div class="d-flex flex-wrap gap-2 mt-auto">
-                <span class="pr-tag"><i class="bi bi-box-seam"></i> Kit Completo</span>
-                <span class="pr-tag success"><i class="bi bi-truck"></i> Envío gratis</span>
-              </div>
-            </div>
-            <div class="pr-prod-price-col">
-              <div>
-                <div class="pr-price">S/ 7,490</div>
-                <div class="pr-price-label">Kit completo</div>
-              </div>
-              <div class="d-flex flex-column gap-2">
-                <button class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</button>
-              </div>
-            </div>
-          </div>
-
-          {{-- Producto 3: Inversor Híbrido 5kW --}}
-          <div class="pr-prod-row">
-            <div class="pr-prod-img-wrap">
-              <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=400" alt="Inversor Híbrido 5kW">
-              <button class="pr-wishlist-btn"><i class="bi bi-heart"></i></button>
-              <span class="pr-img-badge primary">Nuevo</span>
-            </div>
-            <div class="pr-prod-body">
-              <div class="pr-prod-brand">Huawei</div>
-              <div class="pr-prod-name">Inversor Híbrido 5kW con Monitoreo WiFi</div>
-              <div class="pr-prod-stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i>
-                <small class="ms-1">(89 valoraciones)</small>
-              </div>
-              <div class="pr-specs-grid">
-                <div class="pr-spec-cell"><span class="pr-spec-label">Potencia nominal</span><span class="pr-spec-val">5 kW</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Eficiencia</span><span class="pr-spec-val">97.6%</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Tipo</span><span class="pr-spec-val">Hibrido</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Conectividad</span><span class="pr-spec-val">WiFi + App</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Compatible</span><span class="pr-spec-val">Baterías litio</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Garantía</span><span class="pr-spec-val">5 años</span></div>
-              </div>
-              <div class="d-flex flex-wrap gap-2 mt-auto">
-                <span class="pr-tag"><i class="bi bi-wifi"></i> WiFi integrado</span>
-                <span class="pr-tag"><i class="bi bi-phone"></i> App móvil</span>
-              </div>
-            </div>
-            <div class="pr-prod-price-col">
-              <div>
-                <div class="pr-price">S/ 3,250</div>
-                <div class="pr-price-label">Por unidad</div>
-              </div>
-              <div class="d-flex flex-column gap-2">
-                <button class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</button>
-              </div>
-            </div>
-          </div>
-
-          {{-- Producto 4: Kit Premium 5kW --}}
-          <div class="pr-prod-row">
-            <div class="pr-prod-img-wrap">
-              <img src="https://images.pexels.com/photos/159397/solar-panel-array-power-sun-electricity-159397.jpeg?auto=compress&cs=tinysrgb&w=400" alt="Kit Premium 5kW">
-              <button class="pr-wishlist-btn"><i class="bi bi-heart"></i></button>
-              <span class="pr-img-badge primary">Premium</span>
-            </div>
-            <div class="pr-prod-body">
-              <div class="pr-prod-brand">Longi Solar</div>
-              <div class="pr-prod-name">Kit Premium 5kW Sistema Híbrido Completo</div>
-              <div class="pr-prod-stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <small class="ms-1">(178 valoraciones)</small>
-              </div>
-              <div class="pr-specs-grid">
-                <div class="pr-spec-cell"><span class="pr-spec-label">Potencia sistema</span><span class="pr-spec-val">5 kW</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Paneles</span><span class="pr-spec-val">10 x 550W</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Batería</span><span class="pr-spec-val">10 kWh Litio</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Tipo inversor</span><span class="pr-spec-val">Hibrido</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Monitoreo</span><span class="pr-spec-val">Inteligente</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Garantía</span><span class="pr-spec-val">15 años</span></div>
-              </div>
-              <div class="d-flex flex-wrap gap-2 mt-auto">
-                <span class="pr-tag"><i class="bi bi-award"></i> Premium</span>
-                <span class="pr-tag success"><i class="bi bi-truck"></i> Envío e instalación gratis</span>
-              </div>
-            </div>
-            <div class="pr-prod-price-col">
-              <div>
-                <div class="pr-price">S/ 11,990</div>
-                <div class="pr-price-label">Sistema completo</div>
-              </div>
-              <div class="d-flex flex-column gap-2">
-                <button class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</button>
-              </div>
-            </div>
-          </div>
-
-          {{-- Producto 5: Batería Litio 10kWh --}}
-          <div class="pr-prod-row">
-            <div class="pr-prod-img-wrap">
-              <img src="https://images.pexels.com/photos/371900/pexels-photo-371900.jpeg?auto=compress&cs=tinysrgb&w=400" alt="Batería Litio 10kWh">
-              <button class="pr-wishlist-btn"><i class="bi bi-heart"></i></button>
-            </div>
-            <div class="pr-prod-body">
-              <div class="pr-prod-brand">Pylontech</div>
-              <div class="pr-prod-name">Batería Litio 10kWh Apilable US3000C</div>
-              <div class="pr-prod-stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
-                <small class="ms-1">(145 valoraciones)</small>
-              </div>
-              <div class="pr-specs-grid">
-                <div class="pr-spec-cell"><span class="pr-spec-label">Capacidad</span><span class="pr-spec-val">10 kWh</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Tipo batería</span><span class="pr-spec-val">LiFePO4</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Ciclos de vida</span><span class="pr-spec-val">6,000</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Escalable hasta</span><span class="pr-spec-val">48 kWh</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Sistema</span><span class="pr-spec-val">BMS Inteligente</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Garantía</span><span class="pr-spec-val">10 años</span></div>
-              </div>
-              <div class="d-flex flex-wrap gap-2 mt-auto">
-                <span class="pr-tag"><i class="bi bi-stack"></i> Apilable</span>
-                <span class="pr-tag"><i class="bi bi-recycle"></i> 6000 ciclos</span>
-              </div>
-            </div>
-            <div class="pr-prod-price-col">
-              <div>
-                <span class="pr-discount-badge">-9% OFF</span>
-                <div class="pr-old-price">S/ 8,799</div>
-                <div class="pr-price">S/ 7,990</div>
-                <div class="pr-price-label">Por unidad</div>
-              </div>
-              <div class="d-flex flex-column gap-2">
-                <button class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</button>
-              </div>
-            </div>
-          </div>
-
-          {{-- Producto 6: Inversor On-Grid Fronius --}}
-          <div class="pr-prod-row">
-            <div class="pr-prod-img-wrap">
-              <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=400" alt="Inversor Fronius">
-              <button class="pr-wishlist-btn"><i class="bi bi-heart"></i></button>
-              <span class="pr-img-badge accent">-15% OFF</span>
-            </div>
-            <div class="pr-prod-body">
-              <div class="pr-prod-brand">Fronius</div>
-              <div class="pr-prod-name">Inversor On-Grid Primo 4.0-1 con Monitoreo</div>
-              <div class="pr-prod-stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i>
-                <small class="ms-1">(67 valoraciones)</small>
-              </div>
-              <div class="pr-specs-grid">
-                <div class="pr-spec-cell"><span class="pr-spec-label">Potencia nominal</span><span class="pr-spec-val">4 kW</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Eficiencia</span><span class="pr-spec-val">98%</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Tipo</span><span class="pr-spec-val">On-Grid</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Conectividad</span><span class="pr-spec-val">WiFi / Ethernet</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Origen</span><span class="pr-spec-val">Austria</span></div>
-                <div class="pr-spec-cell"><span class="pr-spec-label">Garantía</span><span class="pr-spec-val">5 años</span></div>
-              </div>
-              <div class="d-flex flex-wrap gap-2 mt-auto">
-                <span class="pr-tag"><i class="bi bi-wifi"></i> Conectividad</span>
-                <span class="pr-tag"><i class="bi bi-graph-up"></i> Monitoreo</span>
-              </div>
-            </div>
-            <div class="pr-prod-price-col">
-              <div>
-                <span class="pr-discount-badge">-15% OFF</span>
-                <div class="pr-old-price">S/ 2,890</div>
-                <div class="pr-price">S/ 2,456</div>
-                <div class="pr-price-label">Por unidad</div>
-              </div>
-              <div class="d-flex flex-column gap-2">
-                <button class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</button>
-              </div>
-            </div>
-          </div>
+          @endforeach
 
           {{-- Paginación --}}
           <nav aria-label="Navegación de productos" class="mt-4">
-            <ul class="pagination pr-pagination justify-content-center">
-              <li class="page-item disabled">
-                <a class="page-link" href="#"><i class="bi bi-chevron-left"></i></a>
-              </li>
-              <li class="page-item active"><a class="page-link" href="#">1</a></li>
-              <li class="page-item"><a class="page-link" href="#">2</a></li>
-              <li class="page-item"><a class="page-link" href="#">3</a></li>
-              <li class="page-item"><a class="page-link" href="#">4</a></li>
-              <li class="page-item"><a class="page-link" href="#">5</a></li>
-              <li class="page-item">
-                <a class="page-link" href="#"><i class="bi bi-chevron-right"></i></a>
-              </li>
-            </ul>
+              {{ $todos_productos->links() }}
           </nav>
 
         </div>{{-- /col-lg-9 --}}
@@ -383,20 +181,24 @@
 
 @section('js')
 <script>
-  $('#tipos_id_val').on('click', function(){
-    valor_check_tipo = $(this).val();
-    $.get('/busqueda_pmarca', {valor_check_tipo:valor_check_tipo}, function(productos){
+// ✅ Usar name en lugar de id
+$('input[name="categoryFilter"]').on('click', function(){
+    var valor_check_tipo = $(this).val();
+    console.log(valor_check_tipo);
+    $.get('/busqueda_pmarca', {valor_check_tipo: valor_check_tipo}, function(productos){
         $('#div_marca').empty();
         $.each(productos, function(index, value){
-          var fila = "<div class='pr-filter-item'>";
-          fila = '<div class="form-check m-0">';
-          fila += '<input class="form-check-input" type="checkbox" id="brand'+value[0]+'">';
-          fila += '<label class="form-check-label" for="brand'+value[0]+'">'+(value[3] ?? 'Sin marca')+'</label>';
-          fila += '</div>';
-          fila += '<span class="pr-filter-count">'+value[4]+'</span>';
-          $('#div_marca').append(fila);
+            var fila = '';  // ← bug igual que antes, reasignabas con =
+            fila += '<div class="pr-filter-item">';
+            fila +=   '<div class="form-check m-0">';
+            fila +=     '<input class="form-check-input" type="checkbox" id="brand'+value[0]+'">';
+            fila +=     '<label class="form-check-label" for="brand'+value[0]+'">'+(value[1] ?? 'Sin marca')+'</label>';
+            fila +=   '</div>';
+            fila +=   '<span class="pr-filter-count">'+value[2]+'</span>';
+            fila += '</div>';
+            $('#div_marca').append(fila);
         });
     });
-  });
+});
 </script>
 @endsection

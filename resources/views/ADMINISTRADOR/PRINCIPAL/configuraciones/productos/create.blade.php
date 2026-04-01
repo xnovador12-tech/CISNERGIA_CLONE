@@ -286,7 +286,63 @@
                                     </div>
                                 </div>
                             </div>
-
+                            <p class="text-secondary mb-2 small text-uppercase fw-bold" id="title_opcional">Especificaciones técnicas</p>
+                            <div class="row">
+                                <div class="col-12 col-md-4 col-lg-4">
+                                    <div class="mb-3">
+                                        <label for="potencia_nominal_id" class="">Potencia Nominal<span class="text-danger">*</span></label>
+                                        <input type="text" name="potencia_nominal"  class="form-control form-control-sm @error('potencia_nominal') is-invalid @enderror" required>
+                                        @error('potencia_nominal')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4 col-lg-4">
+                                    <div class="mb-3">
+                                        <label for="eficiencia_id" class="">Eficiencia<span class="text-danger">*</span></label>
+                                        <input type="text" name="eficiencia"  class="form-control form-control-sm @error('eficiencia') is-invalid @enderror" required>
+                                        @error('eficiencia')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4 col-lg-4">
+                                    <div class="mb-3">
+                                        <label for="num_celdas_id" class="">N° celdas<span class="text-danger">*</span></label>
+                                        <input type="text" name="num_celdas"  class="form-control form-control-sm @error('num_celdas') is-invalid @enderror" required>
+                                        @error('num_celdas')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4 col-lg-4">
+                                    <div class="mb-3">
+                                        <label for="dimensiones_id" class="">Dimensiones<span class="text-danger">*</span></label>
+                                        <input type="text" name="dimensiones"  class="form-control form-control-sm @error('dimensiones') is-invalid @enderror" required>
+                                        @error('dimensiones')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4 col-lg-4">
+                                    <div class="mb-3">
+                                        <label for="tipo_celula_id" class="">Tipo célula<span class="text-danger">*</span></label>
+                                        <input type="text" name="tipo_celula"  class="form-control form-control-sm @error('tipo_celula') is-invalid @enderror" required>
+                                        @error('tipo_celula')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4 col-lg-4">
+                                    <div class="mb-3">
+                                        <label for="garantia_id" class="">Garantía<span class="text-danger">*</span></label>
+                                        <input type="text" name="garantia"  class="form-control form-control-sm @error('garantia') is-invalid @enderror" required>
+                                        @error('garantia')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
                             <p class="text-secondary mb-2 small text-uppercase fw-bold" id="title_opcional">Datos adicionales</p>
                             <div class="row" >
                                 <div class="col-12 col-md-2 col-lg-2">

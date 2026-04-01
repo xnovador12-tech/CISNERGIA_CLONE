@@ -25,6 +25,12 @@ class CreateProductosTable extends Migration
             $table->longText('ficha_tecnica')->nullable();
             $table->longText('descripcion')->nullable();
             $table->longText('fabricante')->nullable();
+            $table->string('potencia_nominal')->nullable();
+            $table->string('eficiencia')->nullable();
+            $table->string('num_celdas')->nullable();
+            $table->string('dimensiones')->nullable();
+            $table->string('tipo_celula')->nullable();
+            $table->string('garantia')->nullable();
             $table->string('vida_util')->nullable();
             $table->string('depreciacion')->nullable();
             $table->string('tipo_adquisicion')->nullable();

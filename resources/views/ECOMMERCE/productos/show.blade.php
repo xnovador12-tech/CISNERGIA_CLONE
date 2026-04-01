@@ -12,10 +12,10 @@
           <li class="breadcrumb-item"><a href="{{ route('ecommerce.index') }}"><i class="bi bi-house me-1"></i>Inicio</a></li>
           <li class="breadcrumb-item"><a href="{{ route('ecommerce.products') }}">Productos</a></li>
           <li class="breadcrumb-item"><a href="#">Inversores</a></li>
-          <li class="breadcrumb-item active" aria-current="page">Sungrow SH8.0RT</li>
+          <li class="breadcrumb-item active" aria-current="page">{{$producto->marca->name}}</li>
         </ol>
       </nav>
-      <h1 class="pd-page-title">Sungrow SH8.0RT &mdash; <span>Inversor Híbrido 8 kW</span></h1>
+      <h1 class="pd-page-title">{{$producto->marca->name}} &mdash; <span>{{$producto->name}}</span></h1>
     </div>
   </div>
 </div>
@@ -32,24 +32,23 @@
           <!-- Imagen principal -->
           <div class="pd-gallery__main">
             <img id="mainImage"
-                 src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=800"
-                 class="pd-gallery__img" alt="Sungrow SH8.0RT">
+              src="{{ $producto->imagen ? asset('images/productos/' . $producto->imagen) : asset('images/no-image.png') }}"
+              class="pd-gallery__img" 
+              alt="{{ $producto->name }}">
             <span class="pd-stock-badge"><i class="bi bi-check-circle-fill me-1"></i>En stock</span>
             <button class="pd-wish-fab" aria-label="Añadir a favoritos"><i class="bi bi-heart"></i></button>
           </div>
 
           <!-- Miniaturas -->
-          <div class="pd-thumbs">
-            <button class="pd-thumb active" onclick="pdImg(this,'https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=800')">
-              <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Vista 1">
-            </button>
-            <button class="pd-thumb" onclick="pdImg(this,'https://images.pexels.com/photos/371900/pexels-photo-371900.jpeg?auto=compress&cs=tinysrgb&w=800')">
-              <img src="https://images.pexels.com/photos/371900/pexels-photo-371900.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Vista 2">
-            </button>
-            <button class="pd-thumb" onclick="pdImg(this,'https://images.pexels.com/photos/356036/pexels-photo-356036.jpeg?auto=compress&cs=tinysrgb&w=800')">
-              <img src="https://images.pexels.com/photos/356036/pexels-photo-356036.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Vista 3">
-            </button>
-          </div>
+        <div class="pd-thumbs">
+            @foreach($producto->images as $img)
+                <button class="pd-thumb {{ $loop->first ? 'active' : '' }}" 
+                        onclick="pdImg(this, '{{ asset($img->url) }}')">
+                    <img src="{{ asset($img->url) }}" 
+                        alt="Vista {{ $loop->iteration }}">
+                </button>
+            @endforeach
+        </div>
 
           <!-- Sellos de confianza -->
           <div class="row g-2 mt-1">
@@ -85,10 +84,10 @@
       <div class="col-lg-7">
 
         <!-- Marca -->
-        <div class="pd-brand">SUNGROW</div>
+        <div class="pd-brand">{{$producto->marca->name}}</div>
 
         <!-- Título -->
-        <h1 class="pd-title">Sungrow SH8.0RT Inversor Híbrido 8 KW 3 Fases 2 MPPT</h1>
+        <h1 class="pd-title">{{$producto->name}}</h1>
 
         <!-- Valoraciones -->
         <div class="pd-rating">
@@ -103,19 +102,28 @@
 
         <!-- Disponibilidad -->
         <div class="pd-availability">
-          <span class="pd-avail--ok"><i class="bi bi-check-circle-fill me-1"></i>8 unidades disponibles</span>
+          <span class="pd-avail--ok"><i class="bi bi-check-circle-fill me-1"></i>{{ $producto->inventarios->sum('cantidad') > 1 ? $producto->inventarios->sum('cantidad').' unidades disponibles' : $producto->inventarios->sum('cantidad').' unidad disponible'}}</span>
         </div>
         <div class="pd-stock-bar"><div class="pd-stock-bar__fill"></div></div>
 
         <!-- Precio -->
         <div class="pd-price-box">
-          <div class="pd-price__top">
-            <span class="pd-price__original">S/ 4,899</span>
-            <span class="pd-price__badge">-18% OFF</span>
-          </div>
-          <div class="pd-price__current">S/ 4,015</div>
+          @if($producto->precio_descuento == '' || $producto->precio_descuento == 0)
+            <div class="pd-price__current">S/ {{$producto->precio}}</div>
+          @else
+            <div class="pd-price__top">
+              <span class="pd-price__original">S/ {{$producto->precio}}</span>
+              <span class="pd-price__badge">-{{ $producto->porcentaje }}% OFF</span>
+            </div>
+            <div class="pd-price__current">S/ {{$producto->precio_descuento}}</div>
+          @endif
           <div class="pd-price__note">Precio por unidad · Incluye IGV</div>
-          <div class="pd-price__save"><i class="bi bi-tag-fill me-1"></i>Ahorras S/ 884 con esta oferta</div>
+          <div class="pd-price__save"><i class="bi bi-tag-fill me-1"></i>
+          @if($producto->precio_descuento == '' || $producto->precio_descuento == 0)
+          @else
+            Ahorras S/ {{$producto->precio - $producto->precio_descuento}} con esta oferta
+          @endif
+          </div>
           <div class="pd-price__installment">o <strong>6 cuotas de S/ 669</strong> sin interés &middot; Visa / MC</div>
           <div class="pd-price__roi">
             <i class="bi bi-sun-fill me-1"></i>
@@ -126,32 +134,40 @@
         <!-- Specs chips -->
         <div class="pd-specs">
           <div class="pd-spec">
-            <i class="bi bi-lightning-charge-fill"></i>
-            <span class="pd-spec__label">Potencia DC</span>
-            <span class="pd-spec__val">12.0 kW</span>
+            <i class="bi bi-lightning-charge-fill text-primary fs-3 mb-2"></i>
+            <span class="pd-spec__label">Potencia Nominal</span>
+            <span class="pd-spec__val">{{$producto->potencia_nominal}}</span>
           </div>
           <div class="pd-spec">
-            <i class="bi bi-cpu-fill"></i>
-            <span class="pd-spec__label">Potencia AC</span>
-            <span class="pd-spec__val">8.0 kW</span>
-          </div>
-          <div class="pd-spec">
-            <i class="bi bi-diagram-3-fill"></i>
-            <span class="pd-spec__label">MPPT</span>
-            <span class="pd-spec__val">2 und.</span>
-          </div>
-          <div class="pd-spec">
-            <i class="bi bi-speedometer2"></i>
+            <i class="bi bi-graph-up-arrow text-success fs-3 mb-2"></i>
             <span class="pd-spec__label">Eficiencia</span>
-            <span class="pd-spec__val">97.9%</span>
+            <span class="pd-spec__val">{{$producto->eficiencia}}</span>
+          </div>
+          <div class="pd-spec">
+            <i class="bi bi-grid-3x3 text-warning fs-3 mb-2"></i>
+            <span class="pd-spec__label">Número de celdas</span>
+            <span class="pd-spec__val">{{$producto->num_celdas}}</span>
+          </div>
+          <div class="pd-spec">
+            <i class="bi bi-rulers text-secondary fs-3 mb-2"></i>
+            <span class="pd-spec__label">Dimensiones</span>
+            <span class="pd-spec__val">{{$producto->dimensiones}}</span>
+          </div>
+          <div class="pd-spec">
+            <i class="bi bi-cpu text-info fs-3 mb-2"></i>
+            <span class="pd-spec__label">Tipo Celulas</span>
+            <span class="pd-spec__val">{{$producto->tipo_celulas}}</span>
+          </div>
+          <div class="pd-spec">
+            <i class="bi bi-shield-check text-success fs-3 mb-2"></i>
+            <span class="pd-spec__label">Garantía</span>
+            <span class="pd-spec__val">{{$producto->garantia}}</span>
           </div>
         </div>
 
         <!-- Descripción corta -->
         <p class="pd-short-desc">
-          Convierte la energía solar en ahorro real para tu hogar o negocio. Compatible con baterías
-          <strong>SBR series de Sungrow</strong>, permite almacenar el excedente solar y usarlo en
-          horario nocturno &mdash; maximizando tu independencia de la red eléctrica.
+          {{$producto->descripcion}}
         </p>
 
         <!-- Cantidad -->
@@ -216,110 +232,46 @@
         <!-- Tabs de información -->
         <div class="pd-tabs mt-4">
           <div class="pd-tabs__nav">
-            <button class="pd-tab active" onclick="pdTab(this,'pd-description')">Descripción</button>
-            <button class="pd-tab" onclick="pdTab(this,'pd-specs')">Especificaciones</button>
-            <button class="pd-tab" onclick="pdTab(this,'pd-dimensions')">Dimensiones</button>
-            <button class="pd-tab" onclick="pdTab(this,'pd-downloads')">Descargas</button>
+            <button class="pd-tab active" onclick="pdTab(this,'pd-datos')">Datos</button>
+            <button class="pd-tab" onclick="pdTab(this,'pd-garantias')">Garantias</button>
+            <button class="pd-tab" onclick="pdTab(this,'pd-ficha-tecnica')">Ficha Tecnica</button>
+            <button class="pd-tab" onclick="pdTab(this,'pd-descripcion')">Descripcion del Producto</button>
+            <button class="pd-tab" onclick="pdTab(this,'pd-fabricante')">Fabricante</button>
           </div>
 
-          <!-- Descripción -->
-          <div class="pd-tabpanel" id="pd-description">
-            <p class="pd-tab__text">
-              El inversor híbrido SH8.0RT de Sungrow es una solución avanzada para sistemas solares fotovoltaicos 
-              con almacenamiento de energía. Combina la funcionalidad de un inversor solar con un cargador de baterías, 
-              permitiendo maximizar el autoconsumo y la independencia energética.
-            </p>
-            <p class="pd-tab__text">
-              Su diseño trifásico y 2 seguidores MPPT permiten una instalación flexible y aprovechamiento óptimo 
-              de la energía solar en diferentes orientaciones de tejado.
-            </p>
-            <h6 class="pd-tab__subtitle">Características destacadas</h6>
-            <ul class="pd-tab__list">
-              <li>Inversor híbrido trifásico de alta eficiencia (97.9%)</li>
-              <li>Potencia nominal de salida: 8.0 kW</li>
-              <li>Potencia máxima de entrada DC: 12.0 kW</li>
-              <li>Compatible con baterías de alta tensión</li>
-              <li>Monitoreo remoto vía WiFi/Ethernet</li>
-              <li>Protecciones integradas contra sobretensión y cortocircuito</li>
-              <li>Diseño compacto y ligero (27 kg)</li>
-              <li>Instalación sencilla con conector plug-and-play</li>
-            </ul>
+          <!-- datos -->
+          <div class="pd-tabpanel" id="pd-datos">
+              <div class="p-3 bg-white border rounded" style="min-height: 210px">
+                  {!! $producto->datos !!}
+              </div>
           </div>
 
-          <!-- Especificaciones -->
-          <div class="pd-tabpanel d-none" id="pd-specs">
-            <h6 class="pd-tab__subtitle">DC (Entrada)</h6>
-            <div class="pd-spec-table">
-              <div class="pd-spec-row"><span>Potencia máxima</span><span>12.0 kW</span></div>
-              <div class="pd-spec-row"><span>Corriente máxima</span><span>25.0 A</span></div>
-              <div class="pd-spec-row"><span>Tensión nominal</span><span>600 V</span></div>
-              <div class="pd-spec-row"><span>Tensión máxima</span><span>1,000 V</span></div>
-              <div class="pd-spec-row"><span>Número de MPPT</span><span>2</span></div>
-              <div class="pd-spec-row"><span>Entradas de cadena</span><span>2</span></div>
-            </div>
-            <h6 class="pd-tab__subtitle mt-4">AC (Salida)</h6>
-            <div class="pd-spec-table">
-              <div class="pd-spec-row"><span>Potencia nominal</span><span>8.0 kW</span></div>
-              <div class="pd-spec-row"><span>Potencia máxima</span><span>8.0 kW</span></div>
-              <div class="pd-spec-row"><span>Corriente nominal</span><span>11.6 A</span></div>
-              <div class="pd-spec-row"><span>Corriente máxima</span><span>12.1 A</span></div>
-              <div class="pd-spec-row"><span>Fases</span><span>3 Fases</span></div>
-              <div class="pd-spec-row"><span>Eficiencia máxima</span><span>97.9%</span></div>
-            </div>
+          <!-- garantias -->
+          <div class="pd-tabpanel d-none" id="pd-garantias">
+              <div class="p-3 bg-white border rounded" style="min-height: 210px">
+                  {!! $producto->garantias !!}
+              </div>
           </div>
 
-          <!-- Dimensiones -->
-          <div class="pd-tabpanel d-none" id="pd-dimensions">
-            <div class="pd-spec-table">
-              <div class="pd-spec-row"><span>Ancho</span><span>460 mm</span></div>
-              <div class="pd-spec-row"><span>Alto</span><span>540 mm</span></div>
-              <div class="pd-spec-row"><span>Profundidad</span><span>170 mm</span></div>
-              <div class="pd-spec-row"><span>Peso</span><span>27 kg</span></div>
-              <div class="pd-spec-row"><span>Grado de protección</span><span>IP65 (exterior)</span></div>
-              <div class="pd-spec-row"><span>Temperatura</span><span>-25°C a +60°C</span></div>
-            </div>
-            <div class="pd-info-note mt-3">
-              <i class="bi bi-info-circle-fill"></i>
-              <span>Se recomienda instalación en área protegida de lluvia directa y con ventilación adecuada.</span>
-            </div>
+          <!-- Ficha tecnica -->
+          <div class="pd-tabpanel d-none" id="pd-ficha-tecnica">
+              <div class="p-3 bg-white border rounded" style="min-height: 210px">
+                  {!! $producto->ficha_tecnica !!}
+              </div>
           </div>
 
-          <!-- Descargas -->
-          <div class="pd-tabpanel d-none" id="pd-downloads">
-            <div class="pd-download-list">
-              <a href="#" class="pd-download">
-                <div class="pd-download__icon pd-download__icon--pdf"><i class="bi bi-file-earmark-pdf"></i></div>
-                <div class="pd-download__info">
-                  <span class="pd-download__name">Ficha Técnica</span>
-                  <span class="pd-download__desc">Especificaciones completas del producto</span>
-                </div>
-                <i class="bi bi-download pd-download__arrow"></i>
-              </a>
-              <a href="#" class="pd-download">
-                <div class="pd-download__icon pd-download__icon--pdf"><i class="bi bi-file-earmark-pdf"></i></div>
-                <div class="pd-download__info">
-                  <span class="pd-download__name">Manual de Instalación</span>
-                  <span class="pd-download__desc">Guía paso a paso para la instalación</span>
-                </div>
-                <i class="bi bi-download pd-download__arrow"></i>
-              </a>
-              <a href="#" class="pd-download">
-                <div class="pd-download__icon pd-download__icon--pdf"><i class="bi bi-file-earmark-pdf"></i></div>
-                <div class="pd-download__info">
-                  <span class="pd-download__name">Manual de Usuario</span>
-                  <span class="pd-download__desc">Instrucciones de uso y mantenimiento</span>
-                </div>
-                <i class="bi bi-download pd-download__arrow"></i>
-              </a>
-              <a href="#" class="pd-download">
-                <div class="pd-download__icon pd-download__icon--cert"><i class="bi bi-file-earmark-text"></i></div>
-                <div class="pd-download__info">
-                  <span class="pd-download__name">Certificados</span>
-                  <span class="pd-download__desc">Certificaciones internacionales</span>
-                </div>
-                <i class="bi bi-download pd-download__arrow"></i>
-              </a>
-            </div>
+          <!-- descripcion -->
+          <div class="pd-tabpanel d-none" id="pd-descripcion">
+              <div class="p-3 bg-white border rounded" style="min-height: 210px">
+                  {!! $producto->descripcion !!}
+              </div>
+          </div>
+
+          <!-- Fabricante -->
+          <div class="pd-tabpanel d-none" id="pd-fabricante">
+              <div class="p-3 bg-white border rounded" style="min-height: 210px">
+                  {!! $producto->fabricante !!}
+              </div>
           </div>
 
         </div><!-- /.pd-tabs -->
