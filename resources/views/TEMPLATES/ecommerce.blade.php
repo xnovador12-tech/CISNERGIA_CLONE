@@ -6,8 +6,8 @@
     <title>CISNERGIA | @yield('title')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- Bootstrap 5 Local -->
-    <link href="css/bootstrap.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/estilos.css">
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/estilos.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
     @yield('css')
     @stack('meta')
@@ -19,7 +19,7 @@
     <nav class="navbar navbar-expand-lg py-2">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center me-4" href="{{ route('ecommerce.index') }}">
-                <img src="images/logo_v.png" alt="CISNERGIA PERÚ" height="45">
+                <img src="/images/logo_v.png" alt="CISNERGIA PERÚ" height="45">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                 <span class="navbar-toggler-icon"></span>
