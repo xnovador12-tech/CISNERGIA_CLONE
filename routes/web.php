@@ -50,6 +50,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
 Route::get('/products', [ecommerceController::class, 'products'])->name('ecommerce.products');
 Route::get('/product/{slug}', [ecommerceController::class, 'show_product'])->name('ecommerce.product.show');
+route::get('/busqueda_pmarca', [ecommerceController::class, 'getbusqueda_pmarca']);
+
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');
 

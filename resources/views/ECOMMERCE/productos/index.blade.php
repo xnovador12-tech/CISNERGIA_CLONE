@@ -34,7 +34,7 @@
               @foreach($tipos_producto as $tipo_id => $productos)
               <div class="pr-filter-item">
                 <div class="form-check m-0">
-                  <input class="form-check-input" type="radio" name="categoryFilter" id="cat1" checked>
+                  <input class="form-check-input" type="radio" value="{{ $tipo_id }}" id="tipos_id_val">
                   <label class="form-check-label" for="cat1">{{ $productos->first()->tipo->name ?? 'Sin tipo' }}</label>
                 </div>
                 <span class="pr-filter-count">{{ $productos->sum(fn($p) => $p->inventarios->sum('cantidad')) }}</span>
@@ -71,7 +71,7 @@
                 <i class="bi bi-chevron-down" style="color:var(--c-text-muted); font-size:.8rem; cursor:pointer;"></i>
               </div>
               @foreach($marcas_producto as $marca_id => $productos)
-                <div class="pr-filter-item">
+                <div class="pr-filter-item" id="div_marca">
                   <div class="form-check m-0">
                     <input class="form-check-input" type="checkbox" id="brand{{ $marca_id }}">
                     <label class="form-check-label" for="brand{{ $marca_id }}">{{ $productos->first()->marca->name ?? 'Sin marca' }}</label>
@@ -382,4 +382,21 @@
 @endsection
 
 @section('js')
+<script>
+  $('#tipos_id_val').on('click', function(){
+    valor_check_tipo = $(this).val();
+    $.get('/busqueda_pmarca', {valor_check_tipo:valor_check_tipo}, function(productos){
+        $('#div_marca').empty();
+        $.each(productos, function(index, value){
+          var fila = "<div class='pr-filter-item'>";
+          fila = '<div class="form-check m-0">';
+          fila += '<input class="form-check-input" type="checkbox" id="brand'+value[0]+'">';
+          fila += '<label class="form-check-label" for="brand'+value[0]+'">'+(value[3] ?? 'Sin marca')+'</label>';
+          fila += '</div>';
+          fila += '<span class="pr-filter-count">'+value[4]+'</span>';
+          $('#div_marca').append(fila);
+        });
+    });
+  });
+</script>
 @endsection

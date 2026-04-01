@@ -209,7 +209,7 @@
                                   </div>
                                   <div class="cis-prod-actions">
                                       <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-                                      <button class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</button>
+                                      <a href="/product/{{$prod->slug}}" class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</a>
                                   </div>
                               </div>
                           </div>

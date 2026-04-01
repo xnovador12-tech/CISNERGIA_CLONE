@@ -75,13 +75,31 @@ class ecommerceController extends Controller
         return view('ECOMMERCE.productos.index', compact('productos', 'categorias', 'marcas','tipos_producto','marcas_producto'));
     }
 
+    public function getbusqueda_pmarca (Request $request){
+        if($request->ajax()){
+            $productos_inventario = Inventario::where('cantidad', '>', 0)->pluck('id_producto')->toArray();
+            $tipos_producto = Producto::where('estado', 'Activo')
+                ->whereIn('id', $productos_inventario)
+                ->where('tipo_id', $request->valor_check_tipo)
+                ->with(['tipo', 'inventarios'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->groupBy('tipo_id');
+
+            foreach($tipos_producto as $tipo_id => $productos){
+                $arraylist[$productos->first()->id] = [$productos->first()->marca->id, $productos->first()->marca->name, $productos->first()->categoria->id, $productos->first()->tipo->name ?? 'Sin tipo', $productos->sum(fn($p) => $p->inventarios->sum('cantidad'))];
+            }
+            return response()->json($arraylist);
+
+        }
+    }
     // Detalle de producto
     public function show_product($slug)
     {
         $producto = Producto::where('slug', $slug)->firstOrFail();
-        $relacionados = Producto::where('categoria_id', $producto->categoria_id)
+        $relacionados = Producto::where('categorie_id', $producto->categorie_id)
             ->where('id', '!=', $producto->id)
-            ->where('estado', 1)
+            ->where('estado', 'Activo')
             ->limit(4)
             ->get();
 
