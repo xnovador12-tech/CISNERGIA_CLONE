@@ -109,6 +109,54 @@ class ecommerceController extends Controller
             return response()->json($arraylist);
         }
     }
+
+    public function getbusqueda_pproducto_categoria(Request $request)
+    {
+        if($request->ajax()){
+            $productos_inventario = Inventario::where('cantidad', '>', 0)
+                ->pluck('id_producto')
+                ->toArray();
+
+            $productos = Producto::where('estado', 'Activo')
+                ->whereIn('id', $productos_inventario)
+                ->where('tipo_id', $request->valor_check_tipo)
+                ->with(['inventarios', 'marca'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(10); // ← cambia get() por paginate()
+
+            $arraylist = [];
+            foreach($productos as $prod){
+                $arraylist[] = [
+                    $prod->id,
+                    $prod->name,
+                    $prod->inventarios->sum('cantidad'),
+                    $prod->imagen ? asset('images/productos/' . $prod->imagen) : asset('images/logo.webp'),
+                    $prod->marca->name,
+                    $prod->potencia_nominal ?? '--',
+                    $prod->eficiencia ?? '--',
+                    $prod->num_celdas ?? '--',
+                    $prod->dimensiones ?? '--',
+                    $prod->tipo_celula ?? '--',
+                    $prod->garantia ?? '--',
+                    $prod->precio_descuento > 0 ? $prod->precio_descuento : 0,
+                    $prod->porcentaje > 0 ? $prod->porcentaje : 0,
+                    $prod->precio,
+                    $prod->slug,
+                ];
+            }
+
+            // ← devuelve productos + datos de paginación
+            return response()->json([
+                'productos'  => $arraylist,
+                'pagination' => [
+                    'total'        => $productos->total(),
+                    'per_page'     => $productos->perPage(),
+                    'current_page' => $productos->currentPage(),
+                    'last_page'    => $productos->lastPage(),
+                ]
+            ]);
+        }
+    }
     // Detalle de producto
     public function show_product($slug)
     {

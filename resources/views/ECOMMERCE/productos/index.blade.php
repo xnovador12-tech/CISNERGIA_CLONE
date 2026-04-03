@@ -34,7 +34,7 @@
               @foreach($tipos_producto as $tipo_id => $productos)
               <div class="pr-filter-item">
                 <div class="form-check m-0">
-                    <input class="form-check-input" type="radio" value="{{ $tipo_id }}" id="tipo_{{ $tipo_id }}" name="categoryFilter">
+                    <input class="form-check-input" type="radio" value="{{ $tipo_id }}" id="tipo_{{ $tipo_id }}" name="tipoFilter">
                     <label class="form-check-label" for="tipo_{{ $tipo_id }}">{{ $productos->first()->tipo->name ?? 'Sin tipo' }}</label>
                 </div>
                 <span class="pr-filter-count">{{ $productos->sum(fn($p) => $p->inventarios->sum('cantidad')) }}</span>
@@ -74,7 +74,7 @@
                   @foreach($marcas_producto as $marca_id => $productos)
                   <div class="pr-filter-item">
                     <div class="form-check m-0">
-                      <input class="form-check-input" type="checkbox" id="brand{{ $marca_id }}">
+                      <input class="form-check-input" type="checkbox" id="brand{{ $marca_id }}" name="marcaFilter">
                       <label class="form-check-label" for="brand{{ $marca_id }}">{{ $productos->first()->marca->name ?? 'Sin marca' }}</label>
                     </div>
                   <span class="pr-filter-count">{{ $productos->sum(fn($p) => $p->inventarios->sum('cantidad')) }}</span>
@@ -121,6 +121,7 @@
           </div>
 
           {{-- Producto 1: Panel Solar Monocristalino 450W --}}
+          <div id="prod-list">
           @foreach($todos_productos as $prod)
           <div class="pr-prod-row">
             <div class="pr-prod-img-wrap">
@@ -166,11 +167,15 @@
             </div>
           </div>
           @endforeach
+          </div>
 
-          {{-- Paginación --}}
-          <nav aria-label="Navegación de productos" class="mt-4">
+          {{-- Paginación inicial de Laravel (se oculta cuando hay filtro activo) --}}
+          <nav id="paginacion-blade" aria-label="Navegación de productos" class="mt-4">
               {{ $todos_productos->links() }}
           </nav>
+
+          {{-- Paginación AJAX (aparece cuando hay filtro activo) --}}
+          <div id="paginacion"></div>
 
         </div>{{-- /col-lg-9 --}}
       </div>{{-- /row --}}
@@ -182,9 +187,18 @@
 @section('js')
 <script>
 // ✅ Usar name en lugar de id
-$('input[name="categoryFilter"]').on('click', function(){
-    var valor_check_tipo = $(this).val();
-    console.log(valor_check_tipo);
+
+var valor_check_tipo = null;
+
+$('input[name="tipoFilter"]').on('click', function(){
+    valor_check_tipo = $(this).val();
+    
+    $('#paginacion-blade').hide(); // ← oculta paginación Laravel
+    $('#paginacion').show();       // ← muestra paginación AJAX
+    
+    cargarProductos(1);
+
+    // busqueda para mostrar marca
     $.get('/busqueda_pmarca', {valor_check_tipo: valor_check_tipo}, function(productos){
         $('#div_marca').empty();
         $.each(productos, function(index, value){
@@ -199,6 +213,106 @@ $('input[name="categoryFilter"]').on('click', function(){
             $('#div_marca').append(fila);
         });
     });
+    // fin de busqueda para mostrar marca
 });
+
+$('input[name="marcaFilter"]').on('click', function(){
+});
+
+// Funcion para iterar dentro de la seleccion del primer filtro de tipos
+function cargarProductos(page) {
+    if (!valor_check_tipo) return;
+    $.get('/busqueda_pproducto_categoria', {
+        valor_check_tipo: valor_check_tipo,
+        page: page
+    }, function(response){
+        $('#prod-list').empty();
+
+        $.each(response.productos, function(index, value){
+            var list_product = '';
+            list_product += '<div class="pr-prod-row">' +   // ← sin id aquí
+              '<div class="pr-prod-img-wrap">' +
+                '<img src="' + (value[3]) + '?auto=compress&cs=tinysrgb&w=400" alt="' + value[1] + '">' +
+                '<button class="pr-wishlist-btn"><i class="bi bi-heart"></i></button>' +
+                '<span class="pr-img-badge accent">Eco Plus</span>' +
+              '</div>';
+            list_product += '<div class="pr-prod-body">' +
+                '<div class="pr-prod-brand">' + value[4] + '</div>' +
+                '<div class="pr-prod-name">' + value[1] + '</div>' +
+                '<div class="pr-prod-stars">' +
+                  '<i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>' +
+                  '<small class="ms-1">(124 valoraciones)</small>' +
+                '</div>' +
+                '<div class="pr-specs-grid">' +
+                  '<div class="pr-spec-cell"><span class="pr-spec-label">Potencia nominal</span><span class="pr-spec-val">' + value[5] + '</span></div>' +
+                  '<div class="pr-spec-cell"><span class="pr-spec-label">Eficiencia</span><span class="pr-spec-val">' + value[6] + '</span></div>' +
+                  '<div class="pr-spec-cell"><span class="pr-spec-label">N.° de celdas</span><span class="pr-spec-val">' + value[7] + '</span></div>' +
+                  '<div class="pr-spec-cell"><span class="pr-spec-label">Dimensiones</span><span class="pr-spec-val">' + value[8] + '</span></div>' +
+                  '<div class="pr-spec-cell"><span class="pr-spec-label">Tipo célula</span><span class="pr-spec-val">' + value[9] + '</span></div>' +
+                  '<div class="pr-spec-cell"><span class="pr-spec-label">Garantía</span><span class="pr-spec-val">' + value[10] + '</span></div>' +
+                '</div>' +
+                '<div class="d-flex flex-wrap gap-2 mt-auto">' +
+                  '<span class="pr-tag"><i class="bi bi-patch-check"></i> Certificado</span>' +
+                  '<span class="pr-tag success"><i class="bi bi-truck"></i> Envío gratis</span>' +
+                '</div>' +
+            '</div>';
+            list_product += '<div class="pr-prod-price-col">' +
+                '<div>';
+                  if (value[11] == '' || value[11] == 0) {
+                    list_product += '<div class="pr-price">S/ ' + value[13] + '</div>';
+                  } else {
+                    list_product += '<span class="pr-discount-badge">- ' + value[12] + '% OFF</span>';
+                    list_product += '<div class="pr-old-price">S/ ' + value[13] + '</div>';
+                    list_product += '<div class="pr-price">S/ ' + value[11] + '</div>';
+                    list_product += '<div class="pr-price-label">Por unidad</div>';
+                  }
+                list_product += '</div>';
+                list_product += '<div class="d-flex flex-column gap-2">';
+                  list_product += '<button class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>';
+                  list_product += '<a href="/product/' + value[14] + '" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</a>';
+                list_product += '</div>';
+            list_product += '</div>';
+            list_product += '</div>';
+
+            $('#prod-list').append(list_product);
+        });
+
+        renderPaginacion(response.pagination);
+    });
+}
+
+function renderPaginacion(p) {
+    if (p.last_page <= 1) {
+        $('#paginacion').empty();
+        return;
+    }
+
+    let html = '<ul class="pagination justify-content-center mt-4">';
+
+    html += `<li class="page-item ${p.current_page == 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="cargarProductos(${p.current_page - 1}); return false;">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+             </li>`;
+
+    let start = Math.max(1, p.current_page - 2);
+    let end   = Math.min(p.last_page, p.current_page + 2);
+
+    for (let i = start; i <= end; i++) {
+        html += `<li class="page-item ${p.current_page == i ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="cargarProductos(${i}); return false;">${i}</a>
+                 </li>`;
+    }
+
+    html += `<li class="page-item ${p.current_page == p.last_page ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="cargarProductos(${p.current_page + 1}); return false;">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+             </li>`;
+
+    html += '</ul>';
+    $('#paginacion').html(html);
+}
+// Fin de la iteracion
 </script>
 @endsection
