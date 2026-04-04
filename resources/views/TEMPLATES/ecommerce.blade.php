@@ -418,9 +418,9 @@
         </div>
     </footer>
 
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/scripts.js"></script>
     <script src="/js/jquery-3.7.1.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/scripts.js"></script>
     
     <!-- Script para cargar contador del carrito -->
     <script>

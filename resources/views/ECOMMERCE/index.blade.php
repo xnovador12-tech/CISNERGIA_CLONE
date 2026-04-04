@@ -175,6 +175,16 @@
               <div class="swiper productos-swiper">
                   <div class="swiper-wrapper">
                       @foreach($productos as $prod)
+                      @php
+                        $comentarios_total_pproducto = DB::table('comments')->select(DB::raw('count(id) as contador, sum(valoracion) as valoraciones'))->where('producto_id',$prod->id)->first();
+                        if($comentarios_total_pproducto){
+                            $valoracion_pproducto = $comentarios_total_pproducto->valoraciones == 0 ? 0: $comentarios_total_pproducto->valoraciones/$comentarios_total_pproducto->contador;
+                            $calificacion_pproducto = $comentarios_total_pproducto->contador == 0 ? 0:round(($comentarios_total_pproducto->valoraciones/$comentarios_total_pproducto->contador),1);
+                        }else{
+                            $valoracion_pproducto = 0;
+                            $calificacion_pproducto = 0;
+                        }
+                      @endphp
                       <div class="swiper-slide">
                           <div class="cis-prod">
                               <div class="cis-prod-img" style="background-image: url('{{ $prod->imagen ? asset('images/productos/' . $prod->imagen) : '' }}');">
@@ -194,11 +204,90 @@
                               </div>
                               <div class="cis-prod-body">
                                   <div class="cis-prod-stars">
-                                      <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
-                                      <small class="ms-1" style="color:var(--c-muted);">(124)</small>
+                                      @if($valoracion_pproducto)
+                                      <!--Valoracion de estrellas por producto-->
+                                          @if($valoracion_pproducto > 0 && $valoracion_pproducto < 1)
+                                              <i class="bi bi-star-half"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                          @endif
+                                          @if($valoracion_pproducto == 1)
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                          @endif
+                                          @if($valoracion_pproducto > 1 && $valoracion_pproducto < 2)
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-half"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                          @endif
+                                          @if($valoracion_pproducto == 2)
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                          @endif
+                                          @if($valoracion_pproducto > 2 && $valoracion_pproducto < 3)
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-half"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                          @endif
+                                          @if($valoracion_pproducto == 3)
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star"></i>
+                                              <i class="bi bi-star"></i>
+                                          @endif
+                                          @if($valoracion_pproducto > 3 && $valoracion_pproducto < 4)
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-half"></i>
+                                              <i class="bi bi-star"></i>
+                                          @endif
+                                          @if($valoracion_pproducto == 4)
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star"></i>       
+                                          @endif
+                                          @if($valoracion_pproducto > 4 && $valoracion_pproducto < 5)
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-half"></i>
+                                          @endif
+                                          @if($valoracion_pproducto == 5)
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                              <i class="bi bi-star-fill"></i>
+                                          @endif
+                                      <!--FIN - Valoracion de estrellas por producto-->
+                                    @else
+                                        <i class="bi bi-star"></i>
+                                        <i class="bi bi-star"></i>
+                                        <i class="bi bi-star"></i>
+                                        <i class="bi bi-star"></i>
+                                        <i class="bi bi-star"></i>
+                                    @endif
+                                      <small class="ms-1" style="color:var(--c-muted);">( {{$comentarios_total_pproducto->contador > 1 ? $comentarios_total_pproducto->contador : $comentarios_total_pproducto->contador}} )</small>
                                   </div>
                                   <div class="cis-prod-title">{{$prod->name}}</div>
-                                  <div class="cis-prod-spec"><i class="bi bi-lightning-charge-fill"></i> 450W &nbsp;·&nbsp; <i class="bi bi-shield-check"></i> 25 años</div>
+                                  <div class="cis-prod-spec"><i class="bi bi-lightning-charge-fill"></i> {{$prod->potencia_nominal?$prod->potencia_nominal: '--'}} &nbsp;·&nbsp; <i class="bi bi-shield-check"></i> {{$prod->garantias? $prod->garantias: '--'}}</div>
                                   <div class="d-flex align-items-center gap-2">
                                       <span class="cis-prod-price">S/ {{$prod->precio_descuento != '' ? $prod->precio_descuento : $prod->precio}}</span>
                                       @if($prod->precio_descuento == '' || $prod->precio_descuento == 0)

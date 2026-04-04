@@ -1,7 +1,30 @@
 @extends('TEMPLATES.ecommerce')
 
 @section('title', 'Catálogo de Productos Solares')
+@section('css')
+<style>
+.cis-prod-img {
+    height: 180px;
+    background-size: cover;        /* que cubra todo */
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: -1px;                  /* elimina el filo */
+}
 
+
+.productos-swiper {
+    padding-bottom: 40px; /* espacio para la paginación */
+}
+.productos-swiper .swiper-button-prev,
+.productos-swiper .swiper-button-next {
+    top: 40%;
+    color: var(--bs-primary);
+}
+.productos-swiper .swiper-pagination-bullet-active {
+    background: var(--bs-primary);
+}
+</style>
+@endsection
 @section('content')
 <!-- BREADCRUMB -->
 <div class="pd-breadcrumb">
@@ -90,14 +113,110 @@
         <h1 class="pd-title">{{$producto->name}}</h1>
 
         <!-- Valoraciones -->
+
+            @php
+            $distribucion = DB::table('comments')
+                ->select('valoracion', DB::raw('count(*) as contador'))
+                ->where('producto_id', $producto->id)
+                ->groupBy('valoracion')
+                ->get()
+                ->keyBy('valoracion');
+
+            $comentarios_total = DB::table('comments')->select(DB::raw('count(id) as contador, sum(valoracion) as valoraciones'))->where('producto_id',$producto->id)->first();
+            if($comentarios_total){
+                $valoracion = $comentarios_total->valoraciones == 0 ? 0: $comentarios_total->valoraciones/$comentarios_total->contador;
+                $calificacion_ = $comentarios_total->contador == 0 ? 0:round(($comentarios_total->valoraciones/$comentarios_total->contador),1);
+            }else{
+                $valoracion = 0;
+                $calificacion_ = 0;
+            }
+        @endphp
         <div class="pd-rating">
           <div class="pd-stars">
-            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+            @if($valoracion)
+              <!--Valoracion de estrellas por producto-->
+                  @if($valoracion > 0 && $valoracion < 1)
+                      <i class="bi bi-star-half"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion == 1)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion > 1 && $valoracion < 2)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-half"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion == 2)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion > 2 && $valoracion < 3)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-half"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion == 3)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion > 3 && $valoracion < 4)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-half"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion == 4)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star"></i>       
+                  @endif
+                  @if($valoracion > 4 && $valoracion < 5)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-half"></i>
+                  @endif
+                  @if($valoracion == 5)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                  @endif
+              <!--FIN - Valoracion de estrellas por producto-->
+            @else
+                <i class="bi bi-star"></i>
+                <i class="bi bi-star"></i>
+                <i class="bi bi-star"></i>
+                <i class="bi bi-star"></i>
+                <i class="bi bi-star"></i>
+            @endif
           </div>
-          <span class="pd-rating__score">5.0</span>
+          <span class="pd-rating__score">{{ $calificacion_ }}</span>
           <span class="pd-rating__sep">·</span>
-          <a href="#reviews" class="pd-rating__link">5 valoraciones</a>
+          <a href="#reviews" class="pd-rating__link">{{$comentarios_total->contador > 1 ? $comentarios_total->contador . ' valoraciones' : $comentarios_total->contador . ' valoración'}}</a>
         </div>
 
         <!-- Disponibilidad -->
@@ -410,39 +529,117 @@
       <!-- Panel de puntuación -->
       <div class="col-lg-4 col-xl-3">
         <div class="pd-rv-score">
-          <div class="pd-rv-score__num">5.0</div>
+          <div class="pd-rv-score__num">{{$calificacion_}}</div>
           <div class="pd-rv-score__stars">
-            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+            @if($valoracion)
+              <!--Valoracion de estrellas por producto-->
+                  @if($valoracion > 0 && $valoracion < 1)
+                      <i class="bi bi-star-half"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion == 1)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion > 1 && $valoracion < 2)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-half"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion == 2)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion > 2 && $valoracion < 3)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-half"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion == 3)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion > 3 && $valoracion < 4)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-half"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
+                  @if($valoracion == 4)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star"></i>       
+                  @endif
+                  @if($valoracion > 4 && $valoracion < 5)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-half"></i>
+                  @endif
+                  @if($valoracion == 5)
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                  @endif
+              <!--FIN - Valoracion de estrellas por producto-->
+            @else
+                <i class="bi bi-star"></i>
+                <i class="bi bi-star"></i>
+                <i class="bi bi-star"></i>
+                <i class="bi bi-star"></i>
+                <i class="bi bi-star"></i>
+            @endif
           </div>
-          <p class="pd-rv-score__count">10 valoraciones verificadas</p>
+          <p class="pd-rv-score__count">{{$comentarios_total->contador > 1 ? $comentarios_total->contador . ' valoraciones verificadas' : $comentarios_total->contador . ' valoracion verificada'}}</p>
 
           <!-- Distribución -->
           <div class="pd-rv-dist">
             <div class="pd-rv-dist__row">
               <span class="pd-rv-dist__lbl">5 <i class="bi bi-star-fill"></i></span>
               <div class="pd-rv-dist__bar"><div style="width:80%"></div></div>
-              <span class="pd-rv-dist__n">8</span>
+              <span class="pd-rv-dist__n">{{$distribucion[5]->contador ?? 0}}</span>
             </div>
             <div class="pd-rv-dist__row">
               <span class="pd-rv-dist__lbl">4 <i class="bi bi-star-fill"></i></span>
               <div class="pd-rv-dist__bar"><div style="width:20%"></div></div>
-              <span class="pd-rv-dist__n">2</span>
+              <span class="pd-rv-dist__n">{{$distribucion[4]->contador ?? 0}}</span>
             </div>
             <div class="pd-rv-dist__row">
               <span class="pd-rv-dist__lbl">3 <i class="bi bi-star-fill"></i></span>
               <div class="pd-rv-dist__bar"><div style="width:0%"></div></div>
-              <span class="pd-rv-dist__n">0</span>
+              <span class="pd-rv-dist__n">{{$distribucion[3]->contador ?? 0}}</span>
             </div>
             <div class="pd-rv-dist__row">
               <span class="pd-rv-dist__lbl">2 <i class="bi bi-star-fill"></i></span>
               <div class="pd-rv-dist__bar"><div style="width:0%"></div></div>
-              <span class="pd-rv-dist__n">0</span>
+              <span class="pd-rv-dist__n">{{$distribucion[2]->contador ?? 0}}</span>
             </div>
             <div class="pd-rv-dist__row">
               <span class="pd-rv-dist__lbl">1 <i class="bi bi-star-fill"></i></span>
               <div class="pd-rv-dist__bar"><div style="width:0%"></div></div>
-              <span class="pd-rv-dist__n">0</span>
+              <span class="pd-rv-dist__n">{{$distribucion[1]->contador ?? 0}}</span>
             </div>
           </div>
         </div>
@@ -453,235 +650,103 @@
         <div class="d-flex flex-column gap-3">
 
           <!-- Review 1 -->
+        @foreach($comments_producto as $comments_productos)
           <div class="pd-rv-card">
             <div class="pd-rv-card__top">
+              @php
+                  $nombre   = $comments_productos->user->persona->name ?? '';
+                  $apellido = $comments_productos->user->persona->surnames ?? '';
+                  $autorNombreFinal = trim("$nombre $apellido");
+
+                  $palabras = explode(' ', trim($autorNombreFinal));
+                  $iniciales = strtoupper(substr($palabras[0] ?? '', 0, 1));
+                  if(isset($palabras[1]) && !empty($palabras[1])) {
+                      $iniciales .= strtoupper(substr($palabras[1], 0, 1));
+                  }
+                  if(empty(trim($iniciales))) $iniciales = '?';
+              @endphp
               <div class="d-flex align-items-center gap-3">
-                <div class="pd-rv-avatar" style="background:linear-gradient(135deg,var(--bs-primary),var(--bs-secondary));">JP</div>
+              <div class="pd-rv-avatar" style="background:linear-gradient(135deg,var(--bs-primary),var(--bs-secondary));">
+                  @if($comments_productos->user->persona->avatar)
+                      <img src="/images/users/{{ $comments_productos->user->persona->avatar }}"
+                          alt="{{ $autorNombreFinal }}"
+                          style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                  @else
+                      <img src="https://ui-avatars.com/api/?name={{ urlencode($autorNombreFinal) }}&background=0F3460&color=fff&size=60&bold=true"
+                          alt="{{ $autorNombreFinal }}"
+                          style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                  @endif
+              </div>
                 <div>
-                  <strong class="pd-rv-card__name">Juan Pérez</strong>
+                  <strong class="pd-rv-card__name">{{$autorNombreFinal}}</strong>
                   <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
                     <span class="pd-rv-verified"><i class="bi bi-patch-check-fill me-1"></i>Compra verificada</span>
-                    <span class="pd-rv-card__date">15 Nov 2025 &middot; Lima, Perú</span>
+                    <span class="pd-rv-card__date">Hace aprox {{$comments_productos->created_at->diffForHumans(null, true) }}</span>
                   </div>
                 </div>
               </div>
               <div class="pd-rv-card__stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-            </div>
-            <h6 class="pd-rv-card__title">Excelente inversor híbrido, 100% recomendado</h6>
-            <p class="pd-rv-card__text">Muy satisfecho con la compra. El inversor funciona perfectamente y la eficiencia es excelente. La instalación fue sencilla y el monitoreo remoto a través de la app iSolarCloud funciona muy bien. La factura eléctrica bajó más de S/ 200.</p>
-          </div>
-
-          <!-- Review 2 -->
-          <div class="pd-rv-card">
-            <div class="pd-rv-card__top">
-              <div class="d-flex align-items-center gap-3">
-                <div class="pd-rv-avatar" style="background:linear-gradient(135deg,#003E64,#0ea5e9);">MG</div>
-                <div>
-                  <strong class="pd-rv-card__name">María García</strong>
-                  <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                    <span class="pd-rv-verified"><i class="bi bi-patch-check-fill me-1"></i>Compra verificada</span>
-                    <span class="pd-rv-card__date">8 Nov 2025 &middot; Arequipa, Perú</span>
-                  </div>
+                <div class="star__calificaciones text-warning me-2">
+                  @if($comments_productos->valoracion > 0)
+                      @if($comments_productos->valoracion == 1)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                      @endif
+                      @if($comments_productos->valoracion == 2)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                      @endif
+                      @if($comments_productos->valoracion == 3)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                      @endif
+                      @if($comments_productos->valoracion == 4)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star"></i>       
+                      @endif
+                      @if($comments_productos->valoracion == 5)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                      @endif
+                  @else
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                      <i class="bi bi-star"></i>
+                  @endif
                 </div>
               </div>
-              <div class="pd-rv-card__stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
             </div>
-            <h6 class="pd-rv-card__title">Calidad premium, cumple todas las expectativas</h6>
-            <p class="pd-rv-card__text">Producto de primera calidad. La marca Sungrow es confiable y este modelo cumple todas las expectativas. Altamente recomendado para proyectos residenciales. La instalación fue completada en menos de dos semanas.</p>
+            <h6 class="pd-rv-card__title">{{$comments_productos->titulo}}</h6>
+            <p class="pd-rv-card__text">{{$comments_productos->comentario}}</p>
           </div>
-
-          <!-- Review 3 -->
-          <div class="pd-rv-card">
-            <div class="pd-rv-card__top">
-              <div class="d-flex align-items-center gap-3">
-                <div class="pd-rv-avatar" style="background:linear-gradient(135deg,#1d4ed8,#0ea5e9);">RC</div>
-                <div>
-                  <strong class="pd-rv-card__name">Roberto Chuquihuanca</strong>
-                  <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                    <span class="pd-rv-verified"><i class="bi bi-patch-check-fill me-1"></i>Compra verificada</span>
-                    <span class="pd-rv-card__date">2 Nov 2025 &middot; Cusco, Perú</span>
-                  </div>
-                </div>
-              </div>
-              <div class="pd-rv-card__stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-            </div>
-            <h6 class="pd-rv-card__title">Mi factura bajó de S/ 480 a S/ 60 al mes</h6>
-            <p class="pd-rv-card__text">Tenía una factura eléctrica altisima por mi taller. Con este inversor y 10 paneles solares logré reducir casi el 90% de mi consumo. La instalación fue rápida y el equipo de Cisnergia explicó todo muy bien. Totalmente recomendado.</p>
-          </div>
-
-          <!-- Review 4 -->
-          <div class="pd-rv-card">
-            <div class="pd-rv-card__top">
-              <div class="d-flex align-items-center gap-3">
-                <div class="pd-rv-avatar" style="background:linear-gradient(135deg,#7c3aed,#6366f1);">AT</div>
-                <div>
-                  <strong class="pd-rv-card__name">Ana Torres</strong>
-                  <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                    <span class="pd-rv-verified"><i class="bi bi-patch-check-fill me-1"></i>Compra verificada</span>
-                    <span class="pd-rv-card__date">28 Oct 2025 &middot; Trujillo, Perú</span>
-                  </div>
-                </div>
-              </div>
-              <div class="pd-rv-card__stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i><i class="bi bi-star"></i>
-              </div>
-            </div>
-            <h6 class="pd-rv-card__title">Muy buen inversor, instalación profesional</h6>
-            <p class="pd-rv-card__text">Cuatro estrellas porque el proceso de permisos tomó un poco más de lo esperado, pero el producto en sí mismo es excelente. La app de monitoreo es muy intuitiva y me permite ver la producción en tiempo real desde mi celular.</p>
-          </div>
-
-          <!-- Review 5 -->
-          <div class="pd-rv-card">
-            <div class="pd-rv-card__top">
-              <div class="d-flex align-items-center gap-3">
-                <div class="pd-rv-avatar" style="background:linear-gradient(135deg,#059669,#10b981);">LV</div>
-                <div>
-                  <strong class="pd-rv-card__name">Luis Villanueva</strong>
-                  <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                    <span class="pd-rv-verified"><i class="bi bi-patch-check-fill me-1"></i>Compra verificada</span>
-                    <span class="pd-rv-card__date">20 Oct 2025 &middot; Piura, Perú</span>
-                  </div>
-                </div>
-              </div>
-              <div class="pd-rv-card__stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-            </div>
-            <h6 class="pd-rv-card__title">Ideal para el norte del país, soporta alto calor</h6>
-            <p class="pd-rv-card__text">Vivo en Piura donde el calor es intenso y tenía miedo de que el inversor se sobrecalentara. Lleva 6 meses funcionando perfectamente sin ningún inconveniente. La eficiencia sigue al 97%+. Excelente inversión a largo plazo.</p>
-          </div>
-
-          <!-- Review 6 -->
-          <div class="pd-rv-card">
-            <div class="pd-rv-card__top">
-              <div class="d-flex align-items-center gap-3">
-                <div class="pd-rv-avatar" style="background:linear-gradient(135deg,#b45309,#f59e0b);">CP</div>
-                <div>
-                  <strong class="pd-rv-card__name">Carmen Palacios</strong>
-                  <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                    <span class="pd-rv-verified"><i class="bi bi-patch-check-fill me-1"></i>Compra verificada</span>
-                    <span class="pd-rv-card__date">12 Oct 2025 &middot; Ica, Perú</span>
-                  </div>
-                </div>
-              </div>
-              <div class="pd-rv-card__stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-            </div>
-            <h6 class="pd-rv-card__title">Mejor decisión para mi negocio familiar</h6>
-            <p class="pd-rv-card__text">Tenemos una bodega y el gasto en electricidad era muy alto. Ahora generamos nuestra propia energía y el excedente se almacena en baterías. Las noches ya no son problema. Rápidamente recuperaré la inversión.</p>
-          </div>
-
-          <!-- Review 7 -->
-          <div class="pd-rv-card">
-            <div class="pd-rv-card__top">
-              <div class="d-flex align-items-center gap-3">
-                <div class="pd-rv-avatar" style="background:linear-gradient(135deg,#0F172A,#334155);">EM</div>
-                <div>
-                  <strong class="pd-rv-card__name">Eduardo Mamani</strong>
-                  <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                    <span class="pd-rv-verified"><i class="bi bi-patch-check-fill me-1"></i>Compra verificada</span>
-                    <span class="pd-rv-card__date">5 Oct 2025 &middot; Puno, Perú</span>
-                  </div>
-                </div>
-              </div>
-              <div class="pd-rv-card__stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-            </div>
-            <h6 class="pd-rv-card__title">Funciona perfecto en altura y bajas temperaturas</h6>
-            <p class="pd-rv-card__text">Estoy a 3,800 msnm y el inversor funciona excelente incluso con temperaturas bajo cero en las noches. La instalación estuvo a cargo del equipo de Cisnergia y todo salió perfecto. Gran producto para condiciones exigentes.</p>
-          </div>
-
-          <!-- Review 8 -->
-          <div class="pd-rv-card">
-            <div class="pd-rv-card__top">
-              <div class="d-flex align-items-center gap-3">
-                <div class="pd-rv-avatar" style="background:linear-gradient(135deg,#dc2626,#f87171);">SR</div>
-                <div>
-                  <strong class="pd-rv-card__name">Sofia Ríos</strong>
-                  <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                    <span class="pd-rv-verified"><i class="bi bi-patch-check-fill me-1"></i>Compra verificada</span>
-                    <span class="pd-rv-card__date">29 Sep 2025 &middot; Chiclayo, Perú</span>
-                  </div>
-                </div>
-              </div>
-              <div class="pd-rv-card__stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-            </div>
-            <h6 class="pd-rv-card__title">Instalación impecable, soporte excelente</h6>
-            <p class="pd-rv-card__text">El equipo de Cisnergia es muy profesional. Desde la visita técnica hasta la conexión final todo fue claro y ordenado. Ya llevamos 4 meses y no hemos tenido ningún problema. El soporte post-venta responde rápido ante cualquier duda.</p>
-          </div>
-
-          <!-- Review 9 -->
-          <div class="pd-rv-card">
-            <div class="pd-rv-card__top">
-              <div class="d-flex align-items-center gap-3">
-                <div class="pd-rv-avatar" style="background:linear-gradient(135deg,#0369a1,#38bdf8);">HQ</div>
-                <div>
-                  <strong class="pd-rv-card__name">Hugo Quispe</strong>
-                  <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                    <span class="pd-rv-verified"><i class="bi bi-patch-check-fill me-1"></i>Compra verificada</span>
-                    <span class="pd-rv-card__date">18 Sep 2025 &middot; Huancayo, Perú</span>
-                  </div>
-                </div>
-              </div>
-              <div class="pd-rv-card__stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i><i class="bi bi-star"></i>
-              </div>
-            </div>
-            <h6 class="pd-rv-card__title">Muy satisfecho, aunque el manual es solo en inglés</h6>
-            <p class="pd-rv-card__text">El inversor funciona de maravilla y la reducción en la factura es real. Mi única observación es que el manual físico viene en inglés y chino. El equipo de Cisnergia me guió en la configuración sin problema, pero sería mejor con manual en español.</p>
-          </div>
-
-          <!-- Review 10 -->
-          <div class="pd-rv-card">
-            <div class="pd-rv-card__top">
-              <div class="d-flex align-items-center gap-3">
-                <div class="pd-rv-avatar" style="background:linear-gradient(135deg,#166534,#4ade80);">PF</div>
-                <div>
-                  <strong class="pd-rv-card__name">Patricia Flores</strong>
-                  <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
-                    <span class="pd-rv-verified"><i class="bi bi-patch-check-fill me-1"></i>Compra verificada</span>
-                    <span class="pd-rv-card__date">10 Sep 2025 &middot; Lima, Perú</span>
-                  </div>
-                </div>
-              </div>
-              <div class="pd-rv-card__stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-              </div>
-            </div>
-            <h6 class="pd-rv-card__title">Una inversión que se paga sola</h6>
-            <p class="pd-rv-card__text">Llevo un año con el sistema solar instalado y los números son claros: ahorro S/ 2,100 anuales. En 5 años recuperé la inversión completa. Además contribuyo al medio ambiente. Si estás dudando, no lo pienses más. Vale cada sol invertido.</p>
-          </div>
-
+        @endforeach
         </div><!-- /.d-flex -->
 
         <!-- Paginación -->
         <div class="d-flex align-items-center justify-content-between mt-4 pt-3" style="border-top:1px solid var(--c-border);">
-          <small style="color:var(--c-muted);">Mostrando 10 de 10 valoraciones</small>
-          <nav aria-label="Paginación de valoraciones">
-            <ul class="pagination pagination-sm mb-0">
-              <li class="page-item active"><a class="page-link" href="#reviews">1</a></li>
-              <li class="page-item disabled"><a class="page-link" href="#">2</a></li>
-            </ul>
+          <small style="color:var(--c-muted);">
+              Mostrando {{ $comments_producto->firstItem() ?? 0 }} - {{ $comments_producto->lastItem() ?? 0 }} 
+              de {{ $comments_producto->total() }} valoraciones
+          </small>
+          <nav id="paginacion-blade" aria-label="Navegación de productos" class="mt-4">
+              {{ $comments_producto->links() }}
           </nav>
         </div>
       </div>
@@ -703,90 +768,132 @@
       </a>
     </div>
 
-    <div class="row g-4">
-      <!-- Producto relacionado 1 -->
-      <div class="col-lg-3 col-md-6">
-        <div class="cis-prod">
-          <div class="cis-prod-img" style="background-image:url('https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=400');">
-            <span class="cis-prod-badge" style="background:rgba(var(--bs-primary-rgb),.85);color:#fff;">Inversor</span>
-          </div>
-          <div class="cis-prod-body">
-            <div class="cis-prod-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
-            <div class="cis-prod-title">Sungrow SH10RT-20</div>
-            <div class="cis-prod-spec"><i class="bi bi-lightning-charge-fill"></i> 10kW · 3 Fases</div>
-            <div class="d-flex align-items-center gap-2">
-              <span class="cis-prod-price">S/ 5,250</span>
+    <!-- Producto relacionado 1 -->
+    <div class="swiper productos-swiper">
+      <div class="swiper-wrapper">
+      @foreach($otros_productos as $otros_producto)
+        @php
+          $comentarios_total_pproducto = DB::table('comments')->select(DB::raw('count(id) as contador, sum(valoracion) as valoraciones'))->where('producto_id',$otros_producto->id)->first();
+          if($comentarios_total_pproducto){
+              $valoracion_pproducto = $comentarios_total_pproducto->valoraciones == 0 ? 0: $comentarios_total_pproducto->valoraciones/$comentarios_total_pproducto->contador;
+              $calificacion_pproducto = $comentarios_total_pproducto->contador == 0 ? 0:round(($comentarios_total_pproducto->valoraciones/$comentarios_total_pproducto->contador),1);
+          }else{
+              $valoracion_pproducto = 0;
+              $calificacion_pproducto = 0;
+          }
+        @endphp
+        <div class="swiper-slide">
+          <div class="cis-prod">
+            <div class="cis-prod-img" style="background-image:url('{{ $otros_producto->imagen ? asset('images/productos/' . $otros_producto->imagen) : asset('images/logo.webp') }}?auto=compress&cs=tinysrgb&w=400');" alt="{{$otros_producto->name}}">
+              <span class="cis-prod-badge" style="background:rgba(var(--bs-primary-rgb),.85);color:#fff;">Inversor</span>
             </div>
-            <div class="cis-prod-actions">
-              <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-              <button class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</button>
+            <div class="cis-prod-body">
+              <div class="cis-prod-stars">
+                @if($valoracion_pproducto)
+                  <!--Valoracion de estrellas por producto-->
+                      @if($valoracion_pproducto > 0 && $valoracion_pproducto < 1)
+                          <i class="bi bi-star-half"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                      @endif
+                      @if($valoracion_pproducto == 1)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                      @endif
+                      @if($valoracion_pproducto > 1 && $valoracion_pproducto < 2)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-half"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                      @endif
+                      @if($valoracion_pproducto == 2)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                      @endif
+                      @if($valoracion_pproducto > 2 && $valoracion_pproducto < 3)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-half"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                      @endif
+                      @if($valoracion_pproducto == 3)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star"></i>
+                          <i class="bi bi-star"></i>
+                      @endif
+                      @if($valoracion_pproducto > 3 && $valoracion_pproducto < 4)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-half"></i>
+                          <i class="bi bi-star"></i>
+                      @endif
+                      @if($valoracion_pproducto == 4)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star"></i>       
+                      @endif
+                      @if($valoracion_pproducto > 4 && $valoracion_pproducto < 5)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-half"></i>
+                      @endif
+                      @if($valoracion_pproducto == 5)
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                          <i class="bi bi-star-fill"></i>
+                      @endif
+                  <!--FIN - Valoracion de estrellas por producto-->
+                @else
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                @endif
+              </div>
+              <div class="cis-prod-title">{{$otros_producto->name}}</div>
+              <div class="cis-prod-spec"><i class="bi bi-lightning-charge-fill"></i> {{ ($otros_producto->potencia_nominal ?? '--') . ' · ' . ($otros_producto->garantia ?? '--') }}</div>
+              <div class="d-flex align-items-center gap-2">
+                @if($otros_producto->precio_descuento == '' || $otros_producto->precio_descuento == 0)
+                    <div class="pr-price">S/ {{$otros_producto->precio}}</div>
+                  @else
+                    <span class="pr-discount-badge">- {{$otros_producto->porcentaje}}% OFF</span>
+                    <div class="pr-old-price">S/ {{$otros_producto->precio}}</div>
+                    <div class="pr-price">S/ {{$otros_producto->precio_descuento}}</div>
+                    <div class="pr-price-label">Por unidad</div>
+                  @endif
+              </div>
+              <div class="cis-prod-actions">
+                <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
+                <a href="/product/{{$otros_producto->slug}}" class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</a>
+              </div>
             </div>
           </div>
         </div>
+      @endforeach
       </div>
-
-      <!-- Producto relacionado 2 -->
-      <div class="col-lg-3 col-md-6">
-        <div class="cis-prod">
-          <div class="cis-prod-img" style="background-image:url('https://images.pexels.com/photos/371900/pexels-photo-371900.jpeg?auto=compress&cs=tinysrgb&w=400');">
-            <span class="cis-prod-badge" style="background:rgba(var(--bs-primary-rgb),.85);color:#fff;">Inversor</span>
-          </div>
-          <div class="cis-prod-body">
-            <div class="cis-prod-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-            <div class="cis-prod-title">Sungrow SG10RT</div>
-            <div class="cis-prod-spec"><i class="bi bi-lightning-charge-fill"></i> 10kW · Monofásico</div>
-            <div class="d-flex align-items-center gap-2">
-              <span class="cis-prod-price">S/ 4,890</span>
-            </div>
-            <div class="cis-prod-actions">
-              <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-              <button class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Producto relacionado 3 -->
-      <div class="col-lg-3 col-md-6">
-        <div class="cis-prod">
-          <div class="cis-prod-img" style="background-image:url('https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=400');">
-            <span class="cis-prod-badge" style="background:rgba(var(--bs-primary-rgb),.85);color:#fff;">Inversor</span>
-          </div>
-          <div class="cis-prod-body">
-            <div class="cis-prod-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
-            <div class="cis-prod-title">Sungrow SG7.0RT</div>
-            <div class="cis-prod-spec"><i class="bi bi-lightning-charge-fill"></i> 7kW · 3 Fases</div>
-            <div class="d-flex align-items-center gap-2">
-              <span class="cis-prod-price">S/ 3,750</span>
-            </div>
-            <div class="cis-prod-actions">
-              <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-              <button class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Producto relacionado 4 -->
-      <div class="col-lg-3 col-md-6">
-        <div class="cis-prod">
-          <div class="cis-prod-img" style="background-image:url('https://images.pexels.com/photos/371900/pexels-photo-371900.jpeg?auto=compress&cs=tinysrgb&w=400');">
-            <span class="cis-prod-badge" style="background:rgba(var(--c-accent-rgb),.9);color:var(--bs-primary);">Top Venta</span>
-          </div>
-          <div class="cis-prod-body">
-            <div class="cis-prod-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-            <div class="cis-prod-title">Sungrow SG5.0RT</div>
-            <div class="cis-prod-spec"><i class="bi bi-lightning-charge-fill"></i> 5kW · 3 Fases</div>
-            <div class="d-flex align-items-center gap-2">
-              <span class="cis-prod-price">S/ 2,990</span>
-            </div>
-            <div class="cis-prod-actions">
-              <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
-              <button class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-pagination"></div>
     </div>
   </div>
 </section>
@@ -812,22 +919,23 @@
 
       <!-- Body -->
       <div class="modal-body px-4 pb-4" style="background:var(--c-bg);">
-        <form action="#" method="POST">
+        <form method="post" action="{{ route('ecommerce.product.store_comments') }}" class="mb-5">
           @csrf
 
+          <input type="hidden" name="producto_id" value="{{$producto->id}}">
           <!-- Puntuación con estrellas interactivas -->
           <div class="mb-4">
             <label class="form-label fw-semibold mb-2" style="color:var(--c-text);font-size:.88rem;">
               Puntuación <span class="text-danger">*</span>
             </label>
             <div class="pd-rv-star-input" id="starInput">
-              <button type="button" data-val="1" onclick="setStars(1)"><i class="bi bi-star-fill"></i></button>
-              <button type="button" data-val="2" onclick="setStars(2)"><i class="bi bi-star-fill"></i></button>
-              <button type="button" data-val="3" onclick="setStars(3)"><i class="bi bi-star-fill"></i></button>
-              <button type="button" data-val="4" onclick="setStars(4)"><i class="bi bi-star-fill"></i></button>
-              <button type="button" data-val="5" onclick="setStars(5)"><i class="bi bi-star-fill"></i></button>
+              <button type="radio" name="star_puntaje" data-val="1" onclick="setStars(1)"><i class="bi bi-star"></i></button>
+              <button type="radio" name="star_puntaje" data-val="2" onclick="setStars(2)"><i class="bi bi-star"></i></button>
+              <button type="radio" name="star_puntaje" data-val="3" onclick="setStars(3)"><i class="bi bi-star"></i></button>
+              <button type="radio" name="star_puntaje" data-val="4" onclick="setStars(4)"><i class="bi bi-star"></i></button>
+              <button type="radio" name="star_puntaje" data-val="5" onclick="setStars(5)"><i class="bi bi-star"></i></button>
             </div>
-            <input type="hidden" name="puntuacion" id="puntuacionInput" value="0">
+            <input type="hidden" name="valoracion" id="puntuacionInput" value="0">
             <small id="starLabel" style="color:var(--c-muted);font-size:.78rem;">Selecciona una puntuación</small>
           </div>
 
@@ -878,6 +986,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
 function pdImg(btn, url) {
     document.getElementById('mainImage').src = url;
@@ -901,8 +1010,31 @@ function setStars(val) {
     document.getElementById('puntuacionInput').value = val;
     document.getElementById('starLabel').textContent = starLabels[val];
     document.querySelectorAll('#starInput button').forEach((btn, i) => {
-        btn.classList.toggle('active', i < val);
+        const icon = btn.querySelector('i');
+        if (i < val) {
+            btn.classList.add('active');
+            icon.className = 'bi bi-star-fill'; // rellena las seleccionadas
+        } else {
+            btn.classList.remove('active');
+            icon.className = 'bi bi-star'; // vacía las no seleccionadas
+        } 
     });
 }
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productosSwiper = new Swiper('.productos-swiper', {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        loop: false,
+        pagination: { el: '.swiper-pagination', clickable: true },
+        navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+        breakpoints: {
+            576: { slidesPerView: 2 },
+            768: { slidesPerView: 3 },
+            992: { slidesPerView: 4 },
+        }
+    });
+});
 </script>
 @endpush

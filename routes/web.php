@@ -52,6 +52,8 @@ Route::get('/products', [ecommerceController::class, 'products'])->name('ecommer
 Route::get('/product/{slug}', [ecommerceController::class, 'show_product'])->name('ecommerce.product.show');
 route::get('/busqueda_pmarca', [ecommerceController::class, 'getbusqueda_pmarca']);
 route::get('/busqueda_pproducto_categoria', [ecommerceController::class, 'getbusqueda_pproducto_categoria']);
+route::get('/busqueda_pproducto_marca', [ecommerceController::class, 'getbusqueda_pproducto_marca']);
+Route::post('comments_producto', [ecommerceController::class, 'postcomments'])->name('ecommerce.product.store_comments');
 
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');

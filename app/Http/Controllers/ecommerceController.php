@@ -11,8 +11,11 @@ use App\Models\Pedido;
 use App\Models\DetallePedido;
 use App\Models\Cliente;
 use App\Models\Category;
+use App\Models\Comment;
 use App\Models\Inventario;
+use App\Models\Likecomment;
 use App\Models\Marca;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -37,6 +40,7 @@ class ecommerceController extends Controller
     public function products(Request $request)
     {
         $productos_inventario = Inventario::where('cantidad', '>', 0)->pluck('id_producto')->toArray();
+        
         $tipos_producto = Producto::where('estado', 'Activo')
             ->whereIn('id', $productos_inventario)
             ->with(['tipo', 'inventarios'])
@@ -51,34 +55,42 @@ class ecommerceController extends Controller
             ->get()
             ->groupBy('marca_id');
 
-        $todos_productos = Producto::where('estado', 'Activo')
+        // ← Ordenamiento
+        $orden = $request->orden ?? 'relevantes';
+        $query = Producto::where('estado', 'Activo')
             ->whereIn('id', $productos_inventario)
-            ->with(['inventarios'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(6);
+            ->with(['inventarios']);
 
-        $query = Producto::where('estado', 1);
+        match($orden) {
+            'menor_precio' => $query->orderBy('precio', 'asc'),
+            'mayor_precio' => $query->orderBy('precio', 'desc'),
+            'recientes'    => $query->orderBy('created_at', 'desc'),
+            default        => $query->orderBy('created_at', 'desc'),
+        };
 
-        // Filtrar por categoría
+        $todos_productos = $query->paginate(6)->appends(['orden' => $orden]);
+
+        // resto del filtrado para $productos (sidebar)
+        $queryFiltro = Producto::where('estado', 1);
         if ($request->has('categoria') && $request->categoria != '') {
-            $query->where('categoria_id', $request->categoria);
+            $queryFiltro->where('categoria_id', $request->categoria);
         }
-
-        // Filtrar por marca
         if ($request->has('marca') && $request->marca != '') {
-            $query->where('marca_id', $request->marca);
+            $queryFiltro->where('marca_id', $request->marca);
         }
-
-        // Buscar por nombre
         if ($request->has('search') && $request->search != '') {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $queryFiltro->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $productos = $query->orderBy('created_at', 'desc')->paginate(12);
+        $productos = $queryFiltro->orderBy('created_at', 'desc')->paginate(12);
         $categorias = Category::all();
         $marcas = Marca::all();
 
-        return view('ECOMMERCE.productos.index', compact('productos', 'categorias', 'marcas','tipos_producto','marcas_producto', 'todos_productos'));
+        return view('ECOMMERCE.productos.index', compact(
+            'productos', 'categorias', 'marcas',
+            'tipos_producto', 'marcas_producto',
+            'todos_productos', 'orden'  // ← pasa $orden a la vista
+        ));
     }
 
     public function getbusqueda_pmarca(Request $request)
@@ -117,12 +129,21 @@ class ecommerceController extends Controller
                 ->pluck('id_producto')
                 ->toArray();
 
-            $productos = Producto::where('estado', 'Activo')
+            // ← Ordenamiento
+            $orden = $request->orden ?? 'relevantes';
+            $query = Producto::where('estado', 'Activo')
                 ->whereIn('id', $productos_inventario)
                 ->where('tipo_id', $request->valor_check_tipo)
-                ->with(['inventarios', 'marca'])
-                ->orderBy('created_at', 'desc')
-                ->paginate(10); // ← cambia get() por paginate()
+                ->with(['inventarios', 'marca']);
+
+            match($orden) {
+                'menor_precio' => $query->orderBy('precio', 'asc'),
+                'mayor_precio' => $query->orderBy('precio', 'desc'),
+                'recientes'    => $query->orderBy('created_at', 'desc'),
+                default        => $query->orderBy('created_at', 'desc'),
+            };
+
+            $productos = $query->paginate(10);
 
             $arraylist = [];
             foreach($productos as $prod){
@@ -145,7 +166,6 @@ class ecommerceController extends Controller
                 ];
             }
 
-            // ← devuelve productos + datos de paginación
             return response()->json([
                 'productos'  => $arraylist,
                 'pagination' => [
@@ -157,6 +177,64 @@ class ecommerceController extends Controller
             ]);
         }
     }
+
+    public function getbusqueda_pproducto_marca(Request $request)
+    {
+        if($request->ajax()){
+            $productos_inventario = Inventario::where('cantidad', '>', 0)
+                ->pluck('id_producto')
+                ->toArray();
+
+            // ← Ordenamiento
+            $orden = $request->orden ?? 'relevantes';
+            $query = Producto::where('estado', 'Activo')
+                ->whereIn('id', $productos_inventario)
+                ->where('tipo_id', $request->valor_check_tipo)
+                ->whereIn('marca_id', (array) $request->valor_check_marca)
+                ->with(['inventarios', 'marca']);
+
+            match($orden) {
+                'menor_precio' => $query->orderBy('precio', 'asc'),
+                'mayor_precio' => $query->orderBy('precio', 'desc'),
+                'recientes'    => $query->orderBy('created_at', 'desc'),
+                default        => $query->orderBy('created_at', 'desc'),
+            };
+
+            $productos = $query->paginate(10);
+
+            $arraylist = [];
+            foreach($productos as $prod){
+                $arraylist[] = [
+                    $prod->id,
+                    $prod->name,
+                    $prod->inventarios->sum('cantidad'),
+                    $prod->imagen ? asset('images/productos/' . $prod->imagen) : asset('images/logo.webp'),
+                    $prod->marca->name,
+                    $prod->potencia_nominal ?? '--',
+                    $prod->eficiencia ?? '--',
+                    $prod->num_celdas ?? '--',
+                    $prod->dimensiones ?? '--',
+                    $prod->tipo_celula ?? '--',
+                    $prod->garantia ?? '--',
+                    $prod->precio_descuento > 0 ? $prod->precio_descuento : 0,
+                    $prod->porcentaje > 0 ? $prod->porcentaje : 0,
+                    $prod->precio,
+                    $prod->slug,
+                ];
+            }
+
+            return response()->json([
+                'productos'  => $arraylist,
+                'pagination' => [
+                    'total'        => $productos->total(),
+                    'per_page'     => $productos->perPage(),
+                    'current_page' => $productos->currentPage(),
+                    'last_page'    => $productos->lastPage(),
+                ]
+            ]);
+        }
+    }
+
     // Detalle de producto
     public function show_product($slug)
     {
@@ -164,8 +242,10 @@ class ecommerceController extends Controller
                 ->pluck('id_producto')
                 ->toArray();
         $producto = Producto::where('slug', $slug)->whereIn('id', $productos_inventario)->with(['inventarios'])->firstOrFail();
+        $comments_producto = Comment::where('producto_id', '=', $producto->id)->where('tipo','producto')->paginate(5);
+        
+        $otros_productos = Producto::where('tipo_id',  $producto->tipo_id)->where('id', '!=', $producto->id)->whereIn('id', $productos_inventario)->with(['inventarios'])->get();
 
-                
         $relacionados = Producto::where('categorie_id', $producto->categorie_id)
             ->whereIn('id', $productos_inventario)
             ->where('id', '!=', $producto->id)
@@ -174,9 +254,74 @@ class ecommerceController extends Controller
             ->limit(4)
             ->get();
 
-        return view('ECOMMERCE.productos.show', compact('producto', 'relacionados'));
+        return view('ECOMMERCE.productos.show', compact('producto', 'relacionados','comments_producto','otros_productos'));
     }
 
+    public function postcomments(Request $request)
+    {
+        $request->validate([
+            'comentario' => 'required|string|max:2000',
+            'producto_id' => 'required|integer|exists:productos,id',
+        ]);
+
+        $comment = new Comment();
+        $comment->titulo = $request->input('titulo');
+        $comment->comentario = $request->input('comentario');
+        $comment->tipo = 'producto';
+        $comment->valoracion = $request->input('valoracion') == '' ? 0 : $request->input('valoracion');
+        $comment->user_id = Auth::user()->id;
+        $comment->producto_id = $request->input('producto_id');
+        $comment->save();
+
+        return redirect()->back()->with('success', 'Comentario publicado exitosamente.');
+    }
+
+
+    public function getlikecomments(Request $request)
+    {
+        if ($request->ajax()) {
+            $tipo_like = $request->input('valor_comment');
+            $user_id = $request->input('user_id');
+            $comment_id = $request->input('comment_id');
+
+            $userLike = Likecomment::where('user_id', $user_id)->where('comment_id', $comment_id)->first();
+
+            if ($userLike) {
+                if ($userLike->like == $tipo_like) {
+                    // Eliminar like
+                    $userLike->delete();
+                    return response()->json([
+                        'status' => 'removed',
+                        'like_count' => Likecomment::where('comment_id', $comment_id)->where('like', 1)->count(),
+                        'dislike_count' => Likecomment::where('comment_id', $comment_id)->where('like', 0)->count()
+                    ]);
+                } else {
+                    // Actualizar like
+                    $userLike->update(['like' => $tipo_like]);
+                    return response()->json([
+                        'status' => 'updated',
+                        'like_count' => Likecomment::where('comment_id', $comment_id)->where('like', 1)->count(),
+                        'dislike_count' => Likecomment::where('comment_id', $comment_id)->where('like', 0)->count()
+                    ]);
+                }
+            } else {
+                // Crear nuevo like
+                Likecomment::create([
+                    'like' => $tipo_like,
+                    'tipo' => 'Article',
+                    'user_id' => $user_id,
+                    'comment_id' => $comment_id
+                ]);
+                return response()->json([
+                    'status' => 'created',
+                    'like_count' => Likecomment::where('comment_id', $comment_id)->where('like', 1)->count(),
+                    'dislike_count' => Likecomment::where('comment_id', $comment_id)->where('like', 0)->count()
+                ]);
+            }
+        }
+    }
+
+    
     public function installation()
     {
         return view('ECOMMERCE.installation');

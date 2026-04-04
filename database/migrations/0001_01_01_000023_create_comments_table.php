@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            $table->string('comentario')->nullable();
+            $table->string('titulo')->nullable();
+            $table->text('comentario')->nullable();
             $table->string('tipo');
             $table->string('valoracion')->nullable();
             $table->unsignedBigInteger('producto_id')->nullable();
