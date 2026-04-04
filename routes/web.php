@@ -186,6 +186,7 @@ Route::middleware(['auth'])->group(function () {
     // VENTAS
     // ---------------------------------------------------------
     Route::post('admin-clientes', [admin_CrmClientesController::class, 'store'])->name('admin-clientes.store');
+    Route::get('admin-clientes/{cliente}/datos', [admin_CrmClientesController::class, 'getDatos'])->name('admin-clientes.datos');
 
     Route::resource('admin-pedidos', admin_PedidosController::class);
     Route::put('/admin-pedidos/estado/{admin_pedido}', [admin_PedidosController::class, 'estado'])->name('admin-pedidos.estado');
@@ -196,6 +197,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('admin-ventas', admin_VentasController::class);
     Route::put('/admin-ventas/estado/{admin_venta}', [admin_VentasController::class, 'estado']);
+    Route::post('/admin-ventas/{admin_venta}/enviar-email', [admin_VentasController::class, 'enviarEmail'])->name('admin-ventas.enviar-email');
     Route::get('/admin-ventas/{admin_venta}/voucher', [admin_VentasController::class, 'voucher'])->name('admin-ventas.voucher');
 
     // Cobros
@@ -288,6 +290,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('mantenimientos/{mantenimiento}/completar', [admin_CrmMantenimientosController::class, 'completar'])->name('mantenimientos.completar');
         Route::post('mantenimientos/{mantenimiento}/cancelar', [admin_CrmMantenimientosController::class, 'cancelar'])->name('mantenimientos.cancelar');
         Route::post('mantenimientos/{mantenimiento}/reprogramar', [admin_CrmMantenimientosController::class, 'reprogramar'])->name('mantenimientos.reprogramar');
+
     }); // Fin CRM
 
     // ---------------------------------------------------------
@@ -329,6 +332,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('admin-operaciones-campanias/{id}/finalizar', [admin_OperacionesController::class, 'campaniasFinalizar'])->name('admin-operaciones-campanias.finalizar');
     Route::post('admin-operaciones-campanias/{id}/duplicar', [admin_OperacionesController::class, 'campaniasDuplicar'])->name('admin-operaciones-campanias.duplicar');
     Route::get('admin-operaciones-campanias/{id}/metricas', [admin_OperacionesController::class, 'campaniasGetMetricas'])->name('admin-operaciones-campanias.metricas');
+
 }); // Fin middleware auth
 
 // =============================================================
