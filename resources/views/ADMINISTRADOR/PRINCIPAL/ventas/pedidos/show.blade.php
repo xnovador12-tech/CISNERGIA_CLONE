@@ -149,6 +149,7 @@
                             <div class="col-md-6">
                                 <h6 class="text-uppercase fw-bold mb-3">Instalación</h6>
                                 <p class="mb-1"><strong>Dirección:</strong> {{ $pedido->direccion_instalacion ?? 'No especificada' }}</p>
+                                <p class="mb-1"><strong>Provincia:</strong> {{ $pedido->distrito->provincia->nombre ?? 'No especificada' }}</p>
                                 <p class="mb-1"><strong>Distrito:</strong> {{ $pedido->distrito->nombre ?? 'No especificado' }}</p>
                                 <p class="mb-1"><strong>Almacén:</strong> {{ $pedido->almacen->name ?? 'Sin asignar' }}</p>
                             </div>
@@ -328,10 +329,10 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold">Tipo de Comprobante <span class="text-danger">*</span></label>
-                                <select name="tiposcomprobante_id" class="form-select" required>
+                                <select name="tiposcomprobante_id" id="selectTipoComprobante" class="form-select" required>
                                     <option value="">Seleccionar...</option>
                                     @foreach(\App\Models\Tiposcomprobante::where('tipo', 'ventas')->get() as $tipo)
-                                        <option value="{{ $tipo->id }}">{{ $tipo->name }}</option>
+                                        <option value="{{ $tipo->id }}" data-codigo="{{ $tipo->codigo }}">{{ $tipo->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -490,6 +491,22 @@
         ['#modalGenerarComprobante'].forEach(id => {
             if ($(id).length) initCuotasLogic(id);
         });
+
+        // Regla: Boleta (codigo 03) = solo Contado, Factura (01) = Contado o Crédito
+        const $condicionWrap = $('select[name="condicion_pago"]').closest('.col-md-6');
+        $('#selectTipoComprobante').on('change', function() {
+            const codigo = $(this).find(':selected').data('codigo');
+            const $condicion = $('select[name="condicion_pago"]');
+
+            if (codigo === '03' || codigo === '00') {
+                // Boleta o Nota de Venta → forzar Contado y ocultar selector
+                $condicion.val('Contado').trigger('change');
+                $condicionWrap.hide();
+            } else {
+                // Factura → mostrar selector con ambas opciones
+                $condicionWrap.show();
+            }
+        }).trigger('change');
 
         // Validación global de montos al enviar
         $('form').on('submit', function(e) {

@@ -8,6 +8,7 @@ use App\Models\Cliente;
 use App\Models\Producto;
 use App\Models\Servicio;
 use App\Models\Almacen;
+use App\Models\Departamento;
 use App\Models\Distrito;
 use App\Models\Tipo;
 use App\Models\Category;
@@ -16,7 +17,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Mail\ComprobanteEmail;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
 
 class admin_PedidosController extends Controller
 {
@@ -49,15 +52,16 @@ class admin_PedidosController extends Controller
 
     public function create()
     {
-        $clientes = Cliente::with('vendedor.persona')->orderBy('nombre')->get();
+        $clientes = Cliente::with(['vendedor.persona', 'distrito'])->orderBy('nombre')->get();
         $tipos    = Tipo::with('categories.subcategories')->get();
         $subcategorias = Subcategory::all();
         $productos = Producto::with('marca')->get();
         $servicios = Servicio::all();
         $almacenes = Almacen::all();
         $distritos = Distrito::orderBy('nombre')->get();
-        
-        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('clientes', 'tipos', 'subcategorias', 'productos', 'servicios', 'almacenes', 'distritos'));
+        $departamentos = Departamento::orderBy('nombre')->get();
+
+        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('clientes', 'tipos', 'subcategorias', 'productos', 'servicios', 'almacenes', 'distritos', 'departamentos'));
     }
 
     public function store(Request $request)
@@ -157,7 +161,7 @@ class admin_PedidosController extends Controller
 
     public function show(Pedido $admin_pedido)
     {
-        $pedido = $admin_pedido->load(['cliente', 'usuario', 'distrito', 'almacen', 'detalles.producto', 'detalles.servicio', 'detalles.subcategoria', 'cuotas', 'cotizacionCrm']);
+        $pedido = $admin_pedido->load(['cliente', 'usuario', 'distrito.provincia', 'almacen', 'detalles.producto', 'detalles.servicio', 'detalles.subcategoria', 'cuotas', 'cotizacionCrm']);
         return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.show', compact('pedido'));
     }
 
@@ -170,15 +174,16 @@ class admin_PedidosController extends Controller
         }
 
         $pedido = $admin_pedido->load('detalles', 'cuotas');
-        $clientes = Cliente::orderBy('nombre')->get();
+        $clientes = Cliente::with('distrito')->orderBy('nombre')->get();
         $tipos    = Tipo::with('categories.subcategories')->get();
         $subcategorias = Subcategory::all();
         $productos = Producto::with('marca')->get();
         $servicios = Servicio::all();
         $almacenes = Almacen::all();
         $distritos = Distrito::orderBy('nombre')->get();
-        
-        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('pedido', 'clientes', 'tipos', 'subcategorias', 'productos', 'servicios', 'almacenes', 'distritos'));
+        $departamentos = Departamento::orderBy('nombre')->get();
+
+        return view('ADMINISTRADOR.PRINCIPAL.ventas.pedidos.create', compact('pedido', 'clientes', 'tipos', 'subcategorias', 'productos', 'servicios', 'almacenes', 'distritos', 'departamentos'));
     }
 
     public function update(Request $request, Pedido $admin_pedido)
@@ -591,7 +596,9 @@ class admin_PedidosController extends Controller
         $admin_pedido->estado = 'proceso';
         $admin_pedido->save();
 
-        return redirect()->route('admin-ventas.show', $venta)->with('success', 'Comprobante generado exitosamente. El pedido ha sido enviado a Operaciones (Logística).');
+        return redirect()->route('admin-ventas.show', $venta)
+            ->with('success', 'Comprobante generado exitosamente. El pedido ha sido enviado a Operaciones (Logística).')
+            ->with('auto_descargar_comprobante', true);
     }
 
     /**

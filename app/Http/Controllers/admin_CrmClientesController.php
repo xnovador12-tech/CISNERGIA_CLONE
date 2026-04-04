@@ -149,6 +149,26 @@ class admin_CrmClientesController extends Controller
     }
 
     /**
+     * Obtener datos del cliente (AJAX para auto-rellenar en pedidos)
+     */
+    public function getDatos(Cliente $cliente)
+    {
+        $cliente->load('distrito');
+
+        return response()->json([
+            'id'           => $cliente->id,
+            'nombre'       => $cliente->nombre_completo,
+            'documento'    => $cliente->documento,
+            'tipo_persona' => $cliente->tipo_persona,
+            'email'        => $cliente->email,
+            'telefono'     => $cliente->telefono ?? $cliente->celular,
+            'direccion'    => $cliente->direccion,
+            'distrito_id'  => $cliente->distrito_id,
+            'distrito'     => $cliente->distrito?->nombre,
+        ]);
+    }
+
+    /**
      * Almacenar cliente (AJAX desde modal de pedidos)
      * Verifica duplicados y establece fecha_primera_compra
      */
@@ -158,9 +178,12 @@ class admin_CrmClientesController extends Controller
             'tipo_identificacion' => 'required|in:DNI,RUC,CE,Pasaporte',
             'documento'           => 'required|string|max:20',
             'name'                => 'required|string|max:255',
+            'apellidos'           => 'nullable|string|max:255',
             'email'               => 'nullable|email|max:255',
+            'celular'             => 'nullable|string|max:20',
             'telefono'            => 'nullable|string|max:20',
             'direccion'           => 'nullable|string|max:255',
+            'distrito_id'         => 'nullable|exists:distritos,id',
         ]);
 
         $tipoPersona = $request->tipo_identificacion === 'RUC' ? 'juridica' : 'natural';
@@ -187,12 +210,15 @@ class admin_CrmClientesController extends Controller
             $cliente->razon_social = $request->name;
             $cliente->ruc          = $request->documento;
         } else {
-            $cliente->dni = $request->documento;
+            $cliente->dni       = $request->documento;
+            $cliente->apellidos = $request->apellidos;
         }
 
         $cliente->email                = $request->email;
+        $cliente->celular              = $request->celular;
         $cliente->telefono             = $request->telefono;
         $cliente->direccion            = $request->direccion;
+        $cliente->distrito_id          = $request->distrito_id;
         $cliente->tipo_persona         = $tipoPersona;
         $cliente->vendedor_id          = auth()->id();
         $cliente->estado               = 'activo';

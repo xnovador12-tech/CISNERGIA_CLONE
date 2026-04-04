@@ -280,8 +280,18 @@
                                             <i class="bi bi-eye text-info me-2"></i>Ver Detalles</a>
                                         </li>
                                          <li><a class="dropdown-item" href="{{ route('admin-ventas.voucher', $venta) }}" target="_blank">
-                                             <i class="bi bi-file-earmark-check text-success me-2"></i>Generar Comprobante</a>
+                                             <i class="bi bi-file-earmark-check text-success me-2"></i>Descargar Comprobante</a>
                                          </li>
+                                         @if($venta->cliente && $venta->cliente->email)
+                                         <li>
+                                             <form action="{{ route('admin-ventas.enviar-email', $venta) }}" method="POST">
+                                                 @csrf
+                                                 <button type="submit" class="dropdown-item">
+                                                     <i class="bi bi-envelope text-primary me-2"></i>Enviar por Email
+                                                 </button>
+                                             </form>
+                                         </li>
+                                         @endif
                                     </ul>
                                 </div>
                             </td>

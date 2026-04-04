@@ -229,7 +229,7 @@
                     </div>
                     <div class="card-body">
                         <a href="{{ route('admin-ventas.voucher', $venta) }}" class="btn btn-danger w-100 mb-2" target="_blank">
-                            <i class="bi bi-file-pdf me-2"></i>Generar Comprobante
+                            <i class="bi bi-file-pdf me-2"></i>Descargar Comprobante
                         </a>
                         <a href="{{ route('admin-ventas.index') }}" class="btn btn-secondary w-100">
                             <i class="bi bi-arrow-left me-2"></i>Volver al Listado
@@ -239,4 +239,20 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('js')
+@if(session('auto_descargar_comprobante'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var link = document.createElement('a');
+        link.href = "{{ route('admin-ventas.voucher', $venta) }}";
+        link.target = '_blank';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+</script>
+@endif
 @endsection

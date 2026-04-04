@@ -74,7 +74,21 @@
                                  <input type="text" class="form-control form-control-sm bg-light" value="{{ isset($pedido) ? $pedido->created_at->format('d/m/Y') : date('d/m/Y') }}" readonly>
                                  <small class="text-muted">Se registra automáticamente al crear el pedido</small>
                              </div>
-                             
+
+                             {{-- Campos del cliente (se auto-rellenan al seleccionar) --}}
+                             <div class="col-md-3" id="fichaDocumentoWrap" style="display: none;">
+                                 <label class="form-label text-muted fw-bold small">Documento</label>
+                                 <input type="text" class="form-control form-control-sm bg-light" id="fichaDocumento" readonly>
+                             </div>
+                             <div class="col-md-3" id="fichaTelefonoWrap" style="display: none;">
+                                 <label class="form-label text-muted fw-bold small">Teléfono</label>
+                                 <input type="text" class="form-control form-control-sm bg-light" id="fichaTelefono" readonly>
+                             </div>
+                             <div class="col-md-3" id="fichaEmailWrap" style="display: none;">
+                                 <label class="form-label text-muted fw-bold small">Email</label>
+                                 <input type="text" class="form-control form-control-sm bg-light" id="fichaEmail" readonly>
+                             </div>
+
                             <input type="hidden" name="tipo" value="producto">
 
                              @if(isset($pedido))
@@ -91,7 +105,7 @@
 
                              <div class="col-md-6">
                                  <label class="form-label text-muted fw-bold small">Dirección Instalación / Entrega</label>
-                                 <input type="text" name="direccion_instalacion" class="form-control form-control-sm" value="{{ isset($pedido) ? $pedido->direccion_instalacion : old('direccion_instalacion') }}" placeholder="Calle, Av, Lote...">
+                                 <input type="text" name="direccion_instalacion" class="form-control form-control-sm" id="inputDireccionInstalacion" value="{{ isset($pedido) ? $pedido->direccion_instalacion : old('direccion_instalacion') }}" placeholder="Calle, Av, Lote...">
                              </div>
 
                              <div class="col-md-3">
@@ -111,7 +125,7 @@
                                  <select name="almacen_id" class="form-select form-select-sm">
                                      <option value="">Seleccione almacén...</option>
                                      @foreach($almacenes as $almacen)
-                                         <option value="{{ $almacen->id }}" {{ (isset($pedido) && $pedido->almacen_id == $almacen->id) || old('almacen_id') == $almacen->id ? 'selected' : '' }}>
+                                         <option value="{{ $almacen->id }}" {{ (isset($pedido) && $pedido->almacen_id == $almacen->id) || old('almacen_id') == $almacen->id ? 'selected' : ($almacenes->count() == 1 ? 'selected' : '') }}>
                                              {{ $almacen->nombre ?? $almacen->name }}
                                          </option>
                                      @endforeach
@@ -277,36 +291,70 @@
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             <span id="alertaNuevoClienteMsg"></span>
                         </div>
+                        {{-- Información General --}}
+                        <p class="text-secondary mb-2 small text-uppercase fw-bold">Información General</p>
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Tipo de Identificación <span class="text-danger">*</span></label>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Tipo de Persona <span class="text-danger">*</span></label>
                                 <select name="tipo_identificacion" id="tipo_identificacion" class="form-select" required>
                                     <option value="">Seleccione...</option>
-                                    <option value="DNI">DNI</option>
-                                    <option value="RUC">RUC</option>
-                                    <option value="CE">Carnet de Extranjería</option>
-                                    <option value="Pasaporte">Pasaporte</option>
+                                    <option value="DNI">Persona Natural</option>
+                                    <option value="RUC">Persona Jurídica</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Número de Documento <span class="text-danger">*</span></label>
-                                <input type="text" name="documento" id="ncDocumento" class="form-control" required>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold" id="lblDocumento">DNI <span class="text-danger">*</span></label>
+                                <input type="text" name="documento" id="ncDocumento" class="form-control" required maxlength="11">
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold">Nombre / Razón Social <span class="text-danger">*</span></label>
-                                <input type="text" name="name" id="ncNombre" class="form-control" required>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Nombre <span class="text-danger">*</span></label>
+                                <input type="text" name="name" id="ncNombre" class="form-control" required placeholder="Nombre completo">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-3" id="ncApellidosWrap">
+                                <label class="form-label fw-bold">Apellidos</label>
+                                <input type="text" name="apellidos" id="ncApellidos" class="form-control" placeholder="Apellido paterno y materno">
+                            </div>
+                        </div>
+
+                        {{-- Datos de Contacto --}}
+                        <p class="text-secondary mb-2 mt-3 small text-uppercase fw-bold">Datos de Contacto</p>
+                        <div class="row g-3">
+                            <div class="col-md-3">
                                 <label class="form-label fw-bold">Email</label>
-                                <input type="email" name="email" id="ncEmail" class="form-control">
+                                <input type="email" name="email" id="ncEmail" class="form-control" placeholder="correo@ejemplo.com">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Celular</label>
+                                <input type="text" name="celular" id="ncCelular" class="form-control" placeholder="987654321">
+                            </div>
+                            <div class="col-md-3">
                                 <label class="form-label fw-bold">Teléfono</label>
-                                <input type="text" name="telefono" id="ncTelefono" class="form-control">
+                                <input type="text" name="telefono" id="ncTelefono" class="form-control" placeholder="01-1234567">
                             </div>
-                            <div class="col-md-12">
+                            <div class="col-md-3">
                                 <label class="form-label fw-bold">Dirección</label>
-                                <input type="text" name="direccion" id="ncDireccion" class="form-control">
+                                <input type="text" name="direccion" id="ncDireccion" class="form-control" placeholder="Av. Principal 123">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Departamento</label>
+                                <select name="departamento_id" id="ncDepartamento" class="form-select">
+                                    <option value="">Seleccionar...</option>
+                                    @foreach($departamentos as $dep)
+                                        <option value="{{ $dep->id }}">{{ $dep->nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Provincia</label>
+                                <select name="provincia_id" id="ncProvincia" class="form-select" disabled>
+                                    <option value="">Seleccione un departamento</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Distrito</label>
+                                <select name="distrito_id" id="ncDistrito" class="form-select" disabled>
+                                    <option value="">Seleccione una provincia</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -343,6 +391,18 @@ $(document).ready(function() {
     // En pedidos usamos $tipos y $productos traídos por admin_PedidosController
     const tipos = @json($tipos ?? []);
     const productosDB = @json($productos ?? []);
+    const clientesDB = {};
+    @foreach($clientes as $c)
+        clientesDB[{{ $c->id }}] = {
+            documento: "{{ $c->documento }}",
+            tipo_persona: "{{ $c->tipo_persona }}",
+            email: "{{ $c->email ?? '' }}",
+            telefono: "{{ $c->telefono ?? $c->celular ?? '' }}",
+            direccion: "{{ addslashes($c->direccion ?? '') }}",
+            distrito_id: "{{ $c->distrito_id ?? '' }}",
+            distrito: "{{ $c->distrito?->nombre ?? '' }}"
+        };
+    @endforeach
     
     // Variables iniciales del pedido que vamos a editar
     const edicionItems = @json(isset($pedido) ? $pedido->detalles : []);
@@ -825,6 +885,35 @@ $(document).ready(function() {
     // Inicializar Select2 general
     $('.select2-basic').select2({ theme: 'bootstrap-5' });
 
+    // ==================== AUTO-RELLENAR DATOS DEL CLIENTE ====================
+    function cargarFichaCliente(clienteId) {
+        if (!clienteId || !clientesDB[clienteId]) {
+            $('#fichaDocumentoWrap, #fichaTelefonoWrap, #fichaEmailWrap').hide();
+            return;
+        }
+
+        const data = clientesDB[clienteId];
+        $('#fichaDocumento').val(data.documento || '');
+        $('#fichaTelefono').val(data.telefono || '');
+        $('#fichaEmail').val(data.email || '');
+        $('#fichaDocumentoWrap, #fichaTelefonoWrap, #fichaEmailWrap').show();
+
+        if (data.direccion) {
+            $('#inputDireccionInstalacion').val(data.direccion);
+        }
+        if (data.distrito_id) {
+            $('select[name="distrito_id"]').val(data.distrito_id).trigger('change.select2');
+        }
+    }
+
+    $('#cliente_id').on('change select2:select', function() {
+        cargarFichaCliente($(this).val());
+    });
+
+    @if(isset($pedido) && $pedido->cliente_id)
+        cargarFichaCliente('{{ $pedido->cliente_id }}');
+    @endif
+
     // ==================== LÓGICA DE CUOTAS ====================
     window.pagoCalcularRestante = function() {
         let totalAPagar = parseFloat($('#input-total').val()) || 0;
@@ -917,10 +1006,57 @@ $(document).ready(function() {
     });
 
     // ==================== MODAL NUEVO CLIENTE ====================
+    // Toggle tipo persona: mostrar/ocultar apellidos, cambiar label documento
+    $('#tipo_identificacion').on('change', function() {
+        const tipo = $(this).val();
+        if (tipo === 'RUC') {
+            $('#lblDocumento').html('RUC <span class="text-danger">*</span>');
+            $('#ncDocumento').attr('maxlength', 11).attr('placeholder', '20XXXXXXXXX');
+            $('#ncNombre').attr('placeholder', 'Razón Social');
+            $('#ncApellidosWrap').hide();
+            $('#ncApellidos').val('');
+        } else {
+            $('#lblDocumento').html((tipo || 'DNI') + ' <span class="text-danger">*</span>');
+            $('#ncDocumento').attr('maxlength', tipo === 'CE' ? 12 : 8).attr('placeholder', '');
+            $('#ncNombre').attr('placeholder', 'Nombre completo');
+            $('#ncApellidosWrap').show();
+        }
+    });
+
+    // Cascading ubigeo en modal: Departamento → Provincia → Distrito
+    $('#ncDepartamento').on('change', function() {
+        const depId = $(this).val();
+        $('#ncProvincia').html('<option value="">Cargando...</option>').prop('disabled', true);
+        $('#ncDistrito').html('<option value="">Seleccione una provincia</option>').prop('disabled', true);
+        if (!depId) return;
+
+        $.get("{{ url('ajax/provincias') }}", { departamento_id: depId }, function(data) {
+            let opts = '<option value="">Seleccione provincia...</option>';
+            data.forEach(p => { opts += `<option value="${p.id}">${p.nombre}</option>`; });
+            $('#ncProvincia').html(opts).prop('disabled', false);
+        });
+    });
+
+    $('#ncProvincia').on('change', function() {
+        const provId = $(this).val();
+        $('#ncDistrito').html('<option value="">Cargando...</option>').prop('disabled', true);
+        if (!provId) return;
+
+        $.get("{{ url('ajax/distritos') }}", { provincia_id: provId }, function(data) {
+            let opts = '<option value="">Seleccione distrito...</option>';
+            data.forEach(d => { opts += `<option value="${d.id}">${d.nombre}</option>`; });
+            $('#ncDistrito').html(opts).prop('disabled', false);
+        });
+    });
+
     // Limpiar modal al cerrarlo
     $('#modalNuevoCliente').on('hidden.bs.modal', function() {
         $('#formNuevoCliente')[0].reset();
         $('#alertaNuevoCliente').addClass('d-none');
+        $('#ncProvincia').html('<option value="">Seleccione un departamento</option>').prop('disabled', true);
+        $('#ncDistrito').html('<option value="">Seleccione una provincia</option>').prop('disabled', true);
+        $('#ncApellidosWrap').show();
+        $('#lblDocumento').html('DNI <span class="text-danger">*</span>');
     });
 
     // Función helper para mostrar toast
@@ -953,9 +1089,12 @@ $(document).ready(function() {
             tipo_identificacion: tipoSeleccionado,
             documento: $('#ncDocumento').val(),
             name: $('#ncNombre').val(),
+            apellidos: $('#ncApellidos').val(),
             email: $('#ncEmail').val(),
+            celular: $('#ncCelular').val(),
             telefono: $('#ncTelefono').val(),
             direccion: $('#ncDireccion').val(),
+            distrito_id: $('#ncDistrito').val(),
         };
 
         $.ajax({
@@ -971,7 +1110,20 @@ $(document).ready(function() {
                         true,
                         true
                     );
+                    // Registrar en clientesDB para la ficha
+                    const distritoText = $('#ncDistrito option:selected').text().trim();
+                    clientesDB[response.cliente.id] = {
+                        documento: formData.documento,
+                        tipo_persona: formData.tipo_identificacion === 'RUC' ? 'juridica' : 'natural',
+                        email: formData.email || '',
+                        telefono: formData.telefono || formData.celular || '',
+                        direccion: formData.direccion || '',
+                        distrito_id: formData.distrito_id || '',
+                        distrito: formData.distrito_id ? distritoText : ''
+                    };
+
                     $('#cliente_id').append(newOption).trigger('change');
+                    cargarFichaCliente(response.cliente.id);
 
                     // Cerrar modal y mostrar toast de éxito
                     $('#modalNuevoCliente').modal('hide');

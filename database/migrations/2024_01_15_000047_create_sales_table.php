@@ -40,7 +40,7 @@ return new class extends Migration
             $table->enum('estado', ['completada', 'parcial', 'anulada'])->default('completada');
             $table->string('estado_msalida')->default('0'); // 0: no generado, 1: generado
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('sede_id')->nullable()->constrained('sedes')->onDelete('set null');
+            $table->foreignId('sede_id')->nullable()->constrained('sedes')->onDeleteñ('set null');
             $table->enum('tipo_venta', ['pos', 'pedido', 'ecommerce'])->default('pos');
 
             // Campos específicos para proyectos energéticos
@@ -55,6 +55,11 @@ return new class extends Migration
             $table->string('numero_proyecto')->nullable(); // Código interno del proyecto
 
             $table->text('observaciones')->nullable();
+            $table->boolean('anulado')->default(false);
+            $table->boolean('estado_sunat')->default(false);
+            $table->string('mensaje_sunat')->nullable();
+            $table->string('nombre_xml_sunat')->nullable();
+            
 
             $table->timestamps();
         });
@@ -89,6 +94,8 @@ return new class extends Migration
             $table->date('fecha_vencimiento')->nullable();
             $table->timestamps();
         });
+
+
     }
 
     /**

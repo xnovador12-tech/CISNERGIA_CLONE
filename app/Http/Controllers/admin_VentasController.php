@@ -15,7 +15,9 @@ use App\Models\TipoOperacion;
 use App\Models\TipoDetraccion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Mail\ComprobanteEmail;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
 
 class admin_VentasController extends Controller
 {
@@ -227,7 +229,8 @@ class admin_VentasController extends Controller
         ]);
 
         return redirect()->route('admin-ventas.show', $venta)
-            ->with('success', 'Venta registrada exitosamente: ' . $venta->codigo);
+            ->with('success', 'Venta registrada exitosamente: ' . $venta->codigo)
+            ->with('auto_descargar_comprobante', true);
     }
 
     public function show(Sale $admin_venta)
@@ -261,6 +264,23 @@ class admin_VentasController extends Controller
         $admin_venta->save();
 
         return response()->json(['success' => true, 'message' => 'Estado actualizado']);
+    }
+
+    public function enviarEmail(Sale $admin_venta)
+    {
+        $admin_venta->load(['cliente', 'pedido', 'tipocomprobante']);
+
+        if (!$admin_venta->cliente || !$admin_venta->cliente->email) {
+            return back()->with('error', 'El cliente no tiene un email registrado.');
+        }
+
+        try {
+            Mail::to($admin_venta->cliente->email)->send(new ComprobanteEmail($admin_venta));
+            return back()->with('success', 'Comprobante enviado por email a ' . $admin_venta->cliente->email);
+        } catch (\Exception $e) {
+            \Log::error('Error enviando comprobante por email: ' . $e->getMessage());
+            return back()->with('error', 'No se pudo enviar el email. Verifique la configuración de correo.');
+        }
     }
 
     public function voucher(Sale $admin_venta)

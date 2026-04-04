@@ -260,19 +260,6 @@
                                             </li>
                                         @endif
                                         
-                                        {{-- Acciones Minimalistas Inteligentes --}}
-                                        @if(!$pedido->aprobacion_finanzas && $pedido->estado !== 'cancelado')
-                                            <li>
-                                                <form action="{{ route('admin-pedidos.aprobar-finanzas', $pedido) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="dropdown-item">
-                                                        <i class="bi bi-cash-coin text-primary me-2"></i>Confirmar Pago
-                                                    </button>
-                                                </form>
-                                            </li>
-                                            <li><hr class="dropdown-divider"></li>
-                                        @endif
-
                                         @if($pedido->estado !== 'cancelado')
                                             <li>
                                                 {{-- Si tiene venta, mostrar botón deshabilitado con tooltip --}}
