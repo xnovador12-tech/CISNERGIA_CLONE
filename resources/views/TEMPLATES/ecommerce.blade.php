@@ -276,16 +276,15 @@
                     <!-- Carrito -->
                     <div class="border-start">
 
-                        <a href="{{ route('ecommerce.cart') }}"
-                            class="bg-transparent border-0 icon__boton position-relative d-flex align-items-center justify-content-center px-3 py-2 rounded hover-bg"
-                            style="text-decoration: none; transition: background 0.2s;">
-                            <i class="bi bi-cart3 fs-4 text-primary"></i>
-                            <span class="position-absolute badge rounded-circle bg-secondary text-white cart-count"
-                                style="font-size: 0.6rem; width: 18px; height: 18px; padding: 0; display: flex; align-items: center; justify-content: center; top: 5px; right: 8px; font-weight: 600;">
+                        <button class="bg-transparent border-0 icon__boton position-relative d-flex align-items-center justify-content-center px-3 py-2 rounded hover-bg"
+                            style="text-decoration: none; transition: background 0.2s;" type="button" data-bs-toggle="offcanvas" data-bs-target="#carrito_compras" aria-controls="carrito_compras">
+                        <i class="bi bi-cart3 fs-4 text-primary"></i>
+                        <span class="position-absolute badge rounded-circle bg-secondary text-white cart-count"
+                                style="font-size: 0.6rem; width: 18px; height: 18px; padding: 0; display: flex; align-items: center; justify-content: center; top: 5px; right: 8px; font-weight: 600;" id="carrito_count_id">
                                 0
                                 <span class="visually-hidden">productos en carrito</span>
                             </span>
-                        </a>
+                    </button>
                     </div>
                 </div>
                 </span>
@@ -327,6 +326,8 @@
             </div>
         </div> -->
     </nav>
+    <!-- carrito de compras -->
+    @include('ECOMMERCE.carrito.carrito_compras')
 
     @yield('content')
 
@@ -421,6 +422,7 @@
     <script src="/js/jquery-3.7.1.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/scripts.js"></script>
+    <script src="/js/sweetalert2.all.min.js"></script>
     
     <!-- Script para cargar contador del carrito -->
     <script>
@@ -601,4 +603,91 @@
       }, 6000);
     })();
     </script>
+    
+<script>
+// comprobar si el carrito de compras esta cargado
+    setInterval(() => {
+        $.get('/ver_carrito',{validar_carrito: 'verificar_carrito'}, function(busqueda){
+            $('#lista_carrito_id').empty("");
+            count = 0;
+            subtotales = 0;
+            $.each(busqueda, function(index, value){
+                if(value[0] == 'no existe'){
+                    $('#contador_productos').html('( 0 ) Producto(s) en el carrito');
+                    $('#montotal_productos').html('TOTAL: S/ 00.00');
+                    const micardshopping = document.getElementById('button_carrito');
+                    micardshopping.classList.add('disabled');
+                    
+                }else{
+                    const micardshopping = document.getElementById('button_carrito');
+                    micardshopping.classList.remove('disabled');
+                    subtotales = subtotales+parseFloat(value[4]);
+                    var todo = '<li class="border-bottom">';
+                        todo += '<div class="card border-0 py-2">';
+                            todo += '<div class="row g-0">';
+                                    todo += '<div class="col-3 d-flex">';
+                                    todo += '<img src="'+value[3]+'" class="img_curso" alt="" style="width:70px; height:70px; object-fit:cover; border-radius:6px;">';
+                                    todo += '</div>';
+                                    todo += '<div class="col-9 ps-2">';
+                                        todo += '<p class="mb-0 fw-bold" align="justify">'+value[2]+'</p>';
+                                        todo += '<p class="text-primary text-start fw-bold mb-0">S/ '+value[4]+'</p>';
+                                    todo += '</div>';
+                            todo += '</div>';
+                        todo += '</div>';
+                    todo += '</li>';
+                    
+                    count++;
 
+                    // Formatear subtotal sólo al mostrar
+                    const subtotalFormatted = subtotales.toFixed(2);
+
+                    $('#lista_carrito_id').append(todo);
+                    $('#contador_productos').html('( '+count+' ) Producto(s) en el carrito');
+                    $('#montotal_productos').html('TOTAL: S/ '+subtotalFormatted+'');
+                    $('#carrito_count_id').html(value[6]);
+                }
+            });
+        });
+    }, 3000);
+// fin de la validacion
+
+
+// añadir al carrito de compras
+    function add_carrito_id(id_producto){
+        $.get('/ver_carrito',{validar_carrito:'agregar_carrito',id_element_producto: id_producto}, function(busqueda){
+            $('#lista_carrito_id').empty("");
+            $.each(busqueda, function(index, value){
+                if(value[0] == 'producto_agregado_al_carrito'){
+                    $('#carrito_count_id').html(value[1]);
+                }else{
+                    Swal.fire({
+                        imageUrl: "/images/solar_panel.png",
+                        title: '¡Upss!',
+                        text: 'Este producto ya fue registrado en tu carrito de compras',
+                    });
+                }
+            });
+        });
+    };
+// fin de añadir al carrito de compras
+</script>
+
+<script>
+// Generar la compra directa
+    function agregar_carrito_id(id_producto){
+        $.get('/agregar_compra_carrito',{id_element_producto: id_producto}, function(busqueda){
+            $.each(busqueda, function(index, value){
+                if(value[0] == 'producto_agregado_al_carrito'){
+                    window.location.href = "/carrito-compras";
+                }else{
+                    Swal.fire({
+                        imageUrl: "/images/online_shop.png",
+                        title: '¡Upss!',
+                        text: 'Este producto ya fue registrado en tu carrito de compras',
+                    });
+                }
+            });
+        });
+    }
+// 
+</script>

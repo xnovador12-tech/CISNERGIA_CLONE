@@ -47,6 +47,9 @@ use Illuminate\Support\Facades\Route;
 // =============================================================
 // ECOMMERCE — Rutas públicas (sin auth)
 // =============================================================
+
+Route::get('limpiar-sesion-planes', [ecommerceController::class, 'limpiarSesionPlanes'])->name('limpiar-sesion-planes.get');
+
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
 Route::get('/products', [ecommerceController::class, 'products'])->name('ecommerce.products');
 Route::get('/product/{slug}', [ecommerceController::class, 'show_product'])->name('ecommerce.product.show');
@@ -54,6 +57,9 @@ route::get('/busqueda_pmarca', [ecommerceController::class, 'getbusqueda_pmarca'
 route::get('/busqueda_pproducto_categoria', [ecommerceController::class, 'getbusqueda_pproducto_categoria']);
 route::get('/busqueda_pproducto_marca', [ecommerceController::class, 'getbusqueda_pproducto_marca']);
 Route::post('comments_producto', [ecommerceController::class, 'postcomments'])->name('ecommerce.product.store_comments');
+Route::get('ver_carrito', [ecommerceController::class, 'getcargar_carrito']);
+Route::get('agregar_compra_carrito', [ecommerceController::class, 'getagregar_compra_carrito']);
+Route::get('carrito-compras', [ecommerceController::class, 'index'])->name('ecommerce.carrito_compras.index');
 
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');

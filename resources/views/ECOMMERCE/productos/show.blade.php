@@ -302,7 +302,7 @@
 
         <!-- CTA -->
         <div class="d-flex gap-2 mb-2">
-          <button type="button" class="btn btn-primary btn-lg flex-fill">
+          <button onclick="add_carrito_id({{$producto->id}});" class="btn btn-primary btn-lg flex-fill">
             <i class="bi bi-cart-plus me-2"></i>Agregar al carrito
           </button>
           <button type="button" class="btn btn-outline-secondary btn-lg" style="width:54px;" aria-label="Añadir a favoritos">
@@ -883,7 +883,7 @@
                   @endif
               </div>
               <div class="cis-prod-actions">
-                <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
+                <button onclick="add_carrito_id({{$otros_producto->id}});" class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
                 <a href="/product/{{$otros_producto->slug}}" class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</a>
               </div>
             </div>

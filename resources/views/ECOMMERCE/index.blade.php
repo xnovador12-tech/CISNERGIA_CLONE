@@ -187,7 +187,7 @@
                       @endphp
                       <div class="swiper-slide">
                           <div class="cis-prod">
-                              <div class="cis-prod-img" style="background-image: url('{{ $prod->imagen ? asset('images/productos/' . $prod->imagen) : '' }}');">
+                              <div class="cis-prod-img" style="background-image: url('{{ $prod->imagen ? asset('images/productos/' . $prod->imagen) : asset('images/logo.webp') }}');">
                                   <span class="cis-prod-badge" style="
                                       background: rgba(var(--bs-primary-rgb),.85); 
                                       color: #fff;
@@ -204,7 +204,7 @@
                               </div>
                               <div class="cis-prod-body">
                                   <div class="cis-prod-stars">
-                                      @if($valoracion_pproducto)
+                                    @if($valoracion_pproducto)
                                       <!--Valoracion de estrellas por producto-->
                                           @if($valoracion_pproducto > 0 && $valoracion_pproducto < 1)
                                               <i class="bi bi-star-half"></i>
@@ -297,7 +297,7 @@
                                       @endif
                                   </div>
                                   <div class="cis-prod-actions">
-                                      <button class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
+                                      <button onclick="add_carrito_id({{$prod->id}});" class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
                                       <a href="/product/{{$prod->slug}}" class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver</a>
                                   </div>
                               </div>

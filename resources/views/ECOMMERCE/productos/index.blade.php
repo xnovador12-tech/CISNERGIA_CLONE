@@ -157,6 +157,16 @@
           {{-- Producto 1: Panel Solar Monocristalino 450W --}}
           <div id="prod-list">
           @foreach($todos_productos as $prod)
+          @php
+            $comentarios_total_pproducto = DB::table('comments')->select(DB::raw('count(id) as contador, sum(valoracion) as valoraciones'))->where('producto_id',$prod->id)->first();
+            if($comentarios_total_pproducto){
+                $valoracion_pproducto = $comentarios_total_pproducto->valoraciones == 0 ? 0: $comentarios_total_pproducto->valoraciones/$comentarios_total_pproducto->contador;
+                $calificacion_pproducto = $comentarios_total_pproducto->contador == 0 ? 0:round(($comentarios_total_pproducto->valoraciones/$comentarios_total_pproducto->contador),1);
+            }else{
+                $valoracion_pproducto = 0;
+                $calificacion_pproducto = 0;
+            }
+          @endphp
           <div class="pr-prod-row">
             <div class="pr-prod-img-wrap">
               <img src="{{ $prod->imagen ? asset('images/productos/' . $prod->imagen) : asset('images/logo.webp') }}?auto=compress&cs=tinysrgb&w=400" alt="{{$prod->name}}">
@@ -167,8 +177,87 @@
               <div class="pr-prod-brand">{{$prod->marca->name}}</div>
               <div class="pr-prod-name">{{$prod->name}}</div>
               <div class="pr-prod-stars">
-                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
-                <small class="ms-1">(124 valoraciones)</small>
+                @if($valoracion_pproducto)
+                <!--Valoracion de estrellas por producto-->
+                @if($valoracion_pproducto > 0 && $valoracion_pproducto < 1)
+                    <i class="bi bi-star-half"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                @endif
+                @if($valoracion_pproducto == 1)
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                @endif
+                @if($valoracion_pproducto > 1 && $valoracion_pproducto < 2)
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-half"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                @endif
+                @if($valoracion_pproducto == 2)
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                @endif
+                @if($valoracion_pproducto > 2 && $valoracion_pproducto < 3)
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-half"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                @endif
+                @if($valoracion_pproducto == 3)
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star"></i>
+                    <i class="bi bi-star"></i>
+                @endif
+                @if($valoracion_pproducto > 3 && $valoracion_pproducto < 4)
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-half"></i>
+                    <i class="bi bi-star"></i>
+                @endif
+                @if($valoracion_pproducto == 4)
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star"></i>       
+                @endif
+                @if($valoracion_pproducto > 4 && $valoracion_pproducto < 5)
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-half"></i>
+                @endif
+                @if($valoracion_pproducto == 5)
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                @endif
+            <!--FIN - Valoracion de estrellas por producto-->
+          @else
+              <i class="bi bi-star"></i>
+              <i class="bi bi-star"></i>
+              <i class="bi bi-star"></i>
+              <i class="bi bi-star"></i>
+              <i class="bi bi-star"></i>
+          @endif
+                <small class="ms-1">( {{$comentarios_total_pproducto->contador > 1 ? $comentarios_total_pproducto->contador : $comentarios_total_pproducto->contador}} )</small>
               </div>
               <div class="pr-specs-grid">
                 <div class="pr-spec-cell"><span class="pr-spec-label">Potencia nominal</span><span class="pr-spec-val">{{$prod->potencia_nominal ?? '--'}}</span></div>
@@ -195,7 +284,7 @@
                 @endif
               </div>
               <div class="d-flex flex-column gap-2">
-                <button class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
+                <button onclick="add_carrito_id({{$prod->id}});" class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>
                 <a href="/product/{{ $prod->slug }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</a>
               </div>
             </div>
