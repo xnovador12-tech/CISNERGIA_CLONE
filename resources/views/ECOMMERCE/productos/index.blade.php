@@ -433,7 +433,7 @@ $(document).on('click', 'input[name="marcaFilter"]', function(){
                     }
                   list_product += '</div>';
                   list_product += '<div class="d-flex flex-column gap-2">';
-                    list_product += '<button class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>';
+                    list_product += '<button onclick="add_carrito_id(' + value[0] + ');" class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>';
                     list_product += '<a href="/product/' + value[14] + '" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</a>';
                   list_product += '</div>';
               list_product += '</div>';
@@ -496,7 +496,7 @@ $(document).on('click', 'input[name="marcaFilter"]', function(){
                     }
                   list_product += '</div>';
                   list_product += '<div class="d-flex flex-column gap-2">';
-                    list_product += '<button class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>';
+                    list_product += '<button onclick="add_carrito_id(' + value[0] + ');" class="btn btn-primary btn-sm"><i class="bi bi-cart-plus me-1"></i>Agregar</button>';
                     list_product += '<a href="/product/' + value[14] + '" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver detalles</a>';
                   list_product += '</div>';
               list_product += '</div>';

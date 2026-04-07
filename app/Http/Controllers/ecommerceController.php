@@ -398,6 +398,9 @@ class ecommerceController extends Controller
                                 $value['imagen_producto'],
                                 $value['precio'],
                                 $value['producto_id'],
+                                $value['cantidad'],
+                                $value['precio_descuento'],
+                                $value['porcentaje'],
                                 count(session('carrito', [])),
                             ];
                         }
@@ -425,9 +428,12 @@ class ecommerceController extends Controller
                         'slug' => $product->slug,
                         'ymdhis' => date('YmdHis'),
                         'name_producto' => $product->name,
-                        'imagen_producto' => $product->imagen? asset('images/productos/' . $product->imagen) : asset('images/logo.webp'),
+                        'imagen_producto' => $product->imagen ? asset('images/productos/' . $product->imagen) : asset('images/logo.webp'),
                         'precio' => $product->precio,
-                        'producto_id' => $product->id
+                        'producto_id' => $product->id,
+                        'cantidad' => 1,
+                        'precio_descuento' => $product->precio_descuento > 0 ? $product->precio_descuento : 0,
+                        'porcentaje' => $product->porcentaje > 0 ? $product->porcentaje : 0,
                     ];
                     $carrito[] = $item;
                     
@@ -463,14 +469,17 @@ class ecommerceController extends Controller
                     'slug' => $product->slug,
                     'ymdhis' => date('YmdHis'),
                     'name_producto' => $product->name,
-                    'imagen_producto' => $product->imagen,
+                    'imagen_producto' => $product->imagen ? asset('images/productos/' . $product->imagen) : asset('images/logo.webp'),
                     'precio' => $product->precio,
-                    'producto_id' => $product->id
+                    'producto_id' => $product->id,
+                    'cantidad' => 1,
+                    'precio_descuento' => $product->precio_descuento > 0 ? $product->precio_descuento : 0,
+                    'porcentaje' => $product->porcentaje > 0 ? $product->porcentaje : 0,
                 ];
 
                 session(['carrito' => $carrito]);
-                
-                $ArrayList[1] = ['producto_agregado_al_carrito'];
+
+                $ArrayList[1] = ['producto_agregado_al_carrito', count($carrito)];
                 return response()->json($ArrayList);
             }
 
@@ -478,6 +487,16 @@ class ecommerceController extends Controller
 
     }
 
+    public function pago_carrito_compra()
+    {
+        $cart = session('carrito');
+
+        $subtotal = collect($cart)->sum(fn($item) => $item['precio'] * $item['cantidad']);
+        $igv      = $subtotal * 0.18;
+        $total    = $subtotal + $igv;
+
+        return view('ECOMMERCE.carrito.carrito', compact('cart', 'subtotal', 'igv', 'total'));
+    }
     public function installation()
     {
         return view('ECOMMERCE.installation');

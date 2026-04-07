@@ -183,19 +183,19 @@
 
                             <!-- Productos -->
                             <div class="mb-4">
-                                <h6 class="fw-semibold mb-3">Productos ({{ $cart->getTotalItems() }})</h6>
-                                @foreach($cart->items as $item)
+                                <h6 class="fw-semibold mb-3">Productos ({{ count($cart) }})</h6>
+                                @foreach($cart as $item)
                                 <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                                     <div style="width: 60px; height: 60px;" class="border rounded me-3">
-                                        <img src="{{ asset($item->producto->imagen ?? 'images/no-image.png') }}" 
-                                             class="w-100 h-100 object-fit-contain p-1" alt="{{ $item->nombre }}">
+                                        <img src="{{ asset($item['imagen_producto'] ?? 'images/logo.webp') }}" 
+                                            class="w-100 h-100 object-fit-contain p-1" alt="{{ $item['name_producto'] }}">
                                     </div>
                                     <div class="flex-grow-1">
-                                        <p class="mb-1 small">{{ Str::limit($item->nombre, 40) }}</p>
-                                        <small class="text-muted">Cant: {{ $item->cantidad }}</small>
+                                        <p class="mb-1 small">{{ Str::limit($item['name_producto'], 40) }}</p>
+                                        <small class="text-muted">Cant: {{ $item['cantidad'] }}</small>
                                     </div>
                                     <div class="text-end">
-                                        <p class="mb-0 fw-semibold">S/ {{ number_format($item->subtotal, 2) }}</p>
+                                        <p class="mb-0 fw-semibold">S/ {{ number_format($item['precio'] * $item['cantidad'], 2) }}</p>
                                     </div>
                                 </div>
                                 @endforeach
@@ -205,17 +205,15 @@
                             <div class="border-top pt-3">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">Subtotal:</span>
-                                    <span class="fw-semibold">S/ {{ number_format($cart->subtotal, 2) }}</span>
+                                    <span class="fw-semibold">S/ {{ number_format($subtotal, 2) }}</span>
                                 </div>
-                                @if($cart->descuento > 0)
                                 <div class="d-flex justify-content-between mb-2 text-success">
                                     <span>Descuento:</span>
-                                    <span class="fw-semibold">- S/ {{ number_format($cart->descuento, 2) }}</span>
+                                    <span class="fw-semibold">- S/ {{ number_format(0, 2) }}</span>
                                 </div>
-                                @endif
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">IGV (18%):</span>
-                                    <span class="fw-semibold">S/ {{ number_format($cart->igv, 2) }}</span>
+                                    <span class="fw-semibold">S/ {{ number_format($igv, 2) }}</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">Envío:</span>
@@ -227,7 +225,7 @@
                             <div class="border-top pt-3 mt-3">
                                 <div class="d-flex justify-content-between mb-4">
                                     <span class="fw-bold fs-5">Total a Pagar:</span>
-                                    <span class="fw-bold fs-4 text-primary">S/ {{ number_format($cart->total, 2) }}</span>
+                                    <span class="fw-bold fs-4 text-primary">S/ {{ number_format($total, 2) }}</span>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold mb-3" id="submitBtn">

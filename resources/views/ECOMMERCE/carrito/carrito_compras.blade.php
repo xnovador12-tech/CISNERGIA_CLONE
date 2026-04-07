@@ -13,9 +13,9 @@
         <p class="small" id="contador_productos">( 0 ) Producto(s) en el carrito</p>
         <p class="h4 fw-bold text-dark text-uppercase" id="montotal_productos">TOTAL: S/ 00.00</p>
         @if(session('carrito', []) && count(session('carrito', [])) > 0)
-            <a href="" id="button_carrito" class="btn btn-primary w-100">Ir al carrito</a>
+            <a href="{{ route('ecommerce_pago_carrito_compras.index') }}" id="button_carrito" class="btn btn-primary w-100">Ir al carrito</a>
         @else
-            <a href="" id="button_carrito" class="btn btn-primary w-100">Ir al carrito</a>
+            <a href="{{ route('ecommerce_pago_carrito_compras.index') }}" id="button_carrito" class="btn btn-primary w-100">Ir al carrito</a>
         @endif
     </div>
 </div>
