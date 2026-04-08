@@ -36,7 +36,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control @error('nombre') is-invalid @enderror" 
-                                           name="nombre" value="{{ old('nombre') }}" required>
+                                           name="nombre" id="nombre" value="{{ old('nombre') }}" required>
                                     @error('nombre')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -44,7 +44,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
                                     <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                           name="email" value="{{ old('email') }}" required>
+                                           name="email" id="email" value="{{ old('email') }}" required>
                                     @error('email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -52,7 +52,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Teléfono <span class="text-danger">*</span></label>
                                     <input type="tel" class="form-control @error('telefono') is-invalid @enderror" 
-                                           name="telefono" value="{{ old('telefono') }}" required>
+                                           name="telefono" id="telefono" value="{{ old('telefono') }}" required>
                                     @error('telefono')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -60,7 +60,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">DNI/RUC <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control @error('documento') is-invalid @enderror" 
-                                           name="documento" value="{{ old('documento') }}" required>
+                                           name="documento" id="documento" value="{{ old('documento') }}" required>
                                     @error('documento')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -79,7 +79,7 @@
                                 <div class="col-12">
                                     <label class="form-label fw-semibold">Dirección Completa <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control @error('direccion') is-invalid @enderror" 
-                                           name="direccion" value="{{ old('direccion') }}" 
+                                           name="direccion" id="direccion" value="{{ old('direccion') }}" 
                                            placeholder="Calle, número, urbanización, referencia" required>
                                     @error('direccion')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -89,7 +89,9 @@
                                     <label class="form-label fw-semibold">Departamento <span class="text-danger">*</span></label>
                                     <select class="form-select" id="departamento_id" required>
                                         <option value="">Seleccionar</option>
-                                        <!-- Se llenarán dinámicamente -->
+                                        @foreach($departamentos as $departamento)
+                                            <option value="{{ $departamento->id }}">{{ $departamento->nombre }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-4">
@@ -121,25 +123,27 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <div class="form-check border rounded p-3">
-                                        <input class="form-check-input" type="radio" name="metodo_pago" 
-                                               id="metodo_tarjeta" value="tarjeta" checked>
+                                        <input class="payment-method-card form-check-input" type="radio" name="metodo_pago" 
+                                               id="metodo_tarjeta" value="tarjeta">
                                         <label class="form-check-label w-100" for="metodo_tarjeta">
                                             <strong><i class="bi bi-credit-card me-2"></i>Tarjeta de Crédito/Débito</strong>
                                             <small class="d-block text-muted mt-1">Visa, Mastercard</small>
+                                            <span class="culqi-badge"><i class="bi bi-shield-check"></i> Procesado por Culqi</span>
                                         </label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check border rounded p-3">
-                                        <input class="form-check-input" type="radio" name="metodo_pago" 
+                                        <input class="payment-method-card form-check-input" type="radio" name="metodo_pago" 
                                                id="metodo_yape" value="yape">
                                         <label class="form-check-label w-100" for="metodo_yape">
                                             <strong><i class="bi bi-phone me-2"></i>Yape / Plin</strong>
                                             <small class="d-block text-muted mt-1">Pago móvil</small>
+                                            <span class="culqi-badge"><i class="bi bi-shield-check"></i> Procesado por Culqi</span>
                                         </label>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <!-- <div class="col-md-6">
                                     <div class="form-check border rounded p-3">
                                         <input class="form-check-input" type="radio" name="metodo_pago" 
                                                id="metodo_transferencia" value="transferencia">
@@ -158,7 +162,7 @@
                                             <small class="d-block text-muted mt-1">Pago al recibir</small>
                                         </label>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                     </div>
@@ -169,7 +173,7 @@
                             <h5 class="fw-bold mb-3">
                                 <i class="bi bi-chat-text me-2 text-primary"></i>Observaciones (Opcional)
                             </h5>
-                            <textarea class="form-control" name="observaciones" rows="3" 
+                            <textarea class="form-control" id="observaciones" rows="3" 
                                       placeholder="Agrega cualquier indicación especial para tu pedido">{{ old('observaciones') }}</textarea>
                         </div>
                     </div>
@@ -206,14 +210,17 @@
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">Subtotal:</span>
                                     <span class="fw-semibold">S/ {{ number_format($subtotal, 2) }}</span>
+                                    <input type="hidden" id="subtotal" value="{{ $subtotal }}">
                                 </div>
                                 <div class="d-flex justify-content-between mb-2 text-success">
                                     <span>Descuento:</span>
                                     <span class="fw-semibold">- S/ {{ number_format(0, 2) }}</span>
+                                    <input type="hidden" id="descuento" value="0">
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">IGV (18%):</span>
                                     <span class="fw-semibold">S/ {{ number_format($igv, 2) }}</span>
+                                    <input type="hidden" id="igv" value="{{ $igv }}">
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">Envío:</span>
@@ -226,9 +233,10 @@
                                 <div class="d-flex justify-content-between mb-4">
                                     <span class="fw-bold fs-5">Total a Pagar:</span>
                                     <span class="fw-bold fs-4 text-primary">S/ {{ number_format($total, 2) }}</span>
+                                    <input type="hidden" id="total" value="{{ $total }}">
                                 </div>
 
-                                <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold mb-3" id="submitBtn">
+                                <button onclick="selectPaymentMethod('card')" class="btn btn-primary w-100 py-3 fw-semibold mb-3" id="submitBtn">
                                     <i class="bi bi-shield-check me-2"></i>Confirmar Pedido
                                 </button>
 
@@ -267,10 +275,44 @@
             </div>
         </form>
     </div>
+    
+    <!-- Loading Overlay -->
+    <div class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center" id="loadingOverlay" style="background: rgba(0,0,0,0.7); z-index: 9999;">
+        <div class="text-center">
+            <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status"></div>
+            <p class="text-white mt-3 fw-semibold">Procesando pago seguro...</p>
+        </div>
+    </div>
 </section>
 @endsection
 
 @section('js')
+<script src="https://checkout.culqi.com/js/v3"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#departamento_id').on('change', function() {
+            valor_departamento = $(this).val();
+            $.get('/ver_provincias',{valor_departamento:valor_departamento}, function(busqueda){
+                $('#provincia_id').empty();
+                $.each(busqueda, function(index, value){
+                    $('#provincia_id').append(''+'<option value="'+index+'">'+value[0]+'</option>');
+                });
+            });
+        });
+
+        $('#provincia_id').on('change', function() {
+            valor_provincia = $(this).val();
+            $.get('/ver_distritos',{valor_provincia:valor_provincia}, function(busqueda){
+                $('#distrito_id').empty();
+                $.each(busqueda, function(index, value){
+                    $('#distrito_id').append(''+'<option value="'+index+'">'+value[0]+'</option>');
+                });
+            });
+        });
+    });
+
+</script>
 <script>
     // Manejar el envío del formulario
     document.getElementById('checkoutForm').addEventListener('submit', function(e) {
@@ -278,29 +320,153 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
     });
-
-    // Nota: En producción, aquí cargarías los departamentos, provincias y distritos
-    // Por ahora, usaremos valores estáticos para Lima
-    document.addEventListener('DOMContentLoaded', function() {
-        // Cargar departamentos (simplificado para el ejemplo)
-        const departamentoSelect = document.getElementById('departamento_id');
-        departamentoSelect.innerHTML = '<option value="">Seleccionar</option><option value="15">Lima</option>';
-        
-        // Cuando se cambie, cargar distritos (simplificado)
-        departamentoSelect.addEventListener('change', function() {
-            if (this.value == '15') {
-                const distritoSelect = document.getElementById('distrito_id');
-                distritoSelect.innerHTML = `
-                    <option value="">Seleccionar</option>
-                    <option value="1">Lima Cercado</option>
-                    <option value="2">Miraflores</option>
-                    <option value="3">San Isidro</option>
-                    <option value="4">Surco</option>
-                    <option value="5">La Molina</option>
-                    <option value="6">San Borja</option>
-                `;
-            }
-        });
-    });
 </script>
+
+<!-- Proceso para ejecutar culqi -->
+
+<script>
+    const culqiPublicKey = "{{ config('services.culqi.public_key') ?: config('services.culqi.client_id') }}";
+    const culqiAmount = {{ $culqiAmountPenCents ?? 0 }};
+    const culqiEmail = "{{ auth()->check() ? auth()->user()->email : '' }}";
+    const limpiarSesionRoute = "{{ route('limpiar-sesion-planes.get') }}";
+
+    window.history.pushState({ pago: true }, '', window.location.href);
+    window.addEventListener('popstate', function () {
+        window.location.href = limpiarSesionRoute;
+    });
+    
+    function openCulqiCheckout() {
+        if (!window.Culqi) {
+            alert('No se pudo cargar Culqi. Recarga la página e intenta nuevamente.');
+            return;
+        }
+
+        if (!culqiPublicKey) {
+            alert('Culqi no está configurado. Falta la llave pública.');
+            return;
+        }
+
+        if (!culqiAmount || culqiAmount <= 0) {
+            alert('No se encontró un monto válido para procesar el pago.');
+            return;
+        }
+
+        Culqi.publicKey = culqiPublicKey;
+        Culqi.settings({
+            title: 'LEIDINGER Familias Empresarias',
+            currency: 'PEN',
+            amount: culqiAmount,
+        });
+
+        Culqi.options({
+            lang: 'auto',
+            installments: false,
+            paymentMethods: {
+                tarjeta: true,
+                yape: false,
+                bancaMovil: false,
+                agente: false,
+                billetera: false,
+                cuotealo: false,
+            },
+        });
+
+        Culqi.open();
+    }
+
+    function selectPaymentMethod(method) {
+        if (method === 'card') {
+            openCulqiCheckout();
+        }
+    }
+
+    window.culqi = function () {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const nombre = document.getElementById('nombre')?.value;
+        const email = document.getElementById('email')?.value;
+        const telefono = document.getElementById('telefono')?.value;
+        const documento = document.getElementById('documento')?.value;
+        const direccion = document.getElementById('direccion')?.value;
+        const departamento_id = document.getElementById('departamento_id')?.value;
+        const distrito_id = document.getElementById('distrito_id')?.value;
+        const provincia_id = document.getElementById('provincia_id')?.value;
+        const subtotal = document.getElementById('subtotal')?.value;
+        const descuento = document.getElementById('descuento')?.value;
+        const igv = document.getElementById('igv')?.value;
+        const total = document.getElementById('total')?.value;
+        const observaciones = document.getElementById('observaciones')?.value;
+
+        if (Culqi.token) {
+            loadingOverlay.classList.remove('d-none');
+            loadingOverlay.classList.add('d-flex');
+
+            fetch("{{ route('pago_ecommerce.createCulqiCharge') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({
+                    token: Culqi.token.id,
+                    nombre: nombre,
+                    telefono: telefono,
+                    documento: documento,
+                    direccion: direccion,
+                    departamento_id: departamento_id,
+                    provincia_id: provincia_id,
+                    distrito_id: distrito_id,
+                    subtotal: subtotal,
+                    descuento: descuento,
+                    igv: igv,
+                    total: total,
+                    email: culqiEmail,
+                    observaciones: observaciones,
+                }),
+            })
+            .then(async (response) => {
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'No se pudo procesar el pago con Culqi.');
+                }
+                return data;
+            })
+            .then(() => {
+                const alertHTML = `
+                    <div class="position-fixed top-50 start-50 translate-middle" style="z-index: 10000; width: 90%; max-width: 500px;">
+                        <div class="alert alert-success shadow-lg border-0 rounded-4 p-4 text-center" role="alert">
+                            <i class="bi bi-check-circle-fill" style="font-size: 3rem; color: #198754;"></i>
+                            <h4 class="alert-heading mt-3 mb-3">¡Pago Exitoso con Culqi!</h4>
+                            <p class="mb-2">Bienvenido a LEIDINGER Familias Empresarias</p>
+                            <hr>
+                            <p class="mb-0 small">Recibirás un correo de confirmación. Redirigiendo...</p>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', alertHTML);
+
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 3000);
+            })
+            .catch((error) => {
+                alert('Error en Culqi: ' + error.message);
+            })
+            .finally(() => {
+                loadingOverlay.classList.remove('d-flex');
+                loadingOverlay.classList.add('d-none');
+            });
+        } else if (Culqi.error) {
+            alert(Culqi.error.user_message || 'No se pudo generar el token de Culqi.');
+        }
+    };
+
+        document.getElementById('cardPaymentForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            openCulqiCheckout();
+        });
+</script>
+
+<!-- proceso de finalizacion de culqi -->
 @endsection

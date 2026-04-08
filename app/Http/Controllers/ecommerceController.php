@@ -15,6 +15,9 @@ use App\Models\Comment;
 use App\Models\Inventario;
 use App\Models\Likecomment;
 use App\Models\Marca;
+use App\Models\Departamento;
+use App\Models\Provincia;
+use App\Models\Distrito;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -637,13 +640,158 @@ class ecommerceController extends Controller
         $cart = session('carrito', []);
 
         if (count($cart) == 0) {
-            return redirect()->route('ecommerce.cart')->with('error', 'El carrito está vacío');
+            return redirect()->route('ecommerce_pago_carrito_compras.index')->with('error', 'El carrito está vacío');
         }
 
-        $cart->load('items.name_producto');
+        $subtotal = collect($cart)->sum(fn($item) => ((float) ($item['precio'] ?? 0)) * ((int) ($item['cantidad'] ?? 1)));
+        $igv = $subtotal * 0.18;
+        $total = $subtotal + $igv;
 
-        return view('ECOMMERCE.carrito.checkout', compact('cart'));
+        $departamentos = Departamento::all();
+        $culqiAmountPenCents = (int) round($total * 100);
+
+        return view('ECOMMERCE.carrito.checkout', compact('cart', 'subtotal', 'igv', 'total', 'departamentos', 'culqiAmountPenCents'));
     }
+
+    public function getprovincias(Request $request)
+    {
+        if ($request->ajax()) {
+            $provincias = Provincia::where('departamento_id', $request->valor_departamento)->get();
+
+            foreach ($provincias as $provincia) {
+                $arraylist[$provincia->id] = [$provincia->nombre];
+            }
+            return response()->json($arraylist);
+        }
+    }
+    public function getdistritos(Request $request)
+    {
+        if ($request->ajax()) {
+            $distritos = Distrito::where('provincia_id', $request->valor_provincia)->get();
+
+            foreach ($distritos as $distrito) {
+                $arraylist[$distrito->id] = [$distrito->nombre];
+            }
+            return response()->json($arraylist);
+        }
+    }
+
+    //crear orden de culqi
+    public function createCulqiCharge(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'token' => 'required|string',
+                'email' => 'required|email',
+            ]);
+
+            $sesionItems = session('sesion', []);
+            if (empty($sesionItems)) {
+                return response()->json(['success' => false, 'message' => 'No hay items en la sesión'], 400);
+            }
+
+            if (!Auth::check()) {
+                return response()->json(['success' => false, 'message' => 'Usuario no autenticado'], 401);
+            }
+
+            $secretKey = config('services.culqi.secret_key') ?: config('services.culqi.secret');
+            if (empty($secretKey)) {
+                return response()->json(['success' => false, 'message' => 'Credenciales de Culqi no configuradas'], 500);
+            }
+
+            $totalUsd = $this->getSessionTotalUsd($sesionItems);
+            $exchangeRate = $this->getExchangeRateForToday();
+            $totalPen = $totalUsd * $exchangeRate;
+            $amountInCents = (int) round($totalPen * 100);
+
+            $culqiClass = '\\Culqi\\Culqi';
+            $culqi = new $culqiClass(['api_key' => $secretKey]);
+            $charge = $culqi->Charges->create([
+                'amount' => $amountInCents,
+                'currency_code' => 'PEN',
+                'email' => $validated['email'],
+                'source_id' => $validated['token'],
+            ]);
+
+            $outcomeType = $charge->outcome->type ?? null;
+            if ($outcomeType !== 'venta_exitosa') {
+                $message = $charge->outcome->merchant_message ?? 'Pago rechazado por Culqi';
+                return response()->json(['success' => false, 'message' => $message], 400);
+            }
+
+            $now = Carbon::now();
+            $ultimoPedido = Pedido::latest('id')->first();
+            $numero = $ultimoPedido ? $ultimoPedido->id + 1 : 1;
+            $codigo = 'PED-' . date('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
+
+            $firstItem = collect($sesionItems)->first();
+
+            $cliente = new Cliente();
+            $cliente->nombre = $request->nombre;
+            $longitud = strlen($request->documento);
+            if ($longitud === 11) {
+                $cliente->razon_social = $request->nombre;
+                $cliente->ruc          = $request->documento;
+                $cliente->tipo_persona         = 'juridica';
+            } else {
+                $cliente->dni       = $request->documento;
+                $cliente->nombre = $request->nombre;
+                $cliente->tipo_persona         = 'natural';
+            }
+
+            $cliente->email                = $request->email;
+            $cliente->telefono             = $request->telefono;
+            $cliente->direccion            = $request->direccion;
+            $cliente->distrito_id          = $request->distrito_id;
+            $cliente->estado               = 'activo';
+            $cliente->origen               = 'ecommerce';
+            $cliente->segmento             = 'segmento';
+            $cliente->fecha_primera_compra = now()->toDateString();
+            $cliente->save();
+
+            $pedido = new Pedido();
+            $pedido->codigo = $codigo;
+            $pedido->slug = Str::slug($codigo);
+            $pedido->cliente_id = $cliente_id;
+            $pedido->subtotal = $request->subtotal ?? 0;
+            $pedido->descuento_porcentaje = $request->descuento_porcentaje ?? 0;
+            $pedido->descuento_monto = $request->descuento_monto ?? 0;
+            $pedido->igv = $request->igv ?? 0;
+            $pedido->total = $request->total ?? 0;
+            $pedido->estado = 'pendiente';
+            $pedido->aprobacion_finanzas = false;  // Nuevo pedido = No aprobado
+            $pedido->aprobacion_stock = false;     // Nuevo pedido = Sin reserva
+            $pedido->direccion_instalacion = $request->direccion;
+            $pedido->distrito_id = $request->distrito_id;
+            $pedido->fecha_entrega_estimada = $now->addDays(3)->toDateString(); // Ejemplo: entrega en 3 días
+            $pedido->almacen_id = 1;
+            $pedido->prioridad = 'alta';
+            $pedido->observaciones = $request->observaciones;
+            $pedido->origen = 'ecommerce';
+            $pedido->save();
+
+            session()->forget('sesion');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pago procesado correctamente con Culqi',
+                'charge_id' => $charge->id ?? null,
+                'exchange_rate' => $exchangeRate,
+            ]);
+        } catch (\Throwable $e) {
+            logger()->error('Culqi charge error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al procesar pago con Culqi',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     // Procesar pago
     public function processCheckout(Request $request)
@@ -661,7 +809,7 @@ class ecommerceController extends Controller
         $cart = $this->getOrCreateCart();
 
         if ($cart->items->count() == 0) {
-            return redirect()->route('ecommerce.cart')->with('error', 'El carrito está vacío');
+            return redirect()->route('ecommerce_pago_carrito_compras.index')->with('error', 'El carrito está vacío');
         }
 
         DB::beginTransaction();

@@ -76,8 +76,11 @@ Route::get('/cart/count', [ecommerceController::class, 'getCartCount'])->name('e
 
 // Checkout
 Route::get('/checkout', [ecommerceController::class, 'checkout'])->name('ecommerce.checkout');
+route::get('ver_provincias', [ecommerceController::class, 'getprovincias']);
+route::get('ver_distritos', [ecommerceController::class, 'getdistritos']);
 Route::post('/checkout/process', [ecommerceController::class, 'processCheckout'])->name('ecommerce.checkout.process');
 Route::get('/order-confirmation/{slug}', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmation');
+Route::post('pago-ecommerce/processCulqi', [ecommerceController::class, 'createCulqiCharge'])->name('pago_ecommerce.createCulqiCharge');
 
 // =============================================================
 // ADMINISTRADOR — Todas las rutas protegidas con auth
