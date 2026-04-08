@@ -61,7 +61,8 @@ Route::get('ver_carrito', [ecommerceController::class, 'getcargar_carrito']);
 Route::get('agregar_compra_carrito', [ecommerceController::class, 'getagregar_compra_carrito']);
 Route::get('carrito-compras', [ecommerceController::class, 'index'])->name('ecommerce.carrito_compras.index');
 Route::get('listado_pago_carrito_compras', [ecommerceController::class, 'pago_carrito_compra'])->name('ecommerce_pago_carrito_compras.index');
-
+Route::get('eliminar_carrito', [ecommerceController::class, 'geteliminar_carrito']);
+Route::get('actualizar_cantidad_carrito', [ecommerceController::class, 'getactualizar_cantidad_carrito']);
 
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');

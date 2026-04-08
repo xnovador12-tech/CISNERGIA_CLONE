@@ -497,6 +497,129 @@ class ecommerceController extends Controller
 
         return view('ECOMMERCE.carrito.carrito', compact('cart', 'subtotal', 'igv', 'total'));
     }
+
+    public function geteliminar_carrito(Request $request)
+    {
+        if($request->ajax()){
+            $id_element_producto = (int) $request->id_element_producto;
+            $carrito = session('carrito', []);
+            $ncarrito = [];
+
+            // recorremos el carrito y eliminamos el elemento que no coincida
+            foreach ($carrito as $key => $item) {
+                
+                //Realizamos la busqueda de la cuponera, si existe la eliminamos
+                    // if(isset($key) && $key == $id_element_carrito && Usercoupon::where('user_id',Auth::user()->id)->where('course_id',$item['curso_id'])->exists()){
+                    //     $eliminar_cuponera = Usercoupon::where('user_id',Auth::user()->id)->where('course_id',$item['curso_id'])->first();
+                    //     $eliminar_cuponera->delete();
+                    // }
+                //fin de validacion de cuponera
+
+                if (isset($key) && (int) $item['producto_id'] !== $id_element_producto) {
+                    $ncarrito[$key] = $item;
+                }
+            }
+
+            // Reindexar y guardar
+            $request->session()->put('carrito', $ncarrito);
+
+            return response()->json($this->buildSessionCartPayload(session('carrito', [])));
+        }
+    }
+
+    public function getactualizar_cantidad_carrito(Request $request)
+    {
+        if($request->ajax()){
+            $id_element_producto = (int) $request->id_element_producto;
+            $cantidad = max(1, (int) $request->cantidad);
+            $carrito = session('carrito', []);
+
+            foreach ($carrito as $key => $item) {
+                if ((int) ($item['producto_id'] ?? 0) === $id_element_producto) {
+                    $carrito[$key]['cantidad'] = $cantidad;
+                    break;
+                }
+            }
+
+            $request->session()->put('carrito', $carrito);
+
+            return response()->json($this->buildSessionCartPayload(session('carrito', [])));
+        }
+    }
+
+    private function buildSessionCartPayload(array $carritoActual): array
+    {
+        if(count($carritoActual) === 0){
+            session()->forget('carrito');
+
+            return [
+                'status' => 'empty',
+                'items' => [],
+                'summary' => [
+                    'count' => 0,
+                    'subtotal' => 0,
+                    'igv' => 0,
+                    'total' => 0,
+                ],
+            ];
+        }
+
+        $productoIds = collect($carritoActual)
+            ->pluck('producto_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $productos = Producto::with('marca')
+            ->whereIn('id', $productoIds)
+            ->get()
+            ->keyBy('id');
+
+        $items = [];
+        $subtotal = 0;
+
+        foreach($carritoActual as $value){
+            $producto = $productos->get((int) $value['producto_id']);
+            $precioUnitario = (float) ($value['precio'] ?? 0);
+            $cantidad = (int) ($value['cantidad'] ?? 0);
+            $itemSubtotal = $precioUnitario * $cantidad;
+            $subtotal += $itemSubtotal;
+
+            $items[] = [
+                'slug' => $value['slug'] ?? null,
+                'ymdhis' => $value['ymdhis'] ?? null,
+                'name_producto' => $value['name_producto'] ?? '',
+                'imagen_producto' => $value['imagen_producto'] ?? asset('images/logo.webp'),
+                'precio' => $precioUnitario,
+                'producto_id' => (int) ($value['producto_id'] ?? 0),
+                'cantidad' => $cantidad,
+                'precio_descuento' => (float) ($value['precio_descuento'] ?? 0),
+                'porcentaje' => (float) ($value['porcentaje'] ?? 0),
+                'valor_marca' => optional($producto?->marca)->name,
+                'valor_codigo' => $producto->codigo ?? 'N/A',
+                'item_subtotal' => $itemSubtotal,
+            ];
+        }
+
+        $igv = $subtotal * 0.18;
+        $total = $subtotal + $igv;
+
+        return [
+            'status' => 'ok',
+            'items' => $items,
+            'summary' => [
+                'count' => count($items),
+                'subtotal' => round($subtotal, 2),
+                'igv' => round($igv, 2),
+                'total' => round($total, 2),
+            ],
+        ];
+    }
+
+
+
+
+
     public function installation()
     {
         return view('ECOMMERCE.installation');
@@ -507,143 +630,19 @@ class ecommerceController extends Controller
         return view('ECOMMERCE.contact');
     }
 
-    // Agregar al carrito
-    public function addToCart(Request $request)
-    {
-        $request->validate([
-            'producto_id' => 'required|exists:productos,id',
-            'cantidad' => 'required|integer|min:1',
-        ]);
-
-        $producto = Producto::findOrFail($request->producto_id);
-
-        // Validar Stock
-        $stockDisponible = \App\Models\Inventario::where('id_producto', $producto->id)->sum('cantidad');
-
-        // Calcular cantidad actual en carrito para este producto
-        $cantidadEnCarrito = 0;
-        if (auth()->check()) {
-            $existingCart = Cart::where('user_id', auth()->id())->first();
-            if ($existingCart) {
-                $existingItem = CartItem::where('cart_id', $existingCart->id)->where('producto_id', $producto->id)->first();
-                $cantidadEnCarrito = $existingItem ? $existingItem->cantidad : 0;
-            }
-        } else {
-            $sessionId = Session::get('cart_session_id');
-            if ($sessionId) {
-                $existingCart = Cart::where('session_id', $sessionId)->first();
-                if ($existingCart) {
-                    $existingItem = CartItem::where('cart_id', $existingCart->id)->where('producto_id', $producto->id)->first();
-                    $cantidadEnCarrito = $existingItem ? $existingItem->cantidad : 0;
-                }
-            }
-        }
-
-        if (($cantidadEnCarrito + $request->cantidad) > $stockDisponible) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No hay suficiente stock disponible. Stock actual: ' . intval($stockDisponible)
-            ], 422);
-        }
-
-        // Obtener o crear carrito
-        $cart = $this->getOrCreateCart();
-
-        // Verificar si el producto ya está en el carrito
-        $cartItem = CartItem::where('cart_id', $cart->id)
-            ->where('producto_id', $producto->id)
-            ->first();
-
-        if ($cartItem) {
-            // Actualizar cantidad
-            $cartItem->cantidad += $request->cantidad;
-            $cartItem->calculateSubtotal();
-        } else {
-            // Crear nuevo item
-            $cartItem = new CartItem();
-            $cartItem->cart_id = $cart->id;
-            $cartItem->producto_id = $producto->id;
-            $cartItem->tipo = 'producto';
-            $cartItem->nombre = $producto->name;
-            $cartItem->descripcion = $producto->descripcion;
-            $cartItem->cantidad = $request->cantidad;
-            $cartItem->precio_unitario = $producto->precio_descuento ?? $producto->precio;
-            $cartItem->descuento = 0;
-            $cartItem->calculateSubtotal();
-        }
-
-        // Recalcular totales del carrito
-        $cart->calculateTotals();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Producto agregado al carrito',
-            'cart_count' => $cart->getTotalItems()
-        ]);
-    }
-
-    // Ver carrito
-    public function cart()
-    {
-        $cart = $this->getOrCreateCart();
-        $cart->load('items.producto');
-
-        return view('ECOMMERCE.carrito', compact('cart'));
-    }
-
-    // Actualizar cantidad en carrito
-    public function updateCart(Request $request, $itemId)
-    {
-        $request->validate([
-            'cantidad' => 'required|integer|min:1',
-        ]);
-
-        $cart = $this->getOrCreateCart();
-        $cartItem = CartItem::where('cart_id', $cart->id)
-            ->where('id', $itemId)
-            ->firstOrFail();
-
-        $cartItem->cantidad = $request->cantidad;
-        $cartItem->calculateSubtotal();
-        $cart->calculateTotals();
-
-        return response()->json([
-            'success' => true,
-            'subtotal' => number_format($cartItem->subtotal, 2),
-            'cart_total' => number_format($cart->total, 2)
-        ]);
-    }
-
-    // Eliminar del carrito
-    public function removeFromCart($itemId)
-    {
-        $cart = $this->getOrCreateCart();
-        $cartItem = CartItem::where('cart_id', $cart->id)
-            ->where('id', $itemId)
-            ->firstOrFail();
-
-        $cartItem->delete();
-        $cart->calculateTotals();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Producto eliminado del carrito',
-            'cart_count' => $cart->getTotalItems()
-        ]);
-    }
 
     // Página de checkout
     public function checkout()
     {
-        $cart = $this->getOrCreateCart();
+        $cart = session('carrito', []);
 
-        if ($cart->items->count() == 0) {
+        if (count($cart) == 0) {
             return redirect()->route('ecommerce.cart')->with('error', 'El carrito está vacío');
         }
 
-        $cart->load('items.producto');
+        $cart->load('items.name_producto');
 
-        return view('ECOMMERCE.checkout', compact('cart'));
+        return view('ECOMMERCE.carrito.checkout', compact('cart'));
     }
 
     // Procesar pago

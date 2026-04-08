@@ -1,7 +1,21 @@
 @extends('TEMPLATES.ecommerce')
 
 @section('title', 'Carrito de Compras')
+@section('css')
+<style>
+.cantidad-input::-webkit-outer-spin-button,
+.cantidad-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 
+/* Firefox */
+.cantidad-input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+</style>
+@endsection
 @section('content')
 <!-- BREADCRUMB -->
 <section class="py-3 bg-light border-bottom">
@@ -32,7 +46,7 @@
 
                 <!-- Lista de productos -->
                 <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4">
+                    <div class="card-body p-4" id="lista_carrito_compras_id">
                         @foreach($cart as $item)
                             @php
                                 $valores_productos = \App\Models\Producto::where('id', $item['producto_id'])->first();
@@ -75,7 +89,7 @@
                                 </div>
                             </div>
                             <div class="col-auto">
-                                <button class="btn btn-sm btn-outline-danger remove-item-btn" data-item-id="{{ $item['producto_id'] }}">
+                                <button onclick="eliminar_carrito_id({{ $item['producto_id'] }});" class="btn btn-sm btn-outline-danger remove-item-btn" data-item-id="{{ $item['producto_id'] }}">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
@@ -188,9 +202,9 @@
     // Incrementar cantidad
     document.querySelectorAll('.increment-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            let itemId = this.dataset.itemId;
-            let input = document.querySelector(`.cantidad-input[data-item-id="${itemId}"]`);
-            let newCantidad = parseInt(input.value) + 1;
+            var itemId = this.dataset.itemId;
+            var input = document.querySelector('.cantidad-input[data-item-id="' + itemId + '"]');
+            var newCantidad = parseInt(input.value || '1', 10) + 1;
             updateItemQuantity(itemId, newCantidad);
         });
     });
@@ -198,9 +212,9 @@
     // Decrementar cantidad
     document.querySelectorAll('.decrement-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            let itemId = this.dataset.itemId;
-            let input = document.querySelector(`.cantidad-input[data-item-id="${itemId}"]`);
-            let newCantidad = parseInt(input.value) - 1;
+            var itemId = this.dataset.itemId;
+            var input = document.querySelector('.cantidad-input[data-item-id="' + itemId + '"]');
+            var newCantidad = parseInt(input.value || '1', 10) - 1;
             if (newCantidad >= 1) {
                 updateItemQuantity(itemId, newCantidad);
             }
@@ -217,70 +231,95 @@
         });
     });
 
-    // Función para actualizar cantidad
+    // Función para actualizar cantidad en carrito de sesión
     function updateItemQuantity(itemId, cantidad) {
-        fetch(`/cart/update/${itemId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ cantidad: cantidad })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Actualizar cantidad en input
-                document.querySelector(`.cantidad-input[data-item-id="${itemId}"]`).value = cantidad;
-                
-                // Actualizar subtotal del item
-                document.querySelector(`[data-item-id="${itemId}"] .item-subtotal`).textContent = 'S/ ' + data.subtotal;
-                
-                // Actualizar totales del carrito
-                document.getElementById('cart-total').textContent = 'S/ ' + data.cart_total;
-                
-                // Recalcular subtotal e IGV
-                location.reload(); // Recargar para actualizar todos los valores
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+        var cantidadFinal = Math.max(1, Number(cantidad || 1));
+
+        $.get('/actualizar_cantidad_carrito', { id_element_producto: itemId, cantidad: cantidadFinal }, function(response){
+            applyCartResponse(response);
+        }).fail(function(){
             alert('Error al actualizar la cantidad');
         });
     }
 
-    // Función para eliminar item
-    function removeItem(itemId) {
-        fetch(`/cart/remove/${itemId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Eliminar fila del DOM
-                document.querySelector(`[data-item-id="${itemId}"]`).remove();
-                
-                // Actualizar contador del carrito
-                document.querySelectorAll('.cart-count').forEach(el => {
-                    el.textContent = data.cart_count;
-                });
+    function formatMoney(value) {
+        return 'S/ ' + Number(value || 0).toFixed(2);
+    }
 
-                // Si no hay más items, recargar página
-                if (data.cart_count == 0) {
-                    location.reload();
-                } else {
-                    location.reload();
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al eliminar el producto');
+    function renderCarrito(items) {
+        let html = '';
+
+        items.forEach(function(item, index) {
+            const borderClass = (index === items.length - 1) ? '' : 'border-bottom';
+            const marcaHtml = item.valor_marca
+                ? '<small class="text-muted d-block mb-1">Marca: ' + item.valor_marca + '</small>'
+                : '';
+
+            html += '<div class="row align-items-center mb-3 pb-3 ' + borderClass + '" data-item-id="' + item.producto_id + '">';
+            html += '  <div class="col-auto">';
+            html += '      <input type="checkbox" class="form-check-input item-checkbox" checked>';
+            html += '  </div>';
+            html += '  <div class="col-auto">';
+            html += '      <div style="width: 100px; height: 100px;" class="border rounded">';
+            html += '          <img src="' + (item.imagen_producto || '{{ asset('images/logo.webp') }}') + '" class="w-100 h-100 object-fit-contain p-2" alt="' + (item.name_producto || '') + '">';
+            html += '      </div>';
+            html += '  </div>';
+            html += '  <div class="col">';
+            html += '      <h6 class="mb-1">' + (item.name_producto || '') + '</h6>';
+            html +=        marcaHtml;
+            html += '      <small class="text-muted">Código: ' + (item.valor_codigo || 'N/A') + '</small>';
+            html += '  </div>';
+            html += '  <div class="col-auto">';
+            html += '      <label class="form-label small mb-1">Cantidad:</label>';
+            html += '      <div class="input-group" style="width: 130px;">';
+            html += '          <button class="btn btn-sm btn-outline-secondary decrement-btn" type="button" onclick="updateItemQuantity(' + item.producto_id + ', ' + (Number(item.cantidad) - 1) + ')">';
+            html += '              <i class="bi bi-dash"></i>';
+            html += '          </button>';
+            html += '          <input type="number" class="form-control form-control-sm text-center cantidad-input" value="' + item.cantidad + '" min="1" data-item-id="' + item.producto_id + '" readonly>';
+            html += '          <button class="btn btn-sm btn-outline-secondary increment-btn" type="button" onclick="updateItemQuantity(' + item.producto_id + ', ' + (Number(item.cantidad) + 1) + ')">';
+            html += '              <i class="bi bi-plus"></i>';
+            html += '          </button>';
+            html += '      </div>';
+            html += '  </div>';
+            html += '  <div class="col-auto text-end">';
+            html += '      <div class="mb-1">';
+            html += '          <h5 class="text-primary fw-bold mb-0 item-subtotal">' + formatMoney(item.item_subtotal) + '</h5>';
+            html += '          <span class="badge bg-secondary">' + Number(item.porcentaje || 0).toFixed(0) + '% OFF</span>';
+            html += '      </div>';
+            html += '  </div>';
+            html += '  <div class="col-auto">';
+            html += '      <button onclick="eliminar_carrito_id(' + item.producto_id + ');" class="btn btn-sm btn-outline-danger remove-item-btn" data-item-id="' + item.producto_id + '">';
+            html += '          <i class="bi bi-trash"></i>';
+            html += '      </button>';
+            html += '  </div>';
+            html += '</div>';
+        });
+
+        $('#lista_carrito_compras_id').html(html);
+    }
+
+    function applyCartResponse(response) {
+        if (response.status === 'empty') {
+            $('#lista_carrito_compras_id').html('');
+            $('#cart-subtotal').text(formatMoney(0));
+            $('#cart-igv').text(formatMoney(0));
+            $('#cart-total').text(formatMoney(0));
+            window.location.href = '/';
+            return;
+        }
+
+        renderCarrito(response.items || []);
+        var summary = response.summary || { subtotal: 0, igv: 0, total: 0 };
+        $('#cart-subtotal').text(formatMoney(summary.subtotal));
+        $('#cart-igv').text(formatMoney(summary.igv));
+        $('#cart-total').text(formatMoney(summary.total));
+    }
+
+    function eliminar_carrito_id(producto_id){
+        $.get('/eliminar_carrito', {id_element_producto: producto_id}, function(response){
+            applyCartResponse(response);
+        }).fail(function(){
+            alert('No se pudo actualizar el carrito. Intenta nuevamente.');
         });
     }
 </script>
