@@ -108,10 +108,10 @@
       <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
         <div class="d-flex gap-2 justify-content-lg-end">
           <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
-            <i class="bi bi-box-seam me-1"></i>5 Pedidos
+            <i class="bi bi-box-seam me-1"></i>{{ $stats['total_pedidos'] ?? 0 }} Pedidos
           </span>
           <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
-            <i class="bi bi-check-circle me-1"></i>4 Entregados
+            <i class="bi bi-check-circle me-1"></i>{{ $stats['entregados'] ?? 0 }} Entregados
           </span>
         </div>
       </div>
@@ -157,42 +157,92 @@
     <div class="row g-4">
       
       <!-- Pedido 1 - Entregado -->
+      @forelse($ventas as $venta)
+      @php
+        $pedido = $venta->pedido;
+        $detalle_venta = $venta->detalles;
+      @endphp
       <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4 order-card status-delivered" data-status="delivered">
           <div class="card-body p-4">
             <div class="row align-items-center mb-3">
               <div class="col-lg-8">
                 <div class="d-flex align-items-center gap-3 mb-2">
-                  <h5 class="mb-0 fw-bold">#CS-2025-001234</h5>
-                  <span class="badge status-badge bg-success bg-opacity-10 text-success">
-                    <i class="bi bi-check-circle-fill me-1"></i>Entregado
+                  <h5 class="mb-0 fw-bold">#{{$venta->codigo}}</h5>
+                  @if(optional($pedido)->estado == 'pendiente')
+                  <span class="badge status-badge bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-hourglass-split me-1"></i>Pendiente
                   </span>
+                  @elseif(optional($pedido)->estado == 'proceso')
+                  <span class="badge status-badge bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-hourglass-split me-1"></i>En preparación
+                  </span>
+                  @elseif(optional($pedido)->estado == 'enviado')
+                   <span class="badge status-badge bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-truck me-1"></i>En tránsito
+                  </span>
+                  @elseif(optional($pedido)->estado == 'entregado')
+                    <span class="badge status-badge bg-success bg-opacity-10 text-success">
+                      <i class="bi bi-check-circle-fill me-1"></i>Entregado
+                    </span>
+                  @elseif(optional($pedido)->estado == 'cancelado')
+                    <span class="badge status-badge bg-danger bg-opacity-10 text-danger">
+                       <i class="bi bi-x-circle-fill me-1"></i>Cancelado
+                    </span>
+                  @else
+                    <span class="badge status-badge bg-dark bg-opacity-10 text-dark">
+                       <i class="bi bi-x-circle-fill me-1"></i>Confirmado
+                    </span>
+                  @endif
+
                 </div>
                 <p class="text-muted mb-0 small">
-                  <i class="bi bi-calendar3 me-1"></i>Pedido el 28 de noviembre, 2025
+                  <i class="bi bi-calendar3 me-1"></i>Pedido el {{ optional(optional($pedido)->created_at)->format('d \\d\\e F, Y') ?? '-' }}
                   <span class="mx-2">•</span>
-                  <i class="bi bi-box-seam me-1"></i>Entregado el 2 de diciembre, 2025
+                  <i class="bi bi-box-seam me-1"></i>Entregado el {{ optional($pedido)->fecha_entrega_estimada ?? '-' }}
                 </p>
               </div>
               <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <p class="mb-1 fw-bold fs-4 text-primary">S/ 5,546.00</p>
-                <button class="btn btn-sm btn-outline-primary" onclick="toggleDetails('order1')">
+                <p class="mb-1 fw-bold fs-4 text-primary">S/ {{$venta->total}}</p>
+                <button class="btn btn-sm btn-outline-primary" onclick="toggleDetails({{$venta->id}})">
                   <i class="bi bi-eye me-1"></i>Ver detalles
                 </button>
               </div>
             </div>
 
-            <div class="d-flex gap-3 mb-3 flex-wrap">
-              <img src="https://images.pexels.com/photos/356036/pexels-photo-356036.jpeg?auto=compress&cs=tinysrgb&w=100" 
-                   class="product-thumb" alt="Panel Solar">
-              <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=100" 
-                   class="product-thumb" alt="Inversor">
-              <div class="d-flex align-items-center">
-                <span class="text-muted">+2 productos más</span>
+            <div class="d-flex gap-3 mb-3 flex-wrap align-items-center">
+              @if($detalle_venta->count() == 1)
+                @php
+                  $producto = App\Models\Producto::where('id', $detalle_venta->first()->producto_id)->first();
+                @endphp
+                <img src="{{ $producto->imagen ? asset('images/productos/' . $producto->imagen) : asset('images/logo.webp') }}?auto=compress&cs=tinysrgb&w=100" 
+                    class="product-thumb" alt="{{ $producto->nombre }}">
+                <div class="d-flex align-items-center">
+                  <span class="text-muted">{{ $producto->nombre }}</span>
+                </div>
+              @else
+                @php
+                  $primerProducto = App\Models\Producto::where('id', $detalle_venta->first()->producto_id)->first();
+                @endphp
+                <img src="{{ $primerProducto->imagen ? asset('images/productos/' . $primerProducto->imagen) : asset('images/logo.webp') }}?auto=compress&cs=tinysrgb&w=100" 
+                    class="product-thumb" alt="{{ $primerProducto->nombre }}">
+                <div class="d-flex align-items-center">
+                  <span class="text-muted">+{{ $detalle_venta->count() - 1 }} productos más</span>
+                </div>
+              @endif
+            </div>
+            <!-- Timeline de seguimiento -->
+            <div class="mt-3">
+              <div class="alert alert-info border-0 d-flex align-items-center">
+                <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                <div>
+                  <strong>Tu pedido está en camino</strong>
+                  <p class="mb-0 small">Última actualización: Lima, Centro de Distribución - 2 de diciembre, 10:30 AM</p>
+                </div>
               </div>
             </div>
 
-            <div class="order-details" id="order1">
+            <div class="order-details" id="{{$venta->id}}">
               <hr class="my-3">
               <div class="row g-3">
                 <div class="col-lg-8">
@@ -247,234 +297,19 @@
           </div>
         </div>
       </div>
-
-      <!-- Pedido 2 - En tránsito -->
-      <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 order-card status-in-transit" data-status="in-transit">
-          <div class="card-body p-4">
-            <div class="row align-items-center mb-3">
-              <div class="col-lg-8">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                  <h5 class="mb-0 fw-bold">#CS-2025-001198</h5>
-                  <span class="badge status-badge bg-primary bg-opacity-10 text-primary">
-                    <i class="bi bi-truck me-1"></i>En tránsito
-                  </span>
-                </div>
-                <p class="text-muted mb-0 small">
-                  <i class="bi bi-calendar3 me-1"></i>Pedido el 25 de noviembre, 2025
-                  <span class="mx-2">•</span>
-                  <i class="bi bi-box-seam me-1"></i>Entrega estimada: 4 de diciembre, 2025
-                </p>
-              </div>
-              <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <p class="mb-1 fw-bold fs-4 text-primary">S/ 2,850.00</p>
-                <button class="btn btn-sm btn-outline-primary" onclick="toggleDetails('order2')">
-                  <i class="bi bi-eye me-1"></i>Ver detalles
-                </button>
-              </div>
-            </div>
-
-            <div class="d-flex gap-3 mb-3">
-              <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=100" 
-                   class="product-thumb" alt="Batería">
-            </div>
-
-            <!-- Timeline de seguimiento -->
-            <div class="mt-3">
-              <div class="alert alert-info border-0 d-flex align-items-center">
-                <i class="bi bi-info-circle-fill me-2 fs-5"></i>
-                <div>
-                  <strong>Tu pedido está en camino</strong>
-                  <p class="mb-0 small">Última actualización: Lima, Centro de Distribución - 2 de diciembre, 10:30 AM</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="order-details" id="order2">
-              <hr class="my-3">
-              <div class="row">
-                <div class="col-lg-8">
-                  <h6 class="fw-bold mb-3">Seguimiento del pedido</h6>
-                  <div class="position-relative ps-4">
-                    <div class="mb-4 position-relative">
-                      <div class="timeline-dot" style="background: var(--bs-success);"></div>
-                      <div class="timeline-line"></div>
-                      <h6 class="mb-1 small fw-bold">Pedido confirmado</h6>
-                      <p class="mb-0 text-muted small">25 de nov, 2025 - 2:30 PM</p>
-                    </div>
-                    <div class="mb-4 position-relative">
-                      <div class="timeline-dot" style="background: var(--bs-success);"></div>
-                      <div class="timeline-line"></div>
-                      <h6 class="mb-1 small fw-bold">En preparación</h6>
-                      <p class="mb-0 text-muted small">26 de nov, 2025 - 9:00 AM</p>
-                    </div>
-                    <div class="mb-4 position-relative">
-                      <div class="timeline-dot" style="background: var(--bs-secondary);"></div>
-                      <div class="timeline-line"></div>
-                      <h6 class="mb-1 small fw-bold">En tránsito</h6>
-                      <p class="mb-0 text-muted small">2 de dic, 2025 - 10:30 AM</p>
-                    </div>
-                    <div class="position-relative">
-                      <div class="timeline-dot" style="background: var(--c-border);"></div>
-                      <h6 class="mb-1 small text-muted">Entrega programada</h6>
-                      <p class="mb-0 text-muted small">4 de dic, 2025</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-lg-4">
-                  <h6 class="fw-bold mb-3">Acciones</h6>
-                  <div class="d-grid gap-2">
-                    <a href="#" class="btn btn-sm btn-primary">
-                      <i class="bi bi-geo-alt me-1"></i>Rastrear envío
-                    </a>
-                    <a href="#" class="btn btn-sm btn-outline-danger">
-                      <i class="bi bi-x-circle me-1"></i>Cancelar pedido
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      @empty
+      <!-- Sin resultados -->
+      <div class="text-center py-5 d-none" id="noResults">
+        <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+        <h4 class="mt-3 text-muted">No se encontraron pedidos</h4>
+        <p class="text-muted">Intenta con otros filtros o realiza tu primera compra</p>
+        <a href="/products" class="btn btn-primary mt-3">
+          <i class="bi bi-shop me-2"></i>Ir a la tienda
+        </a>
       </div>
-
-      <!-- Pedido 3 - En proceso -->
-      <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 order-card status-processing" data-status="processing">
-          <div class="card-body p-4">
-            <div class="row align-items-center mb-3">
-              <div class="col-lg-8">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                  <h5 class="mb-0 fw-bold">#CS-2025-001156</h5>
-                  <span class="badge status-badge bg-warning bg-opacity-10 text-warning">
-                    <i class="bi bi-hourglass-split me-1"></i>En preparación
-                  </span>
-                </div>
-                <p class="text-muted mb-0 small">
-                  <i class="bi bi-calendar3 me-1"></i>Pedido el 1 de diciembre, 2025
-                  <span class="mx-2">•</span>
-                  <i class="bi bi-clock me-1"></i>Procesando
-                </p>
-              </div>
-              <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <p class="mb-1 fw-bold fs-4 text-primary">S/ 1,450.00</p>
-                <button class="btn btn-sm btn-outline-primary" onclick="toggleDetails('order3')">
-                  <i class="bi bi-eye me-1"></i>Ver detalles
-                </button>
-              </div>
-            </div>
-
-            <div class="d-flex gap-3">
-              <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=100" 
-                   class="product-thumb" alt="Kit cables">
-              <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=100" 
-                   class="product-thumb" alt="Estructura">
-            </div>
-
-            <div class="order-details" id="order3">
-              <hr class="my-3">
-              <p class="text-muted small">Tu pedido está siendo preparado y será enviado pronto. Te notificaremos cuando esté en camino.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pedido 4 - Entregado -->
-      <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 order-card status-delivered" data-status="delivered">
-          <div class="card-body p-4">
-            <div class="row align-items-center mb-3">
-              <div class="col-lg-8">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                  <h5 class="mb-0 fw-bold">#CS-2025-001089</h5>
-                  <span class="badge status-badge bg-success bg-opacity-10 text-success">
-                    <i class="bi bi-check-circle-fill me-1"></i>Entregado
-                  </span>
-                </div>
-                <p class="text-muted mb-0 small">
-                  <i class="bi bi-calendar3 me-1"></i>Pedido el 15 de noviembre, 2025
-                  <span class="mx-2">•</span>
-                  <i class="bi bi-box-seam me-1"></i>Entregado el 20 de noviembre, 2025
-                </p>
-              </div>
-              <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <p class="mb-1 fw-bold fs-4 text-primary">S/ 8,200.00</p>
-                <button class="btn btn-sm btn-outline-primary" onclick="toggleDetails('order4')">
-                  <i class="bi bi-eye me-1"></i>Ver detalles
-                </button>
-              </div>
-            </div>
-
-            <div class="d-flex gap-3">
-              <img src="https://images.pexels.com/photos/356036/pexels-photo-356036.jpeg?auto=compress&cs=tinysrgb&w=100" 
-                   class="product-thumb" alt="Panel Solar">
-              <div class="d-flex align-items-center">
-                <span class="text-muted">Kit completo instalación</span>
-              </div>
-            </div>
-
-            <div class="order-details" id="order4">
-              <hr class="my-3">
-              <div class="alert alert-success border-0">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                <strong>Entrega completada.</strong> ¿Qué te pareció tu compra? 
-                <a href="#" class="alert-link">Deja una reseña</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pedido 5 - Entregado -->
-      <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 order-card status-delivered" data-status="delivered">
-          <div class="card-body p-4">
-            <div class="row align-items-center mb-3">
-              <div class="col-lg-8">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                  <h5 class="mb-0 fw-bold">#CS-2025-000987</h5>
-                  <span class="badge status-badge bg-success bg-opacity-10 text-success">
-                    <i class="bi bi-check-circle-fill me-1"></i>Entregado
-                  </span>
-                </div>
-                <p class="text-muted mb-0 small">
-                  <i class="bi bi-calendar3 me-1"></i>Pedido el 5 de noviembre, 2025
-                  <span class="mx-2">•</span>
-                  <i class="bi bi-box-seam me-1"></i>Entregado el 8 de noviembre, 2025
-                </p>
-              </div>
-              <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <p class="mb-1 fw-bold fs-4 text-primary">S/ 650.00</p>
-                <button class="btn btn-sm btn-outline-primary" onclick="toggleDetails('order5')">
-                  <i class="bi bi-eye me-1"></i>Ver detalles
-                </button>
-              </div>
-            </div>
-
-            <div class="d-flex gap-3">
-              <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=100" 
-                   class="product-thumb" alt="Accesorios">
-            </div>
-
-            <div class="order-details" id="order5">
-              <hr class="my-3">
-              <p class="text-muted small">Pedido entregado exitosamente.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      @endforelse
     </div>
 
-    <!-- Sin resultados -->
-    <div class="text-center py-5 d-none" id="noResults">
-      <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
-      <h4 class="mt-3 text-muted">No se encontraron pedidos</h4>
-      <p class="text-muted">Intenta con otros filtros o realiza tu primera compra</p>
-      <a href="productos.html" class="btn btn-primary mt-3">
-        <i class="bi bi-shop me-2"></i>Ir a la tienda
-      </a>
-    </div>
   </div>
 </section>
 
@@ -489,7 +324,7 @@
             <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
               <i class="bi bi-box-seam text-primary fs-2"></i>
             </div>
-            <h2 class="fw-bold mb-1">5</h2>
+            <h2 class="fw-bold mb-1">{{ $stats['total_pedidos'] ?? 0 }}</h2>
             <p class="text-muted mb-0">Pedidos Totales</p>
           </div>
         </div>
@@ -500,7 +335,7 @@
             <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
               <i class="bi bi-check-circle text-success fs-2"></i>
             </div>
-            <h2 class="fw-bold mb-1">4</h2>
+            <h2 class="fw-bold mb-1">{{ $stats['entregados'] ?? 0 }}</h2>
             <p class="text-muted mb-0">Entregados</p>
           </div>
         </div>
@@ -511,7 +346,7 @@
             <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
               <i class="bi bi-currency-dollar text-warning fs-2"></i>
             </div>
-            <h2 class="fw-bold mb-1">S/ 18,696</h2>
+            <h2 class="fw-bold mb-1">S/ {{ number_format($stats['total_invertido'] ?? 0, 2) }}</h2>
             <p class="text-muted mb-0">Total Invertido</p>
           </div>
         </div>

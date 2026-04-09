@@ -255,7 +255,7 @@
 
                     <!-- Mis compras -->
                     <div class="border-start">
-                        <a href="mis_compras.html"
+                        <a href="{{ route('ecommerce.mis_compras') }}"
                             class="text-decoration-none text-primary d-none d-lg-flex flex-column align-items-start py-2 px-3 rounded hover-bg"
                             style="line-height: 1.3; transition: background 0.2s;">
                             <small class="text-secondary" style="font-size: 0.7rem; font-weight: 400;">Mis</small>
@@ -691,3 +691,15 @@
     }
 // 
 </script>
+
+<!--sweet alert actualizar-->
+@if(session('error_ingreso') == 'ok')
+    <script>
+        Swal.fire({
+        icon: 'warning',
+        confirmButtonColor: '#1C3146',
+        title: '¡Lo sentimos!',
+        text: 'Debes iniciar sesión para proceder al checkout',
+        })
+    </script>
+@endif

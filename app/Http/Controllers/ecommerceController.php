@@ -18,6 +18,10 @@ use App\Models\Marca;
 use App\Models\Departamento;
 use App\Models\Provincia;
 use App\Models\Distrito;
+use App\Models\Persona;
+use App\Models\Sale;
+use App\Models\Detailsale;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +49,36 @@ class ecommerceController extends Controller
 
         return redirect()->route('ecommerce.index');
     }
+
+    public function misCompras ()
+    {
+        $clienteId = Auth::user()?->cliente?->id;
+
+        if (!$clienteId) {
+            $ventas = collect();
+            $stats = [
+                'total_pedidos' => 0,
+                'entregados' => 0,
+                'total_invertido' => 0,
+            ];
+
+            return view('ECOMMERCE.cuenta.mis_compras', compact('ventas', 'stats'));
+        }
+
+        $ventas = Sale::with(['pedido', 'detalles.producto'])
+            ->where('cliente_id', $clienteId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $stats = [
+            'total_pedidos' => $ventas->count(),
+            'entregados' => $ventas->filter(fn ($venta) => optional($venta->pedido)->estado === 'entregado')->count(),
+            'total_invertido' => $ventas->sum('total'),
+        ];
+
+        return view('ECOMMERCE.cuenta.mis_compras', compact('ventas', 'stats'));
+    }
+
 
     // Lista de productos
     public function products(Request $request)
@@ -637,20 +671,24 @@ class ecommerceController extends Controller
     // Página de checkout
     public function checkout()
     {
-        $cart = session('carrito', []);
-
-        if (count($cart) == 0) {
-            return redirect()->route('ecommerce_pago_carrito_compras.index')->with('error', 'El carrito está vacío');
+        if(Auth::check()){
+            $cart = session('carrito', []);
+    
+            if (count($cart) == 0) {
+                return redirect()->route('ecommerce_pago_carrito_compras.index')->with('error', 'El carrito está vacío');
+            }
+    
+            $subtotal = collect($cart)->sum(fn($item) => ((float) ($item['precio'] ?? 0)) * ((int) ($item['cantidad'] ?? 1)));
+            $igv = $subtotal * 0.18;
+            $total = $subtotal + $igv;
+    
+            $departamentos = Departamento::all();
+            $culqiAmountPenCents = (int) round($total * 100);
+    
+            return view('ECOMMERCE.carrito.checkout', compact('cart', 'subtotal', 'igv', 'total', 'departamentos', 'culqiAmountPenCents'));
+        }else{
+            return redirect()->route('login')->with('error_ingreso', 'ok');
         }
-
-        $subtotal = collect($cart)->sum(fn($item) => ((float) ($item['precio'] ?? 0)) * ((int) ($item['cantidad'] ?? 1)));
-        $igv = $subtotal * 0.18;
-        $total = $subtotal + $igv;
-
-        $departamentos = Departamento::all();
-        $culqiAmountPenCents = (int) round($total * 100);
-
-        return view('ECOMMERCE.carrito.checkout', compact('cart', 'subtotal', 'igv', 'total', 'departamentos', 'culqiAmountPenCents'));
     }
 
     public function getprovincias(Request $request)
@@ -680,13 +718,13 @@ class ecommerceController extends Controller
     public function createCulqiCharge(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'token' => 'required|string',
-                'email' => 'required|email',
-            ]);
+            // $validated = $request->validate([
+            //     'token' => 'required|string',
+            //     'email' => 'required|email',
+            // ]);
 
-            $sesionItems = session('sesion', []);
-            if (empty($sesionItems)) {
+            $cartItems = session('carrito', []);
+            if (empty($cartItems)) {
                 return response()->json(['success' => false, 'message' => 'No hay items en la sesión'], 400);
             }
 
@@ -694,37 +732,36 @@ class ecommerceController extends Controller
                 return response()->json(['success' => false, 'message' => 'Usuario no autenticado'], 401);
             }
 
-            $secretKey = config('services.culqi.secret_key') ?: config('services.culqi.secret');
-            if (empty($secretKey)) {
-                return response()->json(['success' => false, 'message' => 'Credenciales de Culqi no configuradas'], 500);
-            }
+            $email = $request->email;
 
-            $totalUsd = $this->getSessionTotalUsd($sesionItems);
-            $exchangeRate = $this->getExchangeRateForToday();
-            $totalPen = $totalUsd * $exchangeRate;
+            $subtotal = collect($cartItems)->sum(function ($item) {
+                return ((float) ($item['precio'] ?? 0)) * ((int) ($item['cantidad'] ?? 1));
+            });
+            $igv = round($subtotal * 0.18, 2);
+            $totalPen = round($subtotal + $igv, 2);
             $amountInCents = (int) round($totalPen * 100);
 
-            $culqiClass = '\\Culqi\\Culqi';
-            $culqi = new $culqiClass(['api_key' => $secretKey]);
-            $charge = $culqi->Charges->create([
-                'amount' => $amountInCents,
-                'currency_code' => 'PEN',
-                'email' => $validated['email'],
-                'source_id' => $validated['token'],
-            ]);
+            // ── CULQI DESACTIVADO TEMPORALMENTE (modo prueba) ──
+            // $culqiClass = '\\Culqi\\Culqi';
+            // $culqi = new $culqiClass(['api_key' => $secretKey]);
+            // $charge = $culqi->Charges->create([
+            //     'amount' => $amountInCents,
+            //     'currency_code' => 'PEN',
+            //     'email' => $email,
+            //     'source_id' => $request->token,
+            // ]);
+            $charge = (object) ['id' => 'TEST-' . date('YmdHis')]; // ← carga simulada
 
-            $outcomeType = $charge->outcome->type ?? null;
-            if ($outcomeType !== 'venta_exitosa') {
-                $message = $charge->outcome->merchant_message ?? 'Pago rechazado por Culqi';
-                return response()->json(['success' => false, 'message' => $message], 400);
-            }
+            // $outcomeType = $charge->outcome->type ?? null;
+            // if ($outcomeType !== 'venta_exitosa') {
+            //     $message = $charge->outcome->merchant_message ?? 'Pago rechazado por Culqi';
+            //     return response()->json(['success' => false, 'message' => $message], 400);
+            // }
 
             $now = Carbon::now();
             $ultimoPedido = Pedido::latest('id')->first();
             $numero = $ultimoPedido ? $ultimoPedido->id + 1 : 1;
             $codigo = 'PED-' . date('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
-
-            $firstItem = collect($sesionItems)->first();
 
             $cliente = new Cliente();
             $cliente->nombre = $request->nombre;
@@ -734,30 +771,48 @@ class ecommerceController extends Controller
                 $cliente->ruc          = $request->documento;
                 $cliente->tipo_persona         = 'juridica';
             } else {
-                $cliente->dni       = $request->documento;
                 $cliente->nombre = $request->nombre;
+                $cliente->dni       = $request->documento;
                 $cliente->tipo_persona         = 'natural';
             }
 
-            $cliente->email                = $request->email;
+            if(Auth::user()->persona){
+                $actualizar_persona = Persona::where('id',Auth::user()->persona->id)->first();
+                if ($longitud === 11) {
+                    $actualizar_persona->nro_identificacion = $cliente->ruc;
+                    $actualizar_persona->identificacion = 'RUC';
+                } else {
+                    $actualizar_persona->nro_identificacion = $cliente->dni;
+                    $actualizar_persona->identificacion = 'DNI';
+                }
+
+                $actualizar_persona->nro_identificacion = $request->documento;
+                $actualizar_persona->celular = $request->telefono;
+                $actualizar_persona->direccion = $request->direccion;
+                $actualizar_persona->save();
+            }
+
+            $cliente->email                = $email;
             $cliente->telefono             = $request->telefono;
             $cliente->direccion            = $request->direccion;
             $cliente->distrito_id          = $request->distrito_id;
             $cliente->estado               = 'activo';
             $cliente->origen               = 'ecommerce';
-            $cliente->segmento             = 'segmento';
+            $cliente->segmento             = 'comercial';
             $cliente->fecha_primera_compra = now()->toDateString();
+            $cliente->user_id              = Auth::user()->id;
             $cliente->save();
 
             $pedido = new Pedido();
             $pedido->codigo = $codigo;
             $pedido->slug = Str::slug($codigo);
-            $pedido->cliente_id = $cliente_id;
-            $pedido->subtotal = $request->subtotal ?? 0;
+            $pedido->cliente_id = $cliente->id;
+            $pedido->user_id = Auth::id();
+            $pedido->subtotal = $subtotal;
             $pedido->descuento_porcentaje = $request->descuento_porcentaje ?? 0;
             $pedido->descuento_monto = $request->descuento_monto ?? 0;
-            $pedido->igv = $request->igv ?? 0;
-            $pedido->total = $request->total ?? 0;
+            $pedido->igv = $igv;
+            $pedido->total = $totalPen;
             $pedido->estado = 'pendiente';
             $pedido->aprobacion_finanzas = false;  // Nuevo pedido = No aprobado
             $pedido->aprobacion_stock = false;     // Nuevo pedido = Sin reserva
@@ -766,17 +821,68 @@ class ecommerceController extends Controller
             $pedido->fecha_entrega_estimada = $now->addDays(3)->toDateString(); // Ejemplo: entrega en 3 días
             $pedido->almacen_id = 1;
             $pedido->prioridad = 'alta';
+            $pedido->condicion_pago = 'Contado';
             $pedido->observaciones = $request->observaciones;
             $pedido->origen = 'ecommerce';
             $pedido->save();
 
-            session()->forget('sesion');
+            foreach ($cartItems as $item) {
+                $cantidad = (int) ($item['cantidad'] ?? 1);
+                $precioUnitario = (float) ($item['precio'] ?? 0);
+
+                DetallePedido::create([
+                    'pedido_id' => $pedido->id,
+                    'producto_id' => $item['producto_id'] ?? null,
+                    'tipo' => 'producto',
+                    'descripcion' => $item['name_producto'] ?? 'Producto ecommerce',
+                    'cantidad' => $cantidad,
+                    'precio_unitario' => $precioUnitario,
+                    'descuento_monto' => 0,
+                    'subtotal' => round($precioUnitario * $cantidad, 2),
+                ]);
+            }
+
+            $venta = new Sale();
+            $venta->codigo = 'VTA-' . date('Y') . '-' . str_pad($pedido->id, 5, '0', STR_PAD_LEFT);
+            $venta->slug = Str::slug($venta->codigo);
+            $venta->pedido_id = $pedido->id;
+            $venta->cliente_id = $cliente->id;
+            $venta->subtotal = $subtotal;
+            $venta->descuento = 0;
+            $venta->igv = $igv;
+            $venta->total = $totalPen;
+            $venta->condicion_pago = 'Contado';
+            $venta->estado = 'completada';
+            $venta->user_id = Auth::id();
+            $venta->sede_id = 1;
+            $venta->tipo_venta = 'ecommerce';
+            $venta->tipo_proyecto = 'comercial';
+            $venta->save();
+
+            foreach ($cartItems as $item) {
+                $cantidad = (int) ($item['cantidad'] ?? 1);
+                $precioUnitario = (float) ($item['precio'] ?? 0);
+
+                Detailsale::create([
+                    'sale_id' => $venta->id,
+                    'producto_id' => $item['producto_id'] ?? null,
+                    'tipo' => 'producto',
+                    'descripcion' => $item['name_producto'] ?? 'Producto ecommerce',
+                    'cantidad' => $cantidad,
+                    'precio_unitario' => $precioUnitario,
+                    'descuento_porcentaje' => 0,
+                    'descuento_monto' => 0,
+                    'subtotal' => round($precioUnitario * $cantidad, 2),
+                ]);
+            }
+
+            session()->forget('carrito');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Pago procesado correctamente con Culqi',
                 'charge_id' => $charge->id ?? null,
-                'exchange_rate' => $exchangeRate,
+                'total' => $totalPen,
             ]);
         } catch (\Throwable $e) {
             logger()->error('Culqi charge error', [
@@ -791,6 +897,19 @@ class ecommerceController extends Controller
             ], 500);
         }
     }
+
+    // Confirmación de pedido
+    public function confirmation()
+    {
+        if(Auth::check()){
+            $pedido = Pedido::where('cliente_id', auth()->user()->cliente?->id)->with(['cliente', 'detalles.producto'])->firstOrFail();
+            return view('ECOMMERCE.carrito.confirmacion', compact('pedido'));
+        }else{
+            return redirect()->route('ecommerce.index');
+        }
+
+    }
+
 
 
     // Procesar pago
@@ -845,7 +964,7 @@ class ecommerceController extends Controller
             $codigoPedido = 'PED-' . $year . '-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
 
             // 2. Generar código de venta
-            $ultimaVenta = \App\Models\Sale::latest('id')->first();
+            $ultimaVenta = Sale::latest('id')->first();
             $numeroVenta = $ultimaVenta ? $ultimaVenta->id + 1 : 1;
             $codigoVenta = 'VTA-' . date('Y') . '-' . str_pad($numeroVenta, 5, '0', STR_PAD_LEFT);
 
@@ -871,7 +990,7 @@ class ecommerceController extends Controller
             $pedido->save();
 
             // 4. Crear venta vinculada al pedido
-            $venta = \App\Models\Sale::create([
+            $venta = Sale::create([
                 'codigo' => $codigoVenta,
                 'slug' => Str::slug($codigoVenta),
                 'pedido_id' => $pedido->id,
@@ -910,7 +1029,7 @@ class ecommerceController extends Controller
 
             // 6. Crear detalles de la venta (copia de los detalles del pedido)
             foreach ($cart->items as $item) {
-                \App\Models\Detailsale::create([
+                Detailsale::create([
                     'sale_id' => $venta->id,
                     'producto_id' => $item->producto_id,
                     'servicio_id' => $item->servicio_id,
@@ -940,14 +1059,6 @@ class ecommerceController extends Controller
             DB::rollBack();
             return back()->with('error', 'Error al procesar el pedido: ' . $e->getMessage());
         }
-    }
-
-    // Confirmación de pedido
-    public function confirmation($slug)
-    {
-        $pedido = Pedido::where('slug', $slug)->with(['cliente', 'detalles.producto'])->firstOrFail();
-
-        return view('ECOMMERCE.confirmacion', compact('pedido'));
     }
 
     // Método auxiliar para obtener o crear carrito

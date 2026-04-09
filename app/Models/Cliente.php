@@ -185,4 +185,9 @@ class Cliente extends Model
                     ->orderBy('fecha_programada')
                     ->first();
     }
+
+    public function user()
+    {
+    return $this->belongsTo(User::class, 'user_id');
+    }
 }

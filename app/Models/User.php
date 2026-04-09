@@ -100,4 +100,9 @@ class User extends Authenticatable
     {
         return ! $this->hasRole('Cliente');
     }
+
+    public function cliente()
+    {
+        return $this->hasOne(Cliente::class);
+    }
 }

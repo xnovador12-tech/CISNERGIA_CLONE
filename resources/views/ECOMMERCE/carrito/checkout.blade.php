@@ -36,7 +36,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control @error('nombre') is-invalid @enderror" 
-                                           name="nombre" id="nombre" value="{{ old('nombre') }}" required>
+                                           name="nombre" id="nombre" value="{{Auth::user()->persona->name}}" required>
                                     @error('nombre')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -44,7 +44,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
                                     <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                           name="email" id="email" value="{{ old('email') }}" required>
+                                           name="email" id="email" value="{{Auth::user()->email}}" required>
                                     @error('email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -52,7 +52,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Teléfono <span class="text-danger">*</span></label>
                                     <input type="tel" class="form-control @error('telefono') is-invalid @enderror" 
-                                           name="telefono" id="telefono" value="{{ old('telefono') }}" required>
+                                           name="telefono" id="telefono" value="{{Auth::user()->persona->celular}}" required>
                                     @error('telefono')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -60,7 +60,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">DNI/RUC <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control @error('documento') is-invalid @enderror" 
-                                           name="documento" id="documento" value="{{ old('documento') }}" required>
+                                           name="documento" id="documento" value="{{Auth::user()->persona->nro_identificacion}}" required>
                                     @error('documento')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -79,7 +79,7 @@
                                 <div class="col-12">
                                     <label class="form-label fw-semibold">Dirección Completa <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control @error('direccion') is-invalid @enderror" 
-                                           name="direccion" id="direccion" value="{{ old('direccion') }}" 
+                                           name="direccion" id="direccion" value="{{ old('direccion', Auth::user()->persona->direccion) }}" 
                                            placeholder="Calle, número, urbanización, referencia" required>
                                     @error('direccion')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -174,6 +174,7 @@
                                 <i class="bi bi-chat-text me-2 text-primary"></i>Observaciones (Opcional)
                             </h5>
                             <textarea class="form-control" id="observaciones" rows="3" 
+                                      name="observaciones"
                                       placeholder="Agrega cualquier indicación especial para tu pedido">{{ old('observaciones') }}</textarea>
                         </div>
                     </div>
@@ -236,7 +237,7 @@
                                     <input type="hidden" id="total" value="{{ $total }}">
                                 </div>
 
-                                <button onclick="selectPaymentMethod('card')" class="btn btn-primary w-100 py-3 fw-semibold mb-3" id="submitBtn">
+                                <button type="button" class="btn btn-primary w-100 py-3 fw-semibold mb-3" id="submitBtn">
                                     <i class="bi bi-shield-check me-2"></i>Confirmar Pedido
                                 </button>
 
@@ -287,7 +288,7 @@
 @endsection
 
 @section('js')
-<script src="https://checkout.culqi.com/js/v3"></script>
+{{-- <script src="https://checkout.culqi.com/js/v3"></script> --}}  {{-- CULQI DESACTIVADO (sin tokens aún) --}}
 
 <script>
     $(document).ready(function() {
@@ -295,6 +296,7 @@
             valor_departamento = $(this).val();
             $.get('/ver_provincias',{valor_departamento:valor_departamento}, function(busqueda){
                 $('#provincia_id').empty();
+                $('#provincia_id').append('<option selected disabled>Seleccionar</option>');
                 $.each(busqueda, function(index, value){
                     $('#provincia_id').append(''+'<option value="'+index+'">'+value[0]+'</option>');
                 });
@@ -305,6 +307,7 @@
             valor_provincia = $(this).val();
             $.get('/ver_distritos',{valor_provincia:valor_provincia}, function(busqueda){
                 $('#distrito_id').empty();
+                $('#distrito_id').append('<option selected disabled>Seleccionar</option>');
                 $.each(busqueda, function(index, value){
                     $('#distrito_id').append(''+'<option value="'+index+'">'+value[0]+'</option>');
                 });
@@ -314,12 +317,29 @@
 
 </script>
 <script>
-    // Manejar el envío del formulario
-    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-        let btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
-    });
+    const checkoutForm = document.getElementById('checkoutForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function getCsrfToken() {
+        const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (metaToken) {
+            return metaToken;
+        }
+
+        const inputToken = checkoutForm?.querySelector('input[name="_token"]')?.value;
+        return inputToken || '';
+    }
+
+    function setSubmitButtonState(isLoading, label = 'Confirmar Pedido') {
+        if (!submitBtn) {
+            return;
+        }
+
+        submitBtn.disabled = isLoading;
+        submitBtn.innerHTML = isLoading
+            ? '<span class="spinner-border spinner-border-sm me-2"></span>' + label
+            : '<i class="bi bi-shield-check me-2"></i>' + label;
+    }
 </script>
 
 <!-- Proceso para ejecutar culqi -->
@@ -328,32 +348,29 @@
     const culqiPublicKey = "{{ config('services.culqi.public_key') ?: config('services.culqi.client_id') }}";
     const culqiAmount = {{ $culqiAmountPenCents ?? 0 }};
     const culqiEmail = "{{ auth()->check() ? auth()->user()->email : '' }}";
-    const limpiarSesionRoute = "{{ route('limpiar-sesion-planes.get') }}";
-
-    window.history.pushState({ pago: true }, '', window.location.href);
-    window.addEventListener('popstate', function () {
-        window.location.href = limpiarSesionRoute;
-    });
     
-    function openCulqiCheckout() {
+    function openCulqiCheckout(method) {
         if (!window.Culqi) {
             alert('No se pudo cargar Culqi. Recarga la página e intenta nuevamente.');
+            setSubmitButtonState(false);
             return;
         }
 
         if (!culqiPublicKey) {
             alert('Culqi no está configurado. Falta la llave pública.');
+            setSubmitButtonState(false);
             return;
         }
 
         if (!culqiAmount || culqiAmount <= 0) {
             alert('No se encontró un monto válido para procesar el pago.');
+            setSubmitButtonState(false);
             return;
         }
 
         Culqi.publicKey = culqiPublicKey;
         Culqi.settings({
-            title: 'LEIDINGER Familias Empresarias',
+            title: 'CISNERGIA PERU',
             currency: 'PEN',
             amount: culqiAmount,
         });
@@ -362,8 +379,8 @@
             lang: 'auto',
             installments: false,
             paymentMethods: {
-                tarjeta: true,
-                yape: false,
+                tarjeta: method === 'tarjeta',
+                yape: method === 'yape',
                 bancaMovil: false,
                 agente: false,
                 billetera: false,
@@ -374,15 +391,82 @@
         Culqi.open();
     }
 
-    function selectPaymentMethod(method) {
-        if (method === 'card') {
-            openCulqiCheckout();
+    function selectPaymentMethod() {
+        if (!checkoutForm.checkValidity()) {
+            checkoutForm.reportValidity();
+            return;
         }
+
+        const selectedMethod = document.querySelector('input[name="metodo_pago"]:checked')?.value || 'tarjeta';
+        setSubmitButtonState(true, 'Abriendo Culqi...');
+        openCulqiCheckout(selectedMethod);
     }
+
+    submitBtn?.addEventListener('click', function (event) {
+        event.preventDefault();
+
+        // ── BYPASS CULQI: envío directo al backend para pruebas ──
+        if (!checkoutForm.checkValidity()) {
+            checkoutForm.reportValidity();
+            return;
+        }
+        setSubmitButtonState(true, 'Procesando...');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const csrfToken = getCsrfToken();
+        const metodo_pago = document.querySelector('input[name="metodo_pago"]:checked')?.value || 'tarjeta';
+
+        loadingOverlay?.classList.remove('d-none');
+        loadingOverlay?.classList.add('d-flex');
+
+        fetch("{{ route('pago_ecommerce.createCulqiCharge') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            body: JSON.stringify({
+                token: 'TEST_BYPASS',
+                nombre:          document.getElementById('nombre')?.value,
+                email:           document.getElementById('email')?.value || culqiEmail,
+                telefono:        document.getElementById('telefono')?.value,
+                documento:       document.getElementById('documento')?.value,
+                direccion:       document.getElementById('direccion')?.value,
+                departamento_id: document.getElementById('departamento_id')?.value,
+                provincia_id:    document.getElementById('provincia_id')?.value,
+                distrito_id:     document.getElementById('distrito_id')?.value,
+                subtotal:        document.getElementById('subtotal')?.value,
+                descuento:       document.getElementById('descuento')?.value,
+                igv:             document.getElementById('igv')?.value,
+                total:           document.getElementById('total')?.value,
+                observaciones:   document.getElementById('observaciones')?.value,
+                metodo_pago:     metodo_pago,
+            }),
+        })
+        .then(async (response) => {
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.message || 'Error al procesar.');
+            return data;
+        })
+        .then(() => {
+            window.location.href = '{{ route('ecommerce.confirmacion_pago') }}';
+        })
+        .catch((error) => {
+            alert('Error: ' + error.message);
+        })
+        .finally(() => {
+            setSubmitButtonState(false);
+            loadingOverlay?.classList.remove('d-flex');
+            loadingOverlay?.classList.add('d-none');
+        });
+        // ── FIN BYPASS ──
+
+        // selectPaymentMethod(); // ← Descomentar cuando Culqi esté configurado
+    });
 
     window.culqi = function () {
         const loadingOverlay = document.getElementById('loadingOverlay');
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken = getCsrfToken();
         const nombre = document.getElementById('nombre')?.value;
         const email = document.getElementById('email')?.value;
         const telefono = document.getElementById('telefono')?.value;
@@ -396,8 +480,10 @@
         const igv = document.getElementById('igv')?.value;
         const total = document.getElementById('total')?.value;
         const observaciones = document.getElementById('observaciones')?.value;
+        const metodo_pago = document.querySelector('input[name="metodo_pago"]:checked')?.value || 'tarjeta';
 
         if (Culqi.token) {
+            setSubmitButtonState(true, 'Procesando...');
             loadingOverlay.classList.remove('d-none');
             loadingOverlay.classList.add('d-flex');
 
@@ -421,7 +507,8 @@
                     descuento: descuento,
                     igv: igv,
                     total: total,
-                    email: culqiEmail,
+                    email: email || culqiEmail,
+                    metodo_pago: metodo_pago,
                     observaciones: observaciones,
                 }),
             })
@@ -438,7 +525,7 @@
                         <div class="alert alert-success shadow-lg border-0 rounded-4 p-4 text-center" role="alert">
                             <i class="bi bi-check-circle-fill" style="font-size: 3rem; color: #198754;"></i>
                             <h4 class="alert-heading mt-3 mb-3">¡Pago Exitoso con Culqi!</h4>
-                            <p class="mb-2">Bienvenido a LEIDINGER Familias Empresarias</p>
+                            <p class="mb-2">Bienvenido a CISNERGIA PERU</p>
                             <hr>
                             <p class="mb-0 small">Recibirás un correo de confirmación. Redirigiendo...</p>
                         </div>
@@ -454,18 +541,15 @@
                 alert('Error en Culqi: ' + error.message);
             })
             .finally(() => {
+                setSubmitButtonState(false);
                 loadingOverlay.classList.remove('d-flex');
                 loadingOverlay.classList.add('d-none');
             });
         } else if (Culqi.error) {
+            setSubmitButtonState(false);
             alert(Culqi.error.user_message || 'No se pudo generar el token de Culqi.');
         }
     };
-
-        document.getElementById('cardPaymentForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            openCulqiCheckout();
-        });
 </script>
 
 <!-- proceso de finalizacion de culqi -->

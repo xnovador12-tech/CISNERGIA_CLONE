@@ -51,6 +51,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('limpiar-sesion-planes', [ecommerceController::class, 'limpiarSesionPlanes'])->name('limpiar-sesion-planes.get');
 
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
+Route::get('/mis_compras', [ecommerceController::class, 'misCompras'])->name('ecommerce.mis_compras');
 Route::get('/products', [ecommerceController::class, 'products'])->name('ecommerce.products');
 Route::get('/product/{slug}', [ecommerceController::class, 'show_product'])->name('ecommerce.product.show');
 route::get('/busqueda_pmarca', [ecommerceController::class, 'getbusqueda_pmarca']);
@@ -63,6 +64,7 @@ Route::get('carrito-compras', [ecommerceController::class, 'index'])->name('ecom
 Route::get('listado_pago_carrito_compras', [ecommerceController::class, 'pago_carrito_compra'])->name('ecommerce_pago_carrito_compras.index');
 Route::get('eliminar_carrito', [ecommerceController::class, 'geteliminar_carrito']);
 Route::get('actualizar_cantidad_carrito', [ecommerceController::class, 'getactualizar_cantidad_carrito']);
+route::get('/confirmacion_pago_exitoso', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmacion_pago');
 
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');
