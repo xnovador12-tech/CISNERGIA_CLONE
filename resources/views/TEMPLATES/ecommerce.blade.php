@@ -52,12 +52,12 @@
                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm mt-2 rounded-3">
                             @auth
                                 <li>
-                                    <a class="dropdown-item py-2 rounded-2" href="{{ route('home') }}">
+                                    <a class="dropdown-item py-2 rounded-2" href="{{ route('ecommerce.mi_perfil') }}">
                                         <i class="bi bi-person me-2 text-primary"></i>Mi cuenta
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item py-2 rounded-2" href="#">
+                                    <a class="dropdown-item py-2 rounded-2" href="{{ route('ecommerce.mis_favoritos') }}">
                                         <i class="bi bi-heart me-2 text-danger"></i>Mis favoritos
                                     </a>
                                 </li>
@@ -266,7 +266,7 @@
                     <!-- Favoritos -->
                     <div class="border-start">
 
-                        <a href="#"
+                        <a href="{{ route('ecommerce.mis_favoritos') }}"
                             class="bg-transparent border-0 icon__boton position-relative d-none d-lg-flex align-items-center justify-content-center px-3 py-2 rounded hover-bg"
                             style="text-decoration: none; transition: background 0.2s;">
                             <i class="bi bi-heart fs-4 text-secondary"></i>
@@ -703,3 +703,86 @@
         })
     </script>
 @endif
+
+<!-- lista de deseos -->
+<script>
+    function lista_deseo_carrito_id(producto_id){
+        $.get('/lista_deseo_carrito',{id_element_producto: producto_id}, function(busqueda){
+            $.each(busqueda, function(index, value){
+                if(value[0] == 'deseo_guardado'){
+                    Swal.fire({
+                        imageUrl: "/images/favorito.png",
+                        title: '¡Éxito!',
+                        text: 'Producto guardado exitosamente',
+                        icon: 'success',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload();
+                        }
+                    });
+                }else{
+                    Swal.fire({
+                        imageUrl: "/images/favorito.png",
+                        title: '¡Upss!',
+                        text: 'Este producto ya fue registrado en tu lista de deseos',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    function eliminar_lista_id(producto_id){
+        $.get('/eliminar_lista_deseo_carrito',{id_element_producto: producto_id}, function(busqueda){
+            $.each(busqueda, function(index, value){
+                if(value[0] == 'producto_eliminado_de_lista_deseos'){
+                    Swal.fire({
+                        imageUrl: "/images/favorito.png",
+                        title: '¡Éxito!',
+                        text: 'Producto eliminado de tu lista de deseos',
+                        icon: 'success',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload();
+                        }
+                    });
+                }else{
+                    Swal.fire({
+                        imageUrl: "/images/favorito.png",
+                        title: '¡Upss!',
+                        text: 'No se pudo eliminar el producto de tu lista de deseos',
+                    });
+                }
+            });
+        });
+    }
+
+    function eliminartodofavoritos(){
+        $.get('/eliminar_lista_deseo_carrito',{eliminar_todo: true}, function(busqueda){
+            $.each(busqueda, function(index, value){
+                if(value[0] == 'lista_deseos_eliminada'){
+                    Swal.fire({
+                        imageUrl: "/images/favorito.png",
+                        title: '¡Éxito!',
+                        text: 'Lista de deseos eliminada exitosamente',
+                        icon: 'success',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload();
+                        }
+                    });
+                }else{
+                    Swal.fire({
+                        imageUrl: "/images/favorito.png",
+                        title: '¡Upss!',
+                        text: 'No se pudo eliminar la lista de deseos',
+                    });
+                }
+            });
+        });
+    }
+</script>
+<!-- fin de agregar a la lista de deseo -->

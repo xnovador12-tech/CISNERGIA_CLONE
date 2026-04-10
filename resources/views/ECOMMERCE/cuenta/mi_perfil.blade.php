@@ -321,8 +321,8 @@
                      style="display: none;" 
                      onchange="updateAvatar(event)">
             </div>
-            <h5 class="fw-bold mb-1">Alexander De La Cruz</h5>
-            <p class="text-muted small mb-0">gilbertodelacruzsaravia@gmail.com</p>
+            <h5 class="fw-bold mb-1">{{Auth::user()->persona->name.' '.Auth::user()->persona->surnames}}</h5>
+            <p class="text-muted small mb-0">{{Auth::user()->email}}</p>
             <span class="badge bg-success-subtle text-success border border-success-subtle mt-2">
               <i class="bi bi-patch-check-fill me-1"></i>Verificado
             </span>
@@ -380,7 +380,7 @@
                   <div class="info-label text-primary mb-2">
                     <i class="bi bi-person me-1"></i>Nombre completo
                   </div>
-                  <div class="info-value">Alexander De La Cruz</div>
+                  <div class="info-value">{{ Auth::user()->persona->name.' '.Auth::user()->persona->surnames }}</div>
                 </div>
               </div>
 
@@ -389,7 +389,7 @@
                   <div class="info-label text-primary mb-2">
                     <i class="bi bi-card-text me-1"></i>Documento
                   </div>
-                  <div class="info-value">DNI 75850297</div>
+                  <div class="info-value">DNI {{ Auth::user()->persona->nro_identificacion }}</div>
                 </div>
               </div>
 
@@ -398,7 +398,7 @@
                   <div class="info-label text-primary mb-2">
                     <i class="bi bi-telephone me-1"></i>Celular
                   </div>
-                  <div class="info-value">+51 9 37040520</div>
+                  <div class="info-value">{{ Auth::user()->persona->celular }}</div>
                 </div>
               </div>
 
@@ -407,7 +407,7 @@
                   <div class="info-label text-primary mb-2">
                     <i class="bi bi-envelope me-1"></i>Correo electrónico
                   </div>
-                  <div class="info-value" style="font-size: 0.9rem;">gilbertodelacruzsaravia@gmail.com</div>
+                  <div class="info-value" style="font-size: 0.9rem;">{{ Auth::user()->email }}</div>
                   <small class="text-success mt-1 d-block">
                     <i class="bi bi-patch-check-fill me-1"></i>Verificado
                   </small>
@@ -856,4 +856,24 @@
 @endsection
 
 @section('js')
+<script>
+  // Navegación entre secciones
+  document.querySelectorAll('.menu-item[data-section]').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+
+      const targetSection = this.dataset.section;
+
+      // Quitar active de todos los menu-items
+      document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+      // Poner active al clickeado
+      this.classList.add('active');
+
+      // Ocultar todas las secciones
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      // Mostrar la sección target
+      document.getElementById(targetSection).classList.add('active');
+    });
+  });
+</script>
 @endsection

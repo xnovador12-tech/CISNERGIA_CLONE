@@ -21,6 +21,7 @@ use App\Models\Distrito;
 use App\Models\Persona;
 use App\Models\Sale;
 use App\Models\Detailsale;
+use App\Models\WishList;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -44,11 +45,19 @@ class ecommerceController extends Controller
         return view('ECOMMERCE.index', compact('productos'));
     }
 
-        public function limpiarSesionPlanes(Request $request)
+        public function limpiarSesioncisnergia(Request $request)
     {
         $request->session()->forget('carrito');
 
         return redirect()->route('ecommerce.index');
+    }
+
+    public function getmiperfil(){
+        if(Auth::check()){
+            return view('ECOMMERCE.cuenta.mi_perfil');
+        }else{
+            return redirect()->route('ecommerce.index');
+        }
     }
 
     public function misCompras ()
@@ -69,6 +78,7 @@ class ecommerceController extends Controller
         $ventas = Sale::with(['pedido', 'detalles.producto'])
             ->where('cliente_id', $clienteId)
             ->orderBy('created_at', 'desc')
+            ->take(5)
             ->get();
 
         $stats = [
@@ -80,6 +90,17 @@ class ecommerceController extends Controller
         return view('ECOMMERCE.cuenta.mis_compras', compact('ventas', 'stats'));
     }
 
+    public function getMisFavoritos(){
+        if(Auth::check()){
+            $favoritos = WishList::with('producto')
+                ->where('user_id', Auth::user()->id)
+                ->get();
+
+            return view('ECOMMERCE.cuenta.favoritos', compact('favoritos'));
+        }else{
+            return redirect()->route('ecommerce.index');
+        }
+    }
 
     // Lista de productos
     public function products(Request $request)
@@ -958,8 +979,50 @@ class ecommerceController extends Controller
         return $pdf->stream('DETALLE-VENTA-'.$sale->codigo.'.pdf');
     }
 
+    public function getlista_deseo_carrito(Request $request)
+    {
+        if($request->ajax()){
+            $id_element_producto = $request->id_element_producto;
 
+            if(WishList::where('user_id', Auth::user()->id)->where('producto_id', $id_element_producto)->exists()){
+                // El producto ya está en la lista de deseos
 
+                $ArrayList[1] = ['deseo_ya_existe'];
+
+                return response()->json($ArrayList);
+            }else{
+                $wishlist = new WishList();
+                $wishlist->deseo = '1';
+                $wishlist->user_id = Auth::user()->id;
+                $wishlist->producto_id = $id_element_producto;
+                $wishlist->save();
+
+                $ArrayList[1] = ['deseo_guardado'];
+
+                return response()->json($ArrayList);
+            }
+        }
+
+    }
+
+    public function geteliminarlista_deseo_carrito(Request $request)
+    {
+        if($request->ajax()){
+            if($request->eliminar_todo == true){
+                Wishlist::where('user_id', Auth::user()->id)->delete();
+                $ArrayList[1] = ['lista_deseos_eliminada'];
+                return response()->json($ArrayList);
+            }else{
+                $id_element_producto = $request->id_element_producto;
+                
+                Wishlist::where('user_id', Auth::user()->id)->where('producto_id', $id_element_producto)->delete();
+
+                $ArrayList[1] = ['producto_eliminado_de_lista_deseos'];
+
+                return response()->json($ArrayList);
+            }
+        }
+    }
 
 
 

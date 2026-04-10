@@ -48,7 +48,7 @@ use Illuminate\Support\Facades\Route;
 // ECOMMERCE — Rutas públicas (sin auth)
 // =============================================================
 
-Route::get('limpiar-sesion-planes', [ecommerceController::class, 'limpiarSesionPlanes'])->name('limpiar-sesion-planes.get');
+Route::get('limpiar-sesion-cisnergia', [ecommerceController::class, 'limpiarSesioncisnergia'])->name('limpiar-sesion-cisnergia.get');
 
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
 Route::get('/mis_compras', [ecommerceController::class, 'misCompras'])->name('ecommerce.mis_compras');
@@ -66,9 +66,13 @@ Route::get('eliminar_carrito', [ecommerceController::class, 'geteliminar_carrito
 Route::get('actualizar_cantidad_carrito', [ecommerceController::class, 'getactualizar_cantidad_carrito']);
 Route::get('/confirmacion_pago_exitoso/{sale}', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmacion_pago');
 route::get('/comprobante_compra/{sale}', [ecommerceController::class, 'comprobante_compra'])->name('ecommerce.comprobante_compra');
+Route::get('lista_deseo_carrito', [ecommerceController::class, 'getlista_deseo_carrito']);
+Route::get('eliminar_lista_deseo_carrito', [ecommerceController::class, 'geteliminarlista_deseo_carrito']);
 
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');
+route::get('/mi/perfil', [ecommerceController::class, 'getmiperfil'])->name('ecommerce.mi_perfil');
+route::get('/mis/favorites', [ecommerceController::class, 'getMisFavoritos'])->name('ecommerce.mis_favoritos');
 
 // Carrito
 Route::post('/cart/add', [ecommerceController::class, 'addToCart'])->name('ecommerce.cart.add');
