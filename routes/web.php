@@ -68,6 +68,7 @@ Route::get('/confirmacion_pago_exitoso/{sale}', [ecommerceController::class, 'co
 route::get('/comprobante_compra/{sale}', [ecommerceController::class, 'comprobante_compra'])->name('ecommerce.comprobante_compra');
 Route::get('lista_deseo_carrito', [ecommerceController::class, 'getlista_deseo_carrito']);
 Route::get('eliminar_lista_deseo_carrito', [ecommerceController::class, 'geteliminarlista_deseo_carrito']);
+Route::get('agregar_compra_carritofavoritos', [ecommerceController::class, 'getagregar_compra_carritofavoritos']);
 
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');

@@ -786,3 +786,24 @@
     }
 </script>
 <!-- fin de agregar a la lista de deseo -->
+
+<!-- agregar al carrito desde favoritos -->
+ <script>
+    function agregar_carrito_idfavorito(id_producto){
+        var valor_cantidad = $('#cantidad-' + id_producto).val();
+        $.get('/agregar_compra_carritofavoritos',{id_element_producto: id_producto, valor_cantidad: valor_cantidad}, function(busqueda){
+            $.each(busqueda, function(index, value){
+                if(value[0] == 'producto_agregado_al_carrito'){
+                    // window.location.href = "/carrito-compras";
+                }else{
+                    Swal.fire({
+                        imageUrl: "/images/online_shop.png",
+                        title: '¡Upss!',
+                        text: 'Este producto ya fue registrado en tu carrito de compras',
+                    });
+                }
+            });
+        });
+    }
+// fin de añadir al carrito de compras
+ </script>

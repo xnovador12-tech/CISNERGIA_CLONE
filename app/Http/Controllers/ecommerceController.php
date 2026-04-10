@@ -1024,6 +1024,46 @@ class ecommerceController extends Controller
         }
     }
 
+    public function getagregar_compra_carritofavoritos(Request $request)
+    {
+        if($request->ajax()){
+            if($request->ajax()){
+                $id_element_producto = $request->id_element_producto;
+                $carrito = session('carrito', []);
+
+                // Check if product already exists in cart
+                $exists = collect($carrito)->contains('producto_id', $id_element_producto);
+                
+                if($exists) {
+                    $ArrayList[1] = ['producto_ya_en_carrito'];
+                    return response()->json($ArrayList);
+                }
+
+                // Product not in cart, add it
+                $product = DB::table('productos')->where('id', $id_element_producto)->first();
+
+                $carrito[] = [
+                    'slug' => $product->slug,
+                    'ymdhis' => date('YmdHis'),
+                    'name_producto' => $product->name,
+                    'imagen_producto' => $product->imagen ? asset('images/productos/' . $product->imagen) : asset('images/logo.webp'),
+                    'precio' => $product->precio,
+                    'producto_id' => $product->id,
+                    'cantidad' => $request->valor_cantidad ?? 1,
+                    'precio_descuento' => $product->precio_descuento > 0 ? $product->precio_descuento : 0,
+                    'porcentaje' => $product->porcentaje > 0 ? $product->porcentaje : 0,
+                ];
+
+                session(['carrito' => $carrito]);
+
+                $ArrayList[1] = ['producto_agregado_al_carrito', count($carrito)];
+                return response()->json($ArrayList);
+            }
+
+        }
+
+    }
+
 
 
     // Procesar pago

@@ -340,7 +340,7 @@
                     <i class="bi bi-dash"></i>
                 </button>
                 <input type="number" class="form-control form-control-sm text-center cantidad-input" 
-                        value="1" min="1" data-item-id="{{ $favorito->producto->id }}" readonly>
+                        value="1" min="1" id="cantidad-{{ $favorito->producto->id }}" data-item-id="{{ $favorito->producto->id }}" readonly>
                 <button class="btn btn-sm btn-outline-secondary increment-btn" type="button" data-item-id="{{ $favorito->producto->id }}">
                     <i class="bi bi-plus"></i>
                 </button>
@@ -348,7 +348,7 @@
               <small class="text-muted d-block mt-2">Máx. {{ $favorito->producto->inventarios->sum('cantidad') > 1 ? $favorito->producto->inventarios->sum('cantidad').' unidades disponibles' : $favorito->producto->inventarios->sum('cantidad').' unidad disponible'}}</small>
             </div>
             <div class="d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1" onclick="add_carrito_id({{ $favorito->producto->id }})" style="white-space: nowrap;">
+              <button class="btn btn-primary flex-grow-1" onclick="agregar_carrito_idfavorito({{ $favorito->producto->id }})" style="white-space: nowrap;">
                 <i class="bi bi-cart-plus me-2"></i>Agregar
               </button>
               <button class="action-btn btn-delete" onclick="eliminar_lista_id({{$favorito->producto->id}});" title="Eliminar de favoritos">
