@@ -141,17 +141,19 @@
                                         </thead>
                                         <tbody>
                                             @foreach($items as $item)
+                                                @php
+                                                    // Snapshot del SKU/código congelado al momento de cotizar.
+                                                    // Fallback a la relación para cotizaciones antiguas sin snapshot.
+                                                    $skuItem = $item->codigo_item ?? $item->producto?->codigo ?? $item->servicio?->codigo;
+                                                @endphp
                                                 <tr>
                                                     <td class="small">
                                                         {{ $item->descripcion }}
                                                         @if($item->especificaciones)
                                                             <br><small class="text-muted">{{ Str::limit($item->especificaciones, 60) }}</small>
                                                         @endif
-                                                        @if($item->producto)
-                                                            <br><small class="text-primary"><i class="bi bi-link-45deg"></i> {{ $item->producto->codigo }}</small>
-                                                        @endif
-                                                        @if($item->servicio)
-                                                            <br><small class="text-info"><i class="bi bi-link-45deg"></i> {{ $item->servicio->name }}</small>
+                                                        @if($skuItem)
+                                                            <br><small class="text-primary"><i class="bi bi-upc-scan"></i> SKU: {{ $skuItem }}</small>
                                                         @endif
                                                     </td>
                                                     <td class="small text-center">{{ number_format($item->cantidad, $item->cantidad == intval($item->cantidad) ? 0 : 2) }} {{ $item->unidad }}</td>

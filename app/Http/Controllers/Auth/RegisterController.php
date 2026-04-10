@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Persona;
 use App\Models\Prospecto;
 use App\Models\User;
+use App\Observers\UserObserver;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -66,8 +67,10 @@ class RegisterController extends Controller
      * Flujo:
      *   1. Crear Persona con los datos del formulario
      *   2. Crear User y asignar rol 'Cliente' con Spatie (assignRole)
-     *      → El UserObserver detecta el rol 'Cliente' y crea el Prospecto automáticamente
-     *   3. Complementar el Prospecto con datos adicionales del formulario
+     *   3. Llamar EXPLÍCITAMENTE a UserObserver::crearProspectoSiEsCliente()
+     *      → Spatie's assignRole() NO dispara el evento 'updated' del modelo,
+     *        por eso no podemos depender solo del Observer; lo invocamos a mano.
+     *   4. Complementar el Prospecto recién creado con datos adicionales del formulario
      */
     protected function create(array $data)
     {
@@ -86,9 +89,7 @@ class RegisterController extends Controller
                 'sede_id'        => 1,
             ]);
 
-            // 2. Crear User → asignar rol Cliente con Spatie
-            // El UserObserver escucha el evento 'created' y si el usuario tiene
-            // rol 'Cliente', crea automáticamente el Prospecto en el CRM.
+            // 2. Crear User
             $user = User::create([
                 'email'      => $data['email'],
                 'password'   => Hash::make($data['password']),
@@ -96,10 +97,17 @@ class RegisterController extends Controller
                 'persona_id' => $persona->id,
             ]);
 
+            // 3. Asignar rol Cliente con Spatie
             $user->assignRole('Cliente');
 
-            // 3. Complementar el Prospecto generado por el Observer
-            $prospecto = Prospecto::where('registered_user_id', $user->id)->first();
+            // 4. Crear el Prospecto explícitamente.
+            // No podemos depender del UserObserver::updated() porque assignRole()
+            // de Spatie trabaja directo sobre la tabla pivote model_has_roles
+            // y NO dispara eventos de Eloquent en el modelo User.
+            // El método es idempotente: si ya existe, lo retorna sin duplicar.
+            $prospecto = UserObserver::crearProspectoSiEsCliente($user);
+
+            // 5. Complementar el Prospecto con datos adicionales del formulario
             if ($prospecto) {
                 $prospecto->update([
                     'distrito_id'   => $data['distrito_id'] ?? null,
