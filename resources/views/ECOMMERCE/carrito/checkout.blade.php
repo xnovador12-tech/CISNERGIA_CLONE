@@ -1,7 +1,6 @@
 @extends('TEMPLATES.ecommerce')
 
 @section('title', 'Checkout - Finalizar Compra')
-
 @section('content')
 <!-- BREADCRUMB -->
 <section class="py-3 bg-light border-bottom">
@@ -35,33 +34,60 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('nombre') is-invalid @enderror" 
-                                           name="nombre" id="nombre" value="{{Auth::user()->persona->name}}" required>
+                                    <input type="text" class="form-control @error('nombre') is-invalid @enderror"
+                                        name="nombre" id="nombre" value="{{Auth::user()->persona->name}}" required>
                                     @error('nombre')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
-                                    <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                           name="email" id="email" value="{{Auth::user()->email}}" required>
+                                    <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                        name="email" id="email" value="{{Auth::user()->email}}" required>
                                     @error('email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Teléfono <span class="text-danger">*</span></label>
-                                    <input type="tel" class="form-control @error('telefono') is-invalid @enderror" 
-                                           name="telefono" id="telefono" value="{{Auth::user()->persona->celular}}" required>
+                                    <input type="tel" class="form-control @error('telefono') is-invalid @enderror"
+                                        name="telefono" id="telefono" value="{{Auth::user()->persona->celular}}" required>
                                     @error('telefono')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">DNI/RUC <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('documento') is-invalid @enderror" 
-                                           name="documento" id="documento" value="{{Auth::user()->persona->nro_identificacion}}" required>
+                                    <input type="text" class="form-control @error('documento') is-invalid @enderror"
+                                        name="documento" id="documento" maxlength="11"
+                                        value="{{Auth::user()->persona->nro_identificacion}}" required>
+                                    <div id="doc-hint" class="form-text"></div>
                                     @error('documento')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- COMPROBANTE DE PAGO --}}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Tipo de Comprobante <span class="text-danger">*</span></label>
+                                    <select class="form-select @error('tipo_comprobante') is-invalid @enderror"
+                                            name="tipo_comprobante" id="tipo_comprobante" disabled required>
+                                        <option value="">— Ingresa DNI o RUC primero —</option>
+                                        <option value="3">Nota de venta</option>
+                                        <option value="2">Boleta de Venta</option>
+                                        <option value="1">Factura</option>
+                                    </select>
+                                    @error('tipo_comprobante')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- RAZÓN SOCIAL (solo visible si es Factura) --}}
+                                <div class="col-md-6" id="razon-social-group" style="display: none;">
+                                    <label class="form-label fw-semibold">Razón Social <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control @error('razon_social') is-invalid @enderror"
+                                        name="razon_social" id="razon_social" placeholder="Nombre de tu empresa">
+                                    @error('razon_social')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -220,7 +246,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">IGV (18%):</span>
-                                    <span class="fw-semibold">S/ {{ number_format($igv, 2) }}</span>
+                                    <span class="fw-semibold" id="html_igv">S/ {{ number_format($igv, 2) }}</span>
                                     <input type="hidden" id="igv" value="{{ $igv }}">
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
@@ -233,7 +259,7 @@
                             <div class="border-top pt-3 mt-3">
                                 <div class="d-flex justify-content-between mb-4">
                                     <span class="fw-bold fs-5">Total a Pagar:</span>
-                                    <span class="fw-bold fs-4 text-primary">S/ {{ number_format($total, 2) }}</span>
+                                    <span class="fw-bold fs-4 text-primary" id="html_total">S/ {{ number_format($total, 2) }}</span>
                                     <input type="hidden" id="total" value="{{ $total }}">
                                 </div>
 
@@ -448,8 +474,16 @@
             if (!response.ok || !data.success) throw new Error(data.message || 'Error al procesar.');
             return data;
         })
-        .then(() => {
-            window.location.href = '{{ route('ecommerce.confirmacion_pago') }}';
+        .then((data) => {
+            const ventaSlug = data?.venta_slug;
+            if (!ventaSlug) {
+                throw new Error('No se recibio el slug de la venta.');
+            }
+
+            const confirmUrl = `{{ route('ecommerce.confirmacion_pago', ['sale' => '__SALE_SLUG__']) }}`
+                .replace('__SALE_SLUG__', encodeURIComponent(ventaSlug));
+
+            window.location.href = confirmUrl;
         })
         .catch((error) => {
             alert('Error: ' + error.message);
@@ -519,7 +553,7 @@
                 }
                 return data;
             })
-            .then(() => {
+            .then((data) => {
                 const alertHTML = `
                     <div class="position-fixed top-50 start-50 translate-middle" style="z-index: 10000; width: 90%; max-width: 500px;">
                         <div class="alert alert-success shadow-lg border-0 rounded-4 p-4 text-center" role="alert">
@@ -533,8 +567,16 @@
                 `;
                 document.body.insertAdjacentHTML('beforeend', alertHTML);
 
+                const ventaSlug = data?.venta_slug;
+                if (!ventaSlug) {
+                    throw new Error('No se recibio el slug de la venta.');
+                }
+
+                const confirmUrl = `{{ route('ecommerce.confirmacion_pago', ['sale' => '__SALE_SLUG__']) }}`
+                    .replace('__SALE_SLUG__', encodeURIComponent(ventaSlug));
+
                 setTimeout(() => {
-                    window.location.href = "/";
+                    window.location.href = confirmUrl;
                 }, 3000);
             })
             .catch((error) => {
@@ -551,6 +593,99 @@
         }
     };
 </script>
-
 <!-- proceso de finalizacion de culqi -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const subtotalBase = parseFloat(document.getElementById('subtotal').value);
+    const igvBase      = parseFloat(document.getElementById('igv').value);
+    const totalBase    = parseFloat(document.getElementById('total').value);
+
+    const docInput = document.getElementById('documento');
+    const select   = document.getElementById('tipo_comprobante');
+    const hint     = document.getElementById('doc-hint');
+    const razonGrp = document.getElementById('razon-social-group');
+    const razonInp = document.getElementById('razon_social');
+
+
+    function recalcularIGV(tipoComprobante) {
+        const esNotaVenta = tipoComprobante === '3';
+        const igvMonto   = esNotaVenta ? 0 : igvBase;
+        const totalMonto = esNotaVenta ? subtotalBase : totalBase;
+
+        // Inputs hidden → van al backend
+        document.getElementById('igv').value   = igvMonto.toFixed(2);
+        document.getElementById('total').value = totalMonto.toFixed(2);
+
+        // HTML visible → siempre actualiza el texto
+        document.getElementById('html_igv').textContent = 'S/ ' + igvMonto.toFixed(2);
+        document.getElementById('html_total').textContent = 'S/ ' + totalMonto.toFixed(2);
+    }
+
+    // Ejecutar al cargar si ya viene un valor prellenado
+    handleDocumento();
+
+    docInput.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '');
+        handleDocumento();
+    });
+
+    select.addEventListener('change', function () {
+        const esFact = this.value === '1';
+        razonGrp.style.display = esFact ? '' : 'none';
+        razonInp.required = esFact;
+        if (!esFact) razonInp.value = '';
+
+        recalcularIGV(this.value);
+    });
+
+    function handleDocumento() {
+        const len = docInput.value.length;
+        select.value = '';
+        razonGrp.style.display = 'none';
+        razonInp.required = false;
+
+        if (len === 0) {
+            hint.textContent = '';
+            hint.className = 'form-text';
+            select.disabled = true;
+            select.options[0].text = '— Ingresa DNI o RUC primero —';
+
+        } else if (len < 8) {
+            hint.textContent = `${len} dígitos — faltan ${8 - len} para DNI`;
+            hint.className = 'form-text text-danger';
+            select.disabled = true;
+            select.options[0].text = '— Completando documento —';
+
+        } else if (len === 8) {
+            hint.textContent = 'DNI detectado — solo Boleta o Nota de venta disponibles';
+            hint.className = 'form-text text-success';
+            select.disabled = false;
+            select.options[0].text = '— Seleccionar —';
+            select.querySelector('option[value="1"]').disabled = true;
+            select.value = '2';
+
+            recalcularIGV(2);
+
+        } else if (len > 8 && len < 11) {
+            hint.textContent = `${len} dígitos — faltan ${11 - len} para RUC`;
+            hint.className = 'form-text text-danger';
+            select.disabled = true;
+            select.options[0].text = '— Completando documento —';
+
+        } else if (len === 11) {
+            hint.textContent = 'RUC detectado — Boleta o Factura disponibles';
+            hint.className = 'form-text text-success';
+            select.disabled = false;
+            select.options[0].text = '— Seleccionar —';
+            select.querySelector('option[value="1"]').disabled = false;
+            select.value = '1';
+            razonGrp.style.display = '';
+            razonInp.required = true;
+
+            recalcularIGV(11);
+        }
+    }
+});
+</script>
 @endsection
