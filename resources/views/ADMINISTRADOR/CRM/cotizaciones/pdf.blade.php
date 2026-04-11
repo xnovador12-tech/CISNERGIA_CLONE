@@ -130,6 +130,7 @@ body {
 }
 .item-desc { font-weight:600; }
 .item-spec { color:#888; font-size:7.5px; margin-top:1px; }
+.item-code { color:#1C3146; font-size:7.5px; margin-top:1px; font-weight:600; }
 .dto-badge { color:#c0392b; font-weight:700; }
 
 /* ── TOTALES + CONDICIONES ───────────────────────── */
@@ -390,10 +391,18 @@ body {
             </tr>
 
             @foreach($items as $item)
+                @php
+                    // Snapshot del SKU/código congelado al momento de cotizar.
+                    // Fallback a la relación para cotizaciones antiguas sin snapshot.
+                    $skuItem = $item->codigo_item ?? $item->producto?->codigo ?? $item->servicio?->codigo;
+                @endphp
                 <tr>
                     <td class="c" style="color:#aaa;">{{ $n++ }}</td>
                     <td>
                         <span class="item-desc">{{ $item->descripcion }}</span>
+                        @if($skuItem)
+                            <div class="item-code">SKU: {{ $skuItem }}</div>
+                        @endif
                         @if($item->especificaciones)
                             <div class="item-spec">{{ $item->especificaciones }}</div>
                         @endif

@@ -170,7 +170,7 @@
           <div class="pr-prod-row">
             <div class="pr-prod-img-wrap">
               <img src="{{ $prod->imagen ? asset('images/productos/' . $prod->imagen) : asset('images/logo.webp') }}?auto=compress&cs=tinysrgb&w=400" alt="{{$prod->name}}">
-              <button class="pr-wishlist-btn"><i class="bi bi-heart"></i></button>
+              <button onclick="lista_deseo_carrito_id({{$prod->id}});" class="pr-wishlist-btn"><i class="bi bi-heart"></i></button>
               <span class="pr-img-badge accent">Eco Plus</span>
             </div>
             <div class="pr-prod-body">

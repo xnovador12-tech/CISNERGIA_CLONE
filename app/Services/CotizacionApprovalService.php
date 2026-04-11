@@ -7,7 +7,6 @@ use App\Models\Cliente;
 use App\Models\DetallePedido;
 use App\Models\Oportunidad;
 use App\Models\Pedido;
-use App\Models\Prospecto;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -64,7 +63,12 @@ class CotizacionApprovalService
 
             // ── 3. Convertir prospecto a cliente (si aún no lo es) ──
             if ($prospecto && $prospecto->estado !== 'convertido') {
-                $cliente = $this->convertirACliente($prospecto);
+                // Usa el método centralizado del modelo Prospecto.
+                // Pasamos vendedor_id explícito desde la cotización (vendedor que cerró el deal)
+                // en lugar del default ($prospecto->user_id), para mejor trazabilidad.
+                $cliente = $prospecto->convertir([
+                    'vendedor_id' => $cotizacion->user_id ?? $prospecto->user_id ?? auth()->id(),
+                ]);
 
                 // Vincular cliente a la oportunidad y cotización
                 $oportunidad->update(['cliente_id' => $cliente->id]);
@@ -181,42 +185,6 @@ class CotizacionApprovalService
         }
 
         return $categorias->first() === 'servicio' ? 'servicio' : 'producto';
-    }
-
-    /**
-     * Convertir un prospecto en cliente.
-     */
-    private function convertirACliente(Prospecto $prospecto): Cliente
-    {
-        // Prevenir duplicados
-        $existente = Cliente::where('prospecto_id', $prospecto->id)->first();
-        if ($existente) {
-            $prospecto->update(['estado' => 'convertido']);
-            return $existente;
-        }
-
-        $cliente = Cliente::create([
-            'nombre'               => $prospecto->nombre,
-            'apellidos'            => $prospecto->apellidos,
-            'razon_social'         => $prospecto->razon_social,
-            'ruc'                  => $prospecto->ruc,
-            'dni'                  => $prospecto->dni,
-            'email'                => $prospecto->email,
-            'telefono'             => $prospecto->telefono,
-            'celular'              => $prospecto->celular,
-            'direccion'            => $prospecto->direccion,
-            'tipo_persona'         => $prospecto->tipo_persona,
-            'prospecto_id'         => $prospecto->id,
-            'segmento'             => $prospecto->segmento,
-            'distrito_id'          => $prospecto->distrito_id,
-            'vendedor_id'          => $prospecto->user_id ?? auth()->id(),
-            'fecha_primera_compra' => now(),
-        ]);
-
-        // Marcar prospecto como convertido
-        $prospecto->update(['estado' => 'convertido']);
-
-        return $cliente;
     }
 
     /**

@@ -21,11 +21,13 @@ use App\Models\Distrito;
 use App\Models\Persona;
 use App\Models\Sale;
 use App\Models\Detailsale;
+use App\Models\WishList;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ecommerceController extends Controller
 {
@@ -43,11 +45,19 @@ class ecommerceController extends Controller
         return view('ECOMMERCE.index', compact('productos'));
     }
 
-        public function limpiarSesionPlanes(Request $request)
+        public function limpiarSesioncisnergia(Request $request)
     {
         $request->session()->forget('carrito');
 
         return redirect()->route('ecommerce.index');
+    }
+
+    public function getmiperfil(){
+        if(Auth::check()){
+            return view('ECOMMERCE.cuenta.mi_perfil');
+        }else{
+            return redirect()->route('ecommerce.index');
+        }
     }
 
     public function misCompras ()
@@ -68,6 +78,7 @@ class ecommerceController extends Controller
         $ventas = Sale::with(['pedido', 'detalles.producto'])
             ->where('cliente_id', $clienteId)
             ->orderBy('created_at', 'desc')
+            ->take(5)
             ->get();
 
         $stats = [
@@ -79,6 +90,17 @@ class ecommerceController extends Controller
         return view('ECOMMERCE.cuenta.mis_compras', compact('ventas', 'stats'));
     }
 
+    public function getMisFavoritos(){
+        if(Auth::check()){
+            $favoritos = WishList::with('producto')
+                ->where('user_id', Auth::user()->id)
+                ->get();
+
+            return view('ECOMMERCE.cuenta.favoritos', compact('favoritos'));
+        }else{
+            return redirect()->route('ecommerce.index');
+        }
+    }
 
     // Lista de productos
     public function products(Request $request)
@@ -741,6 +763,10 @@ class ecommerceController extends Controller
             $totalPen = round($subtotal + $igv, 2);
             $amountInCents = (int) round($totalPen * 100);
 
+            // Mapeo ecommerce: 2 = Transferencia Bancaria, 3 = Billetera Digital.
+            $metodoPagoSeleccionado = strtolower((string) $request->input('metodo_pago', ''));
+            $mediopagoId = in_array($metodoPagoSeleccionado, ['yape', 'plin', 'billetera', 'billetera_digital'], true) ? 3 : 2;
+
             // ── CULQI DESACTIVADO TEMPORALMENTE (modo prueba) ──
             // $culqiClass = '\\Culqi\\Culqi';
             // $culqi = new $culqiClass(['api_key' => $secretKey]);
@@ -842,17 +868,26 @@ class ecommerceController extends Controller
                 ]);
             }
 
+            $serieComprobante = \App\Models\SerieComprobante::where('tiposcomprobante_id', $request->tiposcomprobante_id ?? 1)
+            ->where('activo', true)
+            ->first();
+
+            $numeroComprobante = $serieComprobante->generarNumero();
+
             $venta = new Sale();
             $venta->codigo = 'VTA-' . date('Y') . '-' . str_pad($pedido->id, 5, '0', STR_PAD_LEFT);
             $venta->slug = Str::slug($venta->codigo);
             $venta->pedido_id = $pedido->id;
             $venta->cliente_id = $cliente->id;
+            $venta->tiposcomprobante_id = $request->tiposcomprobante_id ?? 1; // Default a factura
+            $venta->numero_comprobante = $numeroComprobante;
             $venta->subtotal = $subtotal;
             $venta->descuento = 0;
             $venta->igv = $igv;
             $venta->total = $totalPen;
             $venta->condicion_pago = 'Contado';
             $venta->estado = 'completada';
+            $venta->mediopago_id = $mediopagoId;
             $venta->user_id = Auth::id();
             $venta->sede_id = 1;
             $venta->tipo_venta = 'ecommerce';
@@ -882,7 +917,9 @@ class ecommerceController extends Controller
                 'success' => true,
                 'message' => 'Pago procesado correctamente con Culqi',
                 'charge_id' => $charge->id ?? null,
+                'mediopago_id' => $mediopagoId,
                 'total' => $totalPen,
+                'venta_slug' => $venta->slug,
             ]);
         } catch (\Throwable $e) {
             logger()->error('Culqi charge error', [
@@ -899,13 +936,130 @@ class ecommerceController extends Controller
     }
 
     // Confirmación de pedido
-    public function confirmation()
+    public function confirmation(Request $request, Sale $sale)
     {
         if(Auth::check()){
-            $pedido = Pedido::where('cliente_id', auth()->user()->cliente?->id)->with(['cliente', 'detalles.producto'])->firstOrFail();
-            return view('ECOMMERCE.carrito.confirmacion', compact('pedido'));
+            $clienteId = Auth::user()?->cliente?->id;
+
+            if (!$clienteId) {
+                return redirect()->route('ecommerce.index');
+            }
+
+            $dtlle_venta = Detailsale::where('sale_id', $sale->id)->get();
+            $pedido = Pedido::where('id', $sale->pedido_id)->first();
+
+            $productos_destacados = Producto::where('estado', 'Activo')
+            ->orderBy('created_at', 'desc')
+            ->take(8)
+            ->get();
+
+
+            return view('ECOMMERCE.carrito.confirmacion', compact('pedido','sale','dtlle_venta','productos_destacados'));
         }else{
             return redirect()->route('ecommerce.index');
+        }
+
+    }
+
+    public function comprobante_compra(Sale $sale)
+    {
+        $now = Carbon::now();
+        $dtlle_venta = Detailsale::where('sale_id',$sale->id)->get();
+
+        $tipos = [
+            '1' => 'Factura',
+            '2' => 'Boleta de Venta',
+            '3' => 'Nota de Venta',
+        ];
+
+        $tipo_comprobante = $sale->tiposcomprobante_id;
+        $tipo_label       = $tipos[$tipo_comprobante] ?? 'Comprobante';
+
+        $pdf = Pdf::loadView('ECOMMERCE.carrito.comprobante_pago', ['sale'=>$sale, 'dtlle_venta'=>$dtlle_venta, 'now'=>$now, 'tipo_label'=>$tipo_label, 'tipo_comprobante'=>$tipo_comprobante]);
+        return $pdf->stream('DETALLE-VENTA-'.$sale->codigo.'.pdf');
+    }
+
+    public function getlista_deseo_carrito(Request $request)
+    {
+        if($request->ajax()){
+            $id_element_producto = $request->id_element_producto;
+
+            if(WishList::where('user_id', Auth::user()->id)->where('producto_id', $id_element_producto)->exists()){
+                // El producto ya está en la lista de deseos
+
+                $ArrayList[1] = ['deseo_ya_existe'];
+
+                return response()->json($ArrayList);
+            }else{
+                $wishlist = new WishList();
+                $wishlist->deseo = '1';
+                $wishlist->user_id = Auth::user()->id;
+                $wishlist->producto_id = $id_element_producto;
+                $wishlist->save();
+
+                $ArrayList[1] = ['deseo_guardado'];
+
+                return response()->json($ArrayList);
+            }
+        }
+
+    }
+
+    public function geteliminarlista_deseo_carrito(Request $request)
+    {
+        if($request->ajax()){
+            if($request->eliminar_todo == true){
+                Wishlist::where('user_id', Auth::user()->id)->delete();
+                $ArrayList[1] = ['lista_deseos_eliminada'];
+                return response()->json($ArrayList);
+            }else{
+                $id_element_producto = $request->id_element_producto;
+                
+                Wishlist::where('user_id', Auth::user()->id)->where('producto_id', $id_element_producto)->delete();
+
+                $ArrayList[1] = ['producto_eliminado_de_lista_deseos'];
+
+                return response()->json($ArrayList);
+            }
+        }
+    }
+
+    public function getagregar_compra_carritofavoritos(Request $request)
+    {
+        if($request->ajax()){
+            if($request->ajax()){
+                $id_element_producto = $request->id_element_producto;
+                $carrito = session('carrito', []);
+
+                // Check if product already exists in cart
+                $exists = collect($carrito)->contains('producto_id', $id_element_producto);
+                
+                if($exists) {
+                    $ArrayList[1] = ['producto_ya_en_carrito'];
+                    return response()->json($ArrayList);
+                }
+
+                // Product not in cart, add it
+                $product = DB::table('productos')->where('id', $id_element_producto)->first();
+
+                $carrito[] = [
+                    'slug' => $product->slug,
+                    'ymdhis' => date('YmdHis'),
+                    'name_producto' => $product->name,
+                    'imagen_producto' => $product->imagen ? asset('images/productos/' . $product->imagen) : asset('images/logo.webp'),
+                    'precio' => $product->precio,
+                    'producto_id' => $product->id,
+                    'cantidad' => $request->valor_cantidad ?? 1,
+                    'precio_descuento' => $product->precio_descuento > 0 ? $product->precio_descuento : 0,
+                    'porcentaje' => $product->porcentaje > 0 ? $product->porcentaje : 0,
+                ];
+
+                session(['carrito' => $carrito]);
+
+                $ArrayList[1] = ['producto_agregado_al_carrito', count($carrito)];
+                return response()->json($ArrayList);
+            }
+
         }
 
     }
@@ -1053,7 +1207,7 @@ class ecommerceController extends Controller
 
             DB::commit();
 
-            return redirect()->route('ecommerce.confirmation', $pedido->slug)
+            return redirect()->route('ecommerce.confirmation', ['sale' => $venta->slug])
                 ->with('success', 'Pedido realizado exitosamente');
         } catch (\Exception $e) {
             DB::rollBack();

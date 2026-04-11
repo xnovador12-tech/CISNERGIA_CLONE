@@ -168,7 +168,7 @@
             <div class="row align-items-center mb-3">
               <div class="col-lg-8">
                 <div class="d-flex align-items-center gap-3 mb-2">
-                  <h5 class="mb-0 fw-bold">#{{$venta->codigo}}</h5>
+                  <h5 class="mb-0 fw-bold">#{{$venta->pedido->codigo}}</h5>
                   @if(optional($pedido)->estado == 'pendiente')
                   <span class="badge status-badge bg-info bg-opacity-10 text-info">
                     <i class="bi bi-hourglass-split me-1"></i>Pendiente
@@ -204,7 +204,7 @@
               </div>
               <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                 <p class="mb-1 fw-bold fs-4 text-primary">S/ {{$venta->total}}</p>
-                <button class="btn btn-sm btn-outline-primary" onclick="toggleDetails({{$venta->id}})">
+                <button class="btn btn-sm btn-outline-primary" onclick="toggleDetails({{$venta->id}}, this)">
                   <i class="bi bi-eye me-1"></i>Ver detalles
                 </button>
               </div>
@@ -248,43 +248,36 @@
                 <div class="col-lg-8">
                   <h6 class="fw-bold mb-3">Productos</h6>
                   <div class="mb-3 pb-3 border-bottom">
+                    @foreach($detalle_venta as $detalle)
+                    @php
+                      $producto = App\Models\Producto::where('id', $detalle->producto_id)->first();
+                    @endphp
                     <div class="d-flex align-items-center">
-                      <img src="https://images.pexels.com/photos/356036/pexels-photo-356036.jpeg?auto=compress&cs=tinysrgb&w=100" 
-                           class="product-thumb me-3" alt="Panel Solar">
+                      <img src="{{ $producto->imagen ? asset('images/productos/' . $producto->imagen) : asset('images/logo.webp') }}?auto=compress&cs=tinysrgb&w=100" 
+                           class="product-thumb me-3" alt="{{ $producto->nombre }}">
                       <div class="flex-grow-1">
-                        <h6 class="mb-1">Panel Solar Monocristalino 550W</h6>
-                        <small class="text-muted">Cantidad: 2</small>
+                        <h6 class="mb-1 fw-bold">{{ $producto->name }}</h6>
+                        <small class="text-muted">Cantidad: {{ $detalle->cantidad }}</small>
                       </div>
                       <div class="text-end">
-                        <p class="mb-0 fw-bold">S/ 1,200.00</p>
+                        <p class="mb-0 fw-bold">S/ {{ number_format($detalle->precio_unitario * $detalle->cantidad, 2) }}</p>
                       </div>
                     </div>
+                    @endforeach
                   </div>
-                  <div class="mb-3">
-                    <div class="d-flex align-items-center">
-                      <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=100" 
-                           class="product-thumb me-3" alt="Inversor">
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1">Inversor Híbrido 5kW</h6>
-                        <small class="text-muted">Cantidad: 1</small>
-                      </div>
-                      <div class="text-end">
-                        <p class="mb-0 fw-bold">S/ 3,500.00</p>
-                      </div>
-                    </div>
-                  </div>
+                  
                 </div>
                 <div class="col-lg-4">
                   <h6 class="fw-bold mb-3">Información de Envío</h6>
                   <p class="mb-1 small text-muted">Dirección</p>
-                  <p class="mb-3 small">Av. Principal 123, San Isidro, Lima</p>
+                  <p class="mb-3 small">{{$venta->cliente->user->persona->direccion}}</p>
                   
                   <h6 class="fw-bold mb-3 mt-4">Acciones</h6>
-                  <div class="d-grid gap-2">
-                    <a href="#" class="btn btn-sm btn-primary">
+                  <div class="d-grid gap-2 p-2">
+                    <a href="/product" class="btn btn-sm btn-primary">
                       <i class="bi bi-arrow-clockwise me-1"></i>Comprar de nuevo
                     </a>
-                    <a href="#" class="btn btn-sm btn-outline-primary">
+                    <a href="/comprobante_compra/{{$venta->slug}}" target="_blank" class="btn btn-sm btn-outline-primary">
                       <i class="bi bi-file-earmark-pdf me-1"></i>Descargar factura
                     </a>
                     <a href="#" class="btn btn-sm btn-outline-secondary">
@@ -368,4 +361,26 @@
 @endsection
 
 @section('js')
+<script>
+function toggleDetails(id, btn) {
+    const detalle = document.getElementById(id);
+    const isVisible = detalle.classList.contains('show');
+
+    // Cierra todos los detalles abiertos y resetea botones
+    document.querySelectorAll('.order-details').forEach(el => el.classList.remove('show'));
+    document.querySelectorAll('[onclick^="toggleDetails"]').forEach(b => {
+        b.innerHTML = '<i class="bi bi-eye me-1"></i>Ver detalles';
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-outline-primary');
+    });
+
+    // Si estaba cerrado, ábrelo
+    if (!isVisible) {
+        detalle.classList.add('show');
+        btn.innerHTML = '<i class="bi bi-eye-slash me-1"></i>Ocultar detalles';
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-primary');
+    }
+}
+</script>
 @endsection

@@ -59,7 +59,7 @@
               class="pd-gallery__img" 
               alt="{{ $producto->name }}">
             <span class="pd-stock-badge"><i class="bi bi-check-circle-fill me-1"></i>En stock</span>
-            <button class="pd-wish-fab" aria-label="Añadir a favoritos"><i class="bi bi-heart"></i></button>
+            <button onclick="lista_deseo_carrito_id({{$producto->id}});" class="pd-wish-fab" aria-label="Añadir a favoritos"><i class="bi bi-heart"></i></button>
           </div>
 
           <!-- Miniaturas -->
@@ -305,7 +305,7 @@
           <button onclick="add_carrito_id({{$producto->id}});" class="btn btn-primary btn-lg flex-fill">
             <i class="bi bi-cart-plus me-2"></i>Agregar al carrito
           </button>
-          <button type="button" class="btn btn-outline-secondary btn-lg" style="width:54px;" aria-label="Añadir a favoritos">
+          <button onclick="lista_deseo_carrito_id({{$producto->id}});" type="button" class="btn btn-outline-secondary btn-lg" style="width:54px;" aria-label="Añadir a favoritos">
             <i class="bi bi-heart"></i>
           </button>
         </div>

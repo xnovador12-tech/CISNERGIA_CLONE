@@ -48,7 +48,7 @@ use Illuminate\Support\Facades\Route;
 // ECOMMERCE — Rutas públicas (sin auth)
 // =============================================================
 
-Route::get('limpiar-sesion-planes', [ecommerceController::class, 'limpiarSesionPlanes'])->name('limpiar-sesion-planes.get');
+Route::get('limpiar-sesion-cisnergia', [ecommerceController::class, 'limpiarSesioncisnergia'])->name('limpiar-sesion-cisnergia.get');
 
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
 Route::get('/mis_compras', [ecommerceController::class, 'misCompras'])->name('ecommerce.mis_compras');
@@ -64,10 +64,16 @@ Route::get('carrito-compras', [ecommerceController::class, 'index'])->name('ecom
 Route::get('listado_pago_carrito_compras', [ecommerceController::class, 'pago_carrito_compra'])->name('ecommerce_pago_carrito_compras.index');
 Route::get('eliminar_carrito', [ecommerceController::class, 'geteliminar_carrito']);
 Route::get('actualizar_cantidad_carrito', [ecommerceController::class, 'getactualizar_cantidad_carrito']);
-route::get('/confirmacion_pago_exitoso', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmacion_pago');
+Route::get('/confirmacion_pago_exitoso/{sale}', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmacion_pago');
+route::get('/comprobante_compra/{sale}', [ecommerceController::class, 'comprobante_compra'])->name('ecommerce.comprobante_compra');
+Route::get('lista_deseo_carrito', [ecommerceController::class, 'getlista_deseo_carrito']);
+Route::get('eliminar_lista_deseo_carrito', [ecommerceController::class, 'geteliminarlista_deseo_carrito']);
+Route::get('agregar_compra_carritofavoritos', [ecommerceController::class, 'getagregar_compra_carritofavoritos']);
 
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');
+route::get('/mi/perfil', [ecommerceController::class, 'getmiperfil'])->name('ecommerce.mi_perfil');
+route::get('/mis/favorites', [ecommerceController::class, 'getMisFavoritos'])->name('ecommerce.mis_favoritos');
 
 // Carrito
 Route::post('/cart/add', [ecommerceController::class, 'addToCart'])->name('ecommerce.cart.add');
@@ -81,7 +87,7 @@ Route::get('/checkout', [ecommerceController::class, 'checkout'])->name('ecommer
 route::get('ver_provincias', [ecommerceController::class, 'getprovincias']);
 route::get('ver_distritos', [ecommerceController::class, 'getdistritos']);
 Route::post('/checkout/process', [ecommerceController::class, 'processCheckout'])->name('ecommerce.checkout.process');
-Route::get('/order-confirmation/{slug}', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmation');
+Route::get('/order-confirmation/{sale}', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmation');
 Route::post('pago-ecommerce/processCulqi', [ecommerceController::class, 'createCulqiCharge'])->name('pago_ecommerce.createCulqiCharge');
 
 // =============================================================

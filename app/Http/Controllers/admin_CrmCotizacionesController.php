@@ -490,22 +490,48 @@ class admin_CrmCotizacionesController extends Controller
         $orden = 1;
         $tiempoTotal = 0;
 
+        // Pre-cargar códigos de productos y servicios en lote para evitar N+1.
+        // Estos códigos se "congelan" en codigo_item al momento de cotizar.
+        $productoIds = collect($items)->pluck('producto_id')->filter()->unique()->values();
+        $servicioIds = collect($items)->pluck('servicio_id')->filter()->unique()->values();
+
+        $codigosProductos = $productoIds->isNotEmpty()
+            ? Producto::whereIn('id', $productoIds)->pluck('codigo', 'id')
+            : collect();
+
+        $codigosServicios = $servicioIds->isNotEmpty()
+            ? Servicio::whereIn('id', $servicioIds)->pluck('codigo', 'id')
+            : collect();
+
         foreach ($items as $itemData) {
             $esServicio = ($itemData['categoria'] ?? '') === 'servicio';
             $tiempoItem = $esServicio ? (int)($itemData['tiempo_ejecucion_dias'] ?? 0) : null;
             if ($tiempoItem) $tiempoTotal += $tiempoItem;
 
+            $productoId = !empty($itemData['producto_id']) ? $itemData['producto_id'] : null;
+            $servicioId = !empty($itemData['servicio_id']) ? $itemData['servicio_id'] : null;
+
+            // Snapshot del SKU/código al momento de cotizar.
+            // Si el producto/servicio cambia su código a futuro, la cotización mantiene el original.
+            $codigoSnapshot = null;
+            if ($productoId) {
+                $codigoSnapshot = $codigosProductos[$productoId] ?? null;
+            } elseif ($servicioId) {
+                $codigoSnapshot = $codigosServicios[$servicioId] ?? null;
+            }
+
             DetalleCotizacionCrm::create([
                 'cotizacion_id'          => $cotizacion->id,
                 'categoria'              => $itemData['categoria'],
+                'codigo_item'            => $codigoSnapshot,
                 'descripcion'            => $itemData['descripcion'],
                 'especificaciones'       => $itemData['especificaciones'] ?? null,
                 'cantidad'               => $itemData['cantidad'],
                 'unidad'                 => $itemData['unidad'],
                 'precio_unitario'        => $itemData['precio_unitario'],
                 'descuento_porcentaje'   => $itemData['descuento_porcentaje'] ?? 0,
-                'producto_id'            => !empty($itemData['producto_id']) ? $itemData['producto_id'] : null,
-                'servicio_id'            => !empty($itemData['servicio_id']) ? $itemData['servicio_id'] : null,
+                'producto_id'            => $productoId,
+                'servicio_id'            => $servicioId,
                 'tiempo_ejecucion_dias'  => $tiempoItem,
                 'orden'                  => $orden++,
             ]);

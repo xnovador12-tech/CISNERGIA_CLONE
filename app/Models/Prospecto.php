@@ -281,4 +281,67 @@ class Prospecto extends Model
     {
         return $this->actividades()->latest('fecha_programada')->first();
     }
+
+    /**
+     * Convertir este prospecto en cliente.
+     *
+     * Centraliza la lógica de conversión usada por:
+     *   - CotizacionApprovalService::aprobar() cuando se aprueba una cotización
+     *   - ecommerceController::processCheckout() cuando un user logueado paga
+     *
+     * Idempotente: si el prospecto ya tiene un cliente vinculado, lo retorna
+     * sin crear uno nuevo (re-marca el estado como 'convertido' por consistencia).
+     *
+     * El caller es responsable de envolver esta llamada en una transacción
+     * cuando forme parte de un flujo más amplio.
+     *
+     * @param array $overrides Campos del Cliente a sobrescribir desde el caller.
+     *                         Útil para pasar datos del formulario de checkout
+     *                         (dni, ruc, dirección de facturación distinta, etc.)
+     *                         o un vendedor_id específico.
+     * @return Cliente
+     */
+    public function convertir(array $overrides = []): Cliente
+    {
+        // Idempotencia: si ya tiene cliente, retornarlo
+        $existente = $this->cliente()->first();
+        if ($existente) {
+            if ($this->estado !== 'convertido') {
+                $this->update(['estado' => 'convertido']);
+            }
+            return $existente;
+        }
+
+        // Datos base del cliente, derivados del prospecto
+        $datos = [
+            'nombre'               => $this->nombre,
+            'apellidos'            => $this->apellidos,
+            'razon_social'         => $this->razon_social,
+            'ruc'                  => $this->ruc,
+            'dni'                  => $this->dni,
+            'email'                => $this->email,
+            'telefono'             => $this->telefono,
+            'celular'              => $this->celular,
+            'direccion'            => $this->direccion,
+            'tipo_persona'         => $this->tipo_persona ?? 'natural',
+            'segmento'             => $this->segmento ?? 'residencial',
+            'distrito_id'          => $this->distrito_id,
+            'prospecto_id'         => $this->id,
+            'origen'               => 'directo', // default; checkout sobrescribe a 'ecommerce'
+            'estado'               => 'activo',
+            'vendedor_id'          => $this->user_id ?? auth()->id(),
+            'user_id'              => $this->registered_user_id, // FK al user del ecommerce
+            'fecha_primera_compra' => now(),
+        ];
+
+        // Aplicar overrides del caller (datos del formulario, vendedor específico, etc.)
+        $datos = array_merge($datos, $overrides);
+
+        $cliente = Cliente::create($datos);
+
+        // Marcar prospecto como convertido
+        $this->update(['estado' => 'convertido']);
+
+        return $cliente;
+    }
 }

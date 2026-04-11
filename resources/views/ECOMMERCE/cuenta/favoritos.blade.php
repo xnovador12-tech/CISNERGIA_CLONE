@@ -259,6 +259,16 @@
     .favorite-item {
       animation: fadeIn 0.3s ease-out;
     }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
   </style>
 @endsection
 
@@ -272,11 +282,11 @@
           <i class="bi bi-heart-fill text-danger me-2"></i>Mis favoritos
         </h2>
         <p class="text-muted mb-0">
-          <span id="favoriteCount">6</span> productos guardados
+          <span id="favoriteCount">{{ $favoritos->count() }}</span> productos guardados
         </p>
       </div>
       <div>
-        <button class="btn btn-outline-danger" id="clearAllBtn">
+        <button onclick="eliminartodofavoritos()" class="btn btn-outline-danger" id="clearAllBtn">
           <i class="bi bi-trash me-2"></i>Limpiar todo
         </button>
       </div>
@@ -289,41 +299,59 @@
   <div class="container">
     
     <!-- Producto 1 -->
-    <div class="favorite-item" data-product-id="1">
+    @forelse($favoritos as $favorito)
+    <div class="favorite-item" data-product-id="{{ $favorito->producto->id }}">
       <div class="row align-items-center g-4">
         <div class="col-auto">
-          <img src="https://images.pexels.com/photos/356036/pexels-photo-356036.jpeg?auto=compress&cs=tinysrgb&w=200" 
-               class="product-image" alt="Panel Solar">
+          <img src="{{ $favorito->producto->imagen ? asset('images/productos/' . $favorito->producto->imagen) : asset('images/logo.webp') }}" 
+               class="product-image" alt="{{ $favorito->producto->name }}">
         </div>
         <div class="col">
-          <div class="product-category mb-2">PANELES SOLARES</div>
-          <h3 class="product-title mb-2">Panel Solar Monocristalino 550W</h3>
-          <p class="text-muted mb-3">Alta eficiencia 21.5% | Garantía 25 años</p>
+          <div class="product-category mb-2">{{ $favorito->producto->categoria->name ?? 'Sin categoría' }}</div>
+          <h3 class="product-title mb-2">{{ $favorito->producto->name }}</h3>
+          <p class="text-muted mb-3">{{ $favorito->producto->descripcion }}</p>
+          @if($favorito->producto->inventarios->sum('cantidad') > 5)
+            <div class="stock-status available">
+              <i class="bi bi-check-circle-fill me-1"></i>Disponible
+            </div>
+          @else
           <div class="stock-status available">
-            <i class="bi bi-check-circle-fill me-1"></i>Disponible
-          </div>
+              <i class="bi bi-exclamation-triangle-fill me-1"></i>Pocas unidades
+            </div>
+          @endif
         </div>
         <div class="col-lg-auto text-center">
-          <div class="price-current mb-1">S/ 595</div>
-          <div class="price-old mb-2">S/ 700</div>
-          <div class="discount-badge">-15%</div>
+          @if($favorito->producto->precio_descuento == '' || $favorito->producto->precio_descuento == 0)
+            <div class="price-current mb-1">S/ {{ number_format($favorito->producto->precio, 2) }}</div>
+          @else
+            <div class="price-current mb-1">S/ {{ number_format($favorito->producto->precio_descuento, 2) }}</div>
+            <div class="price-old mb-2">S/ {{ number_format($favorito->producto->precio, 2) }}</div>
+            <div class="discount-badge">
+              - {{ $favorito->producto->porcentaje}}%
+            </div>
+          @endif
         </div>
         <div class="col-lg-auto">
           <div class="d-flex flex-column gap-3">
             <div class="text-center">
               <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
               <div class="qty-control">
-                <button class="qty-btn" onclick="decreaseQty(1)">−</button>
-                <input type="number" class="qty-input" value="1" min="1" id="qty-1" readonly>
-                <button class="qty-btn" onclick="increaseQty(1)">+</button>
+                <button class="btn btn-sm btn-outline-secondary decrement-btn" type="button" data-item-id="{{ $favorito->producto->id }}">
+                    <i class="bi bi-dash"></i>
+                </button>
+                <input type="number" class="form-control form-control-sm text-center cantidad-input" 
+                        value="1" min="1" id="cantidad-{{ $favorito->producto->id }}" data-item-id="{{ $favorito->producto->id }}" readonly>
+                <button class="btn btn-sm btn-outline-secondary increment-btn" type="button" data-item-id="{{ $favorito->producto->id }}">
+                    <i class="bi bi-plus"></i>
+                </button>
               </div>
-              <small class="text-muted d-block mt-2">Máx. 20 unidades</small>
+              <small class="text-muted d-block mt-2">Máx. {{ $favorito->producto->inventarios->sum('cantidad') > 1 ? $favorito->producto->inventarios->sum('cantidad').' unidades disponibles' : $favorito->producto->inventarios->sum('cantidad').' unidad disponible'}}</small>
             </div>
             <div class="d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1" onclick="addToCart(1)" style="white-space: nowrap;">
+              <button class="btn btn-primary flex-grow-1" onclick="agregar_carrito_idfavorito({{ $favorito->producto->id }})" style="white-space: nowrap;">
                 <i class="bi bi-cart-plus me-2"></i>Agregar
               </button>
-              <button class="action-btn btn-delete" onclick="removeFromFavorites(1)" title="Eliminar de favoritos">
+              <button class="action-btn btn-delete" onclick="eliminar_lista_id({{$favorito->producto->id}});" title="Eliminar de favoritos">
                 <i class="bi bi-trash fs-5"></i>
               </button>
             </div>
@@ -332,241 +360,47 @@
         </div>
       </div>
     </div>
-
-    <!-- Producto 2 -->
-    <div class="favorite-item" data-product-id="2">
-      <div class="row align-items-center g-4">
-        <div class="col-auto">
-          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=200" 
-               class="product-image" alt="Inversor">
-        </div>
-        <div class="col">
-          <div class="product-category mb-2">INVERSORES</div>
-          <h3 class="product-title mb-2">Inversor Híbrido 5kW</h3>
-          <p class="text-muted mb-3">On-Grid / Off-Grid | Monitoreo WiFi</p>
-          <div class="stock-status available">
-            <i class="bi bi-check-circle-fill me-1"></i>Disponible
-          </div>
-        </div>
-        <div class="col-lg-auto text-center">
-          <div class="price-current mb-1">S/ 3,500</div>
-        </div>
-        <div class="col-lg-auto">
-          <div class="d-flex flex-column gap-3">
-            <div class="text-center">
-              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
-              <div class="qty-control">
-                <button class="qty-btn" onclick="decreaseQty(2)">−</button>
-                <input type="number" class="qty-input" value="1" min="1" id="qty-2" readonly>
-                <button class="qty-btn" onclick="increaseQty(2)">+</button>
-              </div>
-              <small class="text-muted d-block mt-2">Máx. 20 unidades</small>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1" onclick="addToCart(2)" style="white-space: nowrap;">
-                <i class="bi bi-cart-plus me-2"></i>Agregar
-              </button>
-              <button class="action-btn btn-delete" onclick="removeFromFavorites(2)" title="Eliminar de favoritos">
-                <i class="bi bi-trash fs-5"></i>
-              </button>
-            </div>
-            
-          </div>
-        </div>
+    @empty
+      <div class="empty-state text-center">
+        <i class="bi bi-heart"></i>
+        <h2 class="fw-bold mt-4 mb-3">Aún no tienes favoritos</h2>
+        <p class="text-muted mb-4">
+          Empieza a guardar tus productos favoritos para encontrarlos fácilmente después.
+        </p>
+        <a href="/products" class="btn btn-primary btn-lg">
+          <i class="bi bi-shop me-2"></i>Explorar Productos
+        </a>
       </div>
-    </div>
-
-    <!-- Producto 3 -->
-    <div class="favorite-item" data-product-id="3">
-      <div class="row align-items-center g-4">
-        <div class="col-auto">
-          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=200" 
-               class="product-image" alt="Batería">
-        </div>
-        <div class="col">
-          <div class="product-category mb-2">BATERÍAS</div>
-          <h3 class="product-title mb-2">Batería de Litio 10kWh</h3>
-          <p class="text-muted mb-3">6000 ciclos | BMS inteligente</p>
-          <div class="stock-status limited">
-            <i class="bi bi-exclamation-triangle-fill me-1"></i>Pocas unidades
-          </div>
-        </div>
-        <div class="col-lg-auto text-center">
-          <div class="price-current mb-1">S/ 4,400</div>
-          <div class="price-old mb-2">S/ 5,500</div>
-          <div class="discount-badge">-20%</div>
-        </div>
-        <div class="col-lg-auto">
-          <div class="d-flex flex-column gap-3">
-            <div class="text-center">
-              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
-              <div class="qty-control">
-                <button class="qty-btn" onclick="decreaseQty(3)">−</button>
-                <input type="number" class="qty-input" value="1" min="1" id="qty-3" readonly>
-                <button class="qty-btn" onclick="increaseQty(3)">+</button>
-              </div>
-              <small class="text-muted d-block mt-2">Máx. 5 unidades</small>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1" onclick="addToCart(3)" style="white-space: nowrap;">
-                <i class="bi bi-cart-plus me-2"></i>Agregar
-              </button>
-              <button class="action-btn btn-delete" onclick="removeFromFavorites(3)" title="Eliminar de favoritos">
-                <i class="bi bi-trash fs-5"></i>
-              </button>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Producto 4 -->
-    <div class="favorite-item" data-product-id="4">
-      <div class="row align-items-center g-4">
-        <div class="col-auto">
-          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=200" 
-               class="product-image" alt="Estructura">
-        </div>
-        <div class="col">
-          <div class="product-category mb-2">ACCESORIOS</div>
-          <h3 class="product-title mb-2">Estructura de Montaje Reforzada</h3>
-          <p class="text-muted mb-3">Aluminio anodizado | Para 8 paneles</p>
-          <div class="stock-status available">
-            <i class="bi bi-check-circle-fill me-1"></i>Disponible
-          </div>
-        </div>
-        <div class="col-lg-auto text-center">
-          <div class="price-current mb-1">S/ 850</div>
-        </div>
-        <div class="col-lg-auto">
-          <div class="d-flex flex-column gap-3">
-            <div class="text-center">
-              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
-              <div class="qty-control">
-                <button class="qty-btn" onclick="decreaseQty(4)">−</button>
-                <input type="number" class="qty-input" value="1" min="1" id="qty-4" readonly>
-                <button class="qty-btn" onclick="increaseQty(4)">+</button>
-              </div>
-              <small class="text-muted d-block mt-2">Máx. 20 unidades</small>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1" onclick="addToCart(4)" style="white-space: nowrap;">
-                <i class="bi bi-cart-plus me-2"></i>Agregar
-              </button>
-              <button class="action-btn btn-delete" onclick="removeFromFavorites(4)" title="Eliminar de favoritos">
-                <i class="bi bi-trash fs-5"></i>
-              </button>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Producto 5 -->
-    <div class="favorite-item" data-product-id="5">
-      <div class="row align-items-center g-4">
-        <div class="col-auto">
-          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=200" 
-               class="product-image" alt="Regulador">
-        </div>
-        <div class="col">
-          <div class="product-category mb-2">REGULADORES</div>
-          <h3 class="product-title mb-2">Regulador de Carga MPPT 60A</h3>
-          <p class="text-muted mb-3">Eficiencia 98% | Pantalla LCD</p>
-          <div class="stock-status available">
-            <i class="bi bi-check-circle-fill me-1"></i>Disponible
-          </div>
-        </div>
-        <div class="col-lg-auto text-center">
-          <div class="price-current mb-1">S/ 1,200</div>
-        </div>
-        <div class="col-lg-auto">
-          <div class="d-flex flex-column gap-3">
-            <div class="text-center">
-              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
-              <div class="qty-control">
-                <button class="qty-btn" onclick="decreaseQty(5)">−</button>
-                <input type="number" class="qty-input" value="1" min="1" id="qty-5" readonly>
-                <button class="qty-btn" onclick="increaseQty(5)">+</button>
-              </div>
-              <small class="text-muted d-block mt-2">Máx. 20 unidades</small>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1" onclick="addToCart(5)" style="white-space: nowrap;">
-                <i class="bi bi-cart-plus me-2"></i>Agregar
-              </button>
-              <button class="action-btn btn-delete" onclick="removeFromFavorites(5)" title="Eliminar de favoritos">
-                <i class="bi bi-trash fs-5"></i>
-              </button>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Producto 6 -->
-    <div class="favorite-item" data-product-id="6">
-      <div class="row align-items-center g-4">
-        <div class="col-auto">
-          <img src="https://images.pexels.com/photos/433308/pexels-photo-433308.jpeg?auto=compress&cs=tinysrgb&w=200" 
-               class="product-image" alt="Kit Cables">
-        </div>
-        <div class="col">
-          <div class="product-category mb-2">ACCESORIOS</div>
-          <h3 class="product-title mb-2">Kit de Cables Solares 6mm²</h3>
-          <p class="text-muted mb-3">20 metros | Certificado UV</p>
-          <div class="stock-status available">
-            <i class="bi bi-check-circle-fill me-1"></i>Disponible
-          </div>
-        </div>
-        <div class="col-lg-auto text-center">
-          <div class="price-current mb-1">S/ 350</div>
-        </div>
-        <div class="col-lg-auto">
-          <div class="d-flex flex-column gap-3">
-            <div class="text-center">
-              <label class="d-block fw-semibold mb-2 text-muted" style="font-size: 0.875rem;">Cantidad</label>
-              <div class="qty-control">
-                <button class="qty-btn" onclick="decreaseQty(6)">−</button>
-                <input type="number" class="qty-input" value="1" min="1" id="qty-6" readonly>
-                <button class="qty-btn" onclick="increaseQty(6)">+</button>
-              </div>
-              <small class="text-muted d-block mt-2">Máx. 20 unidades</small>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1" onclick="addToCart(6)" style="white-space: nowrap;">
-                <i class="bi bi-cart-plus me-2"></i>Agregar
-              </button>
-              <button class="action-btn btn-delete" onclick="removeFromFavorites(6)" title="Eliminar de favoritos">
-                <i class="bi bi-trash fs-5"></i>
-              </button>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ESTADO VACÍO -->
-<section class="empty-state text-center d-none" id="emptyState">
-  <div class="container">
-    <i class="bi bi-heart"></i>
-    <h2 class="fw-bold mt-4 mb-3">Aún no tienes favoritos</h2>
-    <p class="text-muted mb-4">
-      Empieza a guardar tus productos favoritos para encontrarlos fácilmente después.
-    </p>
-    <a href="productos.html" class="btn btn-primary btn-lg">
-      <i class="bi bi-shop me-2"></i>Explorar Productos
-    </a>
+    @endforelse
   </div>
 </section>
 @endsection
 
 @section('js')
+<script>
+    // Incrementar cantidad
+    document.querySelectorAll('.increment-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            var itemId = this.dataset.itemId;
+            var input = document.querySelector('.cantidad-input[data-item-id="' + itemId + '"]');
+            var max = parseInt(input.getAttribute('max') || '999', 10);
+            var newCantidad = parseInt(input.value || '1', 10) + 1;
+            if (newCantidad <= max) {
+                input.value = newCantidad;
+            }
+        });
+    });
+
+    // Decrementar cantidad
+    document.querySelectorAll('.decrement-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            var itemId = this.dataset.itemId;
+            var input = document.querySelector('.cantidad-input[data-item-id="' + itemId + '"]');
+            var newCantidad = parseInt(input.value || '1', 10) - 1;
+            if (newCantidad >= 1) {
+                input.value = newCantidad;
+            }
+        });
+    });
+</script>
 @endsection
