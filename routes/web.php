@@ -73,6 +73,12 @@ Route::get('agregar_compra_carritofavoritos', [ecommerceController::class, 'geta
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');
 route::get('/mi/perfil', [ecommerceController::class, 'getmiperfil'])->name('ecommerce.mi_perfil');
+route::post('/mis/direcciones/crear', [ecommerceController::class, 'crearDireccion'])->name('ecommerce-direccion.create');
+route::put('/mis/direcciones/actualizar/{id}', [ecommerceController::class, 'getMisDirecciones'])->name('ecommerce-direccion.actualizar');
+route::post('/ecommerce/direccion/eliminar/{id}', [ecommerceController::class, 'eliminardireccion'])->name('ecommerce-direccion.eliminar');
+route::put('/mis/contraseña/actualizar', [ecommerceController::class, 'cambiarContrasena'])->name('ecommerce.cambiar_contraseña');
+route::post('/mi/perfil/otp/enviar', [ecommerceController::class, 'enviarCodigoRecuperacion'])->name('ecommerce.otp.enviar');
+route::post('/mi/perfil/otp/cambiar-password', [ecommerceController::class, 'cambiarContrasenaConOtp'])->name('ecommerce.otp.cambiar_password');
 route::get('/mis/favorites', [ecommerceController::class, 'getMisFavoritos'])->name('ecommerce.mis_favoritos');
 
 // Carrito

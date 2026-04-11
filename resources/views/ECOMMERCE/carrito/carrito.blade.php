@@ -155,8 +155,8 @@
                         <div class="mt-4 pt-3 border-top">
                             <label class="form-label fw-semibold small">¿Tienes un cupón?</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Código de cupón" id="cupon-input">
-                                <button class="btn btn-outline-secondary" type="button" id="apply-cupon-btn">Aplicar</button>
+                                <input type="text" class="form-control" placeholder="Código de cupón" id="valor_cuponera_id">
+                                <button class="btn btn-outline-secondary" type="button" id="aplicar_cuponera_id">Aplicar</button>
                             </div>
                         </div>
 

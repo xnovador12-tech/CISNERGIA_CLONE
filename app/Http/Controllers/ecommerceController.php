@@ -12,6 +12,7 @@ use App\Models\DetallePedido;
 use App\Models\Cliente;
 use App\Models\Category;
 use App\Models\Comment;
+use App\Models\Coupon;
 use App\Models\Inventario;
 use App\Models\Likecomment;
 use App\Models\Marca;
@@ -19,8 +20,12 @@ use App\Models\Departamento;
 use App\Models\Provincia;
 use App\Models\Distrito;
 use App\Models\Persona;
+use App\Models\Prospecto;
 use App\Models\Sale;
 use App\Models\Detailsale;
+use App\Models\Direccioncliente;
+use App\Models\User;
+use App\Models\Usercoupon;
 use App\Models\WishList;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +33,11 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ecommerceController extends Controller
 {
@@ -54,12 +64,225 @@ class ecommerceController extends Controller
 
     public function getmiperfil(){
         if(Auth::check()){
-            return view('ECOMMERCE.cuenta.mi_perfil');
+            $direcciones = Direccioncliente::where('cliente_id', Auth::user()->cliente->id)->get();
+            $departamentos = Departamento::all();
+
+            $cupons = Coupon::where('estado', 'Activo')->get();
+            $ultimos_productos = Producto::where('estado', 'Activo')->where('created_at', '>=', Carbon::now()->subDays(5))->orderBy('created_at', 'desc')->take(5)->get();
+            return view('ECOMMERCE.cuenta.mi_perfil', compact('direcciones', 'departamentos', 'cupons', 'ultimos_productos'));
         }else{
             return redirect()->route('ecommerce.index');
         }
     }
 
+    public function crearDireccion(Request $request){
+        if(Auth::check()){
+            $direccion = new Direccioncliente();
+            $direccion->referencia = $request->referencia; 
+            $direccion->direccion = $request->direccion;
+            $direccion->departamento_id = $request->departamento_id;
+            $direccion->provincia_id = $request->provincia_id;
+            $direccion->distrito_id = $request->distrito_id;
+            $direccion->cliente_id = Auth::user()->cliente->id;
+            $direccion->save();
+
+            return redirect()->route('ecommerce.mi_perfil')->with('registrar_direccion', 'ok');
+        }else{
+            return redirect()->route('ecommerce.index');
+        }
+    }
+    public function getMisDirecciones(Request $request, $id){
+        if(Auth::check()){
+            $direccion = Direccioncliente::findOrFail($id);
+            $direccion->referencia = $request->referencia; 
+            $direccion->direccion = $request->direccion;
+            $direccion->departamento_id = $request->departamento_id;
+            $direccion->provincia_id = $request->provincia_id;
+            $direccion->distrito_id = $request->distrito_id;
+            $direccion->save();
+
+            $direcciones = Direccioncliente::where('cliente_id', Auth::user()->cliente->id)->get();
+            $departamentos = Departamento::all();
+
+            return redirect()->route('ecommerce.mi_perfil', compact('direcciones', 'departamentos'))->with('success', 'ok');
+        }else{
+            return redirect()->route('ecommerce.index');
+        }
+    }
+
+    public function eliminardireccion(Request $request, $id){
+        if(Auth::check()){
+            $direccion = Direccioncliente::findOrFail($id);
+            $direccion->delete();
+
+            return redirect()->route('ecommerce.mi_perfil')->with('eliminar_direccion', 'ok');
+        }else{
+            return redirect()->route('ecommerce.index');
+        }
+    }
+
+    public function cambiarContrasena(Request $request){
+        if(Auth::check()){
+            $request->validate([
+                'current_password' => 'required|current_password',
+                'new_password' => 'required|min:8|confirmed|different:current_password',
+            ],[
+                'current_password.required' => 'Debes ingresar tu contraseña actual.',
+                'current_password.current_password' => 'La contraseña actual es incorrecta.',
+                'new_password.required' => 'Debes ingresar una nueva contraseña.',
+                'new_password.min' => 'La nueva contraseña debe tener al menos 8 caracteres.',
+                'new_password.confirmed' => 'La confirmación de la nueva contraseña no coincide.',
+                'new_password.different' => 'La nueva contraseña debe ser diferente a la contraseña actual.',
+            ],[
+                'current_password' => 'contraseña actual',
+                'new_password' => 'nueva contraseña',
+            ]);
+
+            $user = User::findOrFail(Auth::id());
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+
+            return redirect()->route('ecommerce.mi_perfil')->with('actualizar_contrasena', 'ok');
+
+        }else{
+            return redirect()->route('ecommerce.index');
+        }
+    }
+
+    // enviar codigo de recuperacion por correo mendiante OTP (One Time Password)
+    public function enviarCodigoRecuperacion(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'message' => 'Debes iniciar sesión para realizar esta acción.'
+            ], 401);
+        }
+
+        $request->validate([
+            'email' => 'required|email',
+        ], [
+            'email.required' => 'Debes ingresar un correo electrónico.',
+            'email.email' => 'El formato del correo no es válido.',
+        ]);
+
+        $user = Auth::user();
+        $email = strtolower(trim($request->email));
+
+        if ($email !== strtolower($user->email)) {
+            return response()->json([
+                'message' => 'Por seguridad, solo puedes usar el correo de tu cuenta actual.'
+            ], 422);
+        }
+
+        $otpCode = (string) random_int(100000, 999999);
+        $cacheKey = 'perfil_password_otp_' . $user->id;
+        $expiresAt = now()->addMinutes(10);
+
+        Cache::put($cacheKey, [
+            'email' => $email,
+            'otp_hash' => Hash::make($otpCode),
+            'attempts' => 0,
+            'expires_at' => $expiresAt->toDateTimeString(),
+        ], $expiresAt);
+
+        try {
+            Mail::raw("Tu código de verificación es: {$otpCode}. Este código vence en 10 minutos.", function ($message) use ($email, $user) {
+                $message->to($email, $user->name)
+                    ->subject('Código de verificación - Cambio de contraseña');
+            });
+        } catch (Throwable $e) {
+            Log::error('Error enviando OTP de cambio de contraseña', [
+                'user_id' => $user->id,
+                'email' => $email,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'No se pudo enviar el correo. Revisa la configuración SMTP e inténtalo nuevamente.'
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => 'Te enviamos un código de 6 dígitos a tu correo.'
+        ]);
+    }
+
+    // Actualizar contraseña usando OTP
+    public function cambiarContrasenaConOtp(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'message' => 'Debes iniciar sesión para realizar esta acción.'
+            ], 401);
+        }
+
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|digits:6',
+            'new_password' => 'required|min:8|confirmed',
+        ], [
+            'email.required' => 'Debes ingresar tu correo.',
+            'email.email' => 'El correo ingresado no es válido.',
+            'otp.required' => 'Debes ingresar el código de verificación.',
+            'otp.digits' => 'El código debe tener 6 dígitos.',
+            'new_password.required' => 'Debes ingresar una nueva contraseña.',
+            'new_password.min' => 'La nueva contraseña debe tener al menos 8 caracteres.',
+            'new_password.confirmed' => 'La confirmación de contraseña no coincide.',
+        ]);
+
+        $user = Auth::user();
+        $email = strtolower(trim($request->email));
+        $cacheKey = 'perfil_password_otp_' . $user->id;
+        $otpData = Cache::get($cacheKey);
+
+        if (!$otpData) {
+            return response()->json([
+                'message' => 'El código expiró o no fue solicitado. Solicita uno nuevo.'
+            ], 422);
+        }
+
+        if ($email !== strtolower($user->email) || $email !== strtolower($otpData['email'])) {
+            return response()->json([
+                'message' => 'El correo no coincide con el de la verificación.'
+            ], 422);
+        }
+
+        $expiresAt = Carbon::parse($otpData['expires_at']);
+        if (now()->greaterThan($expiresAt)) {
+            Cache::forget($cacheKey);
+            return response()->json([
+                'message' => 'El código ya expiró. Solicita uno nuevo.'
+            ], 422);
+        }
+
+        $attempts = (int) ($otpData['attempts'] ?? 0);
+        if ($attempts >= 5) {
+            Cache::forget($cacheKey);
+            return response()->json([
+                'message' => 'Superaste el número de intentos permitidos. Solicita un nuevo código.'
+            ], 429);
+        }
+
+        if (!Hash::check($request->otp, $otpData['otp_hash'])) {
+            $otpData['attempts'] = $attempts + 1;
+            Cache::put($cacheKey, $otpData, $expiresAt);
+
+            return response()->json([
+                'message' => 'El código ingresado es incorrecto.'
+            ], 422);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        Cache::forget($cacheKey);
+
+        return response()->json([
+            'message' => 'Contraseña actualizada correctamente.'
+        ]);
+    }
+
+    // mis ultimas compras
     public function misCompras ()
     {
         $clienteId = Auth::user()?->cliente?->id;
@@ -90,6 +313,7 @@ class ecommerceController extends Controller
         return view('ECOMMERCE.cuenta.mis_compras', compact('ventas', 'stats'));
     }
 
+    // lista de mis favoritos
     public function getMisFavoritos(){
         if(Auth::check()){
             $favoritos = WishList::with('producto')
@@ -425,7 +649,6 @@ class ecommerceController extends Controller
                             // Registrar uso del cupón por el usuario
                             $user_coupon = new UserCoupon();
                             $user_coupon->user_id = Auth::user()->id;
-                            $user_coupon->course_id = $curso_id;
                             $user_coupon->coupon_id = $descuento_cuponera->id;
                             $user_coupon->save();
                         }
@@ -706,8 +929,10 @@ class ecommerceController extends Controller
     
             $departamentos = Departamento::all();
             $culqiAmountPenCents = (int) round($total * 100);
+
+            $direcciones = Direccioncliente::where('cliente_id', Auth::user()->cliente->id)->get();
     
-            return view('ECOMMERCE.carrito.checkout', compact('cart', 'subtotal', 'igv', 'total', 'departamentos', 'culqiAmountPenCents'));
+            return view('ECOMMERCE.carrito.checkout', compact('cart', 'subtotal', 'igv', 'total', 'departamentos', 'culqiAmountPenCents', 'direcciones'));
         }else{
             return redirect()->route('login')->with('error_ingreso', 'ok');
         }
@@ -789,26 +1014,47 @@ class ecommerceController extends Controller
             $numero = $ultimoPedido ? $ultimoPedido->id + 1 : 1;
             $codigo = 'PED-' . date('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
 
-            $cliente = new Cliente();
-            $cliente->nombre = $request->nombre;
-            $longitud = strlen($request->documento);
-            if ($longitud === 11) {
-                $cliente->razon_social = $request->nombre;
-                $cliente->ruc          = $request->documento;
-                $cliente->tipo_persona         = 'juridica';
-            } else {
-                $cliente->nombre = $request->nombre;
-                $cliente->dni       = $request->documento;
-                $cliente->tipo_persona         = 'natural';
+            $longitud = strlen((string) $request->documento);
+            $tipoPersona = $longitud === 11 ? 'juridica' : 'natural';
+            $documento = (string) $request->documento;
+
+            $user = Auth::user();
+            $prospecto = Prospecto::where('registered_user_id', $user->id)->first();
+
+            if (! $prospecto) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró prospecto asociado al usuario.',
+                ], 422);
             }
+
+            $clienteOverrides = [
+                'nombre' => $request->nombre,
+                'razon_social' => $tipoPersona === 'juridica' ? $request->nombre : null,
+                'ruc' => $tipoPersona === 'juridica' ? $documento : null,
+                'dni' => $tipoPersona === 'natural' ? $documento : null,
+                'tipo_persona' => $tipoPersona,
+                'email' => $email,
+                'telefono' => $request->telefono,
+                'celular' => $request->telefono,
+                'direccion' => $request->direccion,
+                'distrito_id' => $request->distrito_id,
+                'origen' => 'ecommerce',
+                'estado' => 'activo',
+                'segmento' => 'comercial',
+                'user_id' => $user->id,
+                'fecha_primera_compra' => now(),
+            ];
+
+            $cliente = $prospecto->convertir($clienteOverrides);
 
             if(Auth::user()->persona){
                 $actualizar_persona = Persona::where('id',Auth::user()->persona->id)->first();
                 if ($longitud === 11) {
-                    $actualizar_persona->nro_identificacion = $cliente->ruc;
+                    $actualizar_persona->nro_identificacion = $documento;
                     $actualizar_persona->identificacion = 'RUC';
                 } else {
-                    $actualizar_persona->nro_identificacion = $cliente->dni;
+                    $actualizar_persona->nro_identificacion = $documento;
                     $actualizar_persona->identificacion = 'DNI';
                 }
 
@@ -818,16 +1064,33 @@ class ecommerceController extends Controller
                 $actualizar_persona->save();
             }
 
-            $cliente->email                = $email;
-            $cliente->telefono             = $request->telefono;
-            $cliente->direccion            = $request->direccion;
-            $cliente->distrito_id          = $request->distrito_id;
-            $cliente->estado               = 'activo';
-            $cliente->origen               = 'ecommerce';
-            $cliente->segmento             = 'comercial';
-            $cliente->fecha_primera_compra = now()->toDateString();
-            $cliente->user_id              = Auth::user()->id;
-            $cliente->save();
+            if ($request->direccion_id) {
+                // Usar dirección guardada
+                $direccion = Direccioncliente::findOrFail($request->direccion_id);
+                $distritoId = $direccion->distrito_id;
+                $direccionTexto = $direccion->direccion;
+
+            } else {
+                // Nueva dirección
+                $request->validate([
+                    'direccion'  => 'required|string|max:255',
+                    'distrito_id' => 'required|exists:distritos,id',
+                ]);
+
+                $distritoId     = $request->distrito_id;
+                $direccionTexto = $request->direccion;
+
+                // Guardar si el usuario lo pidió
+                if ($request->guardar_direccion == '1') {
+                    Direccioncliente::create([
+                        'cliente_id'      => $cliente->id,  // ← usa la variable ya resuelta
+                        'direccion'       => $direccionTexto,
+                        'distrito_id'     => $distritoId,
+                        'provincia_id'    => $request->provincia_id,
+                        'departamento_id' => $request->departamento_id,
+                    ]);
+                }
+            }
 
             $pedido = new Pedido();
             $pedido->codigo = $codigo;
@@ -935,7 +1198,7 @@ class ecommerceController extends Controller
         }
     }
 
-    // Confirmación de pedido
+    // Confirmación de pedido, parte final despues de realizar el pago
     public function confirmation(Request $request, Sale $sale)
     {
         if(Auth::check()){
@@ -961,6 +1224,7 @@ class ecommerceController extends Controller
 
     }
 
+    //codigo para generar el comprobante de compra en PDF
     public function comprobante_compra(Sale $sale)
     {
         $now = Carbon::now();
@@ -979,6 +1243,7 @@ class ecommerceController extends Controller
         return $pdf->stream('DETALLE-VENTA-'.$sale->codigo.'.pdf');
     }
 
+    //agregar a la lista de deseos desde el detalle del producto o desde el carrito de compras
     public function getlista_deseo_carrito(Request $request)
     {
         if($request->ajax()){
@@ -1005,6 +1270,7 @@ class ecommerceController extends Controller
 
     }
 
+    //eliminar de la lista de deseos desde el detalle del producto o desde el carrito de compras o eliminar toda la lista de deseos
     public function geteliminarlista_deseo_carrito(Request $request)
     {
         if($request->ajax()){
@@ -1024,6 +1290,7 @@ class ecommerceController extends Controller
         }
     }
 
+    //agregar productos al carrito de compras
     public function getagregar_compra_carritofavoritos(Request $request)
     {
         if($request->ajax()){
@@ -1063,6 +1330,10 @@ class ecommerceController extends Controller
         }
 
     }
+
+
+
+
 
 
 

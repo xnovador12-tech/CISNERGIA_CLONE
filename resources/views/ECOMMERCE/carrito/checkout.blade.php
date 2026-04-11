@@ -70,14 +70,14 @@
                                 {{-- COMPROBANTE DE PAGO --}}
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Tipo de Comprobante <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('tipo_comprobante') is-invalid @enderror"
-                                            name="tipo_comprobante" id="tipo_comprobante" disabled required>
+                                    <select class="form-select @error('tiposcomprobante_id') is-invalid @enderror"
+                                            name="tiposcomprobante_id" id="tipo_comprobante" disabled required>
                                         <option value="">— Ingresa DNI o RUC primero —</option>
                                         <option value="3">Nota de venta</option>
                                         <option value="2">Boleta de Venta</option>
                                         <option value="1">Factura</option>
                                     </select>
-                                    @error('tipo_comprobante')
+                                    @error('tiposcomprobante_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -102,39 +102,99 @@
                                 <i class="bi bi-geo-alt me-2 text-primary"></i>Dirección de Instalación/Entrega
                             </h5>
                             <div class="row g-3">
+                                {{-- Hidden: qué dirección_id se envía al backend --}}
+                                <input type="hidden" name="direccion_id" id="direccion_id_hidden" value="">
+
+                                {{-- Select principal --}}
                                 <div class="col-12">
-                                    <label class="form-label fw-semibold">Dirección Completa <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('direccion') is-invalid @enderror" 
-                                           name="direccion" id="direccion" value="{{ old('direccion', Auth::user()->persona->direccion) }}" 
-                                           placeholder="Calle, número, urbanización, referencia" required>
-                                    @error('direccion')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Departamento <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="departamento_id" required>
-                                        <option value="">Seleccionar</option>
-                                        @foreach($departamentos as $departamento)
-                                            <option value="{{ $departamento->id }}">{{ $departamento->nombre }}</option>
+                                    <label class="form-label fw-semibold">
+                                        Dirección de Instalación/Entrega <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="direccion_select" class="form-select" onchange="toggleNuevaDireccion(this.value)">
+                                        <option value="">— Seleccionar dirección —</option>
+                                        @foreach($direcciones as $dir)
+                                            <option value="{{ $dir->id }}"
+                                                data-departamento="{{ $dir->departamento_id }}"
+                                                data-provincia="{{ $dir->provincia_id }}"
+                                                data-distrito="{{ $dir->distrito_id }}">
+                                                {{ $dir->direccion }}, {{ $dir->distrito->nombre }}
+                                            </option>
                                         @endforeach
+                                        <option value="nueva">+ Agregar nueva dirección</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Provincia <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="provincia_id" required>
-                                        <option value="">Seleccionar</option>
-                                    </select>
+
+                                {{-- Preview de dirección guardada seleccionada --}}
+                                <div class="col-12" id="direccion-preview" style="display: none;">
+                                    <div class="alert alert-light border d-flex align-items-center gap-2 py-2 mb-0">
+                                        <i class="bi bi-geo-alt-fill text-primary"></i>
+                                        <span id="direccion-preview-texto" class="small"></span>
+                                    </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Distrito <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('distrito_id') is-invalid @enderror" 
-                                            name="distrito_id" id="distrito_id" required>
-                                        <option value="">Seleccionar</option>
-                                    </select>
-                                    @error('distrito_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+
+                                {{-- Formulario nueva dirección (oculto por defecto) --}}
+                                <div id="nueva-direccion-form" style="display: none;" class="col-12">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">
+                                                Dirección Completa <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="text"
+                                                class="form-control @error('direccion') is-invalid @enderror"
+                                                name="direccion"
+                                                id="direccion"
+                                                value="{{ old('direccion') }}"
+                                                placeholder="Calle, número, urbanización, referencia">
+                                            @error('direccion')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold">
+                                                Departamento <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select" id="departamento_id">
+                                                <option value="">Seleccionar</option>
+                                                @foreach($departamentos as $dep)
+                                                    <option value="{{ $dep->id }}">{{ $dep->nombre }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold">
+                                                Provincia <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select" id="provincia_id">
+                                                <option value="">Seleccionar</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold">
+                                                Distrito <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select @error('distrito_id') is-invalid @enderror"
+                                                    name="distrito_id"
+                                                    id="distrito_id">
+                                                <option value="">Seleccionar</option>
+                                            </select>
+                                            @error('distrito_id')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                    name="guardar_direccion" id="guardar_direccion" value="1">
+                                                <label class="form-check-label small text-muted" for="guardar_direccion">
+                                                    Guardar esta dirección para futuros pedidos
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -453,20 +513,24 @@
             },
             body: JSON.stringify({
                 token: 'TEST_BYPASS',
-                nombre:          document.getElementById('nombre')?.value,
-                email:           document.getElementById('email')?.value || culqiEmail,
-                telefono:        document.getElementById('telefono')?.value,
-                documento:       document.getElementById('documento')?.value,
-                direccion:       document.getElementById('direccion')?.value,
-                departamento_id: document.getElementById('departamento_id')?.value,
-                provincia_id:    document.getElementById('provincia_id')?.value,
-                distrito_id:     document.getElementById('distrito_id')?.value,
-                subtotal:        document.getElementById('subtotal')?.value,
-                descuento:       document.getElementById('descuento')?.value,
-                igv:             document.getElementById('igv')?.value,
-                total:           document.getElementById('total')?.value,
-                observaciones:   document.getElementById('observaciones')?.value,
-                metodo_pago:     metodo_pago,
+                nombre:           document.getElementById('nombre')?.value,
+                email:            document.getElementById('email')?.value || culqiEmail,
+                telefono:         document.getElementById('telefono')?.value,
+                documento:        document.getElementById('documento')?.value,
+                direccion:        document.getElementById('direccion')?.value,
+                departamento_id:  document.getElementById('departamento_id')?.value,
+                provincia_id:     document.getElementById('provincia_id')?.value,
+                distrito_id:      document.getElementById('distrito_id')?.value,
+                // ↓ Estos tres son los que faltaban:
+                direccion_id:     document.getElementById('direccion_id_hidden')?.value,
+                guardar_direccion: document.getElementById('guardar_direccion')?.checked ? '1' : '0',
+                tiposcomprobante_id: document.getElementById('tipo_comprobante')?.value,
+                subtotal:         document.getElementById('subtotal')?.value,
+                descuento:        document.getElementById('descuento')?.value,
+                igv:              document.getElementById('igv')?.value,
+                total:            document.getElementById('total')?.value,
+                observaciones:    document.getElementById('observaciones')?.value,
+                metodo_pago:      metodo_pago,
             }),
         })
         .then(async (response) => {
@@ -687,5 +751,49 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 });
+</script>
+
+<!-- codigo para escoger entre direccion o crear nuevas -->
+<script>
+function toggleNuevaDireccion(valor) {
+    const formNueva   = document.getElementById('nueva-direccion-form');
+    const preview     = document.getElementById('direccion-preview');
+    const hiddenId    = document.getElementById('direccion_id_hidden');
+    const inputDir    = document.getElementById('direccion');
+    const selDistrito = document.getElementById('distrito_id');
+
+    if (valor === 'nueva') {
+        // Mostrar formulario nuevo, ocultar preview
+        formNueva.style.display = 'block';
+        preview.style.display   = 'none';
+        hiddenId.value          = '';
+
+        // Hacer campos requeridos
+        inputDir.required    = true;
+        selDistrito.required = true;
+
+    } else if (valor === '') {
+        // Nada seleccionado
+        formNueva.style.display = 'none';
+        preview.style.display   = 'none';
+        hiddenId.value          = '';
+        inputDir.required       = false;
+        selDistrito.required    = false;
+
+    } else {
+        // Dirección guardada seleccionada
+        formNueva.style.display = 'none';
+        hiddenId.value          = valor;
+        inputDir.required       = false;
+        selDistrito.required    = false;
+
+        // Mostrar preview con el texto de la option
+        const select      = document.getElementById('direccion_select');
+        const opcion      = select.options[select.selectedIndex];
+        const previewText = document.getElementById('direccion-preview-texto');
+        previewText.textContent = opcion.text;
+        preview.style.display   = 'block';
+    }
+}
 </script>
 @endsection

@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('users_coupons', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('producto_id');
+            // $table->unsignedBigInteger('producto_id');
             $table->unsignedBigInteger('coupon_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
+            // $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
             $table->foreign('coupon_id')->references('id')->on('coupons')->onDelete('cascade');
             $table->timestamps();
         });

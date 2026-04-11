@@ -534,66 +534,37 @@
                 <i class="bi bi-geo-alt-fill text-primary"></i>
                 Mis direcciones
               </h2>
-              <button class="btn btn-primary" onclick="openAddressModal()">
+              <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crear_direccion">
                 <i class="bi bi-plus-lg me-2"></i>Nueva dirección
               </button>
             </div>
 
             <!-- Dirección Principal -->
+             @foreach($direcciones as $direccion)
             <div class="address-card default bg-white border-2 rounded-3 p-3 mb-3">
-              <span class="default-badge rounded-pill">
+              <!-- <span class="default-badge rounded-pill">
                 <i class="bi bi-star-fill me-1"></i>Principal
-              </span>
+              </span> -->
               <div class="mb-3">
-                <h5 class="fw-bold mb-2">Casa - Alexander De La Cruz</h5>
+                <h5 class="fw-bold mb-2">{{$direccion->referencia}}</h5>
                 <p class="mb-1 text-muted">
                   <i class="bi bi-geo-alt me-2"></i>
-                  Av. Los Jardines 458, Dpto 302
+                  {{$direccion->direccion}}
                 </p>
                 <p class="mb-1 text-muted">
-                  San Isidro, Lima, Lima
-                </p>
-                <p class="mb-0 text-muted">
-                  <i class="bi bi-telephone me-2"></i>+51 9 37040520
+                  {{$direccion->distrito->nombre}}, {{$direccion->provincia->nombre}}, {{$direccion->departamento->nombre}}
                 </p>
               </div>
               <div class="d-flex gap-2 flex-wrap">
-                <button class="btn btn-sm btn-outline-primary">
+                <button type="button" data-bs-toggle="modal" data-bs-target="#editar_direcciones{{$direccion->id}}" class="btn btn-sm btn-outline-primary">
                   <i class="bi bi-pencil me-1"></i>Editar
                 </button>
-                <button class="btn btn-sm btn-outline-danger">
+                <button onclick="eliminarDireccion({{$direccion->id}})" class="btn btn-sm btn-outline-danger">
                   <i class="bi bi-trash me-1"></i>Eliminar
                 </button>
               </div>
             </div>
-
-            <!-- Dirección 2 -->
-            <div class="address-card bg-white border-2 border rounded-3 p-3 mb-3">
-              <div class="mb-3">
-                <h5 class="fw-bold mb-2">Oficina - Alexander De La Cruz</h5>
-                <p class="mb-1 text-muted">
-                  <i class="bi bi-geo-alt me-2"></i>
-                  Av. Javier Prado Este 2465, Piso 8
-                </p>
-                <p class="mb-1 text-muted">
-                  San Borja, Lima, Lima
-                </p>
-                <p class="mb-0 text-muted">
-                  <i class="bi bi-telephone me-2"></i>+51 9 37040520
-                </p>
-              </div>
-              <div class="d-flex gap-2 flex-wrap">
-                <button class="btn btn-sm btn-outline-secondary">
-                  <i class="bi bi-star me-1"></i>Hacer principal
-                </button>
-                <button class="btn btn-sm btn-outline-primary">
-                  <i class="bi bi-pencil me-1"></i>Editar
-                </button>
-                <button class="btn btn-sm btn-outline-danger">
-                  <i class="bi bi-trash me-1"></i>Eliminar
-                </button>
-              </div>
-            </div>
+            @endforeach
           </div>
         </div>
 
@@ -615,25 +586,10 @@
                   <p class="mb-0 text-muted small">Última actualización: hace 3 meses</p>
                 </div>
               </div>
-              <button class="btn btn-outline-primary" onclick="openPasswordModal()">
+              <button class="btn btn-outline-primary" data-bs-toggle="modal" 
+                      data-bs-target="#passwordModal">
                 <i class="bi bi-pencil me-2"></i>Cambiar
               </button>
-            </div>
-
-            <div class="security-item border-2 border rounded-3 p-3 mb-3">
-              <div class="d-flex align-items-center gap-3 flex-grow-1">
-                <div class="security-icon rounded-3">
-                  <i class="bi bi-phone-fill"></i>
-                </div>
-                <div>
-                  <h5 class="mb-1 fw-bold">Verificación en dos pasos</h5>
-                  <p class="mb-0 text-muted small">Añade una capa extra de seguridad</p>
-                </div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" checked>
-                <span class="toggle-slider"></span>
-              </label>
             </div>
 
             <div class="security-item border-2 border rounded-3 p-3 mb-3">
@@ -643,67 +599,13 @@
                 </div>
                 <div>
                   <h5 class="mb-1 fw-bold">Correo de recuperación</h5>
-                  <p class="mb-0 text-muted small">recovery@ejemplo.com</p>
+                  <p class="mb-0 text-muted small">{{ Auth::user()->email }}</p>
                 </div>
               </div>
-              <button class="btn btn-outline-primary">
+              <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
                 <i class="bi bi-pencil me-2"></i>Editar
               </button>
             </div>
-          </div>
-
-          <!-- Sesiones activas -->
-          <div class="bg-white rounded-4 p-4 shadow-sm mb-4">
-            <h3 class="fs-4 fw-bold text-dark mb-4 d-flex align-items-center gap-2">
-              <i class="bi bi-clock-history text-primary"></i>
-              Sesiones activas
-            </h3>
-
-            <div class="security-item">
-              <div class="d-flex align-items-center gap-3 flex-grow-1">
-                <div class="security-icon" style="background: linear-gradient(135deg, rgba(var(--bs-success-rgb), 0.1), rgba(var(--bs-success-rgb), 0.05));">
-                  <i class="bi bi-laptop" style="color: var(--success-color);"></i>
-                </div>
-                <div>
-                  <h5 class="mb-1 fw-bold">Windows 11 - Chrome</h5>
-                  <p class="mb-0 text-muted small">
-                    <i class="bi bi-geo-alt me-1"></i>Lima, Perú • Activa ahora
-                  </p>
-                </div>
-              </div>
-              <span class="badge bg-success">Actual</span>
-            </div>
-
-            <div class="security-item">
-              <div class="d-flex align-items-center gap-3 flex-grow-1">
-                <div class="security-icon">
-                  <i class="bi bi-phone"></i>
-                </div>
-                <div>
-                  <h5 class="mb-1 fw-bold">iPhone 14 - Safari</h5>
-                  <p class="mb-0 text-muted small">
-                    <i class="bi bi-geo-alt me-1"></i>Lima, Perú • Hace 2 días
-                  </p>
-                </div>
-              </div>
-              <button class="btn btn-sm btn-outline-danger">
-                <i class="bi bi-x-lg me-1"></i>Cerrar
-              </button>
-            </div>
-          </div>
-
-          <!-- Zona peligrosa -->
-          <div class="bg-white rounded-4 p-4 shadow-sm mb-4 border-2 border-danger">
-            <h3 class="fs-4 fw-bold text-danger mb-3 d-flex align-items-center gap-2">
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              Zona de peligro
-            </h3>
-            <p class="text-muted mb-3">
-              Una vez que elimines tu cuenta, no hay vuelta atrás. Todos tus datos, pedidos e información serán eliminados permanentemente.
-            </p>
-            <button class="btn btn-danger" onclick="confirmDeleteAccount()">
-              <i class="bi bi-trash me-2"></i>Eliminar mi cuenta
-            </button>
           </div>
         </div>
 
@@ -712,74 +614,78 @@
           <div class="bg-white rounded-4 p-4 shadow-sm mb-4">
             <h2 class="fs-4 fw-bold text-dark mb-4 d-flex align-items-center gap-2">
               <i class="bi bi-bell-fill text-primary"></i>
-              Preferencias de notificaciones
+              Notificaciones
             </h2>
 
+            @forelse($cupons as $cupon)
             <div class="security-item">
               <div class="flex-grow-1">
-                <h5 class="mb-1 fw-bold">Notificaciones por email</h5>
-                <p class="mb-0 text-muted small">Recibe actualizaciones sobre tus pedidos y cuenta</p>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" checked>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
+              @php
+                  $validar_noticupon = \App\Models\Usercoupon::where('user_id',Auth::user()->id)->where('coupon_id',$cupon->id)->first();
+              @endphp
 
-            <div class="security-item">
-              <div class="flex-grow-1">
-                <h5 class="mb-1 fw-bold">Ofertas y promociones</h5>
-                <p class="mb-0 text-muted small">Entérate de descuentos y ofertas especiales</p>
+              @if(\App\Models\Usercoupon::where('user_id',Auth::user()->id)->where('coupon_id',$cupon->id)->exists())
+                  <div class="card-body" disabled>
+                      <div class="row align-items-center">
+                          <div class="col-1 col-md-1">
+                              <i class="cupon bi bi-ticket-perforated-fill fs-1 text-primary p-2"></i>
+                          </div>
+                          <div class="col-7 col-md-7">
+                              <p class="mb-1 fw-bold">{{$validar_noticupon->user->name.' '.$validar_noticupon->user->surnames}} tu cupon ya fue utilizado</p>
+                              <small class="fw-light d-block">Publicado hace {{$cupon->created_at->diffForHumans(null, true) }}</small>
+                          </div>
+                          <div class="col-3 col-md-3">
+                              <p class="mb-1 fw-bold">CÓDIGO</p>
+                              <small class="fw-light d-block">{{$cupon->codigo}}</small>
+                          </div>
+                      </div>
+                  </div>
+              @else
+                  <div class="card-body">
+                      <div class="row align-items-center">
+                          <div class="col-1 col-md-1">
+                              <i class="cupon bi bi-ticket-perforated-fill fs-1 text-primary"></i>
+                          </div>
+                          <div class="col-7 col-md-7">
+                              <p class="mb-1 fw-bold">{{Auth::user()->name.' '.Auth::user()->surnames}} <label class="mb-1 fw-light">tienes un cupon de descuento</label></p>
+                              <small class="fw-light d-block">Publicado hace {{$cupon->created_at->diffForHumans(null, true) }}</small>
+                          </div>
+                          <div class="col-3 col-md-3">
+                              <p class="mb-1 fw-bold">CÓDIGO</p>
+                              <small class="fw-light d-block">{{$cupon->codigo}}</small>
+                          </div>
+                      </div>
+                  </div>
+              @endif
               </div>
-              <label class="toggle-switch">
-                <input type="checkbox" checked>
-                <span class="toggle-slider"></span>
-              </label>
             </div>
+            @empty
+                <p class="text-muted">No tienes cupones disponibles.</p>
+            @endforelse
 
+            @forelse($ultimos_productos as $producto)
             <div class="security-item">
               <div class="flex-grow-1">
-                <h5 class="mb-1 fw-bold">Novedades de productos</h5>
-                <p class="mb-0 text-muted small">Nuevos productos y lanzamientos</p>
+                  <div class="card-body" disabled>
+                      <div class="row align-items-center">
+                          <div class="col-1 col-md-1">
+                              <img src="{{ asset('storage/productos/'.$producto->imagen ?? 'logo.webp') }}" alt="{{$producto->name}}" class="rounded-3" style="width: 50px; height: 50px; object-fit: cover;">
+                          </div>
+                          <div class="col-7 col-md-7">
+                              <p class="mb-1 fw-bold">El {{ $producto->name }} ha sido agregado recientemente</p>
+                              <small class="fw-light d-block">Publicado hace {{$producto->created_at->diffForHumans(null, true) }}</small>
+                          </div>
+                          <div class="col-3 col-md-3">
+                              <p class="mb-1 fw-bold">CÓDIGO</p>
+                              <small class="fw-light d-block">{{$producto->codigo}}</small>
+                          </div>
+                      </div>
+                  </div>
               </div>
-              <label class="toggle-switch">
-                <input type="checkbox">
-                <span class="toggle-slider"></span>
-              </label>
             </div>
-
-            <div class="security-item">
-              <div class="flex-grow-1">
-                <h5 class="mb-1 fw-bold">Notificaciones push</h5>
-                <p class="mb-0 text-muted small">Alertas en tiempo real en tu dispositivo</p>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" checked>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-
-            <div class="security-item">
-              <div class="flex-grow-1">
-                <h5 class="mb-1 fw-bold">Recordatorios de carrito</h5>
-                <p class="mb-0 text-muted small">Te avisamos si dejaste productos en el carrito</p>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" checked>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-
-            <div class="security-item">
-              <div class="flex-grow-1">
-                <h5 class="mb-1 fw-bold">Mensajes por WhatsApp</h5>
-                <p class="mb-0 text-muted small">Actualizaciones de pedidos por WhatsApp</p>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox">
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
+            @empty
+                
+            @endforelse
           </div>
         </div>
 
@@ -788,72 +694,17 @@
   </div>
 </section>
 
-<!-- MODALES -->
-
-<!-- Modal Editar Información -->
-<div class="modal fade" id="editModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content" style="border-radius: 16px; border: none;">
-      <div class="modal-header border-0">
-        <h5 class="modal-title fw-bold">Editar información</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <label class="form-label">Nombres</label>
-          <input type="text" class="form-control" value="Alexander">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Apellidos</label>
-          <input type="text" class="form-control" value="De La Cruz">
-        </div>
-      </div>
-      <div class="modal-footer border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary">Guardar cambios</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Cambiar Contraseña -->
-<div class="modal fade" id="passwordModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content" style="border-radius: 16px; border: none;">
-      <div class="modal-header border-0">
-        <h5 class="modal-title fw-bold">
-          <i class="bi bi-shield-lock text-primary me-2"></i>
-          Cambiar contraseña
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <label class="form-label">Contraseña actual</label>
-          <input type="password" class="form-control" placeholder="Ingresa tu contraseña actual">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Nueva contraseña</label>
-          <input type="password" class="form-control" placeholder="Mínimo 8 caracteres">
-          <small class="text-muted">Debe contener mayúsculas, minúsculas y números</small>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Confirmar nueva contraseña</label>
-          <input type="password" class="form-control" placeholder="Repite tu nueva contraseña">
-        </div>
-        <div class="alert alert-info">
-          <i class="bi bi-info-circle me-2"></i>
-          <small>Tu contraseña debe tener al menos 8 caracteres e incluir letras y números.</small>
-        </div>
-      </div>
-      <div class="modal-footer border-0">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary">Cambiar contraseña</button>
-      </div>
-    </div>
-  </div>
-</div>
 @endsection
+
+@push('modals')
+    @include('ECOMMERCE.cuenta.editar_informacion')
+    @include('ECOMMERCE.cuenta.crear_direccion')
+    @foreach($direcciones as $direccion)
+      @include('ECOMMERCE.cuenta.editar_direccion', ['direccion' => $direccion])
+    @endforeach
+    @include('ECOMMERCE.cuenta.editar_contraseña')
+    @include('ECOMMERCE.cuenta.correo_recuperacion')
+@endpush
 
 @section('js')
 <script>
@@ -875,5 +726,115 @@
       document.getElementById(targetSection).classList.add('active');
     });
   });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('#departamento_id').on('change', function() {
+            valor_departamento = $(this).val();
+            $.get('/ver_provincias',{valor_departamento:valor_departamento}, function(busqueda){
+                $('#provincia_id').empty();
+                $('#provincia_id').append('<option selected disabled>Seleccionar</option>');
+                $.each(busqueda, function(index, value){
+                    $('#provincia_id').append(''+'<option value="'+index+'">'+value[0]+'</option>');
+                });
+            });
+        });
+
+        $('#provincia_id').on('change', function() {
+            valor_provincia = $(this).val();
+            $.get('/ver_distritos',{valor_provincia:valor_provincia}, function(busqueda){
+                $('#distrito_id').empty();
+                $('#distrito_id').append('<option selected disabled>Seleccionar</option>');
+                $.each(busqueda, function(index, value){
+                    $('#distrito_id').append(''+'<option value="'+index+'">'+value[0]+'</option>');
+                });
+            });
+        });
+    });
+
+</script>
+
+@if(session('registrar_direccion') == 'ok')
+<script>
+    Swal.fire({
+    icon: 'success',
+    confirmButtonColor: '#1C3146',
+    title: '¡Éxito!',
+    text: 'Dirección registrada exitosamente.',
+    })
+</script>
+@endif
+
+@if(session('success') == 'ok')
+<script>
+    Swal.fire({
+    icon: 'success',
+    confirmButtonColor: '#1C3146',
+    title: '¡Éxito!',
+    text: 'Dirección actualizada exitosamente.',
+    })
+</script>
+@endif
+
+@if(session('eliminar_direccion') == 'ok')
+<script>
+    Swal.fire({
+    icon: 'success',
+    confirmButtonColor: '#1C3146',
+    title: '¡Éxito!',
+    text: 'Dirección eliminada exitosamente.',
+    })
+</script>
+@endif
+
+@if(session('actualizar_contrasena') == 'ok')
+<script>
+    Swal.fire({
+    icon: 'success',
+    confirmButtonColor: '#1C3146',
+    title: '¡Éxito!',
+    text: 'Contraseña actualizada exitosamente.',
+    })
+</script>
+@endif
+
+@if($errors->has('current_password') || $errors->has('new_password') || $errors->has('new_password_confirmation'))
+<script>
+    const passwordError = @json($errors->first('current_password') ?: $errors->first('new_password') ?: $errors->first('new_password_confirmation'));
+
+    Swal.fire({
+    icon: 'error',
+    confirmButtonColor: '#1C3146',
+    title: '¡Error!',
+    text: passwordError,
+    });
+
+    const passwordModal = document.getElementById('passwordModal');
+    if (passwordModal) {
+      const modalInstance = new bootstrap.Modal(passwordModal);
+      modalInstance.show();
+    }
+</script>
+@endif
+
+<script>
+  function eliminarDireccion(id) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "¡Esta acción no se puede deshacer!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Redirigir a la ruta de eliminación
+        window.location.href = `/ecommerce/direccion/eliminar/${id}`;
+      }
+    });
+  }
 </script>
 @endsection

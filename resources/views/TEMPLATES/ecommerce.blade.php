@@ -418,7 +418,8 @@
             </div>
         </div>
     </footer>
-
+    
+    @stack('modals')
     <script src="/js/jquery-3.7.1.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/scripts.js"></script>
@@ -806,4 +807,23 @@
         });
     }
 // fin de añadir al carrito de compras
+
+//aplicar cuponera
+$('#aplicar_cuponera_id').on('click', function(){
+    valores_cursos = document.getElementById('val_cursos_id').value.split('CuanticG');
+    valor_cuponeras = $('#valor_cuponera_id').val();
+    $.get('/ver_carrito',{valor_cuponera:valor_cuponeras,procedencia:'cuponera'}, function(busqueda){
+        $.each(busqueda, function(index, value){
+            if(value[0] == 'curso_agregado_al_carrito'){
+            }else{
+                Swal.fire({
+                    imageUrl: "/images/online_shop.png",
+                    title: '¡Upss!',
+                    text: 'Este cupon ya fue aplicado anteriormente',
+                });
+            }
+        });
+    });
+});
+// fin de aplicacion de la cuponera
  </script>
