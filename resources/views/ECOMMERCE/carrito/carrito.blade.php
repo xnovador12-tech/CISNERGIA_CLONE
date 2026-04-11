@@ -123,6 +123,13 @@
                             <span class="fw-semibold" id="cart-igv">S/ {{ number_format($igv, 2) }}</span>
                         </div>
 
+                        <!-- CUPON -->
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between mb-3 text-success">
+                            <span>Descuento por cupón</span>
+                            <span class="fw-semibold" id="cupon_html">- S/ 0.00</span>
+                            <input type="hidden" id="valor_cuponera_hidden" value="0">
+                        </div>
                         <!-- Total -->
                         <hr class="my-3">
                         <div class="d-flex justify-content-between mb-4">

@@ -810,11 +810,21 @@
 
 //aplicar cuponera
 $('#aplicar_cuponera_id').on('click', function(){
-    valores_cursos = document.getElementById('val_cursos_id').value.split('CuanticG');
+    valor_total = $('#cart-total').val();
     valor_cuponeras = $('#valor_cuponera_id').val();
-    $.get('/ver_carrito',{valor_cuponera:valor_cuponeras,procedencia:'cuponera'}, function(busqueda){
+    $.get('/ver_carrito',{valor_total:valor_total, valor_cuponera:valor_cuponeras, procedencia:'cuponera'}, function(busqueda){
         $.each(busqueda, function(index, value){
-            if(value[0] == 'curso_agregado_al_carrito'){
+            if(value[0] == 'cupon_aplicado'){
+                $('#cupon_html').html(value[1]);
+                $('#valor_cuponera_hidden').val(value[1]);
+                $('#cart-total').html(value[2]);
+                $('#valor_cuponera_id').val('');
+                Swal.fire({
+                    imageUrl: "/images/online_shop.png",
+                    title: '¡Éxito!',
+                    text: 'Cupón aplicado exitosamente',
+                    icon: 'success',
+                });
             }else{
                 Swal.fire({
                     imageUrl: "/images/online_shop.png",

@@ -615,36 +615,15 @@ class ecommerceController extends Controller
     {
         if($request->ajax()){
             if($request->procedencia == 'cuponera'){
-                    // $request->session()->flush();
-                    $carrito = session('carrito',[]);
-    
-                    // Check if course already exists in cart
-                    $exists = collect($carrito)->contains('curso_id', $request->curso_id);
-                    
-                    if($exists) {
-                        $ArrayList[1] = ['curso_ya_en_carrito'];
-                        return response()->json($ArrayList);
-                    }
-                    
-                    $valor_cuponera = $request->valor_cuponera;
-                    $name_usuario = $request->name_usuario;
-                    $id_usuario = $request->id_usuario;
-                    $slug = $request->slug;
-                    $ymdhis = $request->ymdhis;
-                    $name_curso = $request->name_curso;
-                    $imagen_curso = $request->imagen_curso;
-                    $precio = $request->precio;
-                    $curso_id = $request->curso_id;
-                    
-                    $descuento_cuponera = Coupon::where('codigo',$valor_cuponera)->where('estado','Activo')->first();
+                    $descuento_cuponera = Coupon::where('codigo',$request->valor_cuponera)->where('estado','Activo')->first();
                     if(UserCoupon::where('user_id',Auth::user()->id)->where('coupon_id',$descuento_cuponera->id)->exists()){
                         $ArrayList[1] = ['cupon_ya_aplicado'];
                         return response()->json($ArrayList);
                         
                     }else{
                         if($descuento_cuponera){
-                            $precio_descuento = ($precio*$descuento_cuponera->porcentaje)/100;
-                            $precio = $precio - $precio_descuento;
+                            $precio_descuento = round($request->valor_total * ($descuento_cuponera->porcentaje / 100), 2);
+                            $nuevo_total = round($request->valor_total - $precio_descuento, 2);
 
                             // Registrar uso del cupón por el usuario
                             $user_coupon = new UserCoupon();
@@ -652,22 +631,9 @@ class ecommerceController extends Controller
                             $user_coupon->coupon_id = $descuento_cuponera->id;
                             $user_coupon->save();
                         }
+                        $ArrayList[1] = ['cupon_aplicado', $precio_descuento, $nuevo_total, $descuento_cuponera->porcentaje];
                     }
-                    $data = [
-                        'name_usuario' => $name_usuario,
-                        'id_usuario' => $id_usuario,
-                        'slug' => $slug,
-                        'ymdhis' => $ymdhis,
-                        'name_curso' => $name_curso,
-                        'imagen_curso' => $imagen_curso,
-                        'precio' => $precio,
-                        'curso_id' => $curso_id
-                    ];
-                    $carrito[] = $data;
                     
-                    $request->session()->put('carrito',$carrito);
-                    
-                    $ArrayList[1] = ['curso_agregado_al_carrito'];
                     return response()->json($ArrayList);
             }else{
                 if($request->validar_carrito == 'verificar_carrito'){
