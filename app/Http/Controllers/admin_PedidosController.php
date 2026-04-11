@@ -498,41 +498,29 @@ class admin_PedidosController extends Controller
             'tiposcomprobante_id' => 'required|exists:tiposcomprobantes,id',
             'condicion_pago' => 'required|in:Contado,Crédito',
             'mediopago_id' => 'required|exists:mediopagos,id',
-            'numero_comprobante' => 'nullable|string',
             'cuotas' => 'nullable|array',
             'cuotas.*.importe' => 'required_with:cuotas|numeric|min:0.01',
             'cuotas.*.fecha_vencimiento' => 'required_with:cuotas|date'
         ]);
 
-        // Generar número de comprobante automáticamente si no se proporciona
-        $numeroComprobante = $validated['numero_comprobante'];
-        
-        if (empty($numeroComprobante)) {
-            $tipoComprobante = \App\Models\Tiposcomprobante::find($validated['tiposcomprobante_id']);
-            
-            // Determinar prefijo según tipo de comprobante
-            $prefijo = match(strtolower($tipoComprobante->name)) {
-                'factura' => 'F001',
-                'boleta', 'boleta de venta' => 'B001',
-                'nota de crédito' => 'NC01',
-                'nota de débito' => 'ND01',
-                'guía de remisión' => 'GR01',
-                default => 'T001'
-            };
+        // Generar número de comprobante usando SerieComprobante
+        $serieComprobante = \App\Models\SerieComprobante::where('tiposcomprobante_id', $validated['tiposcomprobante_id'])
+            ->where('activo', true)
+            ->first();
 
-            // Buscar el último comprobante con este prefijo
-            $ultimoComprobante = \App\Models\Sale::where('numero_comprobante', 'like', $prefijo . '%')
-                ->orderBy('numero_comprobante', 'desc')
-                ->first();
-
-            if ($ultimoComprobante && preg_match('/-(\d+)$/', $ultimoComprobante->numero_comprobante, $matches)) {
-                $siguienteNumero = intval($matches[1]) + 1;
-            } else {
-                $siguienteNumero = 1;
-            }
-
-            $numeroComprobante = $prefijo . '-' . str_pad($siguienteNumero, 8, '0', STR_PAD_LEFT);
+        if (!$serieComprobante) {
+            return back()->with('error', 'No hay una serie activa para este tipo de comprobante.');
         }
+
+        $numeroComprobante = $serieComprobante->generarNumero();
+
+        // Extraer serie y correlativo por separado
+        $serieStr = $serieComprobante->serie;
+        $correlativoNum = $serieComprobante->correlativo->numero;
+
+        // Fecha de emisión y hora actuales
+        $fechaEmision = now()->format('Y-m-d');
+        $hora = now()->format('H:i:s');
 
         // Generar código único para la venta
         $ultimaVenta = \App\Models\Sale::latest('id')->first();
@@ -547,6 +535,11 @@ class admin_PedidosController extends Controller
             'cliente_id' => $admin_pedido->cliente_id,
             'tiposcomprobante_id' => $validated['tiposcomprobante_id'],
             'numero_comprobante' => $numeroComprobante,
+            'fecha_emision' => $fechaEmision,
+            'hora' => $hora,
+            'serie_id' => $serieComprobante->id,
+            'serie' => $serieStr,
+            'correlativo' => $correlativoNum,
             'subtotal' => $admin_pedido->subtotal,
             'descuento' => $admin_pedido->descuento_monto,
             'igv' => $admin_pedido->igv,
@@ -586,7 +579,13 @@ class admin_PedidosController extends Controller
                     'fecha_vencimiento' => $cuotaData['fecha_vencimiento'],
                 ]);
             }
+            // Crédito: fecha_vencimiento = fecha de la primera cuota
+            $venta->fecha_vencimiento = $validated['cuotas'][0]['fecha_vencimiento'];
+        } else {
+            // Contado: fecha_vencimiento = fecha de emisión
+            $venta->fecha_vencimiento = $fechaEmision;
         }
+        $venta->save();
 
         // =====================================================
         // AUTOMATIZACIÓN: Enviar a Operaciones (Logística)

@@ -23,6 +23,14 @@ return new class extends Migration
             $table->foreignId('tipo_operacion_id')->nullable()->constrained('tipos_operaciones')->nullOnDelete();
             $table->foreignId('tipo_detraccion_id')->nullable()->constrained('tipo_detraccion')->nullOnDelete();
             $table->string('numero_comprobante')->nullable();
+            $table->date('fecha_emision')->nullable();
+            $table->date('fecha_vencimiento')->nullable();
+            $table->time('hora')->nullable();
+
+            // Serie y correlativo (FK se agrega en migración de series_comprobantes)
+            $table->unsignedBigInteger('serie_id')->nullable();
+            $table->string('serie', 10)->nullable();
+            $table->integer('correlativo')->nullable();
 
             // Montos
             $table->decimal('subtotal', 11, 2)->default(0);

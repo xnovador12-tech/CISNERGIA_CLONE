@@ -86,6 +86,28 @@ class admin_CobrosController extends Controller
             $venta->update(['estado' => 'completada']);
         }
 
+        // Actualizar fecha_vencimiento: si tiene cuotas, apuntar a la siguiente cuota pendiente
+        if ($venta->condicion_pago === 'Crédito' && $venta->cuotas->count() > 0) {
+            $montoCubierto = $nuevoTotalPagado;
+            $siguienteFecha = null;
+
+            foreach ($venta->cuotas()->orderBy('numero_cuota')->get() as $cuota) {
+                if ($montoCubierto >= $cuota->importe - 0.05) {
+                    $montoCubierto -= $cuota->importe;
+                } else {
+                    $siguienteFecha = $cuota->fecha_vencimiento;
+                    break;
+                }
+            }
+
+            // Si todas las cuotas están cubiertas, fecha_vencimiento queda en la última
+            if (!$siguienteFecha) {
+                $siguienteFecha = $venta->cuotas()->orderBy('numero_cuota', 'desc')->first()->fecha_vencimiento;
+            }
+
+            $venta->update(['fecha_vencimiento' => $siguienteFecha]);
+        }
+
         return back()->with('success', 'Cobro registrado exitosamente por S/ ' . number_format($validated['monto'], 2));
     }
 }

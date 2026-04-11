@@ -18,10 +18,18 @@ return new class extends Migration
 
             $table->unique(['tiposcomprobante_id', 'serie']);
         });
+
+        // Agregar FK de serie_id en sales (la tabla sales se creó antes que series_comprobantes)
+        Schema::table('sales', function (Blueprint $table) {
+            $table->foreign('serie_id')->references('id')->on('series_comprobantes')->nullOnDelete();
+        });
     }
 
     public function down(): void
     {
+        Schema::table('sales', function (Blueprint $table) {
+            $table->dropForeign(['serie_id']);
+        });
         Schema::dropIfExists('series_comprobantes');
     }
 };

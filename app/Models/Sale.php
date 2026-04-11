@@ -20,6 +20,12 @@ class Sale extends Model
         'tipo_operacion_id',
         'tipo_detraccion_id',
         'numero_comprobante',
+        'fecha_emision',
+        'fecha_vencimiento',
+        'hora',
+        'serie_id',
+        'serie',
+        'correlativo',
         'subtotal',
         'descuento',
         'igv',
@@ -54,6 +60,10 @@ class Sale extends Model
         'potencia_kw' => 'decimal:2',
         'monto_financiado' => 'decimal:2',
         'consumo_mensual_kwh' => 'decimal:2',
+        'fecha_emision' => 'date',
+        'fecha_vencimiento' => 'date',
+        'serie_id' => 'integer',
+        'correlativo' => 'integer',
         'fecha_instalacion' => 'date',
         'requiere_financiamiento' => 'boolean',
         'garantia_sistema_años' => 'integer'
@@ -129,5 +139,10 @@ class Sale extends Model
     public function notas()
     {
         return $this->hasMany(Nota::class, 'sale_id');
+    }
+
+    public function serieComprobante()
+    {
+        return $this->belongsTo(SerieComprobante::class, 'serie_id');
     }
 }

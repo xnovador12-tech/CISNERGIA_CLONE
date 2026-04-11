@@ -43,9 +43,10 @@ class admin_VentasController extends Controller
             }
         }
 
-        $tiposComprobante = Tiposcomprobante::whereHas('series', function ($q) {
-            $q->where('activo', true);
-        })->get();
+        $tiposComprobante = Tiposcomprobante::whereIn('codigo', ['01', '03', '00'])
+            ->whereHas('series', function ($q) {
+                $q->where('activo', true);
+            })->get();
         $mediosPago = Mediopago::all();
         $cuentasBancarias = Cuentabanco::with(['banco', 'moneda', 'tipocuenta'])->get();
         $tiposOperacion = TipoOperacion::all();
@@ -113,6 +114,14 @@ class admin_VentasController extends Controller
 
         $numeroComprobante = $serieComprobante->generarNumero();
 
+        // Extraer serie y correlativo por separado
+        $serieStr = $serieComprobante->serie;
+        $correlativoNum = $serieComprobante->correlativo->numero;
+
+        // Fecha de emisión y hora actuales
+        $fechaEmision = now()->format('Y-m-d');
+        $hora = now()->format('H:i:s');
+
         // Generar código de venta
         $ultimaVenta = Sale::latest('id')->first();
         $numero = $ultimaVenta ? $ultimaVenta->id + 1 : 1;
@@ -142,6 +151,11 @@ class admin_VentasController extends Controller
             'tipo_operacion_id' => $validated['tipo_operacion_id'],
             'tipo_detraccion_id' => $validated['tipo_detraccion_id'] ?? null,
             'numero_comprobante' => $numeroComprobante,
+            'fecha_emision' => $fechaEmision,
+            'hora' => $hora,
+            'serie_id' => $serieComprobante->id,
+            'serie' => $serieStr,
+            'correlativo' => $correlativoNum,
             'subtotal' => $pedido->subtotal,
             'descuento' => $pedido->descuento_monto,
             'igv' => $pedido->igv,
@@ -219,7 +233,13 @@ class admin_VentasController extends Controller
                     'fecha_vencimiento' => $cuotaData['fecha_vencimiento'],
                 ]);
             }
+            // Crédito: fecha_vencimiento = fecha de la primera cuota
+            $venta->fecha_vencimiento = $validated['cuotas'][0]['fecha_vencimiento'];
+        } else {
+            // Contado: fecha_vencimiento = fecha de emisión
+            $venta->fecha_vencimiento = $fechaEmision;
         }
+        $venta->save();
 
         // Actualizar estado del pedido
         $pedido->update([
