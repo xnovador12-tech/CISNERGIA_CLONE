@@ -229,7 +229,7 @@
                     <img src="{{ $producto->imagen ? asset('images/productos/' . $producto->imagen) : asset('images/logo.webp') }}?auto=compress&cs=tinysrgb&w=100" 
                          class="rounded" style="width: 80px; height: 80px; object-fit: cover;" alt="Producto">
                     <div class="ms-3 flex-grow-1">
-                      <h6 class="mb-1 fw-bold">{{ $producto->nombre }}</h6>
+                      <h6 class="mb-1 fw-bold">{{ $producto->name }}</h6>
                       <small class="text-muted">Cantidad: {{ $dtlle_ventas->cantidad }}</small>
                     </div>
                     <div class="text-end">
@@ -245,18 +245,27 @@
                   <span class="text-muted">Subtotal</span>
                   <span class="fw-bold">S/ {{ number_format($sale->subtotal, 2) }}</span>
                 </div>
-                <div class="d-flex justify-content-between mb-2">
-                  <span class="text-muted">Envío</span>
-                  <span class="fw-bold text-success">Gratis</span>
+                <div class="d-flex justify-content-between mb-2 text-success">
+                    <span>Descuento:</span>
+                    @if($sale->pedido->descuento_porcentaje)
+                        <span class="badge bg-success ms-2">({{ $sale->pedido->descuento_porcentaje }}%)</span>
+                        <input type="hidden" id="descuento_porcentaje" value="{{ $sale->pedido->descuento_porcentaje }}">
+                    @endif
+                    <span class="fw-semibold">- S/ {{ number_format($sale->pedido->descuento_monto, 2) }}</span>
+                    <input type="hidden" id="descuento" value="{{ $sale->pedido->descuento_monto }}">
                 </div>
                 <div class="d-flex justify-content-between mb-3">
                   <span class="text-muted">IGV (18%)</span>
                   <span class="fw-bold">S/ {{$sale->igv}}</span>
                 </div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">Envío</span>
+                  <span class="fw-bold text-success">Gratis</span>
+                </div>
 
                 <div class="d-flex justify-content-between border-top pt-3">
                   <span class="fs-5 fw-bold">Total Pagado</span>
-                  <span class="fs-4 fw-bold text-primary">S/ {{ number_format($sale->subtotal + $sale->igv, 2) }}</span>
+                  <span class="fs-4 fw-bold text-primary">S/ {{ number_format($sale->total, 2) }}</span>
                 </div>
               </div>
             </div>
@@ -373,11 +382,11 @@
                   <a href="{{ route('ecommerce.mis_compras') }}" class="btn btn-primary btn-lg">
                     <i class="bi bi-bag-check me-2"></i>Ver Mis Compras
                   </a>
-                  @if($sale->tipo_comprobante === '1')
+                  @if($sale->tiposcomprobante_id == '1')
                   <a href="/comprobante_compra/{{$sale->slug}}" target="_blank" class="btn btn-outline-primary">
                     <i class="bi bi-file-earmark-pdf me-2"></i>Descargar Factura
                   </a>
-                  @elseif($sale->tipo_comprobante === '2')
+                  @elseif($sale->tiposcomprobante_id == '2')
                   <a href="/comprobante_compra/{{$sale->slug}}" target="_blank" class="btn btn-outline-primary">
                     <i class="bi bi-file-earmark-pdf me-2"></i>Descargar Boleta
                   </a>

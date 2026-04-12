@@ -568,7 +568,7 @@
                 </tr>
                 <tr>
                     <td class="lbl">Descuento</td>
-                    <td class="val">- S/ 0.00</td>
+                    <td class="val">- S/ {{ number_format($sale->pedido->descuento_monto, 2) }}</td>
                 </tr>
                 @if($aplicaIGV)
                 <tr class="fila-igv">

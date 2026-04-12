@@ -64,7 +64,10 @@ class ecommerceController extends Controller
 
     public function getmiperfil(){
         if(Auth::check()){
-            $direcciones = Direccioncliente::where('cliente_id', Auth::user()->cliente->id)->get();
+            $cliente = $this->resolveAuthenticatedCliente();
+            $direcciones = $cliente
+                ? Direccioncliente::where('cliente_id', $cliente->id)->get()
+                : collect();
             $departamentos = Departamento::all();
 
             $cupons = Coupon::where('estado', 'Activo')->get();
@@ -77,13 +80,18 @@ class ecommerceController extends Controller
 
     public function crearDireccion(Request $request){
         if(Auth::check()){
+            $cliente = $this->resolveAuthenticatedCliente();
+            if (!$cliente) {
+                return redirect()->route('ecommerce.index');
+            }
+
             $direccion = new Direccioncliente();
             $direccion->referencia = $request->referencia; 
             $direccion->direccion = $request->direccion;
             $direccion->departamento_id = $request->departamento_id;
             $direccion->provincia_id = $request->provincia_id;
             $direccion->distrito_id = $request->distrito_id;
-            $direccion->cliente_id = Auth::user()->cliente->id;
+            $direccion->cliente_id = $cliente->id;
             $direccion->save();
 
             return redirect()->route('ecommerce.mi_perfil')->with('registrar_direccion', 'ok');
@@ -93,6 +101,7 @@ class ecommerceController extends Controller
     }
     public function getMisDirecciones(Request $request, $id){
         if(Auth::check()){
+            $cliente = $this->resolveAuthenticatedCliente();
             $direccion = Direccioncliente::findOrFail($id);
             $direccion->referencia = $request->referencia; 
             $direccion->direccion = $request->direccion;
@@ -101,7 +110,9 @@ class ecommerceController extends Controller
             $direccion->distrito_id = $request->distrito_id;
             $direccion->save();
 
-            $direcciones = Direccioncliente::where('cliente_id', Auth::user()->cliente->id)->get();
+            $direcciones = $cliente
+                ? Direccioncliente::where('cliente_id', $cliente->id)->get()
+                : collect();
             $departamentos = Departamento::all();
 
             return redirect()->route('ecommerce.mi_perfil', compact('direcciones', 'departamentos'))->with('success', 'ok');
@@ -152,12 +163,6 @@ class ecommerceController extends Controller
     // enviar codigo de recuperacion por correo mendiante OTP (One Time Password)
     public function enviarCodigoRecuperacion(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json([
-                'message' => 'Debes iniciar sesión para realizar esta acción.'
-            ], 401);
-        }
-
         $request->validate([
             'email' => 'required|email',
         ], [
@@ -165,12 +170,12 @@ class ecommerceController extends Controller
             'email.email' => 'El formato del correo no es válido.',
         ]);
 
-        $user = Auth::user();
         $email = strtolower(trim($request->email));
+        $user = User::where('email', $email)->first();
 
-        if ($email !== strtolower($user->email)) {
+        if (!$user) {
             return response()->json([
-                'message' => 'Por seguridad, solo puedes usar el correo de tu cuenta actual.'
+                'message' => 'No encontramos una cuenta registrada con ese correo.'
             ], 422);
         }
 
@@ -210,12 +215,6 @@ class ecommerceController extends Controller
     // Actualizar contraseña usando OTP
     public function cambiarContrasenaConOtp(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json([
-                'message' => 'Debes iniciar sesión para realizar esta acción.'
-            ], 401);
-        }
-
         $request->validate([
             'email' => 'required|email',
             'otp' => 'required|digits:6',
@@ -230,8 +229,15 @@ class ecommerceController extends Controller
             'new_password.confirmed' => 'La confirmación de contraseña no coincide.',
         ]);
 
-        $user = Auth::user();
         $email = strtolower(trim($request->email));
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'No encontramos una cuenta registrada con ese correo.'
+            ], 422);
+        }
+
         $cacheKey = 'perfil_password_otp_' . $user->id;
         $otpData = Cache::get($cacheKey);
 
@@ -241,7 +247,7 @@ class ecommerceController extends Controller
             ], 422);
         }
 
-        if ($email !== strtolower($user->email) || $email !== strtolower($otpData['email'])) {
+        if ($email !== strtolower($otpData['email'])) {
             return response()->json([
                 'message' => 'El correo no coincide con el de la verificación.'
             ], 422);
@@ -285,7 +291,7 @@ class ecommerceController extends Controller
     // mis ultimas compras
     public function misCompras ()
     {
-        $clienteId = Auth::user()?->cliente?->id;
+        $clienteId = $this->resolveAuthenticatedCliente()?->id;
 
         if (!$clienteId) {
             $ventas = collect();
@@ -616,22 +622,28 @@ class ecommerceController extends Controller
         if($request->ajax()){
             if($request->procedencia == 'cuponera'){
                     $descuento_cuponera = Coupon::where('codigo',$request->valor_cuponera)->where('estado','Activo')->first();
+                    if(!$descuento_cuponera){
+                        $ArrayList[1] = ['cupon_ya_aplicado'];
+                        return response()->json($ArrayList);
+                    }
                     if(UserCoupon::where('user_id',Auth::user()->id)->where('coupon_id',$descuento_cuponera->id)->exists()){
                         $ArrayList[1] = ['cupon_ya_aplicado'];
                         return response()->json($ArrayList);
                         
                     }else{
                         if($descuento_cuponera){
-                            $precio_descuento = round($request->valor_total * ($descuento_cuponera->porcentaje / 100), 2);
-                            $nuevo_total = round($request->valor_total - $precio_descuento, 2);
+                            $valor_total = (float) $request->valor_total;
+                            $precio_descuento = round($valor_total * ($descuento_cuponera->porcentaje / 100), 2);
+                            $nuevo_total = round($valor_total - $precio_descuento, 2);
 
-                            // Registrar uso del cupón por el usuario
                             $user_coupon = new UserCoupon();
                             $user_coupon->user_id = Auth::user()->id;
                             $user_coupon->coupon_id = $descuento_cuponera->id;
                             $user_coupon->save();
+
+                            session(['cupon_carrito' => $descuento_cuponera->id]);
+                            $ArrayList[1] = ['cupon_aplicado', $precio_descuento, $nuevo_total, $descuento_cuponera->porcentaje];
                         }
-                        $ArrayList[1] = ['cupon_aplicado', $precio_descuento, $nuevo_total, $descuento_cuponera->porcentaje];
                     }
                     
                     return response()->json($ArrayList);
@@ -896,9 +908,27 @@ class ecommerceController extends Controller
             $departamentos = Departamento::all();
             $culqiAmountPenCents = (int) round($total * 100);
 
-            $direcciones = Direccioncliente::where('cliente_id', Auth::user()->cliente->id)->get();
+            $cliente = $this->resolveAuthenticatedCliente();
+            $direcciones = $cliente
+                ? Direccioncliente::where('cliente_id', Auth::user()->cliente->id)->get()
+                : collect();
     
-            return view('ECOMMERCE.carrito.checkout', compact('cart', 'subtotal', 'igv', 'total', 'departamentos', 'culqiAmountPenCents', 'direcciones'));
+
+            $descuento = 0;
+            $cupon_aplicado = null;
+            $cupon_id = session('cupon_carrito');
+            if ($cupon_id) {
+                $cupon = Coupon::find($cupon_id);
+                if ($cupon && UserCoupon::where('user_id', Auth::user()->id)->where('coupon_id', $cupon_id)->exists()) {
+                    $descuento = round($total * ($cupon->porcentaje / 100), 2);
+                    $total = round($total - $descuento, 2);
+                    $cupon_aplicado = $cupon;
+                }
+            }
+
+            $culqiAmountPenCents = (int) round($total * 100);
+
+            return view('ECOMMERCE.carrito.checkout', compact('cart', 'subtotal', 'igv', 'total', 'descuento', 'cupon_aplicado', 'departamentos', 'culqiAmountPenCents', 'direcciones'));
         }else{
             return redirect()->route('login')->with('error_ingreso', 'ok');
         }
@@ -986,7 +1016,6 @@ class ecommerceController extends Controller
 
             $user = Auth::user();
             $prospecto = Prospecto::where('registered_user_id', $user->id)->first();
-
             if (! $prospecto) {
                 return response()->json([
                     'success' => false,
@@ -1065,13 +1094,13 @@ class ecommerceController extends Controller
             $pedido->user_id = Auth::id();
             $pedido->subtotal = $subtotal;
             $pedido->descuento_porcentaje = $request->descuento_porcentaje ?? 0;
-            $pedido->descuento_monto = $request->descuento_monto ?? 0;
+            $pedido->descuento_monto = $request->descuento ?? 0;
             $pedido->igv = $igv;
-            $pedido->total = $totalPen;
+            $pedido->total = $request->total ?? 0;
             $pedido->estado = 'pendiente';
             $pedido->aprobacion_finanzas = false;  // Nuevo pedido = No aprobado
             $pedido->aprobacion_stock = false;     // Nuevo pedido = Sin reserva
-            $pedido->direccion_instalacion = $request->direccion;
+            $pedido->direccion_instalacion = $request->direccion_id ? null : $direccionTexto; // Solo guardar texto si no se usó una dirección guardada
             $pedido->distrito_id = $request->distrito_id;
             $pedido->fecha_entrega_estimada = $now->addDays(3)->toDateString(); // Ejemplo: entrega en 3 días
             $pedido->almacen_id = 1;
@@ -1111,9 +1140,9 @@ class ecommerceController extends Controller
             $venta->tiposcomprobante_id = $request->tiposcomprobante_id ?? 1; // Default a factura
             $venta->numero_comprobante = $numeroComprobante;
             $venta->subtotal = $subtotal;
-            $venta->descuento = 0;
+            $venta->descuento = $request->descuento ?? 0;
             $venta->igv = $igv;
-            $venta->total = $totalPen;
+            $venta->total = $request->total ?? 0;
             $venta->condicion_pago = 'Contado';
             $venta->estado = 'completada';
             $venta->mediopago_id = $mediopagoId;
@@ -1147,7 +1176,7 @@ class ecommerceController extends Controller
                 'message' => 'Pago procesado correctamente con Culqi',
                 'charge_id' => $charge->id ?? null,
                 'mediopago_id' => $mediopagoId,
-                'total' => $totalPen,
+                'total' => $request->total ?? 0,
                 'venta_slug' => $venta->slug,
             ]);
         } catch (\Throwable $e) {
@@ -1168,7 +1197,7 @@ class ecommerceController extends Controller
     public function confirmation(Request $request, Sale $sale)
     {
         if(Auth::check()){
-            $clienteId = Auth::user()?->cliente?->id;
+            $clienteId = $this->resolveAuthenticatedCliente()?->id;
 
             if (!$clienteId) {
                 return redirect()->route('ecommerce.index');
@@ -1340,7 +1369,7 @@ class ecommerceController extends Controller
                     'direccion'   => $request->direccion,
                     'distrito_id' => $request->distrito_id,
                     'origen'      => 'ecommerce',
-                    'user_id'     => auth()->check() ? auth()->id() : null,
+                    'user_id'     => Auth::check() ? Auth::id() : null,
                 ]
             );
 
@@ -1455,10 +1484,10 @@ class ecommerceController extends Controller
     // Método auxiliar para obtener o crear carrito
     private function getOrCreateCart()
     {
-        if (auth()->check()) {
+        if (Auth::check()) {
             // Usuario autenticado
             $cart = Cart::firstOrCreate(
-                ['user_id' => auth()->id()],
+                ['user_id' => Auth::id()],
                 ['session_id' => null]
             );
         } else {
@@ -1477,6 +1506,31 @@ class ecommerceController extends Controller
         }
 
         return $cart;
+    }
+
+    private function resolveAuthenticatedCliente(): ?Cliente
+    {
+        if (!Auth::check()) {
+            return null;
+        }
+
+        $cliente = Auth::user()->cliente;
+
+        if ($cliente) {
+            return $cliente;
+        }
+
+        $prospecto = Prospecto::where('registered_user_id', Auth::id())->first();
+        if (!$prospecto) {
+            return null;
+        }
+
+        $cliente = $prospecto->cliente()->first();
+        if ($cliente && !$cliente->user_id) {
+            $cliente->update(['user_id' => Auth::id()]);
+        }
+
+        return $cliente;
     }
 
     // Obtener cantidad de items en carrito (para header)

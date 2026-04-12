@@ -123,7 +123,7 @@
 
         const routeSend = '{{ route('ecommerce.otp.enviar') }}';
         const routeReset = '{{ route('ecommerce.otp.cambiar_password') }}';
-        const currentEmail = '{{ Auth::user()->email }}';
+        const currentEmail = '{{ Auth::user()->email ?? '' }}';
 
         function showAlert(type, message) {
             const config = {

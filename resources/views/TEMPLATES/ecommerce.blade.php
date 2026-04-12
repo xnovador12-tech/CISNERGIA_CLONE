@@ -195,7 +195,7 @@
                                                         <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" {{ old('remember') ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="rememberMe" style="font-size:.875rem;color:var(--c-text-muted);">Recordarme</label>
                                                     </div>
-                                                    <a href="#" class="lm-link">¿Olvidaste tu contraseña?</a>
+                                                    <button class="btn" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">¿Olvidaste tu contraseña?</button>
                                                 </div>
 
                                                 <!-- Submit -->
@@ -328,7 +328,7 @@
     </nav>
     <!-- carrito de compras -->
     @include('ECOMMERCE.carrito.carrito_compras')
-
+    @include('ECOMMERCE.cuenta.correo_recuperacion')
     @yield('content')
 
     <!-- FOOTER -->
@@ -810,14 +810,14 @@
 
 //aplicar cuponera
 $('#aplicar_cuponera_id').on('click', function(){
-    valor_total = $('#cart-total').val();
+    valor_total = $('#cart-total').text().replace('S/', '').replace(/,/g, '').trim();
     valor_cuponeras = $('#valor_cuponera_id').val();
     $.get('/ver_carrito',{valor_total:valor_total, valor_cuponera:valor_cuponeras, procedencia:'cuponera'}, function(busqueda){
         $.each(busqueda, function(index, value){
             if(value[0] == 'cupon_aplicado'){
                 $('#cupon_html').html(value[1]);
                 $('#valor_cuponera_hidden').val(value[1]);
-                $('#cart-total').html(value[2]);
+                $('#cart-total').html('S/ ' + parseFloat(value[2]).toFixed(2));
                 $('#valor_cuponera_id').val('');
                 Swal.fire({
                     imageUrl: "/images/online_shop.png",

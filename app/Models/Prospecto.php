@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class Prospecto extends Model
@@ -97,14 +98,14 @@ class Prospecto extends Model
             if (empty($prospecto->slug)) {
                 $prospecto->slug = Str::slug($prospecto->nombre . '-' . $prospecto->codigo);
             }
-            if (auth()->check()) {
-                $prospecto->created_by = auth()->id();
+            if (Auth::check()) {
+                $prospecto->created_by = Auth::id();
             }
         });
 
         static::updating(function ($prospecto) {
-            if (auth()->check()) {
-                $prospecto->updated_by = auth()->id();
+            if (Auth::check()) {
+                $prospecto->updated_by = Auth::id();
             }
         });
     }
@@ -306,6 +307,32 @@ class Prospecto extends Model
         // Idempotencia: si ya tiene cliente, retornarlo
         $existente = $this->cliente()->first();
         if ($existente) {
+            $syncData = array_filter([
+                'nombre' => $overrides['nombre'] ?? null,
+                'apellidos' => $overrides['apellidos'] ?? null,
+                'razon_social' => $overrides['razon_social'] ?? null,
+                'ruc' => $overrides['ruc'] ?? null,
+                'dni' => $overrides['dni'] ?? null,
+                'email' => $overrides['email'] ?? null,
+                'telefono' => $overrides['telefono'] ?? null,
+                'celular' => $overrides['celular'] ?? null,
+                'direccion' => $overrides['direccion'] ?? null,
+                'tipo_persona' => $overrides['tipo_persona'] ?? null,
+                'segmento' => $overrides['segmento'] ?? null,
+                'distrito_id' => $overrides['distrito_id'] ?? null,
+                'origen' => $overrides['origen'] ?? null,
+                'estado' => $overrides['estado'] ?? null,
+                'vendedor_id' => $overrides['vendedor_id'] ?? null,
+                'user_id' => $overrides['user_id'] ?? $this->registered_user_id,
+            ], static fn ($value) => !is_null($value));
+
+            if (!empty($syncData)) {
+                $existente->fill($syncData);
+                if ($existente->isDirty()) {
+                    $existente->save();
+                }
+            }
+
             if ($this->estado !== 'convertido') {
                 $this->update(['estado' => 'convertido']);
             }
@@ -329,7 +356,7 @@ class Prospecto extends Model
             'prospecto_id'         => $this->id,
             'origen'               => 'directo', // default; checkout sobrescribe a 'ecommerce'
             'estado'               => 'activo',
-            'vendedor_id'          => $this->user_id ?? auth()->id(),
+            'vendedor_id'          => $this->user_id ?? Auth::id(),
             'user_id'              => $this->registered_user_id, // FK al user del ecommerce
             'fecha_primera_compra' => now(),
         ];

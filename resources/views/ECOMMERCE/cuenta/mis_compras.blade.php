@@ -277,9 +277,19 @@
                     <a href="/product" class="btn btn-sm btn-primary">
                       <i class="bi bi-arrow-clockwise me-1"></i>Comprar de nuevo
                     </a>
-                    <a href="/comprobante_compra/{{$venta->slug}}" target="_blank" class="btn btn-sm btn-outline-primary">
-                      <i class="bi bi-file-earmark-pdf me-1"></i>Descargar factura
+                    @if($venta->tiposcomprobante_id == '1')
+                    <a href="/comprobante_compra/{{$venta->slug}}" target="_blank" class="btn btn-outline-primary">
+                      <i class="bi bi-file-earmark-pdf me-2"></i>Descargar Factura
                     </a>
+                    @elseif($venta->tiposcomprobante_id == '2')
+                    <a href="/comprobante_compra/{{$venta->slug}}" target="_blank" class="btn btn-outline-primary">
+                      <i class="bi bi-file-earmark-pdf me-2"></i>Descargar Boleta
+                    </a>
+                    @else
+                    <a href="/comprobante_compra/{{$venta->slug}}" target="_blank" class="btn btn-outline-primary">
+                      <i class="bi bi-file-earmark-pdf me-2"></i>Descargar Nota de venta
+                    </a>
+                    @endif
                     <a href="#" class="btn btn-sm btn-outline-secondary">
                       <i class="bi bi-star me-1"></i>Dejar reseña
                     </a>

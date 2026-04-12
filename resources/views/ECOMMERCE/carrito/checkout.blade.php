@@ -301,8 +301,12 @@
                                 </div>
                                 <div class="d-flex justify-content-between mb-2 text-success">
                                     <span>Descuento:</span>
-                                    <span class="fw-semibold">- S/ {{ number_format(0, 2) }}</span>
-                                    <input type="hidden" id="descuento" value="0">
+                                    @if($cupon_aplicado)
+                                        <span class="badge bg-success ms-2">{{ $cupon_aplicado->codigo }} ({{ $cupon_aplicado->porcentaje }}%)</span>
+                                        <input type="hidden" id="descuento_porcentaje" value="{{ $cupon_aplicado->porcentaje }}">
+                                    @endif
+                                    <span class="fw-semibold">- S/ {{ number_format($descuento, 2) }}</span>
+                                    <input type="hidden" id="descuento" value="{{ $descuento }}">
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">IGV (18%):</span>
@@ -526,6 +530,7 @@
                 guardar_direccion: document.getElementById('guardar_direccion')?.checked ? '1' : '0',
                 tiposcomprobante_id: document.getElementById('tipo_comprobante')?.value,
                 subtotal:         document.getElementById('subtotal')?.value,
+                descuento_porcentaje: document.getElementById('descuento_porcentaje')?.value || '0',
                 descuento:        document.getElementById('descuento')?.value,
                 igv:              document.getElementById('igv')?.value,
                 total:            document.getElementById('total')?.value,
@@ -574,6 +579,7 @@
         const distrito_id = document.getElementById('distrito_id')?.value;
         const provincia_id = document.getElementById('provincia_id')?.value;
         const subtotal = document.getElementById('subtotal')?.value;
+        const descuento_porcentaje = document.getElementById('descuento_porcentaje')?.value || '0';
         const descuento = document.getElementById('descuento')?.value;
         const igv = document.getElementById('igv')?.value;
         const total = document.getElementById('total')?.value;
@@ -603,6 +609,7 @@
                     distrito_id: distrito_id,
                     subtotal: subtotal,
                     descuento: descuento,
+                    descuento_porcentaje: descuento_porcentaje,
                     igv: igv,
                     total: total,
                     email: email || culqiEmail,
