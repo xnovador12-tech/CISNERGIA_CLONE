@@ -28,7 +28,7 @@ class admin_ComprobantesFinanzasController extends Controller
 
     public function show(Sale $admin_comprobante)
     {
-        $venta = $admin_comprobante->load(['cliente', 'tipocomprobante', 'usuario', 'sede', 'detalles', 'pagos.metodoPago', 'pagos.cuentaBancaria.banco', 'cuotas']);
+        $venta = $admin_comprobante->load(['cliente', 'tipocomprobante', 'usuario', 'sede', 'detalles', 'pagos.metodoPago', 'pagos.cuentaBancaria.banco', 'cuotas', 'detraccion.tipoDetraccion']);
 
         $totalPagado = $venta->pagos->sum('monto');
 

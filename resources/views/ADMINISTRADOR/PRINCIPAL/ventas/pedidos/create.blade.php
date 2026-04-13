@@ -410,19 +410,9 @@ $(document).ready(function() {
     const catNombres = { 'producto': 'Productos', 'servicio': 'Servicios' };
     const catColors = { producto: 'primary', servicio: 'info' };
 
-    // Sugerencias predefinidas para servicios (Idéntico a CRM)
+    // Servicios desde la base de datos
     const sugerencias = {
-        servicio: [
-            { desc: 'Instalación completa de sistema solar', unidad: 'glb' },
-            { desc: 'Mano de obra técnica especializada', unidad: 'dia' },
-            { desc: 'Mantenimiento preventivo', unidad: 'glb' },
-            { desc: 'Mantenimiento correctivo - Diagnóstico y reparación', unidad: 'glb' },
-            { desc: 'Trámite ante distribuidora eléctrica', unidad: 'glb' },
-            { desc: 'Diseño de ingeniería y dimensionamiento', unidad: 'glb' },
-            { desc: 'Transporte de equipos', unidad: 'glb' },
-            { desc: 'Monitoreo remoto del sistema (anual)', unidad: 'glb' },
-            { desc: 'Conexión eléctrica y puesta en marcha', unidad: 'glb' },
-        ],
+        servicio: @json($servicios->map(fn($s) => ['id' => $s->id, 'desc' => $s->name, 'unidad' => 'glb'])->values()),
     };
 
     let itemIndex = 0;
@@ -476,9 +466,9 @@ $(document).ready(function() {
                     <option value="">-- Seleccione un servicio --</option>`;
                 sugerencias[categoria].forEach(s => {
                     const sel = datos.descripcion === s.desc ? 'selected' : '';
-                    selectHtml += `<option value="${s.desc}" data-unidad="${s.unidad}" ${sel}>${s.desc}</option>`;
+                    selectHtml += `<option value="${s.desc}" data-unidad="${s.unidad}" data-servicio-id="${s.id || ''}" ${sel}>${s.desc}</option>`;
                 });
-                selectHtml += `<option value="__custom__" ${datos.descripcion && !sugerencias[categoria].some(s => s.desc === datos.descripcion) ? 'selected' : ''}>✏️ Personalizado...</option>`;
+                selectHtml += `<option value="__custom__" ${datos.descripcion && !sugerencias[categoria].some(s => s.desc === datos.descripcion) ? 'selected' : ''}>Personalizado...</option>`;
                 selectHtml += `</select>`;
             }
 
@@ -488,9 +478,10 @@ $(document).ready(function() {
             celdaDescripcion = `
                 ${selectHtml}
                 <input type="text" name="detalles[${i}][descripcion]" class="form-control form-control-sm input-descripcion input-descripcion-custom"
-                       value="${datos.descripcion || ''}" placeholder="Escriba la descripción del ítem" required
+                       value="${datos.descripcion || ''}" placeholder="Escriba la descripción del servicio" required
                        style="${mostrarInput ? '' : 'display:none'}">
                 <input type="hidden" name="detalles[${i}][producto_id]" class="input-producto-id" value="">
+                <input type="hidden" name="detalles[${i}][servicio_id]" class="input-servicio-id" value="${datos.servicio_id || ''}">
                 <input type="hidden" name="detalles[${i}][tipo]" value="${categoria}">`;
         }
 
@@ -779,14 +770,18 @@ $(document).ready(function() {
 
         if (val === '__custom__') {
             inputCustom.val('').show().focus();
+            fila.find('.input-servicio-id').val('');
         } else if (val) {
             const unidad = $(this).find(':selected').data('unidad');
+            const servicioId = $(this).find(':selected').data('servicio-id');
             inputDesc.val(val);
             inputCustom.val(val).hide();
             if (unidad) fila.find('.input-unidad').val(unidad);
+            fila.find('.input-servicio-id').val(servicioId || '');
         } else {
             inputDesc.val('');
             inputCustom.val('').hide();
+            fila.find('.input-servicio-id').val('');
         }
     });
 

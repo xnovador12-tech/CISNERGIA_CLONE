@@ -18,7 +18,6 @@ class Sale extends Model
         'cliente_id',
         'tiposcomprobante_id',
         'tipo_operacion_id',
-        'tipo_detraccion_id',
         'numero_comprobante',
         'fecha_emision',
         'fecha_vencimiento',
@@ -30,10 +29,10 @@ class Sale extends Model
         'descuento',
         'igv',
         'total',
-        'monto_detraccion',
-        'monto_neto',
         'mediopago_id',
         'condicion_pago',
+        'monto_pagado_inicial',
+        'numero_cuotas',
         'estado',
         'user_id',
         'sede_id',
@@ -55,8 +54,8 @@ class Sale extends Model
         'descuento' => 'decimal:2',
         'igv' => 'decimal:2',
         'total' => 'decimal:2',
-        'monto_detraccion' => 'decimal:2',
-        'monto_neto' => 'decimal:2',
+        'monto_pagado_inicial' => 'decimal:2',
+        'numero_cuotas' => 'integer',
         'potencia_kw' => 'decimal:2',
         'monto_financiado' => 'decimal:2',
         'consumo_mensual_kwh' => 'decimal:2',
@@ -131,9 +130,9 @@ class Sale extends Model
         return $this->belongsTo(TipoOperacion::class, 'tipo_operacion_id');
     }
 
-    public function tipoDetraccion()
+    public function detraccion()
     {
-        return $this->belongsTo(TipoDetraccion::class, 'tipo_detraccion_id');
+        return $this->hasOne(VentaDetraccion::class, 'sale_id');
     }
 
     public function notas()

@@ -6,7 +6,7 @@
         <div class="bg-transparent mb-3" style="height: 67px"></div>
         <div class="container-fluid">
             <div class="" data-aos="fade-right">
-                <h1 class="titulo h2 text-uppercase fw-bold mb-0">VENTAS Y FACTURACIÓN</h1>
+                <h1 class="titulo h2 text-uppercase fw-bold mb-0">VENTAS</h1>
                 <div class=""
                     style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);"
                     aria-label="breadcrumb">
@@ -44,7 +44,7 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <p class="text-muted mb-1 small">Facturación Mes</p>
-                                <h3 class="mb-0 fw-bold text-success">S/ {{ number_format($ventas->where('created_at', '>=', now()->startOfMonth())->where('estado', 'completada')->sum('total'), 2) }}</h3>
+                                <h3 class="mb-0 fw-bold text-success">S/ {{ number_format($ventas->where('created_at', '>=', now()->startOfMonth())->whereIn('estado', ['Pagado', 'Parcial'])->sum('total'), 2) }}</h3>
                             </div>
                             <div class="bg-primary bg-opacity-10 p-3 rounded-3">
                                 <i class="bi bi-graph-up fs-3 text-primary"></i>
@@ -74,7 +74,7 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <p class="text-muted mb-1 small">Ticket Promedio</p>
-                                <h3 class="mb-0 fw-bold text-warning">S/ {{ $ventas->where('estado', 'completada')->count() > 0 ? number_format($ventas->where('estado', 'completada')->avg('total'), 2) : '0.00' }}</h3>
+                                <h3 class="mb-0 fw-bold text-warning">S/ {{ $ventas->whereIn('estado', ['Pagado', 'Parcial'])->count() > 0 ? number_format($ventas->whereIn('estado', ['Pagado', 'Parcial'])->avg('total'), 2) : '0.00' }}</h3>
                             </div>
                             <div class="bg-warning bg-opacity-10 p-3 rounded-3">
                                 <i class="bi bi-tag fs-3 text-warning"></i>
@@ -116,7 +116,6 @@
                                         <th class="small text-uppercase fw-bold text-center">Cliente</th>
                                         <th class="small text-uppercase fw-bold text-center">Fecha</th>
                                         <th class="small text-uppercase fw-bold text-center">Total</th>
-                                        <th class="small text-uppercase fw-bold text-center">Condición</th>
                                         <th class="small text-uppercase fw-bold text-center">Finanzas</th>
                                         <th class="small text-uppercase fw-bold text-center">Stock</th>
                                         <th class="small text-uppercase fw-bold text-center">Acciones</th>
@@ -142,13 +141,6 @@
                                             </td>
                                             <td class="text-center">{{ $pedido->created_at->format('d/m/Y H:i') }}</td>
                                             <td class="text-center fw-bold text-success">S/ {{ number_format($pedido->total, 2) }}</td>
-                                            <td class="text-center">
-                                                @if($pedido->condicion_pago == 'Crédito')
-                                                    <span class="badge bg-info">Crédito</span>
-                                                @else
-                                                    <span class="badge bg-secondary">Contado</span>
-                                                @endif
-                                            </td>
                                             <td class="text-center">
                                                 @if($pedido->aprobacion_finanzas)
                                                     <span class="badge bg-success"><i class="bi bi-check-circle"></i> Aprobado</span>
@@ -261,12 +253,14 @@
                             <td class="fw-normal text-center align-middle fw-bold text-primary">S/ {{ number_format($pagado, 2) }}</td>
                             <td class="fw-normal text-center align-middle fw-bold {{ $saldo > 0 ? 'text-danger' : 'text-success' }}">S/ {{ number_format($saldo, 2) }}</td>
                             <td class="fw-normal text-center align-middle">
-                                @if($venta->estado == 'completada')
-                                    <span class="badge bg-success">Completada</span>
-                                @elseif($venta->estado == 'parcial')
+                                @if($venta->estado == 'Pagado')
+                                    <span class="badge bg-success">Pagado</span>
+                                @elseif($venta->estado == 'Parcial')
                                     <span class="badge bg-warning">Parcial</span>
-                                @else
-                                    <span class="badge bg-danger">Anulada</span>
+                                @elseif($venta->estado == 'Pendiente')
+                                    <span class="badge bg-info">Pendiente</span>
+                                @elseif($venta->estado == 'Anulado')
+                                    <span class="badge bg-danger">Anulado</span>
                                 @endif
                             </td>
                             <td class="text-center align-middle">

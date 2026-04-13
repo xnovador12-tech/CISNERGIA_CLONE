@@ -80,13 +80,18 @@ class admin_CobrosController extends Controller
             'descripcion' => 'Cobro Venta ' . $venta->codigo . (!empty($validated['billetera']) ? ' - Billetera: ' . $validated['billetera'] : ''),
         ]);
 
-        // Actualizar estado de la venta
+        // Recalcular total pagado
         $nuevoTotalPagado = $venta->pagos()->sum('monto');
-        if ($nuevoTotalPagado >= $venta->total - 0.05) {
-            $venta->update(['estado' => 'completada']);
-        }
 
-        // Actualizar fecha_vencimiento: si tiene cuotas, apuntar a la siguiente cuota pendiente
+        // Actualizar estado de la venta
+        if ($nuevoTotalPagado >= $venta->total - 0.05) {
+            $venta->estado = 'Pagado';
+        } elseif ($nuevoTotalPagado > 0) {
+            $venta->estado = 'Parcial';
+        }
+        $venta->save();
+
+        // Marcar cuotas como pagadas y actualizar fecha_vencimiento
         if ($venta->condicion_pago === 'Crédito' && $venta->cuotas->count() > 0) {
             $montoCubierto = $nuevoTotalPagado;
             $siguienteFecha = null;
@@ -94,13 +99,19 @@ class admin_CobrosController extends Controller
             foreach ($venta->cuotas()->orderBy('numero_cuota')->get() as $cuota) {
                 if ($montoCubierto >= $cuota->importe - 0.05) {
                     $montoCubierto -= $cuota->importe;
+                    // Marcar cuota como pagada si no lo estaba
+                    if ($cuota->estado !== 'Pagado') {
+                        $cuota->update([
+                            'estado' => 'Pagado',
+                            'fecha_pago' => now()->format('Y-m-d'),
+                        ]);
+                    }
                 } else {
                     $siguienteFecha = $cuota->fecha_vencimiento;
                     break;
                 }
             }
 
-            // Si todas las cuotas están cubiertas, fecha_vencimiento queda en la última
             if (!$siguienteFecha) {
                 $siguienteFecha = $venta->cuotas()->orderBy('numero_cuota', 'desc')->first()->fecha_vencimiento;
             }

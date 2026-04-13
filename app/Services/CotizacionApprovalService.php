@@ -148,7 +148,7 @@ class CotizacionApprovalService
             'distrito_id'            => $cliente->distrito_id,
             'fecha_entrega_estimada' => now()->addDays($cotizacion->tiempo_ejecucion_dias ?? 7),
             'vigencia_dias'          => 15,
-            'origen'                 => 'directo', // Clientes CRM siempre son directos (ENUM: ecommerce|directo)
+            'origen'                 => 'cotizacion',
             'observaciones'          => "Generado desde cotización {$cotizacion->codigo}."
                 . " Oportunidad: {$oportunidad->codigo}."
                 . " Proyecto: {$oportunidad->nombre}.",
@@ -168,6 +168,21 @@ class CotizacionApprovalService
                 'precio_unitario' => $detalle->precio_unitario,
                 'subtotal'        => $detalle->subtotal,
             ]);
+        }
+
+        // Intentar reservar stock automáticamente (igual que pedido directo)
+        try {
+            $stockService = new StockService();
+            $detallesProducto = $pedido->detalles()->whereNotNull('producto_id')->get();
+
+            if ($detallesProducto->count() > 0 && $stockService->hasStock($detallesProducto, $pedido->almacen_id)) {
+                $stockService->deductStock($detallesProducto, $pedido->almacen_id);
+                $pedido->aprobacion_stock = true;
+                $pedido->save();
+            }
+        } catch (\Exception $e) {
+            // Stock insuficiente: el pedido queda con aprobacion_stock = false
+            // El usuario podrá reintentar manualmente desde el detalle del pedido
         }
 
         return $pedido;

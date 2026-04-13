@@ -22,6 +22,8 @@ class Detailsale extends Model
         'descuento_porcentaje',
         'descuento_monto',
         'subtotal',
+        'igv',
+        'total',
         'garantia_años'
     ];
 
@@ -31,6 +33,8 @@ class Detailsale extends Model
         'descuento_porcentaje' => 'decimal:2',
         'descuento_monto' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'igv' => 'decimal:2',
+        'total' => 'decimal:2',
         'garantia_años' => 'integer'
     ];
 

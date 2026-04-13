@@ -166,7 +166,7 @@ class admin_NotasController extends Controller
 
             // Efecto en venta original (solo NC)
             if ($tipo === 'nc' && in_array($validated['motivo_codigo'], ['01', '06'])) {
-                $venta->update(['estado' => 'anulada']);
+                $venta->update(['estado' => 'Anulado']);
             }
         });
 

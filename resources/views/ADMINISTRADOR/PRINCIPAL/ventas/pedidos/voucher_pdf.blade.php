@@ -373,10 +373,12 @@
     <div class="container">
         @php
             $venta = $pedido->venta;
-            $medioPago = $venta?->mediopago?->name ?? $pedido->pago_banco ?? 'No especificado';
+            // Medio de pago: primero del último pago real, luego del campo de la venta, luego del pedido
+            $ultimoPago = $venta ? $venta->pagos->sortByDesc('created_at')->first() : null;
+            $medioPago = $ultimoPago?->metodoPago?->name ?? $venta?->mediopago?->name ?? $pedido->pago_banco ?? 'No especificado';
             $tipoComprobante = $venta?->tipocomprobante?->name ?? 'Pendiente de emisión';
             $numeroComprobante = $venta?->numero_comprobante ?? 'Pendiente de emisión';
-            $montoPagado = (float)($pedido->pago_monto ?? $pedido->total);
+            $montoPagado = $venta ? $venta->pagos->sum('monto') : (float)($pedido->pago_monto ?? 0);
             $saldoPendiente = max((float)$pedido->total - $montoPagado, 0);
             $path = base_path('public/images/logo_v.png');
             $logoSrc = null;
@@ -418,10 +420,9 @@
                     <td>{{ $pedido->usuario->name ?? 'N/A' }}</td>
                 </tr>
                 <tr>
-                    <td class="label">ORIGEN:</td>
-                    <td>{{ ucfirst($pedido->origen) }}</td>
                     <td class="label">CONDICIÓN:</td>
                     <td><strong>{{ $pedido->condicion_pago }}</strong></td>
+                    <td></td><td></td>
                 </tr>
                 <tr>
                     <td class="label">CÓDIGO VENTA:</td>
@@ -439,9 +440,9 @@
                 <tr>
                     <td class="label">TIPO OPERACIÓN:</td>
                     <td>{{ $venta->tipoOperacion->code }} - {{ $venta->tipoOperacion->descripcion }}</td>
-                    @if($venta->tipoDetraccion)
+                    @if($venta->detraccion)
                     <td class="label">DETRACCIÓN:</td>
-                    <td><strong>{{ $venta->tipoDetraccion->code }} - {{ $venta->tipoDetraccion->descripcion }} ({{ $venta->tipoDetraccion->porcentaje }}%)</strong></td>
+                    <td><strong>{{ $venta->detraccion->tipoDetraccion->code }} - {{ $venta->detraccion->tipoDetraccion->descripcion }} ({{ $venta->detraccion->porcentaje }}%)</strong></td>
                     @else
                     <td></td><td></td>
                     @endif
@@ -456,8 +457,7 @@
                 <tr>
                     <td class="label">BANCO / MEDIO:</td>
                     <td><strong>{{ $medioPago }}</strong></td>
-                    <td class="label">N° OPERACIÓN:</td>
-                    <td><strong>{{ $pedido->pago_operacion ?? '---' }}</strong></td>
+                    <td></td><td></td>
                 </tr>
                 <tr>
                     <td class="label">MONTO PAGADO:</td>
@@ -468,7 +468,11 @@
             </table>
         </div>
 
-        @if($pedido->condicion_pago === 'Crédito' && $pedido->cuotas->count() > 0)
+        @php
+            $cuotasVenta = $venta ? $venta->cuotas : collect();
+            $condicionPago = $venta ? $venta->condicion_pago : $pedido->condicion_pago;
+        @endphp
+        @if($condicionPago === 'Crédito' && $cuotasVenta->count() > 0)
         <div class="installments-section">
             <h3>CRONOGRAMA DE PAGOS (CRÉDITO)</h3>
             <table class="installments-table">
@@ -481,12 +485,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($pedido->cuotas as $cuota)
+                    @foreach($cuotasVenta as $cuota)
                     <tr>
                         <td><strong>{{ $cuota->numero_cuota }}</strong></td>
                         <td>{{ \Carbon\Carbon::parse($cuota->fecha_vencimiento)->format('d/m/Y') }}</td>
                         <td style="font-weight: bold;">S/ {{ number_format($cuota->importe, 2) }}</td>
-                        <td style="color: #777; font-style: italic;">Pendiente</td>
+                        <td style="color: {{ $cuota->estado === 'Pagado' ? '#1a7f37' : ($cuota->estado === 'Vencido' ? '#dc3545' : '#777') }}; font-weight: bold;">
+                            {{ $cuota->estado }}
+                            @if($cuota->fecha_pago)
+                                ({{ \Carbon\Carbon::parse($cuota->fecha_pago)->format('d/m/Y') }})
+                            @endif
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -498,25 +507,48 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 80px;">TIPO</th>
                     <th style="text-align: left;">DESCRIPCIÓN</th>
-                    <th style="width: 60px;">CANT.</th>
-                    <th style="width: 60px;">U.M.</th>
-                    <th style="width: 100px;">P. UNITARIO</th>
-                    <th style="width: 100px;">SUBTOTAL</th>
+                    <th style="width: 50px;">CANT.</th>
+                    <th style="width: 50px;">U.M.</th>
+                    <th style="width: 90px;">P. UNITARIO</th>
+                    <th style="width: 80px;">SUBTOTAL</th>
+                    <th style="width: 70px;">IGV</th>
+                    <th style="width: 90px;">TOTAL</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($pedido->detalles as $detalle)
-                <tr>
-                    <td style="text-align: center; text-transform: uppercase;">{{ $detalle->tipo ?? 'producto' }}</td>
-                    <td style="text-align: left;">{{ $detalle->descripcion }}</td>
-                    <td style="text-align: center;">{{ number_format($detalle->cantidad, 2) }}</td>
-                    <td style="text-align: center;">{{ $detalle->unidad ?? 'und' }}</td>
-                    <td style="text-align: right;">S/ {{ number_format($detalle->precio_unitario, 2) }}</td>
-                    <td style="text-align: right; font-weight: 600;">S/ {{ number_format($detalle->subtotal, 2) }}</td>
-                </tr>
-                @endforeach
+                @php
+                    $detallesVenta = $venta ? $venta->detalles : collect();
+                @endphp
+                @if($detallesVenta->count() > 0)
+                    @foreach($detallesVenta as $detalle)
+                    <tr>
+                        <td style="text-align: left;">{{ $detalle->descripcion }}</td>
+                        <td style="text-align: center;">{{ number_format($detalle->cantidad, 2) }}</td>
+                        <td style="text-align: center;">und</td>
+                        <td style="text-align: right;">S/ {{ number_format($detalle->precio_unitario, 2) }}</td>
+                        <td style="text-align: right;">S/ {{ number_format($detalle->subtotal, 2) }}</td>
+                        <td style="text-align: right;">S/ {{ number_format($detalle->igv, 2) }}</td>
+                        <td style="text-align: right; font-weight: 600;">S/ {{ number_format($detalle->total, 2) }}</td>
+                    </tr>
+                    @endforeach
+                @else
+                    @foreach($pedido->detalles as $detalle)
+                    @php
+                        $baseLinea = round($detalle->subtotal / 1.18, 2);
+                        $igvLinea = round($baseLinea * 0.18, 2);
+                    @endphp
+                    <tr>
+                        <td style="text-align: left;">{{ $detalle->descripcion }}</td>
+                        <td style="text-align: center;">{{ number_format($detalle->cantidad, 2) }}</td>
+                        <td style="text-align: center;">{{ $detalle->unidad ?? 'und' }}</td>
+                        <td style="text-align: right;">S/ {{ number_format($detalle->precio_unitario, 2) }}</td>
+                        <td style="text-align: right;">S/ {{ number_format($baseLinea, 2) }}</td>
+                        <td style="text-align: right;">S/ {{ number_format($igvLinea, 2) }}</td>
+                        <td style="text-align: right; font-weight: 600;">S/ {{ number_format($detalle->subtotal, 2) }}</td>
+                    </tr>
+                    @endforeach
+                @endif
             </tbody>
         </table>
 
@@ -541,14 +573,14 @@
                     <td>TOTAL:</td>
                     <td>S/ {{ number_format($pedido->total, 2) }}</td>
                 </tr>
-                @if($venta && $venta->monto_detraccion > 0)
+                @if($venta && $venta->detraccion)
                 <tr>
-                    <td style="color: #dc3545; font-size: 10px;">DETRACCIÓN ({{ $venta->tipoDetraccion->porcentaje ?? 0 }}%):</td>
-                    <td style="font-weight: bold; color: #dc3545;">- S/ {{ number_format($venta->monto_detraccion, 2) }}</td>
+                    <td style="color: #dc3545; font-size: 10px;">DETRACCIÓN ({{ $venta->detraccion->porcentaje }}%):</td>
+                    <td style="font-weight: bold; color: #dc3545;">- S/ {{ number_format($venta->detraccion->monto_detraccion, 2) }}</td>
                 </tr>
                 <tr>
                     <td style="font-weight: bold; font-size: 11px;">NETO A COBRAR:</td>
-                    <td style="font-weight: bold; color: #2e7d32; font-size: 13px;">S/ {{ number_format($venta->monto_neto, 2) }}</td>
+                    <td style="font-weight: bold; color: #2e7d32; font-size: 13px;">S/ {{ number_format($venta->total - $venta->detraccion->monto_detraccion, 2) }}</td>
                 </tr>
                 @endif
                 @if($pedido->condicion_pago === 'Crédito')

@@ -1097,9 +1097,9 @@ class ecommerceController extends Controller
             $pedido->descuento_monto = $request->descuento ?? 0;
             $pedido->igv = $igv;
             $pedido->total = $request->total ?? 0;
-            $pedido->estado = 'pendiente';
-            $pedido->aprobacion_finanzas = false;  // Nuevo pedido = No aprobado
-            $pedido->aprobacion_stock = false;     // Nuevo pedido = Sin reserva
+            $pedido->estado = 'proceso';
+            $pedido->aprobacion_finanzas = true;   // Pago online ya confirmado
+            $pedido->aprobacion_stock = false;     // Se intenta reservar después
             $pedido->direccion_instalacion = $request->direccion_id ? null : $direccionTexto; // Solo guardar texto si no se usó una dirección guardada
             $pedido->distrito_id = $request->distrito_id;
             $pedido->fecha_entrega_estimada = $now->addDays(3)->toDateString(); // Ejemplo: entrega en 3 días
@@ -1126,14 +1126,35 @@ class ecommerceController extends Controller
                 ]);
             }
 
+            // Intentar reservar stock automáticamente
+            try {
+                $stockService = new \App\Services\StockService();
+                $detallesProducto = $pedido->detalles()->whereNotNull('producto_id')->get();
+
+                if ($detallesProducto->count() > 0 && $stockService->hasStock($detallesProducto, $pedido->almacen_id)) {
+                    $stockService->deductStock($detallesProducto, $pedido->almacen_id);
+                    $pedido->aprobacion_stock = true;
+                    $pedido->save();
+                }
+            } catch (\Exception $e) {
+                // Stock insuficiente: queda con aprobacion_stock = false
+            }
+
             $serieComprobante = \App\Models\SerieComprobante::where('tiposcomprobante_id', $request->tiposcomprobante_id ?? 1)
             ->where('activo', true)
             ->first();
 
             $numeroComprobante = $serieComprobante->generarNumero();
 
+            $prefijoCodigo = 'VTA-' . date('Y') . '-';
+            $ultimaVentaEcom = Sale::where('codigo', 'like', $prefijoCodigo . '%')->orderBy('codigo', 'desc')->first();
+            $numeroVtaEcom = 1;
+            if ($ultimaVentaEcom && preg_match('/-(\d+)$/', $ultimaVentaEcom->codigo, $matchesEcom)) {
+                $numeroVtaEcom = intval($matchesEcom[1]) + 1;
+            }
+
             $venta = new Sale();
-            $venta->codigo = 'VTA-' . date('Y') . '-' . str_pad($pedido->id, 5, '0', STR_PAD_LEFT);
+            $venta->codigo = $prefijoCodigo . str_pad($numeroVtaEcom, 5, '0', STR_PAD_LEFT);
             $venta->slug = Str::slug($venta->codigo);
             $venta->pedido_id = $pedido->id;
             $venta->cliente_id = $cliente->id;
@@ -1144,7 +1165,7 @@ class ecommerceController extends Controller
             $venta->igv = $igv;
             $venta->total = $request->total ?? 0;
             $venta->condicion_pago = 'Contado';
-            $venta->estado = 'completada';
+            $venta->estado = 'Pagado';
             $venta->mediopago_id = $mediopagoId;
             $venta->user_id = Auth::id();
             $venta->sede_id = 1;
@@ -1384,9 +1405,13 @@ class ecommerceController extends Controller
             $codigoPedido = 'PED-' . $year . '-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
 
             // 2. Generar código de venta
-            $ultimaVenta = Sale::latest('id')->first();
-            $numeroVenta = $ultimaVenta ? $ultimaVenta->id + 1 : 1;
-            $codigoVenta = 'VTA-' . date('Y') . '-' . str_pad($numeroVenta, 5, '0', STR_PAD_LEFT);
+            $prefijoVta = 'VTA-' . date('Y') . '-';
+            $ultimaVenta = Sale::where('codigo', 'like', $prefijoVta . '%')->orderBy('codigo', 'desc')->first();
+            $numeroVenta = 1;
+            if ($ultimaVenta && preg_match('/-(\d+)$/', $ultimaVenta->codigo, $matchesVta)) {
+                $numeroVenta = intval($matchesVta[1]) + 1;
+            }
+            $codigoVenta = $prefijoVta . str_pad($numeroVenta, 5, '0', STR_PAD_LEFT);
 
             // 3. Crear pedido (estado confirmado porque pago ya verificado online)
             $pedido = new Pedido();
@@ -1423,7 +1448,7 @@ class ecommerceController extends Controller
                 'total' => $cart->total,
                 'mediopago_id' => 1, // Configurar según metodo_pago
                 'condicion_pago' => $request->metodo_pago === 'credito' ? 'Crédito' : 'Contado',
-                'estado' => 'completada',
+                'estado' => 'Pagado',
                 'tipo_venta' => 'ecommerce',
                 'observaciones' => 'Venta generada automáticamente desde E-commerce: ' . $codigoPedido,
             ]);

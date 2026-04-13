@@ -21,7 +21,6 @@ return new class extends Migration
             $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('tiposcomprobante_id')->nullable()->constrained('tiposcomprobantes')->onDelete('set null');
             $table->foreignId('tipo_operacion_id')->nullable()->constrained('tipos_operaciones')->nullOnDelete();
-            $table->foreignId('tipo_detraccion_id')->nullable()->constrained('tipo_detraccion')->nullOnDelete();
             $table->string('numero_comprobante')->nullable();
             $table->date('fecha_emision')->nullable();
             $table->date('fecha_vencimiento')->nullable();
@@ -37,15 +36,15 @@ return new class extends Migration
             $table->decimal('descuento', 11, 2)->default(0);
             $table->decimal('igv', 11, 2)->default(0);
             $table->decimal('total', 11, 2)->default(0);
-            $table->decimal('monto_detraccion', 15, 2)->default(0);
-            $table->decimal('monto_neto', 15, 2)->default(0);
 
             // Pago y estado
             $table->foreignId('mediopago_id')->nullable()->constrained('mediopagos')->onDelete('set null');
             $table->string('billetera')->nullable();
             $table->unsignedBigInteger('cuenta_bancaria_id')->nullable();
             $table->string('condicion_pago')->default('Contado');
-            $table->enum('estado', ['completada', 'parcial', 'anulada'])->default('completada');
+            $table->decimal('monto_pagado_inicial', 15, 2)->default(0);
+            $table->unsignedTinyInteger('numero_cuotas')->default(0);
+            $table->enum('estado', ['Pendiente', 'Pagado', 'Parcial', 'Anulado'])->default('Pendiente');
             $table->string('estado_msalida')->default('0'); // 0: no generado, 1: generado
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('sede_id')->nullable()->constrained('sedes')->onDeleteñ('set null');
@@ -89,6 +88,8 @@ return new class extends Migration
             $table->decimal('descuento_porcentaje', 5, 2)->default(0);
             $table->decimal('descuento_monto', 11, 2)->default(0);
             $table->decimal('subtotal', 11, 2)->default(0);
+            $table->decimal('igv', 11, 2)->default(0);
+            $table->decimal('total', 11, 2)->default(0);
             $table->integer('garantia_años')->nullable(); // Garantía específica del item
 
             $table->timestamps();
@@ -100,9 +101,25 @@ return new class extends Migration
             $table->integer('numero_cuota');
             $table->decimal('importe', 11, 2);
             $table->date('fecha_vencimiento')->nullable();
+            $table->date('fecha_pago')->nullable();
+            $table->enum('estado', ['Pendiente', 'Pagado', 'Vencido'])->default('Pendiente');
             $table->timestamps();
         });
 
+        Schema::create('venta_detraccion', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('sale_id')->constrained('sales')->onDelete('cascade');
+            $table->foreignId('tipo_detraccion_id')->constrained('tipo_detraccion')->onDelete('cascade');
+            $table->unsignedBigInteger('medio_pago_detraccion_id')->nullable();
+            $table->decimal('porcentaje', 5, 2);
+            $table->decimal('monto_detraccion', 15, 2);
+            $table->string('numero_constancia', 50)->nullable();
+            $table->date('fecha_pago')->nullable();
+            $table->enum('estado', ['Pendiente', 'Pagado'])->default('Pendiente');
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedBigInteger('cuenta_bancaria_id')->nullable();
+            $table->timestamps();
+        });
 
     }
 
@@ -111,6 +128,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('venta_detraccion');
         Schema::dropIfExists('sale_cuotas');
         Schema::dropIfExists('detail_sales');
         Schema::dropIfExists('sales');

@@ -234,7 +234,7 @@
                                 </div>
                             </td>
                             <td class="fw-normal text-center align-middle">
-                                <span class="badge {{ $pedido->origen == 'ecommerce' ? 'bg-purple' : 'bg-secondary' }}">
+                                <span class="badge bg-secondary">
                                     {{ ucfirst($pedido->origen) }}
                                 </span>
                             </td>

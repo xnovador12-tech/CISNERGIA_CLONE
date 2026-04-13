@@ -26,6 +26,7 @@ class admin_VentasController extends Controller
         $ventas = Sale::with(['cliente', 'tipocomprobante', 'mediopago', 'usuario', 'sede', 'pagos'])->orderBy('created_at', 'desc')->get();
         $pedidosPendientes = Pedido::with(['cliente', 'usuario'])
             ->where('estado', 'pendiente')
+            ->where('origen', '!=', 'ecommerce')
             ->orderBy('created_at', 'desc')
             ->get();
         return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.index', compact('ventas', 'pedidosPendientes'));
@@ -123,23 +124,16 @@ class admin_VentasController extends Controller
         $hora = now()->format('H:i:s');
 
         // Generar código de venta
-        $ultimaVenta = Sale::latest('id')->first();
-        $numero = $ultimaVenta ? $ultimaVenta->id + 1 : 1;
-        $codigoVenta = 'VTA-' . date('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
+        $prefijoCodigo = 'VTA-' . date('Y') . '-';
+        $ultimaVenta = Sale::where('codigo', 'like', $prefijoCodigo . '%')->orderBy('codigo', 'desc')->first();
+        $numero = 1;
+        if ($ultimaVenta && preg_match('/-(\d+)$/', $ultimaVenta->codigo, $matches)) {
+            $numero = intval($matches[1]) + 1;
+        }
+        $codigoVenta = $prefijoCodigo . str_pad($numero, 5, '0', STR_PAD_LEFT);
 
         // Tomar el primer medio de pago como principal (si existe)
         $primerPago = $validated['pagos'][0] ?? null;
-
-        // Calcular detracción si aplica
-        $montoDetraccion = 0;
-        $montoNeto = $pedido->total;
-        if (!empty($validated['tipo_detraccion_id'])) {
-            $tipoDetraccion = TipoDetraccion::find($validated['tipo_detraccion_id']);
-            if ($tipoDetraccion) {
-                $montoDetraccion = round($pedido->total * ($tipoDetraccion->porcentaje / 100), 2);
-                $montoNeto = round($pedido->total - $montoDetraccion, 2);
-            }
-        }
 
         // Crear la venta
         $venta = Sale::create([
@@ -149,7 +143,6 @@ class admin_VentasController extends Controller
             'cliente_id' => $pedido->cliente_id,
             'tiposcomprobante_id' => $validated['tiposcomprobante_id'],
             'tipo_operacion_id' => $validated['tipo_operacion_id'],
-            'tipo_detraccion_id' => $validated['tipo_detraccion_id'] ?? null,
             'numero_comprobante' => $numeroComprobante,
             'fecha_emision' => $fechaEmision,
             'hora' => $hora,
@@ -160,19 +153,36 @@ class admin_VentasController extends Controller
             'descuento' => $pedido->descuento_monto,
             'igv' => $pedido->igv,
             'total' => $pedido->total,
-            'monto_detraccion' => $montoDetraccion,
-            'monto_neto' => $montoNeto,
             'mediopago_id' => $primerPago['mediopago_id'] ?? null,
             'condicion_pago' => $validated['condicion_pago'],
-            'estado' => 'completada',
+            'estado' => 'Pendiente',
             'user_id' => auth()->id(),
             'sede_id' => auth()->user()->persona->sede_id ?? null,
             'tipo_venta' => 'pedido',
             'observaciones' => 'Venta registrada desde Pedido ' . $pedido->codigo,
         ]);
 
-        // Copiar detalles del pedido
+        // Crear detracción en tabla separada si aplica
+        if (!empty($validated['tipo_detraccion_id'])) {
+            $tipoDetraccion = TipoDetraccion::find($validated['tipo_detraccion_id']);
+            if ($tipoDetraccion) {
+                \App\Models\VentaDetraccion::create([
+                    'sale_id' => $venta->id,
+                    'tipo_detraccion_id' => $tipoDetraccion->id,
+                    'porcentaje' => $tipoDetraccion->porcentaje,
+                    'monto_detraccion' => round($pedido->total * ($tipoDetraccion->porcentaje / 100), 2),
+                    'estado' => 'Pendiente',
+                    'user_id' => auth()->id(),
+                ]);
+            }
+        }
+
+        // Copiar detalles del pedido (precio ya incluye IGV)
         foreach ($pedido->detalles as $detalle) {
+            $totalLinea = $detalle->subtotal;
+            $subtotalLinea = round($totalLinea / 1.18, 2);
+            $igvLinea = round($totalLinea - $subtotalLinea, 2);
+
             Detailsale::create([
                 'sale_id' => $venta->id,
                 'producto_id' => $detalle->producto_id,
@@ -183,7 +193,9 @@ class admin_VentasController extends Controller
                 'precio_unitario' => $detalle->precio_unitario,
                 'descuento_porcentaje' => $detalle->descuento_porcentaje ?? 0,
                 'descuento_monto' => $detalle->descuento_monto ?? 0,
-                'subtotal' => $detalle->subtotal,
+                'subtotal' => $subtotalLinea,
+                'igv' => $igvLinea,
+                'total' => $totalLinea,
             ]);
         }
 
@@ -215,30 +227,35 @@ class admin_VentasController extends Controller
             }
         }
 
-        // Determinar estado según monto pagado
-        if ($sumaPagos >= $venta->total - 0.05) {
-            $venta->estado = 'completada';
-        } else {
-            $venta->estado = 'parcial';
-        }
-        $venta->save();
-
         // Guardar cuotas si es crédito
+        $numeroCuotas = 0;
         if ($validated['condicion_pago'] === 'Crédito' && !empty($validated['cuotas'])) {
+            $numeroCuotas = count($validated['cuotas']);
             foreach ($validated['cuotas'] as $index => $cuotaData) {
                 \App\Models\SaleCuota::create([
                     'sale_id' => $venta->id,
                     'numero_cuota' => $index + 1,
                     'importe' => $cuotaData['importe'],
                     'fecha_vencimiento' => $cuotaData['fecha_vencimiento'],
+                    'estado' => 'Pendiente',
                 ]);
             }
-            // Crédito: fecha_vencimiento = fecha de la primera cuota
             $venta->fecha_vencimiento = $validated['cuotas'][0]['fecha_vencimiento'];
         } else {
-            // Contado: fecha_vencimiento = fecha de emisión
             $venta->fecha_vencimiento = $fechaEmision;
         }
+
+        // Determinar estado según condición de pago y monto pagado
+        if ($sumaPagos >= $venta->total - 0.05) {
+            $venta->estado = 'Pagado';
+        } elseif ($sumaPagos > 0) {
+            $venta->estado = 'Parcial';
+        } else {
+            $venta->estado = 'Pendiente';
+        }
+
+        $venta->monto_pagado_inicial = $sumaPagos;
+        $venta->numero_cuotas = $numeroCuotas;
         $venta->save();
 
         // Actualizar estado del pedido
@@ -255,8 +272,10 @@ class admin_VentasController extends Controller
 
     public function show(Sale $admin_venta)
     {
-        $venta = $admin_venta->load(['cliente', 'pedido', 'tipocomprobante', 'mediopago', 'usuario', 'detalles', 'tipoOperacion', 'tipoDetraccion']);
-        return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.show', compact('venta'));
+        $venta = $admin_venta->load(['cliente', 'pedido', 'tipocomprobante', 'mediopago', 'usuario', 'detalles', 'tipoOperacion', 'detraccion.tipoDetraccion', 'pagos.metodoPago', 'cuotas']);
+        $totalPagado = $venta->pagos->sum('monto');
+        $saldoPendiente = $venta->total - $totalPagado;
+        return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.show', compact('venta', 'totalPagado', 'saldoPendiente'));
     }
 
     public function edit(Sale $admin_venta)
@@ -315,7 +334,10 @@ class admin_VentasController extends Controller
             'pedido.venta.tipocomprobante',
             'pedido.venta.mediopago',
             'pedido.venta.tipoOperacion',
-            'pedido.venta.tipoDetraccion',
+            'pedido.venta.detraccion.tipoDetraccion',
+            'pedido.venta.pagos.metodoPago',
+            'pedido.venta.detalles',
+            'pedido.venta.cuotas',
         ]);
         $pedido = $admin_venta->pedido;
 

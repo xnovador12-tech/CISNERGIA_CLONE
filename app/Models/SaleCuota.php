@@ -15,7 +15,15 @@ class SaleCuota extends Model
         'sale_id',
         'numero_cuota',
         'importe',
-        'fecha_vencimiento'
+        'fecha_vencimiento',
+        'fecha_pago',
+        'estado',
+    ];
+
+    protected $casts = [
+        'importe' => 'decimal:2',
+        'fecha_vencimiento' => 'date',
+        'fecha_pago' => 'date',
     ];
 
     public function sale()

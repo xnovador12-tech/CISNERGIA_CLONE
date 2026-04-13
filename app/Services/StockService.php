@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Inventario;
+use App\Models\Producto;
 use App\Models\DetallePedido;
 use Illuminate\Support\Facades\DB;
 
@@ -50,7 +51,8 @@ class StockService
         $disponible = $inventarios->sum('cantidad');
 
         if ($disponible < $cantidadNecesaria) {
-            throw new \Exception("Stock insuficiente para el producto ID: $productId. Requerido: $cantidadNecesaria, Disponible: $disponible");
+            $nombreProducto = Producto::find($productId)?->nombre ?? 'Producto';
+            throw new \Exception("Stock insuficiente para \"$nombreProducto\". Requerido: $cantidadNecesaria, Disponible: $disponible");
         }
 
         foreach ($inventarios as $inventario) {

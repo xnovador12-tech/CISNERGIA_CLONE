@@ -237,7 +237,7 @@
                     <a href="{{ route('admin-ventas.show', $venta) }}" class="btn btn-outline-primary">
                         <i class="bi bi-eye me-2"></i>Ver Venta
                     </a>
-                    @if($venta->estado !== 'anulada')
+                    @if($venta->estado !== 'Anulado')
                         <a href="{{ route('admin-notas.create', ['sale_id' => $venta->id, 'tipo' => 'nc']) }}" class="btn btn-danger">
                             <i class="bi bi-dash-circle me-2"></i>Emitir Nota de Credito
                         </a>

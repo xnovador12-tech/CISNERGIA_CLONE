@@ -34,12 +34,14 @@
                                 <p class="mb-1"><strong>Código:</strong> {{ $venta->codigo }}</p>
                                 <p class="mb-1"><strong>Fecha:</strong> {{ $venta->created_at->format('d/m/Y H:i') }}</p>
                                 <p class="mb-1"><strong>Estado:</strong>
-                                    @if($venta->estado == 'completada')
-                                        <span class="badge bg-success">Completada</span>
-                                    @elseif($venta->estado == 'parcial')
+                                    @if($venta->estado == 'Pagado')
+                                        <span class="badge bg-success">Pagado</span>
+                                    @elseif($venta->estado == 'Parcial')
                                         <span class="badge bg-warning">Parcial</span>
-                                    @else
-                                        <span class="badge bg-danger">Anulada</span>
+                                    @elseif($venta->estado == 'Pendiente')
+                                        <span class="badge bg-info">Pendiente</span>
+                                    @elseif($venta->estado == 'Anulado')
+                                        <span class="badge bg-danger">Anulado</span>
                                     @endif
                                 </p>
                                 <p class="mb-1"><strong>Tipo de Venta:</strong>
@@ -63,10 +65,10 @@
                                         N/A
                                     @endif
                                 </p>
-                                @if($venta->tipoDetraccion)
+                                @if($venta->detraccion)
                                 <p class="mb-1"><strong>Detracción:</strong>
                                     <span class="badge bg-danger">
-                                        {{ $venta->tipoDetraccion->code }} - {{ $venta->tipoDetraccion->descripcion }} ({{ $venta->tipoDetraccion->porcentaje }}%)
+                                        {{ $venta->detraccion->tipoDetraccion->code }} - {{ $venta->detraccion->tipoDetraccion->descripcion }} ({{ $venta->detraccion->porcentaje }}%)
                                     </span>
                                 </p>
                                 @endif
@@ -208,15 +210,15 @@
                             <h5 class="mb-0">TOTAL:</h5>
                             <h5 class="mb-0 text-success">S/ {{ number_format($venta->total, 2) }}</h5>
                         </div>
-                        @if($venta->monto_detraccion > 0)
+                        @if($venta->detraccion)
                         <hr>
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-danger">Detracción ({{ $venta->tipoDetraccion->porcentaje ?? 0 }}%):</span>
-                            <strong class="text-danger">- S/ {{ number_format($venta->monto_detraccion, 2) }}</strong>
+                            <span class="text-danger">Detracción ({{ $venta->detraccion->porcentaje }}%):</span>
+                            <strong class="text-danger">- S/ {{ number_format($venta->detraccion->monto_detraccion, 2) }}</strong>
                         </div>
                         <div class="d-flex justify-content-between">
                             <h6 class="mb-0 fw-bold">NETO A COBRAR:</h6>
-                            <h6 class="mb-0 fw-bold text-primary">S/ {{ number_format($venta->monto_neto, 2) }}</h6>
+                            <h6 class="mb-0 fw-bold text-primary">S/ {{ number_format($venta->total - $venta->detraccion->monto_detraccion, 2) }}</h6>
                         </div>
                         @endif
                     </div>
@@ -234,6 +236,78 @@
                         <a href="{{ route('admin-ventas.index') }}" class="btn btn-secondary w-100">
                             <i class="bi bi-arrow-left me-2"></i>Volver al Listado
                         </a>
+                    </div>
+                </div>
+
+                {{-- Información Financiera --}}
+                <div class="card border-0 shadow-sm mt-3" data-aos="fade-up">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-cash-stack me-2"></i>Información Financiera</h5>
+                    </div>
+                    <div class="card-body">
+                        {{-- Cronograma de cuotas --}}
+                        @if($venta->condicion_pago === 'Crédito' && $venta->cuotas->count() > 0)
+                        <hr>
+                        <h6 class="fw-bold mb-2" style="font-size: 13px;"><i class="bi bi-calendar-check me-1"></i>Cuotas ({{ $venta->cuotas->count() }})</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0" style="font-size: 12px;">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>N°</th>
+                                        <th>Venc.</th>
+                                        <th class="text-end">Importe</th>
+                                        <th class="text-center">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($venta->cuotas as $cuota)
+                                    <tr>
+                                        <td>{{ $cuota->numero_cuota }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($cuota->fecha_vencimiento)->format('d/m/Y') }}</td>
+                                        <td class="text-end fw-bold">S/ {{ number_format($cuota->importe, 2) }}</td>
+                                        <td class="text-center">
+                                            @if($cuota->estado === 'Pagado')
+                                                <span class="badge bg-success" style="font-size: 10px;">Pagado</span>
+                                            @elseif($cuota->estado === 'Vencido')
+                                                <span class="badge bg-danger" style="font-size: 10px;">Vencido</span>
+                                            @else
+                                                <span class="badge bg-secondary" style="font-size: 10px;">Pendiente</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        @endif
+
+                        {{-- Historial de pagos --}}
+                        <hr>
+                        <h6 class="fw-bold mb-2" style="font-size: 13px;"><i class="bi bi-clock-history me-1"></i>Pagos ({{ $venta->pagos->count() }})</h6>
+                        @if($venta->pagos->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0" style="font-size: 12px;">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Método</th>
+                                        <th class="text-end">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($venta->pagos->sortByDesc('created_at') as $pago)
+                                    <tr>
+                                        <td>{{ $pago->created_at->format('d/m/Y') }}</td>
+                                        <td><small>{{ $pago->metodoPago->name ?? 'N/A' }}</small></td>
+                                        <td class="text-end fw-bold text-success">S/ {{ number_format($pago->monto, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        @else
+                        <p class="text-muted text-center mb-0" style="font-size: 12px;">Sin pagos registrados</p>
+                        @endif
                     </div>
                 </div>
             </div>

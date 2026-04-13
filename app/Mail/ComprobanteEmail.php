@@ -19,15 +19,15 @@ class ComprobanteEmail extends Mailable
 
     public function __construct(Sale $venta)
     {
-        $this->venta = $venta;
+        $this->venta = $venta->load(['cliente', 'tipocomprobante', 'cuotas']);
     }
 
     public function envelope(): Envelope
     {
-        $numero = $this->venta->numero_comprobante ?? $this->venta->codigo;
+        $codigo = $this->venta->codigo;
 
         return new Envelope(
-            subject: "Su Comprobante {$numero} | Cisnergia Perú",
+            subject: "Tu pedido {$codigo} de Cisnergia ya está listo",
         );
     }
 

@@ -36,7 +36,7 @@ class admin_CrmTicketsController extends Controller
     public function ventasPorCliente(int $clienteId)
     {
         $ventas = Sale::where('cliente_id', $clienteId)
-            ->whereIn('estado', ['completada', 'parcial'])
+            ->whereIn('estado', ['Pagado', 'Parcial', 'Pendiente'])
             ->orderByDesc('created_at')
             ->get(['id', 'codigo', 'numero_comprobante', 'total', 'estado'])
             ->map(fn($v) => [
@@ -256,7 +256,7 @@ class admin_CrmTicketsController extends Controller
             ->orderByDesc('created_at')->get();
 
         $ventas = Sale::where('cliente_id', $ticket->cliente_id)
-            ->whereIn('estado', ['completada', 'parcial'])
+            ->whereIn('estado', ['Pagado', 'Parcial', 'Pendiente'])
             ->orderByDesc('created_at')->get();
 
         return view('ADMINISTRADOR.CRM.tickets.edit', compact('ticket', 'clientes', 'usuarios', 'pedidos', 'ventas'));

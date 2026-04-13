@@ -523,9 +523,13 @@ class admin_PedidosController extends Controller
         $hora = now()->format('H:i:s');
 
         // Generar código único para la venta
-        $ultimaVenta = \App\Models\Sale::latest('id')->first();
-        $numero = $ultimaVenta ? $ultimaVenta->id + 1 : 1;
-        $codigoVenta = 'VTA-' . date('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
+        $prefijoCodigo = 'VTA-' . date('Y') . '-';
+        $ultimaVenta = \App\Models\Sale::where('codigo', 'like', $prefijoCodigo . '%')->orderBy('codigo', 'desc')->first();
+        $numero = 1;
+        if ($ultimaVenta && preg_match('/-(\d+)$/', $ultimaVenta->codigo, $matches)) {
+            $numero = intval($matches[1]) + 1;
+        }
+        $codigoVenta = $prefijoCodigo . str_pad($numero, 5, '0', STR_PAD_LEFT);
 
         // Crear la Venta copiando datos del Pedido
         $venta = \App\Models\Sale::create([
@@ -546,15 +550,19 @@ class admin_PedidosController extends Controller
             'total' => $admin_pedido->total,
             'mediopago_id' => $validated['mediopago_id'],
             'condicion_pago' => $validated['condicion_pago'],
-            'estado' => 'completada',
+            'estado' => 'Pendiente',
             'user_id' => auth()->id(),
             'sede_id' => auth()->user()->persona->sede_id ?? null,
             'tipo_venta' => 'pedido',
             'observaciones' => 'Generado automáticamente desde Pedido ' . $admin_pedido->codigo,
         ]);
 
-        // Copiar detalles del Pedido a la Venta
+        // Copiar detalles del Pedido a la Venta (precio ya incluye IGV)
         foreach ($admin_pedido->detalles as $detalle) {
+            $totalLinea = $detalle->subtotal;
+            $subtotalLinea = round($totalLinea / 1.18, 2);
+            $igvLinea = round($totalLinea - $subtotalLinea, 2);
+
             \App\Models\Detailsale::create([
                 'sale_id' => $venta->id,
                 'producto_id' => $detalle->producto_id,
@@ -565,26 +573,35 @@ class admin_PedidosController extends Controller
                 'precio_unitario' => $detalle->precio_unitario,
                 'descuento_porcentaje' => $detalle->descuento_porcentaje ?? 0,
                 'descuento_monto' => $detalle->descuento_monto ?? 0,
-                'subtotal' => $detalle->subtotal,
+                'subtotal' => $subtotalLinea,
+                'igv' => $igvLinea,
+                'total' => $totalLinea,
             ]);
         }
 
-        // Si es a crédito y trae cuotas, lo guardamos
+        // Guardar cuotas si es crédito
+        $numeroCuotas = 0;
         if ($validated['condicion_pago'] === 'Crédito' && !empty($validated['cuotas'])) {
+            $numeroCuotas = count($validated['cuotas']);
             foreach ($validated['cuotas'] as $index => $cuotaData) {
                 \App\Models\SaleCuota::create([
                     'sale_id' => $venta->id,
                     'numero_cuota' => $index + 1,
                     'importe' => $cuotaData['importe'],
                     'fecha_vencimiento' => $cuotaData['fecha_vencimiento'],
+                    'estado' => 'Pendiente',
                 ]);
             }
-            // Crédito: fecha_vencimiento = fecha de la primera cuota
             $venta->fecha_vencimiento = $validated['cuotas'][0]['fecha_vencimiento'];
         } else {
-            // Contado: fecha_vencimiento = fecha de emisión
             $venta->fecha_vencimiento = $fechaEmision;
         }
+
+        // Estado: desde Pedidos no se registra pago inicial, queda Pendiente
+        // Finanzas (Cobros) se encargará de registrar los pagos
+        $venta->estado = $validated['condicion_pago'] === 'Contado' ? 'Pendiente' : 'Pendiente';
+        $venta->monto_pagado_inicial = 0;
+        $venta->numero_cuotas = $numeroCuotas;
         $venta->save();
 
         // =====================================================

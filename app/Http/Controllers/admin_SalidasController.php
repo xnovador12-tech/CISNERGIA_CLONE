@@ -51,7 +51,7 @@ class admin_SalidasController extends Controller
         $motivos = Motivo::all();
         $fecha_actual = Carbon::now();
 
-        $venta = Sale::where('estado','=','completada')->where('estado_msalida','=','0')->get();
+        $venta = Sale::whereIn('estado', ['Pagado', 'Parcial'])->where('estado_msalida','=','0')->get();
         $clientes = Cliente::all();
         // $ocompra = DB::table('ordenescompras')->select('codigo')->where('estado','!=','Inventariado')->get();
 

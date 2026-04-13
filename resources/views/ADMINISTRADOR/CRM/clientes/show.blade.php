@@ -245,7 +245,7 @@
                                                         <td>{{ $venta->created_at->format('d/m/Y') }}</td>
                                                         <td class="text-end fw-bold text-primary">S/ {{ number_format($venta->total ?? 0, 2) }}</td>
                                                         <td class="text-center">
-                                                            <span class="badge bg-{{ ($venta->estado ?? '') === 'completada' ? 'success' : (($venta->estado ?? '') === 'anulada' ? 'danger' : 'secondary') }}">
+                                                            <span class="badge bg-{{ ($venta->estado ?? '') === 'Pagado' ? 'success' : (($venta->estado ?? '') === 'Anulado' ? 'danger' : (($venta->estado ?? '') === 'Parcial' ? 'warning' : 'info')) }}">
                                                                 {{ ucfirst($venta->estado ?? 'N/A') }}
                                                             </span>
                                                         </td>
