@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('comprobante_errores', function (Blueprint $table) {
             $table->id();
+            $table->string('comprobante', 20)->unique();
+            $table->dateTime('fecha');
+            $table->text('mensaje');
             $table->timestamps();
         });
     }
