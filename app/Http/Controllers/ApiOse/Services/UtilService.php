@@ -244,16 +244,16 @@ class UtilService
     public function getBranch(): BranchModel
     {
         $emitterModel = new EmitterModel();
-        $emitterModel->document = '20610602232';
-        $emitterModel->company_name = 'TALENT RUNA S.A.C.';
-        $emitterModel->trade_name = 'TALENT RUNA';
+        $emitterModel->document = '20601599881';
+        $emitterModel->company_name = 'CISNERGIA PERU S.A.C.';
+        $emitterModel->trade_name = 'CISNERGIA';
         $emitterModel->detraction_account = '00043342343243';
         $emitterModel->client_id = 'test-85e5b0ae-255c-4891-a595-0b98c65c9854';
         $emitterModel->client_secret = 'test-Hty/M6QshYvPgItX2P0+Kw==';
         $emitterModel->secondary_user = 'MODDATOS';
         $emitterModel->secondary_user_password = 'MODDATOS';
-        $emitterModel->certificate_name = '20610602232.p12';
-        $emitterModel->certificate_password = 'TalentR2025';
+        $emitterModel->certificate_name = '20601599881.pfx';
+        $emitterModel->certificate_password = '20601599881';
         $emitterModel->certificate_start_date = '2026-03-05';
         $emitterModel->certificate_end_date = '2027-03-05';
 
@@ -262,9 +262,9 @@ class UtilService
         $branchModel->local_code = '0000';
         $branchModel->department = 'LIMA';
         $branchModel->province = 'LIMA';
-        $branchModel->district = 'SANTA ANITA';
-        $branchModel->ubigeo = '150137';
-        $branchModel->address = 'INT. 1A MZ. D LT. 19 COO. SAN JOSE DE MANGOMARCA';
+        $branchModel->district = 'MIRAFLORES';
+        $branchModel->ubigeo = '150122';
+        $branchModel->address = 'CAL. ATAHUALPA NRO. 210 URB. CERCADO DE MIRAFLORES DPTO. C115';
 
         return $branchModel;
     }
