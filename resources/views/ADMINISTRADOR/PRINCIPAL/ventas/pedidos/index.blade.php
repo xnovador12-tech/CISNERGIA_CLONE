@@ -262,12 +262,8 @@
                                         
                                         @if($pedido->estado !== 'cancelado')
                                             <li>
-                                                {{-- Si tiene venta, mostrar botón deshabilitado con tooltip --}}
                                                 @if($pedido->venta)
-                                                    <button type="button" class="dropdown-item text-danger disabled" 
-                                                            title="No se puede cancelar. Use Nota de Crédito desde Ventas.">
-                                                        <i class="bi bi-exclamation-circle me-2"></i>Anular (Bloqueado)
-                                                    </button>
+                                                    {{-- No mostrar opción de anular si tiene venta --}}
                                                 @else
                                                     {{-- Si no tiene venta, mostrar botón que abre modal --}}
                                                     <button type="button" class="dropdown-item text-danger" 
