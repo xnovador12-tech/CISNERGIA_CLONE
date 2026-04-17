@@ -367,18 +367,18 @@ Route::prefix('administrador/marketing')
     ->name('admin.marketing.')
     ->middleware(['auth'])
     ->group(function () {
-        
-        // La ruta principal de métricas
+        // Dashboards
         Route::get('/metricas', [MarketingController::class, 'metricas'])->name('metricas');
+        Route::get('/metricas/globales', [MarketingController::class, 'metricasGlobales'])->name('metricas_globales');
         
-        // Acciones de Meta (Facebook e Instagram)
-        Route::post('/reply', [MarketingController::class, 'reply'])->name('reply');
-        Route::delete('/delete/{id}', [MarketingController::class, 'deleteComment'])->name('delete');
+        // Acciones Meta (Comentarios)
+        Route::post('/comment/publish', [MarketingController::class, 'publishComment'])->name('comment.publish');
+        Route::delete('/comment/{id}', [MarketingController::class, 'deleteComment'])->name('comment.delete');
         
-        // Email Marketing
+        // Emails
         Route::get('/emails', [MarketingController::class, 'emails'])->name('emails');
         Route::post('/emails/enviar', [MarketingController::class, 'sendEmailCampaign'])->name('emails.send');
-});
+    });
 // =============================================================
 // AUTH — Login, registro, password reset (públicos)
 // =============================================================

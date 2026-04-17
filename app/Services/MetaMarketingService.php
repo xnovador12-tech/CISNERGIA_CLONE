@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use App\Events\MetaActivityEvent;
 
 class MetaMarketingService
 {
@@ -21,65 +22,94 @@ class MetaMarketingService
         $this->token = config('services.meta.token') ?? '';
     }
 
+    private function getPageToken(): string
+    {
+        $response = Http::withoutVerifying()->get("https://graph.facebook.com/{$this->version}/{$this->pageId}", [
+            'fields' => 'access_token',
+            'access_token' => $this->token
+        ]);
+        return $response->json('access_token') ?? $this->token;
+    }
+
     private function client(?string $overrideToken = null)
     {
         return Http::withoutVerifying()
-            ->withToken($overrideToken ?? $this->token)
+            ->withToken($overrideToken ?? $this->getPageToken())
             ->baseUrl("https://graph.facebook.com/{$this->version}/")
             ->timeout(15);
     }
 
     public function getOrganicLeadScoring(int $limit = 20): array
     {
-        Log::info("MetaService: Iniciando peticiones. ID_PAGINA: {$this->pageId}");
+        Log::info("MetaService: Cargando Radar Pro. ID_PAGINA: {$this->pageId}");
+        $pageAccessToken = $this->getPageToken();
 
-        // 1. OBTENER TOKEN DE PÁGINA
-        $tokenResponse = $this->client()->get("{$this->pageId}", ['fields' => 'access_token']);
-        $pageAccessToken = $tokenResponse->json('access_token');
-
-        if (!$pageAccessToken) {
-            Log::error("MetaService: No se pudo obtener el Token de Página.");
-            $pageAccessToken = $this->token;
-        }
-
-        // 2. OBTENER FEED DE FACEBOOK (Con full_picture para ver la imagen del post)
+        // 1. FEED FACEBOOK
         $fbResponse = $this->client($pageAccessToken)->get("{$this->pageId}/feed", [
-            'fields' => 'id,message,created_time,full_picture,comments{from,message,like_count}',
+            'fields' => 'id,message,created_time,full_picture,permalink_url,comments.summary(true){from,message,created_time,like_count,comments{from,message,created_time}},insights.metric(post_impressions_unique){values}',
             'limit' => $limit
         ]);
 
         $fbPosts = collect($fbResponse->json('data') ?? [])->map(function ($post) {
             return [
                 'id' => $post['id'],
-                'message' => $post['message'] ?? 'Publicación sin texto (Facebook)',
+                'message' => $post['message'] ?? 'Sin texto',
                 'full_picture' => $post['full_picture'] ?? null,
+                'permalink' => $post['permalink_url'] ?? null,
                 'created_time' => $post['created_time'] ?? now(),
+                'alcance' => $post['insights']['data'][0]['values'][0]['value'] ?? 'N/D',
+                'comment_count' => $post['comments']['summary']['total_count'] ?? 0,
                 'comments' => $post['comments'] ?? null,
                 'is_ig' => false
             ];
         });
 
-        // 3. OBTENER MEDIA DE INSTAGRAM (Con media_url para ver la imagen/video)
+        // 2. MEDIA INSTAGRAM (Pedimos 'text' en lugar de 'message')
         $igPosts = collect();
         if ($this->instagramId) {
             $igResponse = $this->client($pageAccessToken)->get("{$this->instagramId}/media", [
-                'fields' => 'id,caption,timestamp,media_url,comments{from,message,like_count}',
+                'fields' => 'id,caption,timestamp,media_url,permalink,comments.summary(true){from,text,timestamp,like_count,replies{from,text,timestamp}},insights.metric(reach){values}',
                 'limit' => $limit
             ]);
 
             $igPosts = collect($igResponse->json('data') ?? [])->map(function ($post) {
+                // NORMALIZACIÓN: Convertimos la estructura de IG para que sea idéntica a FB
+                $comments = $post['comments'] ?? null;
+                if (isset($comments['data'])) {
+                    foreach ($comments['data'] as &$c) {
+                        $c['message'] = $c['text'] ?? 'Sin texto';
+                        $c['created_time'] = $c['timestamp'] ?? now();
+                        if (!isset($c['from']['name'])) {
+                            $c['from']['name'] = $c['from']['username'] ?? 'Usuario IG';
+                        }
+                        
+                        // Normalizamos las respuestas (replies) de IG
+                        if (isset($c['replies']['data'])) {
+                            foreach ($c['replies']['data'] as &$r) {
+                                $r['message'] = $r['text'] ?? 'Sin texto';
+                                $r['created_time'] = $r['timestamp'] ?? now();
+                                if (!isset($r['from']['name'])) {
+                                    $r['from']['name'] = $r['from']['username'] ?? 'Cisnergia';
+                                }
+                            }
+                        }
+                    }
+                }
+
                 return [
                     'id' => $post['id'],
-                    'message' => $post['caption'] ?? 'Publicación sin texto (Instagram)',
+                    'message' => $post['caption'] ?? 'Sin texto',
                     'full_picture' => $post['media_url'] ?? null,
+                    'permalink' => $post['permalink'] ?? null,
                     'created_time' => $post['timestamp'] ?? now(),
-                    'comments' => $post['comments'] ?? null,
+                    'alcance' => $post['insights']['data'][0]['values'][0]['value'] ?? 'N/D',
+                    'comment_count' => $post['comments']['summary']['total_count'] ?? 0,
+                    'comments' => $comments,
                     'is_ig' => true
                 ];
             });
         }
 
-        // 4. UNIFICACIÓN Y LEAD SCORING
         $allPosts = $fbPosts->merge($igPosts);
         $allComments = collect();
 
@@ -98,7 +128,6 @@ class MetaMarketingService
                 'id' => $firstComment['from']['id'],
                 'nombre' => $firstComment['from']['name'] ?? 'Usuario Meta',
                 'total_comentarios' => $userComments->count(),
-                'total_likes_recibidos' => $userComments->sum('like_count'),
                 'score_interes' => $userComments->count() + ($userComments->sum('like_count') * 2)
             ];
         })->sortByDesc('score_interes')->values()->take(50);
@@ -107,8 +136,18 @@ class MetaMarketingService
             'total_posts_analizados' => $allPosts->count(),
             'top_leads' => $topLeads->toArray(),
             'recent_posts' => $allPosts->toArray(),
-            'paging' => $fbResponse->json('paging') // Guardamos el cursor para el "Siguiente"
+            'paging' => $fbResponse->json('paging')
         ];
+    }
+
+    public function publishComment(string $objectId, string $message): array
+    {
+        $response = $this->client()->post("{$objectId}/comments", [
+            'message' => $message
+        ]);
+
+        Log::info("MetaService: Comentario/Respuesta publicada en ID: {$objectId}");
+        return $response->json();
     }
 
     public function processWebhook(array $payload): void
@@ -117,32 +156,16 @@ class MetaMarketingService
         foreach ($payload['entry'] as $entry) {
             if (isset($entry['changes'])) {
                 foreach ($entry['changes'] as $change) {
-                    broadcast(new \App\Events\MetaActivityEvent($change))->toOthers();
+                    broadcast(new MetaActivityEvent($change))->toOthers();
                 }
             }
         }
     }
 
-    public function replyToComment(string $commentId, string $message): array
-    {
-        $tokenResponse = $this->client()->get("{$this->pageId}", ['fields' => 'access_token']);
-        $pageAccessToken = $tokenResponse->json('access_token') ?? $this->token;
-
-        $response = $this->client($pageAccessToken)->post("{$commentId}/comments", [
-            'message' => $message
-        ]);
-
-        return $response->json();
-    }
-
     public function deleteComment(string $commentId): bool
     {
-        $tokenResponse = $this->client()->get("{$this->pageId}", ['fields' => 'access_token']);
-        $pageAccessToken = $tokenResponse->json('access_token') ?? $this->token;
-
-        $response = $this->client($pageAccessToken)->delete($commentId);
-        
-        Log::info("MetaService: Eliminación de comentario", ['id' => $commentId, 'success' => $response->successful()]);
+        $response = $this->client()->delete($commentId);
+        Log::info("MetaService: Intento de borrado de comentario ID: {$commentId}");
         return $response->successful();
     }
 }
