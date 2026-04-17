@@ -4,6 +4,6 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "releaseCommand": "php artisan package:discover && php artisan migrate --force && php artisan optimize:clear"
+    "releaseCommand": "mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions bootstrap/cache && php artisan package:discover && php artisan migrate --force && php artisan optimize:clear"
   }
 }
