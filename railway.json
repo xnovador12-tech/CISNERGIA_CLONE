@@ -4,6 +4,6 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "releaseCommand": "php artisan migrate --force && php artisan optimize:clear"
+    "releaseCommand": "php artisan package:discover && php artisan migrate --force && php artisan optimize:clear"
   }
 }
