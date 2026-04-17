@@ -41,4 +41,10 @@ return [
         'url'        => env('CULQI_URL', 'https://api.culqi.com/v2'),
     ],
 
+    'meta' => [
+    'page_id' => env('META_CISNERGIA_PAGE_ID'),
+    'instagram_id' => env('META_CISNERGIA_INSTAGRAM_ID'),
+    'token' => env('META_CISNERGIA_TOKEN'),
+    'version' => 'v19.0',
+],
 ];

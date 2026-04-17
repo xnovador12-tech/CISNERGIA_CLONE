@@ -42,6 +42,7 @@ use App\Http\Controllers\admin_OperacionesController;
 use App\Http\Controllers\admin_CrmMantenimientosController;
 use App\Http\Controllers\admin_ModeloController;
 use App\Http\Controllers\admin_UbigeoController;
+use App\Http\Controllers\Marketing\MarketingController;
 use Illuminate\Support\Facades\Route;
 
 // =============================================================
@@ -359,8 +360,25 @@ Route::middleware(['auth'])->group(function () {
     Route::post('admin-operaciones-campanias/{id}/duplicar', [admin_OperacionesController::class, 'campaniasDuplicar'])->name('admin-operaciones-campanias.duplicar');
     Route::get('admin-operaciones-campanias/{id}/metricas', [admin_OperacionesController::class, 'campaniasGetMetricas'])->name('admin-operaciones-campanias.metricas');
 
+
 }); // Fin middleware auth
 
+Route::prefix('administrador/marketing')
+    ->name('admin.marketing.')
+    ->middleware(['auth'])
+    ->group(function () {
+        
+        // La ruta principal de métricas
+        Route::get('/metricas', [MarketingController::class, 'metricas'])->name('metricas');
+        
+        // Acciones de Meta (Facebook e Instagram)
+        Route::post('/reply', [MarketingController::class, 'reply'])->name('reply');
+        Route::delete('/delete/{id}', [MarketingController::class, 'deleteComment'])->name('delete');
+        
+        // Email Marketing
+        Route::get('/emails', [MarketingController::class, 'emails'])->name('emails');
+        Route::post('/emails/enviar', [MarketingController::class, 'sendEmailCampaign'])->name('emails.send');
+});
 // =============================================================
 // AUTH — Login, registro, password reset (públicos)
 // =============================================================
