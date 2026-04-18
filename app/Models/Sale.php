@@ -19,9 +19,6 @@ class Sale extends Model
         'tiposcomprobante_id',
         'tipo_operacion_id',
         'tipo_detraccion_id',
-        'serie_id',
-        'serie',
-        'correlativo',
         'numero_comprobante',
         'subtotal',
         'descuento',
@@ -44,8 +41,7 @@ class Sale extends Model
         'entidad_financiera',
         'consumo_mensual_kwh',
         'numero_proyecto',
-        'observaciones',
-        'anulado',
+        'observaciones'
     ];
 
     protected $casts = [
@@ -60,8 +56,7 @@ class Sale extends Model
         'consumo_mensual_kwh' => 'decimal:2',
         'fecha_instalacion' => 'date',
         'requiere_financiamiento' => 'boolean',
-        'anulado' => 'boolean',
-        'garantia_sistema_años' => 'integer',
+        'garantia_sistema_años' => 'integer'
     ];
 
     public function getRouteKeyName()
@@ -131,18 +126,8 @@ class Sale extends Model
         return $this->belongsTo(TipoDetraccion::class, 'tipo_detraccion_id');
     }
 
-    public function serieComprobante()
+    public function notas()
     {
-        return $this->belongsTo(Serie::class, 'serie_id');
-    }
-
-    public function ventaReferencia()
-    {
-        return $this->hasOne(VentaReferencia::class, 'sale_id');
-    }
-
-    public function referencias()
-    {
-        return $this->hasMany(VentaReferencia::class, 'venta_referenciada_id');
+        return $this->hasMany(Nota::class, 'sale_id');
     }
 }
