@@ -44,9 +44,9 @@ class MetaMarketingService
         Log::info("MetaService: Cargando Radar Pro. ID_PAGINA: {$this->pageId}");
         $pageAccessToken = $this->getPageToken();
 
-        // 1. FEED FACEBOOK
+        // 1. FEED FACEBOOK (Se añadió 'user_likes' en la petición de comments para saber si ya le dimos like)
         $fbResponse = $this->client($pageAccessToken)->get("{$this->pageId}/feed", [
-            'fields' => 'id,message,created_time,full_picture,permalink_url,comments.summary(true){from,message,created_time,like_count,comments{from,message,created_time}},insights.metric(post_impressions_unique){values}',
+            'fields' => 'id,message,created_time,full_picture,permalink_url,comments.summary(true){from,message,created_time,user_likes,like_count,comments{from,message,created_time}},insights.metric(post_impressions_unique){values}',
             'limit' => $limit
         ]);
 
@@ -64,7 +64,7 @@ class MetaMarketingService
             ];
         });
 
-        // 2. MEDIA INSTAGRAM (Pedimos 'text' en lugar de 'message')
+        // 2. MEDIA INSTAGRAM
         $igPosts = collect();
         if ($this->instagramId) {
             $igResponse = $this->client($pageAccessToken)->get("{$this->instagramId}/media", [
@@ -73,7 +73,6 @@ class MetaMarketingService
             ]);
 
             $igPosts = collect($igResponse->json('data') ?? [])->map(function ($post) {
-                // NORMALIZACIÓN: Convertimos la estructura de IG para que sea idéntica a FB
                 $comments = $post['comments'] ?? null;
                 if (isset($comments['data'])) {
                     foreach ($comments['data'] as &$c) {
@@ -83,7 +82,9 @@ class MetaMarketingService
                             $c['from']['name'] = $c['from']['username'] ?? 'Usuario IG';
                         }
                         
-                        // Normalizamos las respuestas (replies) de IG
+                        // Instagram NO soporta saber si la página le dio like por API. Forzamos a false.
+                        $c['user_likes'] = false;
+
                         if (isset($c['replies']['data'])) {
                             foreach ($c['replies']['data'] as &$r) {
                                 $r['message'] = $r['text'] ?? 'Sin texto';
@@ -140,14 +141,67 @@ class MetaMarketingService
         ];
     }
 
-    public function publishComment(string $objectId, string $message): array
+    /**
+     * ACTUALIZADO: Manejo de respuestas bloqueando a la propia página
+     */
+    public function publishComment(string $objectId, string $message, ?string $senderId = null, bool $isIg = false): array
     {
-        $response = $this->client()->post("{$objectId}/comments", [
+        // 1. Validar que no nos estemos respondiendo a nosotros mismos
+        $myId = $isIg ? $this->instagramId : $this->pageId;
+        
+        if ($senderId && $senderId === $myId) {
+            Log::warning("MetaService: Intento de responder a un comentario propio. Operación bloqueada por seguridad.");
+            return ['success' => false, 'message' => 'El sistema no permite que la página se responda a sí misma.'];
+        }
+
+        // 2. Meta usa /replies para IG y /comments para FB
+        $endpoint = $isIg ? "{$objectId}/replies" : "{$objectId}/comments";
+
+        $response = $this->client()->post($endpoint, [
             'message' => $message
         ]);
 
-        Log::info("MetaService: Comentario/Respuesta publicada en ID: {$objectId}");
-        return $response->json();
+        if ($response->successful()) {
+            Log::info("MetaService: Comentario publicado en ID: {$objectId}");
+            return ['success' => true, 'data' => $response->json()];
+        }
+
+        Log::error("MetaService Error Publish: " . $response->body());
+        return ['success' => false, 'message' => 'Error al publicar la respuesta en Meta.'];
+    }
+
+    /**
+     * NUEVO: Lógica Toggle para Reacciones
+     */
+    public function toggleLike(string $commentId, bool $isIg, bool $currentlyLiked): array
+    {
+        // 1. Validar Instagram (La barrera oficial de Meta)
+        if ($isIg) {
+            Log::warning("MetaService: API de IG no soporta likes en comentarios.");
+            return [
+                'success' => false, 
+                'message' => 'Instagram no permite dar "Me encanta" a comentarios desde su API. Solo puedes responder o eliminar.'
+            ];
+        }
+
+        // 2. Lógica Toggle para Facebook
+        if ($currentlyLiked) {
+            // Si ya tiene like, hacemos DELETE a la ruta de likes
+            $response = $this->client()->delete("{$commentId}/likes");
+            $action = 'unlike';
+        } else {
+            // Si no tiene like, hacemos POST
+            $response = $this->client()->post("{$commentId}/likes");
+            $action = 'like';
+        }
+
+        if ($response->successful()) {
+            Log::info("MetaService: Acción '{$action}' ejecutada en Facebook ID: {$commentId}");
+            return ['success' => true, 'action' => $action];
+        }
+
+        Log::error("MetaService Error Toggle Like: " . $response->body());
+        return ['success' => false, 'message' => 'Error al reaccionar en Facebook.'];
     }
 
     public function processWebhook(array $payload): void
@@ -165,7 +219,7 @@ class MetaMarketingService
     public function deleteComment(string $commentId): bool
     {
         $response = $this->client()->delete($commentId);
-        Log::info("MetaService: Intento de borrado de comentario ID: {$commentId}");
+        Log::info("MetaService: Intento de borrado ID: {$commentId}. Éxito: " . ($response->successful() ? 'Si' : 'No'));
         return $response->successful();
     }
 }

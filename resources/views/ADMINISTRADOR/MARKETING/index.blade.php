@@ -38,34 +38,21 @@
         display: flex;
         gap: 8px;
         background: rgba(255,255,255,0.9);
-        padding: 2px 8px;
+        padding: 4px 10px;
         border-radius: 20px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        align-items: center;
     }
     .comment-bubble:hover .comment-actions { opacity: 1; }
 
-    /* Barra de Reacciones estilo Facebook/IG */
-    .reaction-bar-container { position: relative; }
-    .reaction-emojis {
-        display: none;
-        position: absolute;
-        bottom: 100%;
-        right: 0;
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 30px;
-        padding: 5px 10px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        gap: 8px;
-        z-index: 100;
-        white-space: nowrap;
-    }
-    .reaction-bar-container:hover .reaction-emojis { display: flex; }
-    .reaction-emoji { cursor: pointer; font-size: 1.2rem; transition: transform 0.2s; }
-    .reaction-emoji:hover { transform: scale(1.3); }
-
-    .badge-likes { background: #eff6ff; color: #0866ff; border-radius: 10px; padding: 4px 8px; font-size: 0.75rem; }
+    .badge-likes { background: #eff6ff; color: #0866ff; border-radius: 10px; padding: 4px 8px; font-size: 0.75rem; transition: 0.3s;}
     .user-initials { width: 35px; height: 35px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; color: var(--cisnergia-dark); }
+    
+    /* Botón Like Animado */
+    .btn-like-crm { border: none; background: transparent; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
+    .btn-like-crm:hover { transform: scale(1.05); }
+    .like-active { color: #0866ff; }
+    .like-inactive { color: #64748b; }
 </style>
 @endsection
 
@@ -140,8 +127,13 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Configuración global de Axios para Laravel CSRF
+    axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    axios.defaults.headers.common['X-CSRF-TOKEN'] = '{{ csrf_token() }}';
+
     let currentObjectId = null;
     let replyToId = null;
     let allCommentsInModal = [];
@@ -195,13 +187,17 @@
             let hasReplies = replies.length > 0;
             let borderStyle = hasReplies ? 'border-left: 4px solid #f59e0b;' : '';
 
-            // Emojis según plataforma
-            let emojisHtml = currentPlatform === 'fb' 
-                ? `<span class="reaction-emoji" onclick="sendReaction('${c.id}', 'LIKE', event)">👍</span>
-                   <span class="reaction-emoji" onclick="sendReaction('${c.id}', 'LOVE', event)">❤️</span>
-                   <span class="reaction-emoji" onclick="sendReaction('${c.id}', 'HAHA', event)">😂</span>
-                   <span class="reaction-emoji" onclick="sendReaction('${c.id}', 'WOW', event)">😯</span>` 
-                : `<span class="reaction-emoji" onclick="sendReaction('${c.id}', 'LIKE', event)">❤️</span>`;
+            // Lógica para pintar si ya le dimos Like o no
+            let userLikes = c.user_likes === true;
+            let btnLikeClass = userLikes ? 'like-active' : 'like-inactive';
+            let btnLikeText = userLikes ? 'Te gusta' : 'Me gusta';
+            let iconLikeClass = userLikes ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up';
+
+            let likeActionHtml = currentPlatform === 'fb' 
+                ? `<button class="btn-like-crm ${btnLikeClass}" onclick="toggleLikeAction('${c.id}', ${userLikes}, event)">
+                     <i class="bi ${iconLikeClass}"></i> ${btnLikeText}
+                   </button>` 
+                : `<span class="badge bg-light text-secondary"><i class="bi bi-info-circle"></i> IG: Solo respuestas</span>`;
 
             let isSelected = (replyToId === c.id) ? 'selected-reply' : '';
 
@@ -209,11 +205,9 @@
             <div class="comment-bubble mb-3 ${isSelected}" id="modal-c-${c.id}" style="${borderStyle}" onclick="prepareReply('${c.id}', '${c.from ? c.from.name : 'Usuario'}')">
                 
                 <div class="comment-actions">
-                    <div class="reaction-bar-container">
-                        <button class="btn btn-sm text-secondary p-0 px-1" onclick="event.stopPropagation()"><i class="bi bi-emoji-smile fs-6"></i></button>
-                        <div class="reaction-emojis">${emojisHtml}</div>
-                    </div>
-                    <button class="btn btn-sm text-danger p-0 px-1" onclick="deleteComment('${c.id}', false, null, event)"><i class="bi bi-trash fs-6"></i></button>
+                    ${likeActionHtml}
+                    <div class="vr mx-1"></div>
+                    <button class="btn btn-sm text-danger p-0 px-1" onclick="deleteComment('${c.id}', false, null, event)" title="Eliminar"><i class="bi bi-trash fs-6"></i></button>
                 </div>
 
                 <div class="d-flex justify-content-between mb-2">
@@ -226,7 +220,7 @@
                 <p class="mb-2 text-dark small pe-5">"${c.message}"</p>
                 
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge-likes" id="likes-count-${c.id}"><i class="bi ${currentPlatform === 'fb' ? 'bi-hand-thumbs-up-fill' : 'bi-heart-fill'}"></i> ${c.like_count || 0}</span>
+                    <span class="badge-likes" id="likes-count-${c.id}"><i class="bi ${currentPlatform === 'fb' ? 'bi-hand-thumbs-up-fill' : 'bi-heart-fill'}"></i> <span class="like-number">${c.like_count || 0}</span></span>
                 </div>
 
                 <div class="ps-4 ms-2 mt-2 border-start">
@@ -264,7 +258,7 @@
         document.getElementById('textNewComment').value = '';
     }
 
-    // PUBLICAR
+    // PUBLICAR (Refactorizado con Axios)
     document.getElementById('btnSendAction').addEventListener('click', async function() {
         const message = document.getElementById('textNewComment').value;
         if(!message) return;
@@ -292,18 +286,23 @@
         renderModalComments(allCommentsInModal);
         updateBadgeCount(currentObjectId, 1);
         
+        // Petición Axios al backend
         try {
-            await fetch("{{ route('admin.marketing.comment.publish') }}", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                body: JSON.stringify({ object_id: currentReplyId || currentObjectId, message: message })
+            await axios.post("{{ route('admin.marketing.comment.publish') }}", {
+                object_id: currentReplyId || currentObjectId,
+                message: message,
+                is_ig: currentPlatform === 'ig'
             });
-        } catch (error) { console.error('Error enviando a meta'); }
+        } catch (error) { 
+            console.error('Error enviando a meta', error);
+            Swal.fire('Error', 'No se pudo enviar la respuesta a Meta.', 'error');
+        }
     });
 
-    // ELIMINAR
+    // ELIMINAR (Refactorizado con Axios)
     window.deleteComment = async function(id, isReply = false, parentId = null, event = null) {
         if(event) event.stopPropagation();
+        
         if(confirm('¿Eliminar definitivamente de la red social?')) {
             if(isReply) {
                 let parent = allCommentsInModal.find(c => c.id === parentId);
@@ -319,38 +318,51 @@
             renderModalComments(allCommentsInModal);
             updateBadgeCount(currentObjectId, -1);
 
-            fetch(`/administrador/marketing/comment/${id}`, {
-                method: 'DELETE',
-                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-            });
+            try {
+                await axios.delete(`/administrador/marketing/comment/${id}`);
+            } catch (error) {
+                console.error('Error eliminando', error);
+            }
         }
     }
 
-    // ENVIAR REACCIÓN (Optimistic UI Frontend)
-    window.sendReaction = function(commentId, type, event) {
+    // TOGGLE LIKE (Nueva lógica Frontend -> Backend)
+    window.toggleLikeAction = async function(commentId, currentlyLiked, event) {
         event.stopPropagation(); // Evita que se seleccione la burbuja al dar like
         
-        // Efecto visual inmediato
-        let likesBadge = document.getElementById(`likes-count-${commentId}`);
-        if(likesBadge) {
-            let currentLikes = parseInt(likesBadge.innerText.replace(/[^0-9]/g, '')) || 0;
-            likesBadge.innerHTML = `<i class="bi ${currentPlatform === 'fb' ? 'bi-hand-thumbs-up-fill' : 'bi-heart-fill'} text-danger"></i> ${currentLikes + 1}`;
-            likesBadge.classList.add('bg-warning', 'bg-opacity-25');
+        if (currentPlatform === 'ig') {
+            Swal.fire('Aviso', 'La API de Instagram no soporta dar likes a comentarios.', 'info');
+            return;
         }
 
-        // NOTA: Para que esto funcione en el Backend de Meta, necesitarás crear 
-        // una ruta y función en tu MarketingController que haga el POST a la Graph API
-        console.log(`Reacción ${type} simulada en el Frontend para el comentario: ${commentId}`);
-        /*
-        fetch(`/administrador/marketing/comment/${commentId}/react`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: JSON.stringify({ type: type })
-        });
-        */
+        // Optimistic UI: Actualizamos el array local y repintamos para que el usuario lo vea al instante
+        let commentIndex = allCommentsInModal.findIndex(c => c.id === commentId);
+        if (commentIndex !== -1) {
+            allCommentsInModal[commentIndex].user_likes = !currentlyLiked;
+            allCommentsInModal[commentIndex].like_count += currentlyLiked ? -1 : 1;
+            renderModalComments(allCommentsInModal);
+        }
+
+        try {
+            // NOTA: Asegúrate de crear esta ruta en web.php y apuntarla al MarketingController
+            await axios.post(`/administrador/marketing/comment/${commentId}/toggle-like`, {
+                is_ig: false,
+                currently_liked: currentlyLiked
+            });
+            console.log("Toggle Like exitoso en Meta");
+        } catch (error) {
+            console.error('Error al reaccionar', error);
+            // Si falla, revertimos visualmente
+            if (commentIndex !== -1) {
+                allCommentsInModal[commentIndex].user_likes = currentlyLiked;
+                allCommentsInModal[commentIndex].like_count += currentlyLiked ? 1 : -1;
+                renderModalComments(allCommentsInModal);
+            }
+            Swal.fire('Error', 'No se pudo registrar la reacción en Meta.', 'error');
+        }
     }
 
-    // Auto-Submit para Formularios de Filtro (Si los incluyes en los sub-blades)
+    // Auto-Submit para Formularios de Filtro
     document.querySelectorAll('.auto-submit').forEach(input => {
         input.addEventListener('change', function() {
             this.closest('form').submit();

@@ -68,11 +68,15 @@ class MarketingController extends Controller
     {
         $request->validate([
             'object_id' => 'required|string', 
-            'message' => 'required|string'
+            'message' => 'required|string',
+            'is_ig' => 'boolean' // Recibimos de qué red viene
         ]);
 
         try {
-            $result = $this->metaService->publishComment($request->object_id, $request->message);
+            $isIg = $request->input('is_ig', false);
+            // Pasamos null como senderId porque somos nosotros, e $isIg para que sepa la ruta de Meta
+            $result = $this->metaService->publishComment($request->object_id, $request->message, null, $isIg);
+            
             Log::info("MarketingController: Comentario publicado en {$request->object_id}");
             return response()->json(['success' => true, 'data' => $result]);
         } catch (\Exception $e) {
@@ -94,6 +98,23 @@ class MarketingController extends Controller
         }
     }
 
+    // NUEVA FUNCIÓN: Para el botón de "Me gusta"
+    public function toggleLike(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'is_ig' => 'required|boolean',
+            'currently_liked' => 'required|boolean',
+        ]);
+
+        try {
+            $result = $this->metaService->toggleLike($id, $request->is_ig, $request->currently_liked);
+            return response()->json($result);
+        } catch (\Exception $e) {
+            Log::error('MarketingController Error Toggle Like: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al reaccionar en Meta.'], 500);
+        }
+    }
+
     public function metricasGlobales(Request $request): View
     {
         $canal = $request->get('canal', 'all');
@@ -110,7 +131,6 @@ class MarketingController extends Controller
                         $comment['platform'] = $post['is_ig'] ? 'Instagram' : 'Facebook';
                         $comment['post_id'] = $post['id'];
                         $comment['post_message'] = $post['message'] ?? '';
-                        // Doble protección para asegurar que 'message' y 'name' existan en la vista
                         $comment['message'] = $comment['message'] ?? $comment['text'] ?? 'Sin mensaje';
                         if (!isset($comment['from']['name'])) {
                             $comment['from']['name'] = $comment['from']['username'] ?? 'Usuario';

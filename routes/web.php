@@ -366,18 +366,14 @@ Route::middleware(['auth'])->group(function () {
 
 }); // Fin middleware auth
 
-Route::prefix('administrador/marketing')
-    ->name('admin.marketing.')
-    ->middleware(['auth'])
-    ->group(function () {
+Route::prefix('administrador/marketing')->name('admin.marketing.')->middleware(['auth'])->group(function () {
         // Dashboards
         Route::get('/metricas', [MarketingController::class, 'metricas'])->name('metricas');
         Route::get('/metricas/globales', [MarketingController::class, 'metricasGlobales'])->name('metricas_globales');
-        
         // Acciones Meta (Comentarios)
         Route::post('/comment/publish', [MarketingController::class, 'publishComment'])->name('comment.publish');
         Route::delete('/comment/{id}', [MarketingController::class, 'deleteComment'])->name('comment.delete');
-        
+        Route::post('/comment/{id}/toggle-like', [MarketingController::class, 'toggleLike'])->name('comment.toggle-like'); // <-- RUTAS DE REACCIÓN
         // Emails
         Route::get('/emails', [MarketingController::class, 'emails'])->name('emails');
         Route::post('/emails/enviar', [MarketingController::class, 'sendEmailCampaign'])->name('emails.send');
