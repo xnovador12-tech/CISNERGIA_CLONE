@@ -321,8 +321,8 @@
                             </a>
                         </li>
                         <li class="mx-2 my-1">
-                            <a href="{{ route('admin-notas.index') }}"
-                                class="nav-link px-3 {{ request()->is(['admin-notas*']) ? 'active-item' : null }} menu">
+                            <a href="{{ route('admin-nota-ventas.index') }}"
+                                class="nav-link px-3 {{ request()->is(['admin-nota-ventas*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-file-earmark-minus me-2"></i>
                                 </span>
