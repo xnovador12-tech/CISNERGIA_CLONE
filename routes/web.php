@@ -43,6 +43,7 @@ use App\Http\Controllers\admin_CrmMantenimientosController;
 use App\Http\Controllers\admin_ModeloController;
 use App\Http\Controllers\admin_UbigeoController;
 use App\Http\Controllers\Marketing\MarketingController;
+use App\Http\Controllers\MetaWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // =============================================================
