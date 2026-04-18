@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
-use App\Models\Nota;
 use Illuminate\Http\Request;
 
 class admin_ComprobantesFinanzasController extends Controller
@@ -32,13 +31,18 @@ class admin_ComprobantesFinanzasController extends Controller
 
         $totalPagado = $venta->pagos->sum('monto');
 
-        // Cargar notas asociadas y recalcular saldo considerando NC/ND
-        $notas = $venta->notas()->with('tipocomprobante')->where('estado', 'emitida')->get();
-        $totalNC = $notas->filter(fn($n) => $n->tipocomprobante && $n->tipocomprobante->codigo === '07')->sum('total');
-        $totalND = $notas->filter(fn($n) => $n->tipocomprobante && $n->tipocomprobante->codigo === '08')->sum('total');
+        // Calcular NC/ND emitidas sobre este comprobante usando ventas_referencias
+        $notasVentas = Sale::with(['tipocomprobante', 'ventaReferencia.sunatMotivoNota'])
+            ->where('estado', 'emitida')
+            ->whereHas('tipocomprobante', fn($q) => $q->whereIn('codigo', ['07', '08']))
+            ->whereHas('ventaReferencia', fn($q) => $q->where('venta_referenciada_id', $venta->id))
+            ->get();
+
+        $totalNC = $notasVentas->filter(fn($n) => $n->tipocomprobante?->codigo === '07')->sum('total');
+        $totalND = $notasVentas->filter(fn($n) => $n->tipocomprobante?->codigo === '08')->sum('total');
 
         $saldoPendiente = $venta->total - $totalPagado - $totalNC + $totalND;
 
-        return view('ADMINISTRADOR.FINANZAS.comprobantes.show', compact('venta', 'totalPagado', 'saldoPendiente', 'notas', 'totalNC', 'totalND'));
+        return view('ADMINISTRADOR.FINANZAS.comprobantes.show', compact('venta', 'totalPagado', 'saldoPendiente', 'notasVentas', 'totalNC', 'totalND'));
     }
 }

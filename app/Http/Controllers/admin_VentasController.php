@@ -41,22 +41,18 @@ class admin_VentasController extends Controller
             }
         }
 
-        $tiposComprobante = Tiposcomprobante::whereHas('series', function ($q) {
-            $q->where('activo', true);
-        })->get();
+        $tiposComprobante = Tiposcomprobante::whereHas('series')->get();
         $mediosPago = Mediopago::all();
         $cuentasBancarias = Cuentabanco::with(['banco', 'moneda', 'tipocuenta'])->get();
         $tiposOperacion = TipoOperacion::all();
         $tiposDetraccion = TipoDetraccion::all();
 
         // Series con correlativos para preview
-        $seriesComprobante = \App\Models\SerieComprobante::with('correlativo')
-            ->where('activo', true)
-            ->get()
+        $seriesComprobante = \App\Models\Serie::all()
             ->groupBy('tiposcomprobante_id')
             ->map(function ($series) {
                 $serie = $series->first();
-                $siguiente = ($serie->correlativo->numero ?? 0) + 1;
+                $siguiente = $serie->correlativo + 1;
                 return $serie->serie . '-' . str_pad($siguiente, 8, '0', STR_PAD_LEFT);
             });
 
@@ -101,8 +97,7 @@ class admin_VentasController extends Controller
         }
 
         // Generar número de comprobante usando series
-        $serieComprobante = \App\Models\SerieComprobante::where('tiposcomprobante_id', $validated['tiposcomprobante_id'])
-            ->where('activo', true)
+        $serieComprobante = \App\Models\Serie::where('tiposcomprobante_id', $validated['tiposcomprobante_id'])
             ->first();
 
         if (!$serieComprobante) {
@@ -139,6 +134,9 @@ class admin_VentasController extends Controller
             'tiposcomprobante_id' => $validated['tiposcomprobante_id'],
             'tipo_operacion_id' => $validated['tipo_operacion_id'],
             'tipo_detraccion_id' => $validated['tipo_detraccion_id'] ?? null,
+            'serie_id' => $serieComprobante->id,
+            'serie' => $serieComprobante->serie,
+            'correlativo' => $serieComprobante->correlativo,
             'numero_comprobante' => $numeroComprobante,
             'subtotal' => $pedido->subtotal,
             'descuento' => $pedido->descuento_monto,
