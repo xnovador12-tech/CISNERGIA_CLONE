@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Serie;
+use App\Models\SerieComprobante;
+use App\Models\Correlativo;
 use App\Models\Tiposcomprobante;
 use Illuminate\Database\Seeder;
 
@@ -26,9 +27,14 @@ class SerieComprobanteSeeder extends Seeder
             $tipo = Tiposcomprobante::where('codigo', $data['codigo'])->first();
             if (!$tipo) continue;
 
-            Serie::firstOrCreate(
+            $serie = SerieComprobante::firstOrCreate(
                 ['tiposcomprobante_id' => $tipo->id, 'serie' => $data['serie']],
-                ['correlativo' => 0]
+                ['activo' => true]
+            );
+
+            Correlativo::firstOrCreate(
+                ['serie_comprobante_id' => $serie->id],
+                ['numero' => 0]
             );
         }
     }
