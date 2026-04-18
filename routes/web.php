@@ -48,6 +48,8 @@ use Illuminate\Support\Facades\Route;
 // =============================================================
 // ECOMMERCE — Rutas públicas (sin auth)
 // =============================================================
+Route::get('/webhook/meta', [MetaWebhookController::class, 'verify']);
+Route::post('/webhook/meta', [MetaWebhookController::class, 'handle']);
 
 Route::get('limpiar-sesion-cisnergia', [ecommerceController::class, 'limpiarSesioncisnergia'])->name('limpiar-sesion-cisnergia.get');
 

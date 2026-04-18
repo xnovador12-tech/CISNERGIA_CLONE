@@ -14,9 +14,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        
+        // EXCEPCIÓN CSRF PARA EL WEBHOOK DE META
+        // Esto permite que Facebook/Instagram nos envíe datos por POST sin ser bloqueados
+        $middleware->validateCsrfTokens(except: [
+            '/webhook/meta',
+        ]);
+
         $middleware->alias([
-            'role'             => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission'       => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role'               => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission'         => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
     })
