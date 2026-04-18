@@ -27,7 +27,7 @@ use App\Http\Controllers\admin_CobrosController;
 use App\Http\Controllers\admin_PagosController;
 use App\Http\Controllers\admin_CajaChicaController;
 use App\Http\Controllers\admin_ComprobantesFinanzasController;
-use App\Http\Controllers\admin_NotasController;
+use App\Http\Controllers\admin_NotaVentasController;
 use App\Http\Controllers\admin_SalidasController;
 use App\Http\Controllers\admin_InventarioController;
 use App\Http\Controllers\ecommerceController;
@@ -47,39 +47,9 @@ use Illuminate\Support\Facades\Route;
 // =============================================================
 // ECOMMERCE — Rutas públicas (sin auth)
 // =============================================================
-
-Route::get('limpiar-sesion-cisnergia', [ecommerceController::class, 'limpiarSesioncisnergia'])->name('limpiar-sesion-cisnergia.get');
-
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
-Route::get('/mis_compras', [ecommerceController::class, 'misCompras'])->name('ecommerce.mis_compras');
 Route::get('/products', [ecommerceController::class, 'products'])->name('ecommerce.products');
-Route::get('/product/{slug}', [ecommerceController::class, 'show_product'])->name('ecommerce.product.show');
-route::get('/busqueda_pmarca', [ecommerceController::class, 'getbusqueda_pmarca']);
-route::get('/busqueda_pproducto_categoria', [ecommerceController::class, 'getbusqueda_pproducto_categoria']);
-route::get('/busqueda_pproducto_marca', [ecommerceController::class, 'getbusqueda_pproducto_marca']);
-Route::post('comments_producto', [ecommerceController::class, 'postcomments'])->name('ecommerce.product.store_comments');
-Route::get('ver_carrito', [ecommerceController::class, 'getcargar_carrito']);
-Route::get('agregar_compra_carrito', [ecommerceController::class, 'getagregar_compra_carrito']);
-Route::get('carrito-compras', [ecommerceController::class, 'index'])->name('ecommerce.carrito_compras.index');
-Route::get('listado_pago_carrito_compras', [ecommerceController::class, 'pago_carrito_compra'])->name('ecommerce_pago_carrito_compras.index');
-Route::get('eliminar_carrito', [ecommerceController::class, 'geteliminar_carrito']);
-Route::get('actualizar_cantidad_carrito', [ecommerceController::class, 'getactualizar_cantidad_carrito']);
-Route::get('/confirmacion_pago_exitoso/{sale}', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmacion_pago');
-route::get('/comprobante_compra/{sale}', [ecommerceController::class, 'comprobante_compra'])->name('ecommerce.comprobante_compra');
-Route::get('lista_deseo_carrito', [ecommerceController::class, 'getlista_deseo_carrito']);
-Route::get('eliminar_lista_deseo_carrito', [ecommerceController::class, 'geteliminarlista_deseo_carrito']);
-Route::get('agregar_compra_carritofavoritos', [ecommerceController::class, 'getagregar_compra_carritofavoritos']);
-
-Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
-Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');
-route::get('/mi/perfil', [ecommerceController::class, 'getmiperfil'])->name('ecommerce.mi_perfil');
-route::post('/mis/direcciones/crear', [ecommerceController::class, 'crearDireccion'])->name('ecommerce-direccion.create');
-route::put('/mis/direcciones/actualizar/{id}', [ecommerceController::class, 'getMisDirecciones'])->name('ecommerce-direccion.actualizar');
-route::post('/ecommerce/direccion/eliminar/{id}', [ecommerceController::class, 'eliminardireccion'])->name('ecommerce-direccion.eliminar');
-route::put('/mis/contraseña/actualizar', [ecommerceController::class, 'cambiarContrasena'])->name('ecommerce.cambiar_contraseña');
-route::post('/mi/perfil/otp/enviar', [ecommerceController::class, 'enviarCodigoRecuperacion'])->name('ecommerce.otp.enviar');
-route::post('/mi/perfil/otp/cambiar-password', [ecommerceController::class, 'cambiarContrasenaConOtp'])->name('ecommerce.otp.cambiar_password');
-route::get('/mis/favorites', [ecommerceController::class, 'getMisFavoritos'])->name('ecommerce.mis_favoritos');
+Route::get('/product/{slug}', [ecommerceController::class, 'show'])->name('ecommerce.product.show');
 
 // Carrito
 Route::post('/cart/add', [ecommerceController::class, 'addToCart'])->name('ecommerce.cart.add');
@@ -90,11 +60,8 @@ Route::get('/cart/count', [ecommerceController::class, 'getCartCount'])->name('e
 
 // Checkout
 Route::get('/checkout', [ecommerceController::class, 'checkout'])->name('ecommerce.checkout');
-route::get('ver_provincias', [ecommerceController::class, 'getprovincias']);
-route::get('ver_distritos', [ecommerceController::class, 'getdistritos']);
 Route::post('/checkout/process', [ecommerceController::class, 'processCheckout'])->name('ecommerce.checkout.process');
-Route::get('/order-confirmation/{sale}', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmation');
-Route::post('pago-ecommerce/processCulqi', [ecommerceController::class, 'createCulqiCharge'])->name('pago_ecommerce.createCulqiCharge');
+Route::get('/order-confirmation/{slug}', [ecommerceController::class, 'confirmation'])->name('ecommerce.confirmation');
 
 // =============================================================
 // ADMINISTRADOR — Todas las rutas protegidas con auth
@@ -212,7 +179,6 @@ Route::middleware(['auth'])->group(function () {
     // VENTAS
     // ---------------------------------------------------------
     Route::post('admin-clientes', [admin_CrmClientesController::class, 'store'])->name('admin-clientes.store');
-    Route::get('admin-clientes/{cliente}/datos', [admin_CrmClientesController::class, 'getDatos'])->name('admin-clientes.datos');
 
     Route::resource('admin-pedidos', admin_PedidosController::class);
     Route::put('/admin-pedidos/estado/{admin_pedido}', [admin_PedidosController::class, 'estado'])->name('admin-pedidos.estado');
@@ -223,7 +189,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('admin-ventas', admin_VentasController::class);
     Route::put('/admin-ventas/estado/{admin_venta}', [admin_VentasController::class, 'estado']);
-    Route::post('/admin-ventas/{admin_venta}/enviar-email', [admin_VentasController::class, 'enviarEmail'])->name('admin-ventas.enviar-email');
     Route::get('/admin-ventas/{admin_venta}/voucher', [admin_VentasController::class, 'voucher'])->name('admin-ventas.voucher');
 
     // Cobros
@@ -248,11 +213,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin-comprobantes-finanzas/{admin_comprobante}', [admin_ComprobantesFinanzasController::class, 'show'])->name('admin-comprobantes-finanzas.show');
 
     // Notas de Crédito / Débito (Finanzas)
-    Route::get('/admin-notas', [admin_NotasController::class, 'index'])->name('admin-notas.index');
-    Route::get('/admin-notas/crear', [admin_NotasController::class, 'create'])->name('admin-notas.create');
-    Route::post('/admin-notas', [admin_NotasController::class, 'store'])->name('admin-notas.store');
-    Route::get('/admin-notas/{admin_nota}', [admin_NotasController::class, 'show'])->name('admin-notas.show');
-    Route::put('/admin-notas/{admin_nota}/anular', [admin_NotasController::class, 'anular'])->name('admin-notas.anular');
+    Route::get('/admin-nota-ventas', [admin_NotaVentasController::class, 'index'])->name('admin-nota-ventas.index');
+    Route::get('/admin-nota-ventas/crear', [admin_NotaVentasController::class, 'create'])->name('admin-nota-ventas.create');
+    Route::post('/admin-nota-ventas', [admin_NotaVentasController::class, 'store'])->name('admin-nota-ventas.store');
+    Route::get('/admin-nota-ventas/{admin_nota_venta}', [admin_NotaVentasController::class, 'show'])->name('admin-nota-ventas.show');
+    Route::put('/admin-nota-ventas/{admin_nota_venta}/anular', [admin_NotaVentasController::class, 'anular'])->name('admin-nota-ventas.anular');
 
     // ---------------------------------------------------------
     // CRM
