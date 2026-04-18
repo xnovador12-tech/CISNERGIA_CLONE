@@ -191,13 +191,20 @@ class MarketingController extends Controller
     }
 
     // 2. NUEVOS MÉTODOS PARA GESTIONAR LOGOS
+// Cambia solo el método uploadLogo en tu Controlador
     public function uploadLogo(Request $request): JsonResponse
     {
-        $request->validate(['logo' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048']);
+        $request->validate(['logo' => 'required|image|mimes:jpeg,png,jpg|max:2048']);
+        
+        // Guardamos en la carpeta logos_email dentro de public
         $path = $request->file('logo')->store('logos_email', 'public');
-        return response()->json(['success' => true, 'path' => $path]);
+        
+        return response()->json([
+            'success' => true, 
+            'path' => $path,
+            'url' => asset('storage/' . $path) // Mandamos la URL lista para el JS
+        ]);
     }
-
     public function deleteLogo(Request $request): JsonResponse
     {
         $path = $request->input('path');
