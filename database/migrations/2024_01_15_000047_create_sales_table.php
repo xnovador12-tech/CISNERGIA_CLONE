@@ -22,6 +22,9 @@ return new class extends Migration
             $table->foreignId('tiposcomprobante_id')->nullable()->constrained('tiposcomprobantes')->onDelete('set null');
             $table->foreignId('tipo_operacion_id')->nullable()->constrained('tipos_operaciones')->nullOnDelete();
             $table->foreignId('tipo_detraccion_id')->nullable()->constrained('tipo_detraccion')->nullOnDelete();
+            $table->unsignedBigInteger('serie_id')->nullable();
+            $table->string('serie')->nullable();
+            $table->integer('correlativo')->nullable();
             $table->string('numero_comprobante')->nullable();
 
             // Montos
@@ -37,7 +40,8 @@ return new class extends Migration
             $table->string('billetera')->nullable();
             $table->unsignedBigInteger('cuenta_bancaria_id')->nullable();
             $table->string('condicion_pago')->default('Contado');
-            $table->enum('estado', ['completada', 'parcial', 'anulada'])->default('completada');
+            $table->enum('estado', ['completada', 'parcial', 'anulada', 'emitida'])->default('completada');
+            $table->boolean('anulado')->default(false);
             $table->string('estado_msalida')->default('0'); // 0: no generado, 1: generado
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('sede_id')->nullable()->constrained('sedes')->onDelete('set null');
@@ -73,9 +77,11 @@ return new class extends Migration
             // Cantidades y precios
             $table->decimal('cantidad', 11, 2)->default(1);
             $table->decimal('precio_unitario', 11, 2)->default(0);
+            $table->decimal('precio_igv', 11, 2)->default(0);
             $table->decimal('descuento_porcentaje', 5, 2)->default(0);
             $table->decimal('descuento_monto', 11, 2)->default(0);
             $table->decimal('subtotal', 11, 2)->default(0);
+            $table->decimal('igv', 11, 2)->default(0);
             $table->integer('garantia_años')->nullable(); // Garantía específica del item
 
             $table->timestamps();
