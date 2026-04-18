@@ -27,7 +27,7 @@ use App\Http\Controllers\admin_CobrosController;
 use App\Http\Controllers\admin_PagosController;
 use App\Http\Controllers\admin_CajaChicaController;
 use App\Http\Controllers\admin_ComprobantesFinanzasController;
-use App\Http\Controllers\admin_NotaVentasController;
+use App\Http\Controllers\admin_NotasController;
 use App\Http\Controllers\admin_SalidasController;
 use App\Http\Controllers\admin_InventarioController;
 use App\Http\Controllers\ecommerceController;
@@ -213,11 +213,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin-comprobantes-finanzas/{admin_comprobante}', [admin_ComprobantesFinanzasController::class, 'show'])->name('admin-comprobantes-finanzas.show');
 
     // Notas de Crédito / Débito (Finanzas)
-    Route::get('/admin-nota-ventas', [admin_NotaVentasController::class, 'index'])->name('admin-nota-ventas.index');
-    Route::get('/admin-nota-ventas/crear', [admin_NotaVentasController::class, 'create'])->name('admin-nota-ventas.create');
-    Route::post('/admin-nota-ventas', [admin_NotaVentasController::class, 'store'])->name('admin-nota-ventas.store');
-    Route::get('/admin-nota-ventas/{admin_nota_venta}', [admin_NotaVentasController::class, 'show'])->name('admin-nota-ventas.show');
-    Route::put('/admin-nota-ventas/{admin_nota_venta}/anular', [admin_NotaVentasController::class, 'anular'])->name('admin-nota-ventas.anular');
+    Route::get('/admin-notas', [admin_NotasController::class, 'index'])->name('admin-notas.index');
+    Route::get('/admin-notas/crear', [admin_NotasController::class, 'create'])->name('admin-notas.create');
+    Route::post('/admin-notas', [admin_NotasController::class, 'store'])->name('admin-notas.store');
+    Route::get('/admin-notas/{admin_nota}', [admin_NotasController::class, 'show'])->name('admin-notas.show');
+    Route::put('/admin-notas/{admin_nota}/anular', [admin_NotasController::class, 'anular'])->name('admin-notas.anular');
 
     // ---------------------------------------------------------
     // CRM
