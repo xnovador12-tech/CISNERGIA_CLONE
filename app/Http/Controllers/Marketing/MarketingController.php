@@ -178,51 +178,45 @@ class MarketingController extends Controller
     }
 
 
-    // 1. REEMPLAZA EL MÉTODO emails()
-    public function emails(): View
-    {
-        $directory = public_path('logos_email');
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $files = array_diff(scandir($directory), array('.', '..'));
-        $logos = array_map(function($file) {
-            return ['path' => 'logos_email/' . $file];
-        }, $files);
-
-        return view('ADMINISTRADOR.MARKETING.emails.index', compact('logos'));
+public function emails(): View
+{
+    // Usamos el disco 'public' que apunta a storage/app/public
+    // Si la carpeta no existe, Laravel la gestiona mejor que mkdir() manual
+    if (!Storage::disk('public')->exists('logos_email')) {
+        Storage::disk('public')->makeDirectory('logos_email');
     }
+
+    $files = Storage::disk('public')->files('logos_email');
+    
+    $logos = array_map(function($file) {
+        return [
+            'path' => $file,
+            'url' => asset('storage/' . $file) // La URL pública con el link simbólico
+        ];
+    }, $files);
+
+    return view('ADMINISTRADOR.MARKETING.emails.index', compact('logos'));
+}
 
 public function uploadLogo(Request $request): JsonResponse
 {
-    // Aumentamos un poco el tamaño máximo a 5MB por si las moscas
     $request->validate(['logo' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120']);
     
-    // Generamos un nombre único
-    $fileName = time() . '_' . $request->file('logo')->getClientOriginalName();
+    // Guardar usando el disco public
+    $path = $request->file('logo')->store('logos_email', 'public');
     
-    // Guardamos DIRECTO en la carpeta public/logos_email (Crea la carpeta si no existe)
-    $request->file('logo')->move(public_path('logos_email'), $fileName);
-    
-    $url = asset('logos_email/' . $fileName);
-    $path = 'logos_email/' . $fileName;
-
     return response()->json([
         'success' => true, 
         'path' => $path,
-        'url' => $url
+        'url' => asset('storage/' . $path)
     ]);
 }
 
 public function deleteLogo(Request $request): JsonResponse
 {
     $path = $request->input('path');
-    // Borramos de la carpeta public
-    $fullPath = public_path($path);
-    
-    if (file_exists($fullPath)) {
-        unlink($fullPath);
+    if (Storage::disk('public')->exists($path)) {
+        Storage::disk('public')->delete($path);
         return response()->json(['success' => true]);
     }
     return response()->json(['success' => false, 'message' => 'Archivo no encontrado'], 400);

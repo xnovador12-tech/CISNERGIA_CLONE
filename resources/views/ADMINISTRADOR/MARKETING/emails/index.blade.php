@@ -85,7 +85,7 @@
                         <div id="logosContainer" class="flex gap-3">
                             @foreach($logos ?? [] as $logo)
                                 <div class="logo-item" onclick="toggleLogo('{{ $logo['path'] }}', this)">
-                                    <img src="{{ asset('storage/' . $logo['path']) }}">
+                                    <img src="{{ $logo['url'] }}">
                                     <button type="button" class="btn-del-logo" onclick="deleteLogo('{{ $logo['path'] }}', this, event)">✕</button>
                                 </div>
                             @endforeach
