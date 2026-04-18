@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage; 
 
 class MarketingController extends Controller
 {
@@ -176,30 +177,75 @@ class MarketingController extends Controller
         }
     }
 
+
+    // 1. REEMPLAZA EL MÉTODO emails()
     public function emails(): View
     {
-        return view('ADMINISTRADOR.MARKETING.emails.index');
+        // Leemos los logos que hay en storage/app/public/logos_email
+        $files = Storage::disk('public')->files('logos_email');
+        $logos = array_map(function($file) {
+            return ['path' => $file];
+        }, $files);
+
+        return view('ADMINISTRADOR.MARKETING.emails.index', compact('logos'));
     }
 
+    // 2. NUEVOS MÉTODOS PARA GESTIONAR LOGOS
+    public function uploadLogo(Request $request): JsonResponse
+    {
+        $request->validate(['logo' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048']);
+        $path = $request->file('logo')->store('logos_email', 'public');
+        return response()->json(['success' => true, 'path' => $path]);
+    }
+
+    public function deleteLogo(Request $request): JsonResponse
+    {
+        $path = $request->input('path');
+        if ($path && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+            return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false], 400);
+    }
+
+    // 3. REEMPLAZA EL MÉTODO sendEmailCampaign()
     public function sendEmailCampaign(Request $request): RedirectResponse
     {
         $request->validate([
             'asunto' => 'required|string|max:255',
             'destinatarios' => 'required|string',
-            'contenido' => 'required|string'
+            'contenido' => 'required|string',
+            'adjuntos.*' => 'nullable|file|max:10240' // Max 10MB por archivo
         ]);
 
         try {
             $recipients = explode(',', $request->destinatarios);
+            $logoPath = $request->input('logo_path'); // Puede ser null si no seleccionó nada
+            
+            // Recolectar archivos adjuntos temporalmente
+            $adjuntos = [];
+            if ($request->hasFile('adjuntos')) {
+                foreach ($request->file('adjuntos') as $file) {
+                    $adjuntos[] = [
+                        'path' => $file->getRealPath(),
+                        'name' => $file->getClientOriginalName(),
+                        'mime' => $file->getClientMimeType()
+                    ];
+                }
+            }
+            
             $resultado = $this->emailService->dispatchCampaign(
                 array_map('trim', $recipients),
                 $request->asunto,
-                $request->contenido
+                $request->contenido,
+                $logoPath,
+                $adjuntos
             );
+            
             return redirect()->route('admin.marketing.emails')->with('success', $resultado['mensaje']);
         } catch (\Exception $e) {
             Log::error('MarketingController Error Campaña Email: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Error crítico al enviar los correos.');
+            return redirect()->back()->with('error', 'Error al enviar los correos.');
         }
     }
 }

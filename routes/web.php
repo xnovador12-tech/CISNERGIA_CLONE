@@ -377,6 +377,9 @@ Route::prefix('administrador/marketing')->name('admin.marketing.')->middleware([
         // Emails
         Route::get('/emails', [MarketingController::class, 'emails'])->name('emails');
         Route::post('/emails/enviar', [MarketingController::class, 'sendEmailCampaign'])->name('emails.send');
+
+        Route::post('/emails/logo/upload', [MarketingController::class, 'uploadLogo'])->name('emails.logo.upload');
+        Route::delete('/emails/logo/delete', [MarketingController::class, 'deleteLogo'])->name('emails.logo.delete');
     });
 // =============================================================
 // AUTH — Login, registro, password reset (públicos)
