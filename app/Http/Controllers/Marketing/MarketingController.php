@@ -85,20 +85,24 @@ class MarketingController extends Controller
         }
     }
 
-    public function deleteComment(string $commentId): bool
+    public function deleteComment($id): JsonResponse
     {
-        $response = $this->client()->delete($commentId);
-        
-        if ($response->successful()) {
-            Log::info("MetaService: Comentario ID {$commentId} eliminado con éxito.");
-            return true;
+        Log::warning("MarketingController: Intentando eliminar comentario ID: $id");
+
+        try {
+            // ¡OJO AQUÍ! Llamamos al Service, NO usamos client() directo
+            $success = $this->metaService->deleteComment($id);
+            
+            if ($success) {
+                return response()->json(['success' => true]);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Meta rechazó la eliminación (revisa logs).'], 400);
+            }
+        } catch (\Exception $e) {
+            Log::error('MarketingController Error al eliminar: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error en el servidor.'], 500);
         }
-
-        // ESTO ES LO NUEVO: Obligamos a Laravel a imprimir la razón del fallo en Railway
-        Log::error("MetaService Error al eliminar ID {$commentId}: " . $response->body());
-        return false;
     }
-
     // NUEVA FUNCIÓN: Para el botón de "Me gusta"
     public function toggleLike(Request $request, $id): JsonResponse
     {

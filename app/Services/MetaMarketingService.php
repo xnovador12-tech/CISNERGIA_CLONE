@@ -216,10 +216,21 @@ class MetaMarketingService
         }
     }
 
+    /**
+     * ACTUALIZADO: Función de eliminación con logs detallados de error
+     */
     public function deleteComment(string $commentId): bool
     {
+        // Usamos client() porque estamos dentro del Service
         $response = $this->client()->delete($commentId);
-        Log::info("MetaService: Intento de borrado ID: {$commentId}. Éxito: " . ($response->successful() ? 'Si' : 'No'));
-        return $response->successful();
+        
+        if ($response->successful()) {
+            Log::info("MetaService: Comentario ID {$commentId} eliminado con éxito de la red social.");
+            return true;
+        }
+
+        // Si falla, nos escupe el error exacto de Facebook en Railway
+        Log::error("MetaService Error al eliminar ID {$commentId}: " . $response->body());
+        return false;
     }
 }
