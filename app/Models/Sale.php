@@ -18,21 +18,19 @@ class Sale extends Model
         'cliente_id',
         'tiposcomprobante_id',
         'tipo_operacion_id',
-        'numero_comprobante',
-        'fecha_emision',
-        'fecha_vencimiento',
-        'hora',
+        'tipo_detraccion_id',
         'serie_id',
         'serie',
         'correlativo',
+        'numero_comprobante',
         'subtotal',
         'descuento',
         'igv',
         'total',
+        'monto_detraccion',
+        'monto_neto',
         'mediopago_id',
         'condicion_pago',
-        'monto_pagado_inicial',
-        'numero_cuotas',
         'estado',
         'user_id',
         'sede_id',
@@ -46,7 +44,8 @@ class Sale extends Model
         'entidad_financiera',
         'consumo_mensual_kwh',
         'numero_proyecto',
-        'observaciones'
+        'observaciones',
+        'anulado',
     ];
 
     protected $casts = [
@@ -54,18 +53,15 @@ class Sale extends Model
         'descuento' => 'decimal:2',
         'igv' => 'decimal:2',
         'total' => 'decimal:2',
-        'monto_pagado_inicial' => 'decimal:2',
-        'numero_cuotas' => 'integer',
+        'monto_detraccion' => 'decimal:2',
+        'monto_neto' => 'decimal:2',
         'potencia_kw' => 'decimal:2',
         'monto_financiado' => 'decimal:2',
         'consumo_mensual_kwh' => 'decimal:2',
-        'fecha_emision' => 'date',
-        'fecha_vencimiento' => 'date',
-        'serie_id' => 'integer',
-        'correlativo' => 'integer',
         'fecha_instalacion' => 'date',
         'requiere_financiamiento' => 'boolean',
-        'garantia_sistema_años' => 'integer'
+        'anulado' => 'boolean',
+        'garantia_sistema_años' => 'integer',
     ];
 
     public function getRouteKeyName()
@@ -130,18 +126,23 @@ class Sale extends Model
         return $this->belongsTo(TipoOperacion::class, 'tipo_operacion_id');
     }
 
-    public function detraccion()
+    public function tipoDetraccion()
     {
-        return $this->hasOne(VentaDetraccion::class, 'sale_id');
-    }
-
-    public function notas()
-    {
-        return $this->hasMany(Nota::class, 'sale_id');
+        return $this->belongsTo(TipoDetraccion::class, 'tipo_detraccion_id');
     }
 
     public function serieComprobante()
     {
-        return $this->belongsTo(SerieComprobante::class, 'serie_id');
+        return $this->belongsTo(Serie::class, 'serie_id');
+    }
+
+    public function ventaReferencia()
+    {
+        return $this->hasOne(VentaReferencia::class, 'sale_id');
+    }
+
+    public function referencias()
+    {
+        return $this->hasMany(VentaReferencia::class, 'venta_referenciada_id');
     }
 }

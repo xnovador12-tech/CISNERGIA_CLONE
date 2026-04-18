@@ -23,7 +23,7 @@
     </div>
 
     <div class="container-fluid">
-        <form action="{{ route('admin-notas.store') }}" method="POST" id="formNota">
+        <form action="{{ route('admin-nota-ventas.store') }}" method="POST" id="formNota">
             @csrf
             <input type="hidden" name="sale_id" value="{{ $venta->id }}">
             <input type="hidden" name="tipo" value="{{ $tipo }}">
@@ -42,7 +42,7 @@
                                 <div class="col-md-4">
                                     <p class="mb-1"><strong>N° Comprobante:</strong> {{ $venta->numero_comprobante }}</p>
                                     <p class="mb-1"><strong>Tipo:</strong>
-                                        @if($venta->tipocomprobante->codigo == '01')
+                                        @if($venta->tipocomprobante?->codigo == '01')
                                             <span class="badge bg-info">Factura</span>
                                         @else
                                             <span class="badge bg-success">Boleta</span>
@@ -89,7 +89,11 @@
                                     </thead>
                                     <tbody>
                                         @foreach($venta->detalles as $index => $detalle)
-                                        <tr class="item-row" data-index="{{ $index }}">
+                                        <tr class="item-row"
+                                            data-index="{{ $index }}"
+                                            data-detalle-id="{{ $detalle->id }}"
+                                            data-detalle-subtotal="{{ $detalle->subtotal }}"
+                                            data-original-qty="{{ $detalle->cantidad }}">
                                             <td class="text-center">
                                                 <input type="checkbox" class="form-check-input item-check" data-index="{{ $index }}">
                                             </td>
@@ -108,9 +112,10 @@
                                                        value="{{ $detalle->cantidad }}" disabled>
                                             </td>
                                             <td class="text-end">
-                                                <input type="number" class="form-control form-control-sm text-end item-precio"
-                                                       step="0.01" min="0"
-                                                       value="{{ number_format($detalle->precio_unitario, 2, '.', '') }}" disabled>
+                                                <span class="text-muted small">S/ {{ number_format($detalle->precio_unitario, 2) }}</span>
+                                                @if($detalle->descuento_monto > 0)
+                                                    <br><small class="text-danger">-S/ {{ number_format($detalle->descuento_monto, 2) }}</small>
+                                                @endif
                                             </td>
                                             <td class="text-end fw-bold item-subtotal-display">
                                                 S/ 0.00
@@ -154,10 +159,12 @@
 
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Motivo <span class="text-danger">*</span></label>
-                                <select name="motivo_codigo" class="form-select" id="selectMotivo" required>
+                                <select name="sunat_motivo_nota_id" class="form-select" id="selectMotivo" required>
                                     <option value="">-- Seleccionar motivo --</option>
-                                    @foreach($motivos as $codigo => $descripcion)
-                                        <option value="{{ $codigo }}">{{ $codigo }} - {{ $descripcion }}</option>
+                                    @foreach($motivos as $motivo)
+                                        <option value="{{ $motivo->id }}" data-codigo="{{ $motivo->codigo }}">
+                                            {{ $motivo->codigo }} - {{ $motivo->descripcion }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -211,34 +218,45 @@
         const tipo = '{{ $tipo }}';
         const maxDisponible = {{ $tipo === 'nc' ? ($venta->total - $totalNCPrevias) : 999999999 }};
 
+        // Montos reales de la venta original (ya con descuentos globales aplicados)
+        const ventaSubtotal = {{ $venta->subtotal }};
+        const ventaIgv      = {{ $venta->igv }};
+        const ventaTotal    = {{ $venta->total }};
+        // Suma de todos los subtotales de ítems (sin descuento global)
+        const sumAllDetalles = {{ $venta->detalles->sum('subtotal') }};
+
         function recalcular() {
-            let subtotal = 0;
+            let selectedDetallesSubtotal = 0;
             let haySeleccionados = false;
 
             $('.item-row').each(function() {
                 const $row = $(this);
                 const checked = $row.find('.item-check').is(':checked');
+                const detalleSubtotal = parseFloat($row.data('detalle-subtotal')) || 0;
+                const originalQty     = parseFloat($row.data('original-qty')) || 1;
 
                 if (checked) {
                     haySeleccionados = true;
-                    const cantidad = parseFloat($row.find('.item-cantidad').val()) || 0;
-                    const precio = parseFloat($row.find('.item-precio').val()) || 0;
-                    const sub = Math.round(cantidad * precio * 100) / 100;
-                    $row.find('.item-subtotal-display').text('S/ ' + sub.toFixed(2));
-                    subtotal += sub;
+                    const qty = parseFloat($row.find('.item-cantidad').val()) || 0;
+                    // Subtotal proporcional de este ítem según qty seleccionada
+                    const itemContrib = (qty / originalQty) * detalleSubtotal;
+                    $row.find('.item-subtotal-display').text('S/ ' + itemContrib.toFixed(2));
+                    selectedDetallesSubtotal += itemContrib;
                 } else {
                     $row.find('.item-subtotal-display').text('S/ 0.00');
                 }
             });
 
-            const igv = Math.round(subtotal * 0.18 * 100) / 100;
-            const total = Math.round((subtotal + igv) * 100) / 100;
+            // Calcular proporción sobre los montos REALES de la venta (con descuento global)
+            const ratio    = sumAllDetalles > 0 ? selectedDetallesSubtotal / sumAllDetalles : 0;
+            const subtotal = Math.round(ratio * ventaSubtotal * 100) / 100;
+            const igv      = Math.round(ratio * ventaIgv      * 100) / 100;
+            const total    = Math.round(ratio * ventaTotal    * 100) / 100;
 
             $('#lblSubtotal').text('S/ ' + subtotal.toFixed(2));
             $('#lblIgv').text('S/ ' + igv.toFixed(2));
             $('#lblTotal').text('S/ ' + total.toFixed(2));
 
-            // Validaciones
             const motivoSeleccionado = $('#selectMotivo').val() !== '';
             const montoValido = tipo !== 'nc' || total <= (maxDisponible + 0.05);
 
@@ -252,22 +270,22 @@
 
             $('#btnEmitir').prop('disabled', !haySeleccionados || !motivoSeleccionado || !montoValido);
 
-            // Actualizar hidden inputs
+            // Rellenar hidden inputs
             $('#hiddenItems').empty();
             let itemIndex = 0;
             $('.item-row').each(function() {
                 const $row = $(this);
                 if ($row.find('.item-check').is(':checked')) {
-                    const cantidad = $row.find('.item-cantidad').val();
-                    const precio = $row.find('.item-precio').val();
+                    const cantidad    = $row.find('.item-cantidad').val();
                     const descripcion = $row.find('.item-descripcion').val();
-                    const productoId = $row.find('.item-producto-id').val();
-                    const servicioId = $row.find('.item-servicio-id').val();
+                    const productoId  = $row.find('.item-producto-id').val();
+                    const servicioId  = $row.find('.item-servicio-id').val();
+                    const detalleId   = $row.data('detalle-id');
 
                     $('#hiddenItems').append(
+                        '<input type="hidden" name="items[' + itemIndex + '][detalle_id]" value="' + detalleId + '">' +
                         '<input type="hidden" name="items[' + itemIndex + '][descripcion]" value="' + descripcion + '">' +
                         '<input type="hidden" name="items[' + itemIndex + '][cantidad]" value="' + cantidad + '">' +
-                        '<input type="hidden" name="items[' + itemIndex + '][precio_unitario]" value="' + precio + '">' +
                         '<input type="hidden" name="items[' + itemIndex + '][producto_id]" value="' + (productoId || '') + '">' +
                         '<input type="hidden" name="items[' + itemIndex + '][servicio_id]" value="' + (servicioId || '') + '">'
                     );
@@ -276,56 +294,41 @@
             });
         }
 
-        // Checkbox individual
         $('.item-check').on('change', function() {
             const $row = $(this).closest('.item-row');
             const checked = $(this).is(':checked');
-            $row.find('.item-cantidad, .item-precio').prop('disabled', !checked);
+            $row.find('.item-cantidad').prop('disabled', !checked);
             if (!checked) {
-                // Reset al valor original
-                const maxCant = $row.find('.item-cantidad').attr('max');
-                $row.find('.item-cantidad').val(maxCant);
+                $row.find('.item-cantidad').val($row.find('.item-cantidad').attr('max'));
             }
             recalcular();
         });
 
-        // Check all
         $('#checkAll').on('change', function() {
             const checked = $(this).is(':checked');
             $('.item-check').prop('checked', checked).trigger('change');
         });
 
-        // Al cambiar cantidad o precio
-        $('.item-cantidad, .item-precio').on('input', function() {
-            recalcular();
-        });
+        $('.item-cantidad').on('input', recalcular);
 
-        // Al cambiar motivo
         $('#selectMotivo').on('change', function() {
-            const motivo = $(this).val();
+            const motivo = $(this).find(':selected').data('codigo');
 
-            // Motivos que auto-seleccionan todo: 01 (Anulación), 06 (Devolución total)
             if (tipo === 'nc' && (motivo === '01' || motivo === '06')) {
                 $('#checkAll').prop('checked', true).trigger('change');
-                // Deshabilitar edición de cantidades para anulación total
-                $('.item-cantidad, .item-precio').prop('disabled', true);
-                // Restaurar cantidades originales
+                $('.item-cantidad').prop('disabled', true);
                 $('.item-row').each(function() {
-                    const maxCant = $(this).find('.item-cantidad').attr('max');
-                    $(this).find('.item-cantidad').val(maxCant);
+                    $(this).find('.item-cantidad').val($(this).find('.item-cantidad').attr('max'));
                 });
             } else {
-                // Rehabilitar edición
                 $('.item-row').each(function() {
                     const checked = $(this).find('.item-check').is(':checked');
-                    $(this).find('.item-cantidad, .item-precio').prop('disabled', !checked);
+                    $(this).find('.item-cantidad').prop('disabled', !checked);
                 });
             }
-
             recalcular();
         });
 
-        // Confirmación antes de enviar
         $('#formNota').on('submit', function(e) {
             const tipoTexto = tipo === 'nc' ? 'Nota de Crédito' : 'Nota de Débito';
             const totalTexto = $('#lblTotal').text();
