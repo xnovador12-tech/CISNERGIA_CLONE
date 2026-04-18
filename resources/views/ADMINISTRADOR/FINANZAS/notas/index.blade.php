@@ -115,45 +115,41 @@
                                 <br><small class="text-muted">{{ $nota->codigo }}</small>
                             </td>
                             <td class="fw-normal text-center align-middle">
-                                @if($nota->tipocomprobante && $nota->tipocomprobante->codigo === '07')
+                                @if($nota->tipocomprobante?->codigo === '07')
                                     <span class="badge bg-danger">Nota de Credito</span>
                                 @else
                                     <span class="badge bg-info">Nota de Debito</span>
                                 @endif
                             </td>
                             <td class="fw-normal text-center align-middle">
-                                @if($nota->sale)
-                                    <a href="{{ route('admin-comprobantes-finanzas.show', $nota->sale) }}" class="text-decoration-none">
-                                        {{ $nota->sale->numero_comprobante }}
+                                @if($nota->ventaReferencia?->ventaReferenciada)
+                                    <a href="{{ route('admin-comprobantes-finanzas.show', $nota->ventaReferencia->ventaReferenciada) }}" class="text-decoration-none">
+                                        {{ $nota->ventaReferencia->ventaReferenciada->numero_comprobante }}
                                     </a>
-                                    <br><small class="text-muted">
-                                        @if($nota->sale->tipocomprobante)
-                                            {{ $nota->sale->tipocomprobante->name }}
-                                        @endif
-                                    </small>
+                                    <br><small class="text-muted">{{ $nota->ventaReferencia->ventaReferenciada->tipocomprobante?->name }}</small>
                                 @else
                                     N/A
                                 @endif
                             </td>
                             <td class="fw-normal text-center align-middle">
-                                @if($nota->sale && $nota->sale->cliente)
-                                    {{ $nota->sale->cliente->nombre ?? '' }} {{ $nota->sale->cliente->apellidos ?? '' }}
-                                    @if($nota->sale->cliente->razon_social)
-                                        <br><small class="text-muted">{{ $nota->sale->cliente->razon_social }}</small>
+                                @if($nota->cliente)
+                                    {{ $nota->cliente->nombre ?? '' }} {{ $nota->cliente->apellidos ?? '' }}
+                                    @if($nota->cliente->razon_social)
+                                        <br><small class="text-muted">{{ $nota->cliente->razon_social }}</small>
                                     @endif
                                 @else
                                     N/A
                                 @endif
                             </td>
                             <td class="fw-normal text-center align-middle">
-                                <small>{{ $nota->motivo_descripcion }}</small>
+                                <small>{{ $nota->ventaReferencia?->sunatMotivoNota?->descripcion ?? 'N/A' }}</small>
                             </td>
-                            <td class="fw-normal text-center align-middle">{{ $nota->fecha_emision->format('d/m/Y') }}</td>
-                            <td class="fw-normal text-center align-middle fw-bold {{ $nota->tipocomprobante && $nota->tipocomprobante->codigo === '07' ? 'text-danger' : 'text-info' }}">
+                            <td class="fw-normal text-center align-middle">{{ $nota->created_at->format('d/m/Y') }}</td>
+                            <td class="fw-normal text-center align-middle fw-bold {{ $nota->tipocomprobante?->codigo === '07' ? 'text-danger' : 'text-info' }}">
                                 S/ {{ number_format($nota->total, 2) }}
                             </td>
                             <td class="text-center align-middle">
-                                <a href="{{ route('admin-notas.show', $nota) }}" class="btn btn-sm btn-outline-primary" title="Ver Detalle">
+                                <a href="{{ route('admin-nota-ventas.show', $nota) }}" class="btn btn-sm btn-outline-primary" title="Ver Detalle">
                                     <i class="bi bi-eye"></i>
                                 </a>
                             </td>
