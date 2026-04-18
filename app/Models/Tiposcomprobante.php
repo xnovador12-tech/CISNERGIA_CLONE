@@ -24,6 +24,11 @@ class Tiposcomprobante extends Model
 
     public function series()
     {
-        return $this->hasMany(SerieComprobante::class, 'tiposcomprobante_id');
+        return $this->hasMany(Serie::class, 'tiposcomprobante_id');
+    }
+
+    public function sunatMotivos()
+    {
+        return $this->hasMany(SunatMotivoNota::class, 'tiposcomprobante_id');
     }
 }
