@@ -3,183 +3,199 @@
 @section('title', 'Marketing | Compositor Cisnergia')
 
 @section('styles')
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
 <style>
     :root {
-        --c-dark: #1e293b;
-        --c-sun: #f59e0b;
-        --c-energy: #f97316;
-        --surface-bg: #f8fafc;
-        --glass-bg: rgba(255, 255, 255, 0.85);
+        --bg-surface: #f9f9ff;
+        --surface-high: #f1f5f9;
         --border-color: #e2e8f0;
+        --text-main: #111c2d;
+        --text-muted: #64748b;
+        --brand-orange: #f97316;
+        --brand-orange-dark: #9d4300;
     }
 
-    body { font-family: 'Inter', sans-serif; background-color: #f0f3ff; }
-    h1, h2, h3, h4, h5, h6 { font-family: 'Manrope', sans-serif; }
+    .font-headline { font-family: 'Manrope', sans-serif; }
+    .font-body { font-family: 'Inter', sans-serif; }
 
-    /* Contenedor Principal Glassmorphic */
-    .composer-panel {
-        background-color: var(--glass-bg);
+    /* Contenedor y Tarjeta Principal */
+    .composer-wrapper { max-width: 1000px; margin: 0 auto; }
+    .composer-card {
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
         border-radius: 1rem;
         box-shadow: 0 24px 48px rgba(17, 28, 45, 0.06);
-        border: 1px solid rgba(255,255,255,0.5);
+        border: 1px solid rgba(226, 232, 240, 0.8);
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
-    /* Cabecera del formulario (To, Subject) */
-    .composer-header { background-color: rgba(241, 245, 249, 0.5); padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color); }
+    /* Sección Meta (Para, Asunto) */
+    .composer-meta { background: rgba(241, 245, 249, 0.5); padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color); }
+    .meta-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    .meta-row:last-child { margin-bottom: 0; }
+    .meta-row label { width: 60px; color: var(--text-muted); font-weight: 500; margin: 0; flex-shrink: 0; }
     
-    .input-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-    .input-row label { font-weight: 600; color: #64748b; width: 70px; flex-shrink: 0; margin: 0; }
-    
-    .custom-input {
-        flex: 1; background: #e2e8f0; border: none; border-radius: 0.5rem; padding: 0.6rem 1rem;
-        color: var(--c-dark); font-size: 0.95rem; transition: all 0.2s;
+    .input-clean {
+        flex: 1; background: rgba(226, 232, 240, 0.5); border: none; border-radius: 6px; 
+        padding: 0.6rem 1rem; color: var(--text-main); font-size: 0.95rem; transition: 0.2s; outline: none;
     }
-    .custom-input:focus { outline: none; box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3); background: white; }
+    .input-clean:focus { background: white; box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3); }
     
-    .subject-input { font-family: 'Manrope', sans-serif; font-size: 1.1rem; font-weight: 600; }
+    .subject-input { 
+        background: transparent; font-family: 'Manrope', sans-serif; font-size: 1.25rem; 
+        font-weight: 600; padding: 0.5rem; border-radius: 6px;
+    }
+    .subject-input:focus { background: white; }
 
-    /* Galería de Logos */
-    .logo-section { padding: 1rem 2rem; border-bottom: 1px solid var(--border-color); background: white; }
-    .logo-gallery { display: flex; gap: 12px; overflow-x: auto; padding: 10px 0; align-items: center; }
+    /* Galería de Logos (Active Letterhead Style) */
+    .branding-row { padding: 0.75rem 2rem; background: white; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem; overflow-x: auto;}
+    .branding-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;}
     
-    .upload-logo-box {
-        width: 65px; height: 65px; border-radius: 10px; border: 2px dashed #cbd5e1;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        cursor: pointer; color: #64748b; font-size: 0.75rem; background: #f8fafc; flex-shrink: 0; transition: 0.2s;
+    .logo-item {
+        width: 100px; height: 40px; border: 1px solid var(--border-color); border-radius: 6px;
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        transition: 0.2s; position: relative; background: var(--bg-surface); flex-shrink: 0;
     }
-    .upload-logo-box:hover { border-color: var(--c-energy); color: var(--c-energy); }
-
-    .logo-item { 
-        position: relative; width: 65px; height: 65px; border-radius: 10px; border: 2px solid #e2e8f0; 
-        cursor: pointer; transition: 0.2s; background: white; display: flex; align-items: center; justify-content: center;
-        flex-shrink: 0;
-    }
-    .logo-item img { max-width: 85%; max-height: 85%; object-fit: contain; }
-    .logo-item:hover { border-color: #94a3b8; transform: translateY(-2px); }
-    
-    /* Estado Seleccionado */
-    .logo-item.selected { border-color: var(--c-energy); box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2); }
+    .logo-item img { max-width: 80%; max-height: 80%; object-fit: contain; }
+    .logo-item:hover { border-color: #94a3b8; }
+    .logo-item.selected { border-color: var(--brand-orange); background: white; box-shadow: 0 2px 8px rgba(249,115,22,0.15); }
     .logo-item.selected::after {
-        content: '✓'; position: absolute; top: -6px; right: -6px; background: var(--c-energy);
-        color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex;
-        align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        content: '✓'; position: absolute; top: -6px; right: -6px; background: var(--brand-orange);
+        color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex;
+        align-items: center; justify-content: center; font-weight: bold;
     }
-    
-    /* Botón eliminar logo */
     .btn-delete-logo {
-        position: absolute; bottom: -6px; right: -6px; background: #ef4444; color: white;
-        border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; 
-        justify-content: center; font-size: 10px; cursor: pointer; border: none; opacity: 0; transition: 0.2s;
+        position: absolute; bottom: -6px; right: -6px; background: #ef4444; color: white; border: none;
+        border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; 
+        justify-content: center; opacity: 0; transition: 0.2s; cursor: pointer;
     }
     .logo-item:hover .btn-delete-logo { opacity: 1; }
 
-    /* Quill Editor */
-    .ql-toolbar.ql-snow { border: none; border-bottom: 1px solid var(--border-color); background: #f8fafc; padding: 10px 2rem; }
-    .ql-container.ql-snow { border: none; font-size: 1rem; font-family: 'Inter', sans-serif; }
-    .ql-editor { min-height: 350px; padding: 2rem; color: #334155; }
-
-    /* Adjuntos y Footer */
-    .attachments-area { padding: 1.5rem 2rem; background: rgba(248, 250, 252, 0.7); border-top: 1px solid var(--border-color); }
-    .composer-footer { padding: 1.5rem 2rem; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-
-    /* Botón Gradient Energy */
-    .btn-gradient {
-        background: linear-gradient(135deg, var(--c-dark) 0%, var(--c-energy) 100%);
-        color: white; border: none; font-weight: 700; padding: 0.6rem 2rem; border-radius: 50px;
-        transition: 0.3s; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); font-family: 'Manrope', sans-serif;
+    .btn-add-logo {
+        width: 40px; height: 40px; border: 1px dashed #cbd5e1; border-radius: 6px; display: flex;
+        align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; background: transparent;
     }
-    .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(249, 115, 22, 0.4); color: white; }
+    .btn-add-logo:hover { color: var(--brand-orange); border-color: var(--brand-orange); }
+
+    /* Editor Quill Integrado */
+    .ql-toolbar.ql-snow { border: none; border-bottom: 1px solid var(--border-color); background: var(--bg-surface); padding: 12px 2rem; display: flex; gap: 5px; align-items: center;}
+    .ql-container.ql-snow { border: none; font-size: 1rem; color: var(--text-main); }
+    .ql-editor { min-height: 350px; padding: 2rem; }
+
+    /* Adjuntos */
+    .attachments-area { padding: 1rem 2rem; background: rgba(248, 250, 252, 0.5); border-top: 1px solid rgba(226, 232, 240, 0.5); }
+    .custom-file-input::-webkit-file-upload-button {
+        visibility: hidden; display: none;
+    }
+    .custom-file-input::before {
+        content: 'Adjuntar archivos'; display: inline-block; background: white; border: 1px solid var(--border-color);
+        border-radius: 6px; padding: 6px 12px; outline: none; white-space: nowrap; cursor: pointer;
+        font-weight: 500; font-size: 0.85rem; color: var(--text-main); margin-right: 10px;
+    }
+    .custom-file-input:hover::before { border-color: #94a3b8; }
+
+    /* Footer */
+    .composer-footer { padding: 1.25rem 2rem; background: var(--bg-surface); border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 1rem 1rem;}
+    
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--brand-orange-dark) 0%, var(--brand-orange) 100%);
+        color: white; border: none; font-weight: 700; padding: 0.6rem 2rem; border-radius: 50px;
+        transition: 0.3s; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25); display: flex; align-items: center; gap: 8px;
+    }
+    .btn-gradient:hover { opacity: 0.9; transform: translateY(-1px); color: white;}
 </style>
 @endsection
 
 @section('content')
-<div class="container py-4 max-w-5xl">
+<div class="container-fluid py-2 font-body">
     
-    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
-        <div>
-            <h2 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.5px;">Compositor Cisnergia</h2>
-            <p class="text-muted mb-0 small">Envíos oficiales, cotizaciones y marketing directo.</p>
+    <div class="composer-wrapper">
+        <div class="d-flex align-items-center gap-3 mb-4 px-2">
+            <h2 class="font-headline fw-bold m-0" style="font-size: 1.4rem; color: var(--text-main);">Compose Proposal</h2>
+            <span class="badge bg-light text-primary border px-2 py-1 rounded-pill" style="font-size: 0.65rem; letter-spacing: 1px;">DRAFT</span>
         </div>
-        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-shield-check me-1"></i> Envío Seguro</span>
-    </div>
 
-    <div id="alert-container"></div>
+        @if(session('success'))
+            <div class="alert alert-success border-0 shadow-sm rounded-3"><i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger border-0 shadow-sm rounded-3"><i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}</div>
+        @endif
 
-    <div class="composer-panel">
-        <form action="{{ route('admin.marketing.emails.send') }}" method="POST" id="emailForm" enctype="multipart/form-data">
-            @csrf
-            <input type="hidden" name="contenido" id="contenidoHtml">
-            <input type="hidden" name="logo_path" id="selectedLogoPath">
+        <div class="composer-card">
+            <form action="{{ route('admin.marketing.emails.send') }}" method="POST" id="emailForm" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="contenido" id="contenidoHtml">
+                <input type="hidden" name="logo_path" id="selectedLogoPath">
 
-            <div class="composer-header">
-                <div class="input-row">
-                    <label>Para:</label>
-                    <input type="text" class="custom-input" name="destinatarios" placeholder="cliente1@empresa.com, juan.perez@gmail.com" required>
+                <div class="composer-meta">
+                    <div class="meta-row">
+                        <label>To:</label>
+                        <input type="text" class="input-clean" name="destinatarios" placeholder="Añadir destinatario (ej. michael.chen@novaenergy.com)" required>
+                    </div>
+                    <div class="meta-row">
+                        <label>Subject:</label>
+                        <input type="text" class="input-clean subject-input" name="asunto" placeholder="Escribe el asunto aquí..." required>
+                    </div>
                 </div>
-                <div class="input-row mb-0">
-                    <label>Asunto:</label>
-                    <input type="text" class="custom-input subject-input" name="asunto" placeholder="Propuesta Oficial - Cisnergia" required>
-                </div>
-            </div>
 
-            <div class="logo-section">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="fw-bold text-dark small"><i class="bi bi-image me-1 text-muted"></i> Membrete / Logo</span>
-                    <span class="text-muted" style="font-size: 0.75rem;">Haz clic para incluirlo en el correo.</span>
-                </div>
-                
-                <div class="logo-gallery">
-                    <label class="upload-logo-box mb-0" title="Subir nuevo logo">
-                        <i class="bi bi-cloud-arrow-up-fill fs-5 mb-1"></i>
-                        <input type="file" id="logoUploader" accept="image/png, image/jpeg, image/jpg" class="d-none" onchange="uploadNewLogo(this)">
-                    </label>
+                <div class="branding-row">
+                    <span class="branding-label">Active Letterhead</span>
                     
-                    <div style="width: 2px; height: 40px; background: #e2e8f0; margin: 0 5px;"></div>
-
-                    <div id="logosContainer" class="d-flex gap-2">
+                    <div id="logosContainer" class="d-flex gap-2 align-items-center">
                         @foreach($logos ?? [] as $logo)
                             <div class="logo-item" id="logo-{{ $loop->index }}" onclick="toggleLogo('{{ $logo['path'] }}', 'logo-{{ $loop->index }}')">
                                 <img src="{{ asset('storage/' . $logo['path']) }}" alt="Logo">
-                                <button type="button" class="btn-delete-logo" onclick="deleteLogo('{{ $logo['path'] }}', event)"><i class="bi bi-trash-fill"></i></button>
+                                <button type="button" class="btn-delete-logo" onclick="deleteLogo('{{ $logo['path'] }}', event)"><i class="bi bi-x"></i></button>
                             </div>
                         @endforeach
                     </div>
-                </div>
-            </div>
 
-            <div id="editor-container">
-                <p>Hola,</p><p><br></p>
-                <p>Espero que este correo te encuentre muy bien.</p>
-                <p>Adjunto encontrarás la propuesta técnica y comercial de los servicios de <strong>Energía Solar</strong> solicitados.</p><p><br></p>
-                <p>Quedo a tu entera disposición para cualquier duda.</p><p><br></p>
-                <p>Saludos cordiales,</p>
-                <p><strong>Equipo Comercial | Cisnergia Perú</strong></p>
-            </div>
-
-            <div class="attachments-area">
-                <label class="fw-bold text-dark small d-block mb-2"><i class="bi bi-paperclip me-1 text-muted"></i> Archivos Adjuntos (Opcional)</label>
-                <input class="form-control bg-white border-0 shadow-sm" type="file" name="adjuntos[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls" style="font-size: 0.85rem;">
-                <div class="form-text mt-2" style="font-size: 0.75rem;">Puedes seleccionar varios PDFs, documentos o imágenes al mismo tiempo. Max 10MB por archivo.</div>
-            </div>
-
-            <div class="composer-footer">
-                <div class="text-muted small">
-                    <i class="bi bi-check2-all text-success"></i> Sistema listo
+                    <div class="vr mx-1" style="opacity: 0.15"></div>
+                    
+                    <label class="btn-add-logo mb-0" title="Subir Membrete/Logo">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">add</span>
+                        <input type="file" id="logoUploader" accept="image/png, image/jpeg" class="d-none" onchange="uploadNewLogo(this)">
+                    </label>
                 </div>
-                <div class="d-flex gap-3 align-items-center">
-                    <button type="button" class="btn btn-link text-muted fw-bold text-decoration-none" onclick="document.getElementById('emailForm').reset()">Descartar</button>
-                    <button type="submit" class="btn-gradient d-flex align-items-center" onclick="prepararEnvio(event)">
-                        Enviar Mensaje <i class="bi bi-send-fill ms-2"></i>
-                    </button>
+
+                <div id="editor-container">
+                    <p>Hola,</p><p><br></p>
+                    <p>Espero que este correo te encuentre muy bien.</p>
+                    <p>Adjunto encontrarás la propuesta técnica y comercial solicitada. El rendimiento proyectado se alinea perfectamente con los objetivos para el próximo año fiscal.</p>
+                    <p>Avísame cuando tengas un momento para revisarlo juntos.</p><p><br></p>
+                    <p>Saludos cordiales,</p>
+                    <p><strong style="color: var(--brand-orange-dark);">{{ Auth::user()?->persona?->name . ' ' . Auth::user()?->persona?->surnames }}</strong></p>
+                    <p style="color: var(--text-muted); font-size: 14px;">Administrador | Cisnergia Perú</p>
                 </div>
-            </div>
-        </form>
+
+                <div class="attachments-area">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined" style="color: var(--text-muted); font-size: 18px;">attach_file</span>
+                        <span class="fw-semibold" style="color: var(--text-muted); font-size: 0.85rem;">Attachments</span>
+                    </div>
+                    <input class="form-control custom-file-input bg-transparent border-0 p-0" type="file" name="adjuntos[]" multiple accept=".pdf,.doc,.docx,.jpg,.png,.xlsx">
+                </div>
+
+                <div class="composer-footer">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm text-muted rounded-circle"><span class="material-symbols-outlined" style="font-size: 20px;">text_format</span></button>
+                        <button type="button" class="btn btn-sm text-muted rounded-circle"><span class="material-symbols-outlined" style="font-size: 20px;">image</span></button>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <button type="button" class="btn btn-light fw-medium text-muted rounded-pill px-4" style="background: #e2e8f0; border:none;" onclick="document.getElementById('emailForm').reset()">Discard</button>
+                        <button type="submit" class="btn-gradient" onclick="prepararEnvio(event)">
+                            Send <span class="material-symbols-outlined" style="font-size: 18px; font-variation-settings: 'FILL' 1;">send</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 @endsection
@@ -189,114 +205,95 @@
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Axios Config
     axios.defaults.headers.common['X-CSRF-TOKEN'] = '{{ csrf_token() }}';
 
-    // 1. Inicializar Quill Editor
-    var toolbarOptions = [
-        [{ 'header': [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline', 'strike'],        
-        [{ 'color': [] }, { 'background': [] }],          
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'align': [] }],
-        ['link', 'image'],
-        ['clean']                                         
-    ];
-
+    // Inicializar Quill Editor (Estilo Minimalista)
     var quill = new Quill('#editor-container', {
-        modules: { toolbar: toolbarOptions },
+        modules: { 
+            toolbar: [ 
+                [{ 'font': [] }, { 'size': [] }],
+                ['bold', 'italic', 'underline'],        
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link'],
+                ['clean']                                         
+            ] 
+        },
         theme: 'snow',
-        placeholder: 'Escribe tu propuesta aquí...'
+        placeholder: 'Escribe aquí...'
     });
 
-    // 2. Lógica de Selección de Logos (Toggle)
+    // Lógica Logos
     function toggleLogo(path, elementId) {
         const element = document.getElementById(elementId);
         const isSelected = element.classList.contains('selected');
         
-        // Deseleccionamos todos primero
         document.querySelectorAll('.logo-item').forEach(el => el.classList.remove('selected'));
         
         if (!isSelected) {
-            // Seleccionar este
             element.classList.add('selected');
             document.getElementById('selectedLogoPath').value = path;
         } else {
-            // Deseleccionar (Enviar sin logo)
             document.getElementById('selectedLogoPath').value = '';
         }
     }
 
-    // 3. Subir nuevo logo al servidor
     async function uploadNewLogo(input) {
         if (!input.files || input.files.length === 0) return;
         
         let formData = new FormData();
         formData.append('logo', input.files[0]);
 
-        // Feedback visual
-        Swal.fire({ title: 'Subiendo logo...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+        Swal.fire({ title: 'Subiendo...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
 
         try {
             const res = await axios.post("{{ route('admin.marketing.emails.logo.upload') }}", formData);
-            if(res.data.success) {
-                location.reload(); // Recarga para ver la galería actualizada
-            }
+            if(res.data.success) location.reload();
         } catch (error) {
-            Swal.fire('Error', 'No se pudo subir. Verifica que sea JPG/PNG y pese menos de 2MB.', 'error');
+            Swal.fire('Error', 'No se pudo subir la imagen.', 'error');
         }
     }
 
-    // 4. Eliminar Logo
     async function deleteLogo(path, event) {
-        event.stopPropagation(); // IMPORTANTE: Evita que se seleccione al hacer clic en borrar
+        event.stopPropagation();
         
         const result = await Swal.fire({
-            title: '¿Eliminar logo?',
-            text: "Desaparecerá de tu galería",
+            title: '¿Eliminar?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Sí, eliminar'
+            confirmButtonText: 'Eliminar'
         });
 
         if (result.isConfirmed) {
-            Swal.fire({ title: 'Eliminando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            Swal.fire({ title: 'Borrando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
             try {
                 await axios.delete("{{ route('admin.marketing.emails.logo.delete') }}", { data: { path: path } });
                 location.reload();
             } catch (error) {
-                Swal.fire('Error', 'No se pudo eliminar el logo.', 'error');
+                Swal.fire('Error', 'No se pudo eliminar.', 'error');
             }
         }
     }
 
-    // 5. Preparar y Validar antes de Enviar
+    // Preparar envío
     function prepararEnvio(event) {
         var form = document.getElementById('emailForm');
-        
-        // Validación nativa HTML5
         if (!form.checkValidity()) {
             form.reportValidity();
             event.preventDefault();
             return;
         }
 
-        // Obtener HTML de Quill
         var htmlContent = document.querySelector('.ql-editor').innerHTML;
-        
         if(htmlContent === '<p><br></p>' || htmlContent.trim() === '') {
             event.preventDefault();
-            Swal.fire('Atención', 'No puedes enviar un correo vacío.', 'warning');
+            Swal.fire('Atención', 'El correo está vacío.', 'warning');
             return;
         }
         
-        // Inyectar HTML al input oculto
         document.getElementById('contenidoHtml').value = htmlContent;
-        
-        // Efecto visual en el botón
         var btn = event.currentTarget;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Enviando...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Sending...';
         btn.classList.add('disabled');
         btn.style.pointerEvents = 'none';
     }
