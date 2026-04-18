@@ -25,16 +25,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Esto es lo nuevo que tienes que agregar:
+        if (app()->environment('production')) {
+            \URL::forceScheme('https');
+        }
+
         Schema::defaultStringLength(191);
 
         // Observer CRM ↔ E-commerce
-        User::observe(UserObserver::class); // Registro → Prospecto automático
+        User::observe(UserObserver::class); 
 
         // Observer Operaciones
         Pedido::observe(PedidoObserver::class);
 
-        //paginacion
-        Paginator::useBootstrapFive(); // Bootstrap 5
-        app()->setLocale('es'); // ← español
+        // paginacion
+        Paginator::useBootstrapFive(); 
+        app()->setLocale('es'); 
     }
 }
