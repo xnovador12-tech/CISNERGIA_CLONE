@@ -19,19 +19,23 @@ class Detailsale extends Model
         'descripcion',
         'cantidad',
         'precio_unitario',
+        'precio_igv',
         'descuento_porcentaje',
         'descuento_monto',
         'subtotal',
-        'garantia_años'
+        'igv',
+        'garantia_años',
     ];
 
     protected $casts = [
         'cantidad' => 'decimal:2',
         'precio_unitario' => 'decimal:2',
+        'precio_igv' => 'decimal:2',
         'descuento_porcentaje' => 'decimal:2',
         'descuento_monto' => 'decimal:2',
         'subtotal' => 'decimal:2',
-        'garantia_años' => 'integer'
+        'igv' => 'decimal:2',
+        'garantia_años' => 'integer',
     ];
 
     // Relaciones
