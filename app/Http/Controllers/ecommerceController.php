@@ -1140,8 +1140,7 @@ class ecommerceController extends Controller
                 // Stock insuficiente: queda con aprobacion_stock = false
             }
 
-            $serieComprobante = \App\Models\SerieComprobante::where('tiposcomprobante_id', $request->tiposcomprobante_id ?? 1)
-            ->where('activo', true)
+            $serieComprobante = \App\Models\Serie::where('tiposcomprobante_id', $request->tiposcomprobante_id ?? 1)
             ->first();
 
             $numeroComprobante = $serieComprobante->generarNumero();
