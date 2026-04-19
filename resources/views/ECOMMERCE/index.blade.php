@@ -623,56 +623,17 @@
         </div>
 
         <div class="row g-3 justify-content-center">
+        @forelse($marcas_aliadas as $marcas_aliada)
           <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.vestas.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/VESTA.png" alt="Vestas"></div>
+            <a href="{{ $marcas_aliada->url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+              <div class="cis-partner"><img src="{{ $marcas_aliada->logo }}" alt="{{ $marcas_aliada->name }}"></div>
             </a>
           </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.cat.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/CAT.png" alt="CAT"></div>
-            </a>
+        @empty
+          <div class="col-12">
+            <p class="text-center" style="color:var(--c-muted);">No hay marcas aliadas disponibles en este momento.</p>
           </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.cropx.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/CRPOX.png" alt="Cropx"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.cip.org.pe/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/CIP.png" alt="CIP"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.jinkosolar.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/JINKO-SOLAR.png" alt="Jinko Solar"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.yinglisolar.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/YINGLI-SOLAR.png" alt="Yingli Solar"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.ethosenergygroup.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/ETHOS-ENERGY.png" alt="Ethos Energy"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.liugong.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/LIUGONG-1.png" alt="LiuGong"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.udep.edu.pe/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/UDEP.png" alt="UDEP"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.ulima.edu.pe/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/LIMAQ.png" alt="Limaq"></div>
-            </a>
-          </div>
+        @endforelse
         </div>
 
         <div class="text-center mt-5">

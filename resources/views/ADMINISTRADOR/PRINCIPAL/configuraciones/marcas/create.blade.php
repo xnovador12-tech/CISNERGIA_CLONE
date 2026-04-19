@@ -30,6 +30,16 @@
                                     El campo no puede estar vacío
                                 </div>
                             </div>
+                            <div class="mb-3">
+                                <label for="url_id">Url<span class="text-danger">*</span></label>
+                                <input type="text" name="url" id="url_id" class="form-control" value="{{ old('url') }}"  maxLength="100" required>
+                                @error('url')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                                <div class="invalid-feedback">
+                                    El campo no puede estar vacío
+                                </div>
+                            </div>
                         </div>    
                     </div>                           
                 </div>

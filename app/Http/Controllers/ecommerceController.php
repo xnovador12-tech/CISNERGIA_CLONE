@@ -44,7 +44,7 @@ class ecommerceController extends Controller
     // Página principal
     public function index()
     {
-
+        $marcas_aliadas = Marca::all();
         $productos_inventario = Inventario::where('cantidad', '>', 0)->pluck('id_producto')->toArray();
         $productos = Producto::where('estado', 'Activo')
             ->whereIn('id', $productos_inventario)
@@ -52,7 +52,7 @@ class ecommerceController extends Controller
             ->take(8)
             ->get();
 
-        return view('ECOMMERCE.index', compact('productos'));
+        return view('ECOMMERCE.index', compact('productos', 'marcas_aliadas'));
     }
 
         public function limpiarSesioncisnergia(Request $request)

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug');
             $table->string('estado')->default('Activo');
+            $table->text('url')->nullable();
             $table->timestamps();
         });
     }
