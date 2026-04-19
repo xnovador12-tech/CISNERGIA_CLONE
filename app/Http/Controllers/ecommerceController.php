@@ -1165,7 +1165,7 @@ class ecommerceController extends Controller
             $venta->igv = $igv;
             $venta->total = $request->total ?? 0;
             $venta->condicion_pago = 'Contado';
-            $venta->estado = 'Pagado';
+            $venta->estado = 'pagado';
             $venta->mediopago_id = $mediopagoId;
             $venta->user_id = Auth::id();
             $venta->sede_id = 1;
@@ -1448,7 +1448,7 @@ class ecommerceController extends Controller
                 'total' => $cart->total,
                 'mediopago_id' => 1, // Configurar según metodo_pago
                 'condicion_pago' => $request->metodo_pago === 'credito' ? 'Crédito' : 'Contado',
-                'estado' => 'Pagado',
+                'estado' => 'pagado',
                 'tipo_venta' => 'ecommerce',
                 'observaciones' => 'Venta generada automáticamente desde E-commerce: ' . $codigoPedido,
             ]);
