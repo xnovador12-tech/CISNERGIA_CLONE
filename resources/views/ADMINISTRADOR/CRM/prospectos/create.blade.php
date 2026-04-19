@@ -172,14 +172,25 @@
 
                         <div class="col-md-3">
                             <label class="form-label">Asignar a</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" data-placeholder="Sin asignar">
-                                <option value="">Sin asignar</option>
-                                @foreach($vendedores ?? [] as $vendedor)
-                                    <option value="{{ $vendedor->id }}" {{ old('user_id', auth()->id()) == $vendedor->id ? 'selected' : '' }}>
-                                        {{ $vendedor->persona?->name ?? $vendedor->email }} {{ $vendedor->persona?->surnames ?? '' }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            @if($esAdmin ?? false)
+                                {{-- Admin puede asignar el prospecto a cualquier vendedor --}}
+                                <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" data-placeholder="Sin asignar">
+                                    <option value="">Sin asignar</option>
+                                    @foreach($vendedores ?? [] as $vendedor)
+                                        <option value="{{ $vendedor->id }}" {{ old('user_id', auth()->id()) == $vendedor->id ? 'selected' : '' }}>
+                                            {{ $vendedor->persona?->name ?? $vendedor->email }} {{ $vendedor->persona?->surnames ?? '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                {{-- No-admin: auto-asignación silenciosa. El backend fuerza user_id=auth()->id(). --}}
+                                <input type="text"
+                                       class="form-control form-control-sm"
+                                       value="{{ auth()->user()->persona?->name ?? auth()->user()->email }} {{ auth()->user()->persona?->surnames ?? '' }}"
+                                       readonly
+                                       style="background-color: #f8f9fa; cursor: not-allowed;">
+                                <small class="text-muted">El prospecto se asignará automáticamente a ti.</small>
+                            @endif
                         </div>
 
                         {{-- ===================== SEGUIMIENTO ===================== --}}

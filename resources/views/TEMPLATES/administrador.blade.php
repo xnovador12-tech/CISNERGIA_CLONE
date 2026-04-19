@@ -45,9 +45,14 @@
             <div class="navbar-white">
                 <ul class="navbar-nav">
                     <div class="">
+                        {{-- ===== PRINCIPAL ===== --}}
+                        @canany(['dashboard.index', 'configuraciones.index', 'reportes.index'])
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3">Principal</div>
                         </li>
+                        @endcanany
+
+                        @can('dashboard.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-dashboard.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-dashboard*']) ? 'active-item' : null }} menu">
@@ -59,6 +64,9 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
+
+                        @can('configuraciones.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-configuraciones.index') }}"
                                 class="nav-link px-3 menu {{ request()->is(['admin-configuraciones*', 'admin-usuarios*', 'admin-empresa*', 'admin-perfil*', 'admin-categorias*', 'admin-etiquetas*', 'admin-equipo*']) ? 'active-item' : null }}">
@@ -70,7 +78,9 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
 
+                        @can('reportes.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-reportes.index') }}"
                                 class="nav-link px-3 menu {{ request()->is(['admin-reportes*']) ? 'active-item' : null }}">
@@ -82,12 +92,17 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
 
+                        {{-- ===== CRM ===== --}}
+                        @canany(['crm.prospectos.index', 'crm.oportunidades.index', 'crm.cotizaciones.index', 'crm.actividades.index', 'crm.clientes.index', 'crm.tickets.index', 'crm.mantenimientos.index'])
                         <!-- CRM -->
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3 mt-3">CRM</div>
                         </li>
+                        @endcanany
 
+                        @can('crm.prospectos.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin.crm.prospectos.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin/crm/prospectos*']) ? 'active-item' : null }} menu">
@@ -97,7 +112,9 @@
                                 <span>Prospectos</span>
                             </a>
                         </li>
+                        @endcan
 
+                        @can('crm.oportunidades.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin.crm.oportunidades.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin/crm/oportunidades*']) ? 'active-item' : null }} menu">
@@ -107,7 +124,9 @@
                                 <span>Oportunidades</span>
                             </a>
                         </li>
+                        @endcan
 
+                        @can('crm.cotizaciones.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin.crm.cotizaciones.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin/crm/cotizaciones*']) ? 'active-item' : null }} menu">
@@ -117,7 +136,9 @@
                                 <span>Cotizaciones</span>
                             </a>
                         </li>
+                        @endcan
 
+                        @can('crm.actividades.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin.crm.actividades.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin/crm/actividades*']) ? 'active-item' : null }} menu">
@@ -127,7 +148,9 @@
                                 <span>Actividades</span>
                             </a>
                         </li>
+                        @endcan
 
+                        @can('crm.clientes.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin.crm.clientes.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin/crm/clientes*']) ? 'active-item' : null }} menu">
@@ -137,7 +160,9 @@
                                 <span>Clientes</span>
                             </a>
                         </li>
+                        @endcan
 
+                        @can('crm.tickets.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin.crm.tickets.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin/crm/tickets*']) ? 'active-item' : null }} menu">
@@ -147,7 +172,9 @@
                                 <span>Tickets</span>
                             </a>
                         </li>
+                        @endcan
 
+                        @can('crm.mantenimientos.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin.crm.mantenimientos.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin/crm/mantenimientos*']) ? 'active-item' : null }} menu">
@@ -157,11 +184,16 @@
                                 <span>Mantenimientos</span>
                             </a>
                         </li>
+                        @endcan
 
+                        {{-- ===== VENTAS ===== --}}
+                        @canany(['ventas.pedidos.index', 'ventas.ventas.index'])
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3">Ventas</div>
                         </li>
+                        @endcanany
 
+                        @can('ventas.pedidos.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-pedidos.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-pedidos*']) ? 'active-item' : null }} menu">
@@ -173,6 +205,9 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
+
+                        @can('ventas.ventas.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-ventas.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-ventas*']) ? 'active-item' : null }} menu">
@@ -184,12 +219,18 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
 
 
+                        {{-- ===== OPERACIONES ===== --}}
+                        @canany(['operaciones.asignaciones.index', 'operaciones.calidad.index', 'operaciones.campanias.index', 'operaciones.trazabilidad.index'])
                         <!-- Operaciones -->
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3 mt-3">Operaciones</div>
                         </li>
+                        @endcanany
+
+                        @can('operaciones.asignaciones.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-operaciones-asignaciones.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-operaciones-asignaciones*']) ? 'active-item' : null }} menu">
@@ -199,6 +240,9 @@
                                 <span>Asignaciones</span>
                             </a>
                         </li>
+                        @endcan
+
+                        @can('operaciones.calidad.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-operaciones-calidad.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-operaciones-calidad*']) ? 'active-item' : null }} menu">
@@ -208,6 +252,9 @@
                                 <span>Control de Calidad</span>
                             </a>
                         </li>
+                        @endcan
+
+                        @can('operaciones.campanias.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-operaciones-campanias.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-operaciones-campanias*']) ? 'active-item' : null }} menu">
@@ -217,10 +264,16 @@
                                 <span>Campañas</span>
                             </a>
                         </li>
+                        @endcan
 
+                        {{-- ===== COMPRAS ===== --}}
+                        @canany(['compras.ordencompras.index', 'compras.ordenservicios.index'])
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3">COMPRAS</div>
                         </li>
+                        @endcanany
+
+                        @can('compras.ordencompras.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-ordencompras.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-ordencompras*']) ? 'active-item' : null }} menu">
@@ -232,11 +285,16 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
 
+                        {{-- ===== ALMACÉN ===== --}}
+                        @canany(['almacen.inventario.index', 'almacen.ingresos.index', 'almacen.salidas.index'])
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3">ALMACÉN</div>
                         </li>
+                        @endcanany
 
+                        @can('almacen.inventario.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-inventarios.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-inventarios*']) ? 'active-item' : null }} menu">
@@ -248,7 +306,9 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
 
+                        @can('almacen.ingresos.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-ingresos.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-ingresos*']) ? 'active-item' : null }} menu">
@@ -260,7 +320,9 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
 
+                        @can('almacen.salidas.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-salidas.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-salidas*']) ? 'active-item' : null }} menu">
@@ -272,10 +334,16 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
 
+                        {{-- ===== FINANZAS ===== --}}
+                        @canany(['finanzas.cobros.index', 'finanzas.pagos.index', 'finanzas.caja-chica.index', 'finanzas.comprobantes.index', 'finanzas.notas-ventas.index', 'finanzas.cuentasbancarias.index'])
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3">Finanzas</div>
                         </li>
+                        @endcanany
+
+                        @can('finanzas.cobros.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-cobros.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-cobros*']) ? 'active-item' : null }} menu">
@@ -287,6 +355,9 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
+
+                        @can('finanzas.pagos.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-pagos.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-pagos*']) ? 'active-item' : null }} menu">
@@ -298,6 +369,9 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
+
+                        @can('finanzas.caja-chica.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-caja-chica.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-caja-chica*']) ? 'active-item' : null }} menu">
@@ -309,6 +383,9 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
+
+                        @can('finanzas.comprobantes.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-comprobantes-finanzas.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-comprobantes-finanzas*']) ? 'active-item' : null }} menu">
@@ -320,6 +397,9 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
+
+                        @can('finanzas.notas-ventas.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-nota-ventas.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-nota-ventas*']) ? 'active-item' : null }} menu">
@@ -331,6 +411,9 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
+
+                        @can('finanzas.cuentasbancarias.index')
                         <li class="mx-2 my-1">
                             <a href="{{ route('admin-cuentasbancarias.index') }}"
                                 class="nav-link px-3 {{ request()->is(['admin-cuentasbancarias*']) ? 'active-item' : null }} menu">
@@ -342,6 +425,7 @@
                                 </span>
                             </a>
                         </li>
+                        @endcan
 
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3">Otros</div>
