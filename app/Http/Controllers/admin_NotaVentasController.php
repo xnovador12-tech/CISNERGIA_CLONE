@@ -31,7 +31,7 @@ class admin_NotaVentasController extends Controller
         $notasCredito = $notas->filter(fn($n) => $n->tipocomprobante?->codigo === '07');
         $notasDebito  = $notas->filter(fn($n) => $n->tipocomprobante?->codigo === '08');
 
-        return view('ADMINISTRADOR.FINANZAS.nota_ventas.index', compact('notas', 'notasCredito', 'notasDebito'));
+        return view('ADMINISTRADOR.FINANZAS.notas.index', compact('notas', 'notasCredito', 'notasDebito'));
     }
 
     public function create(Request $request)
@@ -62,7 +62,7 @@ class admin_NotaVentasController extends Controller
 
         $totalNCPrevias = $this->calcularTotalNCPrevias($venta);
 
-        return view('ADMINISTRADOR.FINANZAS.nota_ventas.create', compact(
+        return view('ADMINISTRADOR.FINANZAS.notas.create', compact(
             'venta', 'tipo', 'motivos', 'previewNumero', 'totalNCPrevias'
         ));
     }
@@ -212,7 +212,7 @@ class admin_NotaVentasController extends Controller
             'usuario',
         ]);
 
-        return view('ADMINISTRADOR.FINANZAS.nota_ventas.show', compact('nota'));
+        return view('ADMINISTRADOR.FINANZAS.notas.show', compact('nota'));
     }
 
     public function anular(Sale $admin_nota_venta)

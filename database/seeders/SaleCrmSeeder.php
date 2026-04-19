@@ -116,7 +116,7 @@ class SaleCrmSeeder extends Seeder
                 'igv'                 => $pedido->igv,
                 'total'               => $pedido->total,
                 'mediopago_id'        => $medioPago?->id,
-                'estado'              => 'Pagado',
+                'estado'              => 'completada',
                 'user_id'             => $pedido->user_id,
                 'sede_id'             => $cliente->sede_id,
                 'tipo_venta'          => $cliente->origen === 'ecommerce' ? 'ecommerce' : 'pedido',

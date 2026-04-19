@@ -346,7 +346,7 @@ class KanbanTestDataSeeder extends Seeder
                 'descuento' => 0,
                 'igv' => $igv,
                 'total' => $total,
-                'estado' => 'Pagado',
+                'estado' => 'completada',
                 'user_id' => 2,
                 'sede_id' => 1,
                 'tipo_venta' => 'pedido',

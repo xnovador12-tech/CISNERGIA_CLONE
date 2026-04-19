@@ -40,7 +40,7 @@ return new class extends Migration
             $table->string('billetera')->nullable();
             $table->unsignedBigInteger('cuenta_bancaria_id')->nullable();
             $table->string('condicion_pago')->default('Contado');
-            $table->enum('estado', ['completada', 'parcial', 'anulada', 'emitida'])->default('completada');
+            $table->enum('estado', ['completada', 'parcial', 'anulada', 'emitida', 'pagado', 'pendiente'])->default('completada');
             $table->boolean('anulado')->default(false);
             $table->string('estado_msalida')->default('0'); // 0: no generado, 1: generado
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
