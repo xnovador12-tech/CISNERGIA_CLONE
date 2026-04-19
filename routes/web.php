@@ -112,7 +112,7 @@ Route::middleware(['auth'])->group(function () {
     // CONFIGURACIONES — Roles y Usuarios
     // ---------------------------------------------------------
     Route::resource('admin-informacion', admin_InformacionController::class);
-    Route::resource('admin-roles', admin_RolesController::class);
+    Route::resource('admin-roles', admin_RolesController::class)->except(['show']);
     Route::resource('admin-usuarios', admin_UsuariosController::class);
     Route::put('/admin-usuarios/estado/{admin_usuario}', [admin_UsuariosController::class, 'estado']);
     Route::resource('admin-perfil', admin_PerfilController::class);
@@ -170,13 +170,11 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/admin-servicios/estado/{admin_servicio}', [admin_ServiciosController::class, 'estado']);
 
     Route::resource('admin-ordenservicios', admin_OrdenesserviciosController::class);
-    Route::put('/admin-ordenservicios/estado/{admin_servicio}', [admin_OrdenesserviciosController::class, 'estado']);
     Route::get('/busqueda_tipos', [admin_OrdenesserviciosController::class, 'getver_tipos']);
     Route::get('/fecha_vigencia', [admin_OrdenesserviciosController::class, 'getver_fecha_vigencia']);
     Route::get('/dt_servicio', [admin_OrdenesserviciosController::class, 'getver_dt_servicio']);
 
     Route::resource('admin-ordencompras', admin_OrdenescomprasController::class);
-    Route::put('/admin-ordencompras/estado/{admin_ordencompra}', [admin_OrdenescomprasController::class, 'estado']);
     Route::get('busqueda_biene_compra', [admin_OrdenescomprasController::class, 'getBusqueda_compra_biene']);
     Route::get('busqueda_detalle_compra', [admin_OrdenescomprasController::class, 'getBusqueda_detalle_compra']);
     Route::get('fecha_cuotas', [admin_OrdenescomprasController::class, 'getFechacuota']);
@@ -201,7 +199,7 @@ Route::middleware(['auth'])->group(function () {
     ->name('admin-inventarios.resultadosPDF');
     route::post('admin-inventarios-totales/resultadosPDF', [admin_InventarioController::class, 'getbusqueda_inventarios_general'])->name('admin-inventarios-totales.resultadosPDF');
 
-    Route::resource('admin-cuentasbancarias', admin_CuentabancoController::class);
+    Route::resource('admin-cuentasbancarias', admin_CuentabancoController::class)->only(['index', 'create', 'store']);
     // ---------------------------------------------------------
     // UBIGEO AJAX
     // ---------------------------------------------------------

@@ -14,7 +14,7 @@ class admin_CuentabancoController extends Controller
     public function index()
     {
         $cuentas = Cuentabanco::with(['banco', 'tipocuenta', 'moneda', 'sede'])->get();
-        return view('administrador.finanzas.cuentasbancarias.index', compact('cuentas'));
+        return view('ADMINISTRADOR.FINANZAS.cuentasbancarias.index', compact('cuentas'));
     }
 
     public function create()
