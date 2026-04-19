@@ -72,8 +72,10 @@ class admin_CrmClientesController extends Controller
         $cliente->load(['distrito.provincia.departamento', 'vendedor', 'sede']);
 
         $departamentos = Departamento::orderBy('nombre')->get();
-        $vendedores    = User::whereHas('role', function ($q) {
-            $q->whereNotIn('slug', ['logistica', 'almacen', 'tesoreria', 'cliente']);
+        // Spatie HasRoles provee la relación `roles` (plural).
+        // Vendedores = personal que puede atender ventas: Ventas, Administrador, Gerencia.
+        $vendedores    = User::whereHas('roles', function ($q) {
+            $q->whereIn('name', ['Ventas', 'Administrador', 'Gerencia']);
         })->with('persona')->get();
         $sedes = Sede::where('estado', 'Activo')->orderBy('name')->get();
 
