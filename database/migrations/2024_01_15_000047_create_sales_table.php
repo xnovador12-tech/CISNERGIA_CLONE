@@ -22,14 +22,13 @@ return new class extends Migration
             $table->foreignId('tiposcomprobante_id')->nullable()->constrained('tiposcomprobantes')->onDelete('set null');
             $table->foreignId('tipo_operacion_id')->nullable()->constrained('tipos_operaciones')->nullOnDelete();
             $table->foreignId('tipo_detraccion_id')->nullable()->constrained('tipo_detraccion')->nullOnDelete();
-            $table->string('numero_comprobante')->nullable();
             $table->date('fecha_emision')->nullable();
             $table->date('fecha_vencimiento')->nullable();
             $table->time('hora')->nullable();
 
             // Serie y correlativo (FK se agrega en migración de series_comprobantes)
             $table->unsignedBigInteger('serie_id')->nullable();
-            $table->string('serie, 10')->nullable();
+            $table->string('serie', 10)->nullable();
             $table->integer('correlativo')->nullable();
             $table->string('numero_comprobante')->nullable();
 
@@ -65,7 +64,6 @@ return new class extends Migration
             $table->string('numero_proyecto')->nullable(); // Código interno del proyecto
 
             $table->text('observaciones')->nullable();
-            $table->boolean('anulado')->default(false);
             $table->boolean('estado_sunat')->default(false);
             $table->string('mensaje_sunat')->nullable();
             $table->string('nombre_xml_sunat')->nullable();
