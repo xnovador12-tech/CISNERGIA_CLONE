@@ -40,9 +40,11 @@ class PermissionSeeder extends Seeder
             // ─── DASHBOARD Y GENERALES ────────────────────────────────────
             ['modulo' => 'Dashboard',                'name' => 'dashboard.index',                     'label' => 'Ver Dashboard'],
             ['modulo' => 'Dashboard',                'name' => 'configuraciones.index',               'label' => 'Ver Configuraciones Generales'],
-            ['modulo' => 'Dashboard',                'name' => 'reportes.index',                      'label' => 'Ver Reportes'],
             ['modulo' => 'Dashboard',                'name' => 'informacion.edit',                    'label' => 'Editar Información de la Empresa'],
             ['modulo' => 'Dashboard',                'name' => 'perfil.edit',                         'label' => 'Editar Perfil Propio'],
+
+            // ─── REPORTES ─────────────────────────────────────────────────
+            ['modulo' => 'Reportes',                 'name' => 'reportes.index',                      'label' => 'Ver Reportes'],
 
             // ─── CONFIGURACIONES - ACCESO AL SISTEMA ──────────────────────
             ['modulo' => 'Config - Roles',           'name' => 'configuraciones.roles.index',         'label' => 'Ver Roles'],

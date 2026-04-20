@@ -17,7 +17,7 @@ class RolePermissionSeeder extends Seeder
      *   operación típica de Cisnergia. El cliente (Gerencia) puede
      *   ajustar cada rol desde la UI /admin-roles/{slug}/edit.
      *
-     *   - Gerencia y Administrador  → TODOS los permisos
+     *   - Gerencia y Administrador  → TODOS los permisos (incluye dashboard)
      *   - Ventas                    → CRM completo + Pedidos/Ventas + consultas
      *   - Finanzas                  → Finanzas completo + Pedidos/Ventas (aprobar) + reportes
      *   - Compras                   → Órdenes de compra/servicio + proveedores + consultas
@@ -25,6 +25,16 @@ class RolePermissionSeeder extends Seeder
      *   - Operaciones               → Operaciones completo + tickets/mantenimientos
      *   - Tecnico                   → Solo tickets y mantenimientos
      *   - Cliente                   → Ninguno (solo ecommerce, no accede al admin)
+     *
+     * IMPORTANTE - Acceso al dashboard:
+     *   Solo Gerencia y Administrador tienen 'dashboard.index'. Los demás
+     *   roles NO ven el dashboard (es una vista directiva/gerencial con
+     *   métricas globales de negocio). Al iniciar sesión, los roles sin
+     *   este permiso son redirigidos a /admin-perfil por LoginController
+     *   y acceden a sus módulos directamente desde el sidebar.
+     *
+     *   Si el cliente quiere que otro rol vea el dashboard, solo debe
+     *   asignarle 'dashboard.index' desde la UI de roles.
      *
      * IDEMPOTENTE: syncPermissions reemplaza los permisos existentes, así que
      * se puede correr múltiples veces sin duplicar.
@@ -48,7 +58,6 @@ class RolePermissionSeeder extends Seeder
         // VENTAS: CRM completo + Pedidos/Ventas + consultas básicas
         // ═══════════════════════════════════════════════════════════════
         $permisosVentas = [
-            'dashboard.index',
             'perfil.edit',
 
             // CRM completo
@@ -79,7 +88,6 @@ class RolePermissionSeeder extends Seeder
         // FINANZAS: Cobros/Pagos/CajaChica + aprobar pedidos + reportes
         // ═══════════════════════════════════════════════════════════════
         $permisosFinanzas = [
-            'dashboard.index',
             'perfil.edit',
             'reportes.index',
 
@@ -105,7 +113,6 @@ class RolePermissionSeeder extends Seeder
         // COMPRAS: Órdenes de compra y servicio + proveedores
         // ═══════════════════════════════════════════════════════════════
         $permisosCompras = [
-            'dashboard.index',
             'perfil.edit',
 
             // Compras completo
@@ -127,7 +134,6 @@ class RolePermissionSeeder extends Seeder
         // ALMACEN: Ingresos/Salidas/Inventario + aprobar stock
         // ═══════════════════════════════════════════════════════════════
         $permisosAlmacen = [
-            'dashboard.index',
             'perfil.edit',
 
             // Almacén completo
@@ -148,7 +154,6 @@ class RolePermissionSeeder extends Seeder
         // OPERACIONES: Asignaciones/Calidad/Trazabilidad/Campañas + tickets
         // ═══════════════════════════════════════════════════════════════
         $permisosOperaciones = [
-            'dashboard.index',
             'perfil.edit',
 
             // Operaciones completo
@@ -173,7 +178,6 @@ class RolePermissionSeeder extends Seeder
         // TECNICO: Solo tickets y mantenimientos (personal de campo)
         // ═══════════════════════════════════════════════════════════════
         $permisosTecnico = [
-            'dashboard.index',
             'perfil.edit',
 
             'crm.tickets.index', 'crm.tickets.edit',
