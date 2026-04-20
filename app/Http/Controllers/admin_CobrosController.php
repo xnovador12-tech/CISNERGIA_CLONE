@@ -85,9 +85,9 @@ class admin_CobrosController extends Controller
 
         // Actualizar estado de la venta
         if ($nuevoTotalPagado >= $venta->total - 0.05) {
-            $venta->estado = 'Pagado';
+            $venta->estado = 'pagado';
         } elseif ($nuevoTotalPagado > 0) {
-            $venta->estado = 'Parcial';
+            $venta->estado = 'parcial';
         }
         $venta->save();
 

@@ -40,8 +40,10 @@ class admin_OperacionesController extends Controller
             $stats[$key] = Pedido::enKanban()->where('estado_operativo', $key)->count();
         }
 
-        $tecnicos = User::whereHas('role', function ($q) {
-                $q->whereIn('slug', ['administrador', 'logistica', 'almacen']);
+        // Spatie HasRoles provee la relación `roles` (plural, many-to-many).
+        // Los roles se filtran por `name` tal como están definidos en RoleTableSeeder.
+        $tecnicos = User::whereHas('roles', function ($q) {
+                $q->whereIn('name', ['Administrador', 'Operaciones', 'Almacen', 'Tecnico']);
             })
             ->where('estado', 'Activo')
             ->with('persona')

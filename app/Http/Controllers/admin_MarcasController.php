@@ -34,6 +34,7 @@ class admin_MarcasController extends Controller
         $marca = new Marca();
         $marca->name = $request->input('name');
         $marca->slug = Str::slug($request->input('name'));
+        $marca->url = $request->input('url');
         $marca->save();
         return redirect()->route('admin-marcas.index')->with('new_registration', 'ok');
     }
@@ -60,15 +61,23 @@ class admin_MarcasController extends Controller
     public function update(Request $request, Marca $admin_marca)
     {
         if ($request->input('name') == $admin_marca->name) {
+            $admin_marca->name = $request->input('name');
+            $admin_marca->slug = Str::slug($request->input('name'));
+            $admin_marca->url = $request->input('url');
             $admin_marca->estado = $admin_marca->estado === 'Activo' ? 'Inactivo' : 'Activo';
             $admin_marca->save();
             return redirect()->route('admin-marcas.index')->with('update', 'ok');
         }else{
             if(Marca::where('name', $request->input('name'))->exists()){
+                $admin_marca['name'] = $request->input('name');
+                $admin_marca['slug'] = Str::slug($request->input('name'));
+                $admin_marca['url'] = $request->input('url');
+                $admin_marca->save();
                 return redirect()->route('admin-marcas.index')->with('exists', 'ok');
             }else{
                 $admin_marca['name'] = $request->input('name');
                 $admin_marca['slug'] = Str::slug($request->input('name'));
+                $admin_marca['url'] = $request->input('url');
                 $admin_marca->save();
                 return redirect()->route('admin-marcas.index')->with('update', 'ok');
             }

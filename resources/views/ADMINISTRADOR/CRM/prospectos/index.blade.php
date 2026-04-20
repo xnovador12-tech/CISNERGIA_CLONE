@@ -182,8 +182,9 @@
                         <label class="form-label small text-muted mb-1">Vendedor</label>
                         <select id="filtro-vendedor" class="form-select form-select-sm select2_bootstrap_2 w-100" data-placeholder="Todos los Vendedores">
                             <option value="">Todos los Vendedores</option>
+                            <option value="[uid:null]">— Sin asignar —</option>
                             @foreach($vendedores as $vendedor)
-                                <option value="{{ trim(($vendedor->persona?->name ?? $vendedor->email) . ' ' . ($vendedor->persona?->surnames ?? '')) }}">
+                                <option value="[uid:{{ $vendedor->id }}]">
                                     {{ $vendedor->persona?->name ?? $vendedor->email }} {{ $vendedor->persona?->surnames ?? '' }}
                                 </option>
                             @endforeach
@@ -334,6 +335,9 @@
                                 {{-- Asignado --}}
                                 <td class="text-center align-middle">
                                     <small>{{ $prospecto->vendedor?->persona?->name ?? 'Sin asignar' }}</small>
+                                    {{-- Tag oculto con ID del vendedor para filtrado DataTables exacto.
+                                         El filtro #filtro-vendedor busca '[uid:1]', '[uid:null]', etc. --}}
+                                    <span class="d-none">[uid:{{ $prospecto->user_id ?? 'null' }}]</span>
                                 </td>
 
                                 {{-- Acciones --}}
@@ -430,7 +434,14 @@ $(document).ready(function() {
         table.column(5).search($(this).val()).draw();
     });
     $('#filtro-vendedor').on('change', function() {
-        table.column(7).search($(this).val()).draw();
+        // Usar regex exacta (no substring) para evitar que [uid:1] matchee [uid:10], [uid:11], etc.
+        // El tag está encapsulado entre [ y ] así que ^...$ garantiza match exacto dentro del span oculto.
+        const val = $(this).val();
+        table.column(7).search(
+            val ? $.fn.dataTable.util.escapeRegex(val) : '',
+            true,   // es regex
+            false   // smart search desactivado
+        ).draw();
     });
 
     // Limpiar filtros

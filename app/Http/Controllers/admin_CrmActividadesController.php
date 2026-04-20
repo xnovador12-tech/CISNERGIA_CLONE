@@ -103,10 +103,23 @@ class admin_CrmActividadesController extends Controller
      */
     public function create(Request $request)
     {
-        $prospectos   = Prospecto::activos()->orderBy('nombre')->get();
-        $oportunidades = Oportunidad::activas()->with('prospecto')->orderByDesc('created_at')->get();
-        $clientes     = \App\Models\Cliente::where('estado', 'activo')->orderBy('nombre')->get();
-        $usuarios     = User::with('persona')->get();
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+
+        // PROSPECTOS y OPORTUNIDADES: admin ve todo, no-admin solo los suyos.
+        // Evita que un vendedor cree actividades vinculadas a prospectos/oportunidades
+        // que son de otro vendedor.
+        $queryProspectos = Prospecto::activos();
+        $queryOportunidades = Oportunidad::activas()->with('prospecto');
+        if (!$esAdmin) {
+            $queryProspectos->where('user_id', $user->id);
+            $queryOportunidades->where('user_id', $user->id);
+        }
+        $prospectos    = $queryProspectos->orderBy('nombre')->get();
+        $oportunidades = $queryOportunidades->orderByDesc('created_at')->get();
+
+        $clientes  = \App\Models\Cliente::where('estado', 'activo')->orderBy('nombre')->get();
+        $usuarios  = $this->vendedoresDisponibles();
 
         // Pre-seleccionar entidad
         $entidadTipo = $request->get('entidad_tipo');
@@ -118,7 +131,8 @@ class admin_CrmActividadesController extends Controller
             'clientes',
             'usuarios',
             'entidadTipo',
-            'entidadId'
+            'entidadId',
+            'esAdmin'
         ));
     }
 
@@ -161,9 +175,18 @@ class admin_CrmActividadesController extends Controller
         // Valores por defecto
         $validated['estado'] = $validated['estado'] ?? 'programada';
         $validated['prioridad'] = $validated['prioridad'] ?? 'media';
-        
+
         // SIEMPRE asignar created_by con el usuario actual
         $validated['created_by'] = auth()->id();
+
+        // SEGURIDAD: si el usuario NO es admin, forzar user_id = auth()->id().
+        // Un vendedor no puede asignar actividades a otro vendedor. El backend
+        // ignora cualquier user_id manipulado en el request.
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+        if (!$esAdmin) {
+            $validated['user_id'] = $user->id;
+        }
 
         $actividad = ActividadCrm::create($validated);
 
@@ -177,6 +200,8 @@ class admin_CrmActividadesController extends Controller
      */
     public function show(ActividadCrm $actividad)
     {
+        $this->abortarSiNoVisible($actividad);
+
         $actividad->load([
             'usuario.persona', 
             'actividadable', 
@@ -192,17 +217,35 @@ class admin_CrmActividadesController extends Controller
      */
     public function edit(ActividadCrm $actividad)
     {
-        $prospectos    = Prospecto::orderBy('nombre')->get();
-        $oportunidades = Oportunidad::with('prospecto')->orderByDesc('created_at')->get();
+        $this->abortarSiNoVisible($actividad);
+
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+
+        // PROSPECTOS: admin ve todos, no-admin solo los suyos.
+        $queryProspectos = Prospecto::query();
+        if (!$esAdmin) {
+            $queryProspectos->where('user_id', $user->id);
+        }
+        $prospectos = $queryProspectos->orderBy('nombre')->get();
+
+        // OPORTUNIDADES: mismo patrón.
+        $queryOportunidades = Oportunidad::with('prospecto');
+        if (!$esAdmin) {
+            $queryOportunidades->where('user_id', $user->id);
+        }
+        $oportunidades = $queryOportunidades->orderByDesc('created_at')->get();
+
         $clientes      = \App\Models\Cliente::where('estado', 'activo')->orderBy('nombre')->get();
-        $usuarios      = User::with('persona')->get();
+        $usuarios      = $this->vendedoresDisponibles();
 
         return view('ADMINISTRADOR.CRM.actividades.edit', compact(
             'actividad',
             'prospectos',
             'oportunidades',
             'clientes',
-            'usuarios'
+            'usuarios',
+            'esAdmin'
         ));
     }
 
@@ -211,6 +254,8 @@ class admin_CrmActividadesController extends Controller
      */
     public function update(Request $request, ActividadCrm $actividad)
     {
+        $this->abortarSiNoVisible($actividad);
+
         $validated = $request->validate([
             'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,whatsapp',
             'titulo' => 'required|string|max:200',
@@ -224,6 +269,14 @@ class admin_CrmActividadesController extends Controller
             'activable_type' => 'nullable|string',
             'activable_id' => 'nullable|integer',
         ]);
+
+        // SEGURIDAD: si el usuario NO es admin, preservar el user_id original.
+        // Un vendedor no puede reasignar su actividad a otro vendedor.
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+        if (!$esAdmin) {
+            $validated['user_id'] = $actividad->user_id;
+        }
 
         // Mapear recordatorio_minutos a recordatorio_minutos_antes
         if (isset($validated['recordatorio_minutos'])) {
@@ -254,6 +307,8 @@ class admin_CrmActividadesController extends Controller
      */
     public function destroy(ActividadCrm $actividad)
     {
+        $this->abortarSiNoVisible($actividad);
+
         $actividad->delete();
 
         return redirect()
@@ -270,6 +325,8 @@ class admin_CrmActividadesController extends Controller
      */
     public function completar(Request $request, ActividadCrm $actividad)
     {
+        $this->abortarSiNoVisible($actividad);
+
         $rules = ['resultado' => 'nullable|string'];
 
         // Resultado obligatorio para visitas técnicas
@@ -293,6 +350,8 @@ class admin_CrmActividadesController extends Controller
      */
     public function iniciarEvaluacion(Request $request, ActividadCrm $actividad)
     {
+        $this->abortarSiNoVisible($actividad);
+
         if ($actividad->tipo !== 'visita_tecnica') {
             return back()->with('error', 'Solo las visitas técnicas pueden iniciarse como evaluación.');
         }
@@ -312,6 +371,8 @@ class admin_CrmActividadesController extends Controller
      */
     public function noRealizada(Request $request, ActividadCrm $actividad)
     {
+        $this->abortarSiNoVisible($actividad);
+
         $validated = $request->validate([
             'motivo_cancelacion' => 'required|string|min:5|max:500',
         ], [
@@ -329,6 +390,8 @@ class admin_CrmActividadesController extends Controller
      */
     public function cancelar(Request $request, ActividadCrm $actividad)
     {
+        $this->abortarSiNoVisible($actividad);
+
         $validated = $request->validate([
             'motivo_cancelacion' => 'nullable|string|max:255',
         ]);
@@ -343,6 +406,8 @@ class admin_CrmActividadesController extends Controller
      */
     public function reprogramar(Request $request, ActividadCrm $actividad)
     {
+        $this->abortarSiNoVisible($actividad);
+
         $validated = $request->validate([
             'fecha_programada' => 'required|date|after_or_equal:today',
             'motivo_reprogramacion' => 'nullable|string|max:255',
@@ -361,6 +426,8 @@ class admin_CrmActividadesController extends Controller
      */
     public function crearSeguimiento(Request $request, ActividadCrm $actividad)
     {
+        $this->abortarSiNoVisible($actividad);
+
         $validated = $request->validate([
             'tipo' => 'required|in:llamada,email,reunion,visita_tecnica,whatsapp',
             'titulo' => 'required|string|max:200',
@@ -439,6 +506,8 @@ class admin_CrmActividadesController extends Controller
      */
     public function actualizarFecha(Request $request, ActividadCrm $actividad)
     {
+        $this->abortarSiNoVisible($actividad);
+
         $validated = $request->validate([
             'fecha_programada' => 'required|date',
         ]);
@@ -670,6 +739,53 @@ class admin_CrmActividadesController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // HELPERS PRIVADOS DE AUTORIZACIÓN Y VISIBILIDAD
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Aborta con 403 si el usuario actual NO puede ver esta actividad.
+     *
+     * Criterios:
+     *   - Admin (Gerencia/Administrador) → siempre puede ver todas las actividades.
+     *   - No-admin → solo puede ver las actividades asignadas a él
+     *     (actividad.user_id === auth()->id()).
+     *
+     * Protege contra acceso directo por URL y POST manipulado desde otro user.
+     */
+    private function abortarSiNoVisible(ActividadCrm $actividad): void
+    {
+        $user = auth()->user();
+
+        if ($user->hasAnyRole(['Gerencia', 'Administrador'])) {
+            return;
+        }
+
+        if ($actividad->user_id !== $user->id) {
+            abort(403, 'No tienes permiso para acceder a esta actividad.');
+        }
+    }
+
+    /**
+     * Retorna los usuarios que pueden ser asignados como responsables de una
+     * actividad.
+     *
+     * CRITERIO: usuarios con el permiso 'crm.actividades.edit'. Quien pueda
+     * editar actividades puede ser asignado. Filtra por permiso (no por rol
+     * hardcoded) para que cualquier rol nuevo con ese permiso aparezca
+     * automáticamente sin tocar código.
+     *
+     * Solo usuarios con estado 'Activo'.
+     */
+    private function vendedoresDisponibles()
+    {
+        return User::permission('crm.actividades.edit')
+            ->where('estado', 'Activo')
+            ->with('persona')
+            ->get()
+            ->sortBy(fn($u) => $u->persona?->name);
     }
 }
 

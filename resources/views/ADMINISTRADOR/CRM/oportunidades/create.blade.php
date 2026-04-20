@@ -222,13 +222,26 @@
 
                         <div class="col-md-6">
                             <label class="form-label">Vendedor Asignado</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" id="user_id" data-placeholder="Seleccionar vendedor...">
-                                @foreach($vendedores ?? [] as $vendedor)
-                                    <option value="{{ $vendedor->id }}" {{ old('user_id', auth()->id()) == $vendedor->id ? 'selected' : '' }}>
-                                        {{ $vendedor->persona?->name ?? $vendedor->email }} {{ $vendedor->persona?->surnames ?? '' }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            @if($esAdmin ?? false)
+                                {{-- Admin (Gerencia/Administrador) puede elegir a cualquier vendedor --}}
+                                <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" id="user_id" data-placeholder="Seleccionar vendedor...">
+                                    @foreach($vendedores ?? [] as $vendedor)
+                                        <option value="{{ $vendedor->id }}" {{ old('user_id', auth()->id()) == $vendedor->id ? 'selected' : '' }}>
+                                            {{ $vendedor->persona?->name ?? $vendedor->email }} {{ $vendedor->persona?->surnames ?? '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                {{-- Vendedor (no-admin): auto-asignación silenciosa al usuario actual.
+                                     El backend (store) también fuerza user_id = auth()->id(), así que
+                                     aunque alguien manipule el HTML con F12, no puede reasignar a otro. --}}
+                                <input type="text"
+                                       class="form-control form-control-sm"
+                                       value="{{ auth()->user()->persona?->name ?? auth()->user()->email }} {{ auth()->user()->persona?->surnames ?? '' }}"
+                                       readonly
+                                       style="background-color: #f8f9fa; cursor: not-allowed;">
+                                <small class="text-muted">La oportunidad se asignará automáticamente a ti.</small>
+                            @endif
                         </div>
 
                         {{-- ===================== DESCRIPCIÓN ===================== --}}

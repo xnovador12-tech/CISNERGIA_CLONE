@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('tiposcomprobante_id')->nullable()->constrained('tiposcomprobantes')->onDelete('set null');
             $table->foreignId('tipo_operacion_id')->nullable()->constrained('tipos_operaciones')->nullOnDelete();
-            $table->string('numero_comprobante')->nullable();
+            $table->foreignId('tipo_detraccion_id')->nullable()->constrained('tipo_detraccion')->nullOnDelete();
             $table->date('fecha_emision')->nullable();
             $table->date('fecha_vencimiento')->nullable();
             $table->time('hora')->nullable();
@@ -30,24 +30,26 @@ return new class extends Migration
             $table->unsignedBigInteger('serie_id')->nullable();
             $table->string('serie', 10)->nullable();
             $table->integer('correlativo')->nullable();
+            $table->string('numero_comprobante')->nullable();
 
             // Montos
             $table->decimal('subtotal', 11, 2)->default(0);
             $table->decimal('descuento', 11, 2)->default(0);
             $table->decimal('igv', 11, 2)->default(0);
             $table->decimal('total', 11, 2)->default(0);
+            $table->decimal('monto_detraccion', 15, 2)->default(0);
+            $table->decimal('monto_neto', 15, 2)->default(0);
 
             // Pago y estado
             $table->foreignId('mediopago_id')->nullable()->constrained('mediopagos')->onDelete('set null');
             $table->string('billetera')->nullable();
             $table->unsignedBigInteger('cuenta_bancaria_id')->nullable();
             $table->string('condicion_pago')->default('Contado');
-            $table->decimal('monto_pagado_inicial', 15, 2)->default(0);
-            $table->unsignedTinyInteger('numero_cuotas')->default(0);
             $table->enum('estado', ['Pendiente', 'Pagado', 'Parcial', 'Anulado'])->default('Pendiente');
+            $table->boolean('anulado')->default(false);
             $table->string('estado_msalida')->default('0'); // 0: no generado, 1: generado
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('sede_id')->nullable()->constrained('sedes')->onDeleteñ('set null');
+            $table->foreignId('sede_id')->nullable()->constrained('sedes')->onDelete('set null');
             $table->enum('tipo_venta', ['pos', 'pedido', 'ecommerce'])->default('pos');
 
             // Campos específicos para proyectos energéticos
@@ -62,11 +64,9 @@ return new class extends Migration
             $table->string('numero_proyecto')->nullable(); // Código interno del proyecto
 
             $table->text('observaciones')->nullable();
-            $table->boolean('anulado')->default(false);
             $table->boolean('estado_sunat')->default(false);
             $table->string('mensaje_sunat')->nullable();
             $table->string('nombre_xml_sunat')->nullable();
-            
 
             $table->timestamps();
         });
@@ -85,6 +85,7 @@ return new class extends Migration
             // Cantidades y precios
             $table->decimal('cantidad', 11, 2)->default(1);
             $table->decimal('precio_unitario', 11, 2)->default(0);
+            $table->decimal('precio_igv', 11, 2)->default(0);
             $table->decimal('descuento_porcentaje', 5, 2)->default(0);
             $table->decimal('descuento_monto', 11, 2)->default(0);
             $table->decimal('subtotal', 11, 2)->default(0);
@@ -120,7 +121,6 @@ return new class extends Migration
             $table->unsignedBigInteger('cuenta_bancaria_id')->nullable();
             $table->timestamps();
         });
-
     }
 
     /**

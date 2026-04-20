@@ -320,7 +320,7 @@
 <section class="py-5 bg-light">
   <div class="container">
     <h3 class="fw-bold mb-4">Resumen de Compras</h3>
-    <div class="row g-4">
+    <div class="row g-4 justify-content-center">
       <div class="col-lg-3 col-md-6">
         <div class="card border-0 shadow-sm rounded-4 h-100">
           <div class="card-body p-4 text-center">
@@ -354,7 +354,7 @@
           </div>
         </div>
       </div>
-      <div class="col-lg-3 col-md-6">
+      <!-- <div class="col-lg-3 col-md-6">
         <div class="card border-0 shadow-sm rounded-4 h-100">
           <div class="card-body p-4 text-center">
             <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
@@ -364,7 +364,7 @@
             <p class="text-muted mb-0">Calificación Promedio</p>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </section>

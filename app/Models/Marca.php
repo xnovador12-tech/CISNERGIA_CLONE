@@ -12,6 +12,7 @@ class Marca extends Model
     protected $fillable = [
             'name',
             'slug',
+            'url',
             'estado'
     ];
 

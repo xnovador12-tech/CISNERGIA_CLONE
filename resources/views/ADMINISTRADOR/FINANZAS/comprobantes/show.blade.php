@@ -178,10 +178,10 @@
                 </div>
 
                 {{-- Notas Asociadas --}}
-                @if(isset($notas) && $notas->count() > 0)
+                @if(isset($notasVentas) && $notasVentas->count() > 0)
                 <div class="card border-0 shadow-sm mb-3" data-aos="fade-up">
                     <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0"><i class="bi bi-file-earmark-minus me-2"></i>Notas Asociadas ({{ $notas->count() }})</h5>
+                        <h5 class="mb-0"><i class="bi bi-file-earmark-minus me-2"></i>Notas Asociadas ({{ $notasVentas->count() }})</h5>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -197,26 +197,26 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($notas as $nota)
+                                    @foreach($notasVentas as $nota)
                                     <tr>
                                         <td class="text-center">
                                             <strong>{{ $nota->numero_comprobante }}</strong>
                                             <br><small class="text-muted">{{ $nota->codigo }}</small>
                                         </td>
                                         <td class="text-center">
-                                            @if($nota->tipocomprobante && $nota->tipocomprobante->codigo === '07')
+                                            @if($nota->tipocomprobante?->codigo === '07')
                                                 <span class="badge bg-danger">NC</span>
                                             @else
                                                 <span class="badge bg-info">ND</span>
                                             @endif
                                         </td>
-                                        <td><small>{{ $nota->motivo_descripcion }}</small></td>
-                                        <td class="text-center">{{ $nota->fecha_emision->format('d/m/Y') }}</td>
-                                        <td class="text-end fw-bold {{ $nota->tipocomprobante && $nota->tipocomprobante->codigo === '07' ? 'text-danger' : 'text-info' }}">
+                                        <td><small>{{ $nota->ventaReferencia?->sunatMotivoNota?->descripcion ?? 'N/A' }}</small></td>
+                                        <td class="text-center">{{ $nota->created_at->format('d/m/Y') }}</td>
+                                        <td class="text-end fw-bold {{ $nota->tipocomprobante?->codigo === '07' ? 'text-danger' : 'text-info' }}">
                                             S/ {{ number_format($nota->total, 2) }}
                                         </td>
                                         <td class="text-center">
-                                            <a href="{{ route('admin-notas.show', $nota) }}" class="btn btn-sm btn-outline-primary">
+                                            <a href="{{ route('admin-nota-ventas.show', $nota) }}" class="btn btn-sm btn-outline-primary">
                                                 <i class="bi bi-eye"></i>
                                             </a>
                                         </td>
@@ -237,11 +237,11 @@
                     <a href="{{ route('admin-ventas.show', $venta) }}" class="btn btn-outline-primary">
                         <i class="bi bi-eye me-2"></i>Ver Venta
                     </a>
-                    @if($venta->estado !== 'Anulado')
-                        <a href="{{ route('admin-notas.create', ['sale_id' => $venta->id, 'tipo' => 'nc']) }}" class="btn btn-danger">
+                    @if($venta->estado !== 'anulada')
+                        <a href="{{ route('admin-nota-ventas.create', ['sale_id' => $venta->id, 'tipo' => 'nc']) }}" class="btn btn-danger">
                             <i class="bi bi-dash-circle me-2"></i>Emitir Nota de Credito
                         </a>
-                        <a href="{{ route('admin-notas.create', ['sale_id' => $venta->id, 'tipo' => 'nd']) }}" class="btn btn-info text-white">
+                        <a href="{{ route('admin-nota-ventas.create', ['sale_id' => $venta->id, 'tipo' => 'nd']) }}" class="btn btn-info text-white">
                             <i class="bi bi-plus-circle me-2"></i>Emitir Nota de Debito
                         </a>
                     @endif

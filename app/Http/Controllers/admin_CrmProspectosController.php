@@ -88,7 +88,7 @@ class admin_CrmProspectosController extends Controller
                 : 0,
         ];
 
-        $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $vendedores = $this->vendedoresDisponibles();
 
         return view('ADMINISTRADOR.CRM.prospectos.index', compact(
             'prospectos',
@@ -102,10 +102,13 @@ class admin_CrmProspectosController extends Controller
      */
     public function create()
     {
-        $departamentos = Departamento::orderBy('nombre')->get();
-        $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
 
-        return view('ADMINISTRADOR.CRM.prospectos.create', compact('departamentos', 'vendedores'));
+        $departamentos = Departamento::orderBy('nombre')->get();
+        $vendedores = $this->vendedoresDisponibles();
+
+        return view('ADMINISTRADOR.CRM.prospectos.create', compact('departamentos', 'vendedores', 'esAdmin'));
     }
 
     /**
@@ -117,6 +120,17 @@ class admin_CrmProspectosController extends Controller
 
         $validated['estado'] = 'nuevo';
         $validated['fecha_primer_contacto'] = now();
+
+        // SEGURIDAD: si el usuario NO es admin, ignorar cualquier user_id que
+        // venga en el request. El prospecto se asigna automáticamente al
+        // vendedor que lo crea.
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+        if (!$esAdmin) {
+            $validated['user_id'] = $user->id;
+        } else {
+            $validated['user_id'] = $validated['user_id'] ?? $user->id;
+        }
 
         $prospecto = \DB::transaction(function () use ($validated) {
             $prospecto = Prospecto::create($validated);
@@ -166,7 +180,7 @@ class admin_CrmProspectosController extends Controller
                 ->get();
         }
 
-        $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $vendedores = $this->vendedoresDisponibles();
 
         return view('ADMINISTRADOR.CRM.prospectos.show', compact('prospecto', 'timeline', 'wishlistItems', 'vendedores'));
     }
@@ -176,13 +190,16 @@ class admin_CrmProspectosController extends Controller
      */
     public function edit(Prospecto $prospecto)
     {
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+
         $departamentos = Departamento::orderBy('nombre')->get();
-        $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $vendedores = $this->vendedoresDisponibles();
 
         // Cargar relaciones del distrito actual para pre-seleccionar los cascading selects
         $prospecto->load('distrito.provincia.departamento');
 
-        return view('ADMINISTRADOR.CRM.prospectos.edit', compact('prospecto', 'departamentos', 'vendedores'));
+        return view('ADMINISTRADOR.CRM.prospectos.edit', compact('prospecto', 'departamentos', 'vendedores', 'esAdmin'));
     }
 
     /**
@@ -191,6 +208,14 @@ class admin_CrmProspectosController extends Controller
     public function update(UpdateProspectoRequest $request, Prospecto $prospecto)
     {
         $validated = $request->validated();
+
+        // SEGURIDAD: si el usuario NO es admin, preservar el user_id original.
+        // Un vendedor no puede reasignar su prospecto a otro vendedor.
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+        if (!$esAdmin) {
+            $validated['user_id'] = $prospecto->user_id;
+        }
 
         $prospecto->update($validated);
 
@@ -270,6 +295,30 @@ class admin_CrmProspectosController extends Controller
         return redirect()
             ->route('admin.crm.prospectos.show', $prospecto)
             ->with('success', 'Estado actualizado a ' . ucfirst(str_replace('_', ' ', $validated['estado'])));
+    }
+
+    /**
+     * Retorna la lista de usuarios que pueden ser ASIGNADOS como responsables
+     * (vendedores) de un prospecto.
+     *
+     * CRITERIO (basado en permisos, NO en roles hardcoded):
+     *   - Solo usuarios con el permiso 'crm.prospectos.edit'. Este permiso es
+     *     el mínimo necesario para gestionar prospectos; quien lo tenga puede
+     *     recibir asignaciones.
+     *   - Solo usuarios con estado 'Activo' (evita que usuarios deshabilitados
+     *     o dados de baja aparezcan en el dropdown).
+     *
+     * BENEFICIO: si mañana Gerencia crea un rol nuevo (ej: "Comercial") y le
+     * asigna el permiso 'crm.prospectos.edit' desde la UI, los usuarios de
+     * ese rol aparecerán automáticamente en el dropdown sin tocar código.
+     */
+    private function vendedoresDisponibles()
+    {
+        return User::permission('crm.prospectos.edit')
+            ->where('estado', 'Activo')
+            ->with('persona')
+            ->get()
+            ->sortBy(fn($u) => $u->persona?->name);
     }
 
 }

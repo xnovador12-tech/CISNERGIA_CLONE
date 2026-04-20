@@ -199,16 +199,24 @@
 
                         <div class="col-md-3">
                             <label class="form-label">Origen <span class="text-danger">*</span></label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="origen" required data-placeholder="Seleccionar...">
-                                <option value="">Seleccionar...</option>
-                                @foreach(['sitio_web' => 'Sitio Web', 'redes_sociales' => 'Redes Sociales', 'llamada' => 'Llamada', 'referido' => 'Referido', 'otro' => 'Otro'] as $key => $label)
-                                    <option value="{{ $key }}" {{ old('origen', $prospecto->origen) == $key ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
-                                @if($prospecto->origen === 'ecommerce')
-                                    {{-- Origen automático del ecommerce: visible pero no editable --}}
-                                    <option value="ecommerce" selected disabled>E-commerce (automático)</option>
-                                @endif
-                            </select>
+                            @if($prospecto->origen === 'ecommerce')
+                                {{-- Origen automático del ecommerce: no editable.
+                                     Se muestra un select deshabilitado (no se puede cambiar) y
+                                     un input hidden que SÍ envía el valor al backend.
+                                     NOTA: un <option disabled selected> NO envía valor al
+                                     submit — por eso usamos este patrón con input hidden. --}}
+                                <select class="form-select form-select-sm select2_bootstrap w-100" disabled data-placeholder="E-commerce (automático)">
+                                    <option value="ecommerce" selected>E-commerce (automático)</option>
+                                </select>
+                                <input type="hidden" name="origen" value="ecommerce">
+                            @else
+                                <select class="form-select form-select-sm select2_bootstrap w-100" name="origen" required data-placeholder="Seleccionar...">
+                                    <option value="">Seleccionar...</option>
+                                    @foreach(['sitio_web' => 'Sitio Web', 'redes_sociales' => 'Redes Sociales', 'llamada' => 'Llamada', 'referido' => 'Referido', 'otro' => 'Otro'] as $key => $label)
+                                        <option value="{{ $key }}" {{ old('origen', $prospecto->origen) == $key ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            @endif
                         </div>
 
                         <div class="col-md-3">
@@ -263,14 +271,25 @@
 
                         <div class="col-md-3">
                             <label class="form-label">Asignar a</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" data-placeholder="Sin asignar">
-                                <option value="">Sin asignar</option>
-                                @foreach($vendedores ?? [] as $vendedor)
-                                    <option value="{{ $vendedor->id }}" {{ old('user_id', $prospecto->user_id) == $vendedor->id ? 'selected' : '' }}>
-                                        {{ $vendedor->persona?->name ?? $vendedor->email }} {{ $vendedor->persona?->surnames ?? '' }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            @if($esAdmin ?? false)
+                                {{-- Admin puede reasignar el prospecto a otro vendedor --}}
+                                <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" data-placeholder="Sin asignar">
+                                    <option value="">Sin asignar</option>
+                                    @foreach($vendedores ?? [] as $vendedor)
+                                        <option value="{{ $vendedor->id }}" {{ old('user_id', $prospecto->user_id) == $vendedor->id ? 'selected' : '' }}>
+                                            {{ $vendedor->persona?->name ?? $vendedor->email }} {{ $vendedor->persona?->surnames ?? '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                {{-- No-admin: readonly. El update() del controller preserva user_id original. --}}
+                                <input type="text"
+                                       class="form-control form-control-sm"
+                                       value="{{ $prospecto->vendedor?->persona?->name ?? $prospecto->vendedor?->email ?? 'Sin asignar' }} {{ $prospecto->vendedor?->persona?->surnames ?? '' }}"
+                                       readonly
+                                       style="background-color: #f8f9fa; cursor: not-allowed;">
+                                <small class="text-muted">Solo Gerencia/Administrador puede reasignar.</small>
+                            @endif
                         </div>
 
                         {{-- Motivo de descarte (visible solo si estado = descartado) --}}

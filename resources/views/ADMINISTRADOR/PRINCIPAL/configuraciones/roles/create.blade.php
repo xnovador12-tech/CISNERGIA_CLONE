@@ -82,31 +82,8 @@
                     </div>
                     <div class="card-body" style="max-height: 65vh; overflow-y: auto;">
 
-                        @php
-                            $iconosModulo = [
-                                'Dashboard'             => 'bi-speedometer2',
-                                'CRM - Prospectos'      => 'bi-person-plus',
-                                'CRM - Oportunidades'   => 'bi-graph-up-arrow',
-                                'CRM - Cotizaciones'    => 'bi-file-earmark-text',
-                                'CRM - Actividades'     => 'bi-calendar-check',
-                                'CRM - Clientes'        => 'bi-people',
-                                'CRM - Tickets'         => 'bi-ticket-perforated',
-                                'CRM - Mantenimientos'  => 'bi-tools',
-                                'Ventas - Pedidos'      => 'bi-cart3',
-                                'Ventas - Ventas'       => 'bi-bag-check',
-                                'Compras'               => 'bi-truck',
-                                'Almacén'               => 'bi-box-seam',
-                                'Operaciones'           => 'bi-gear',
-                                'Reportes'              => 'bi-bar-chart',
-                                'Config - Tipos'        => 'bi-tags',
-                                'Config - Categorías'   => 'bi-folder',
-                                'Config - Marcas'       => 'bi-bookmark-star',
-                                'Config - Productos'    => 'bi-box',
-                                'Config - Proveedores'  => 'bi-building',
-                                'Config - Usuarios'     => 'bi-person-gear',
-                                'Config - Roles'        => 'bi-shield-lock',
-                            ];
-                        @endphp
+                        {{-- $iconosModulo viene del controller (admin_RolesController::iconosModulo)
+                             para mantener una sola fuente de verdad del mapeo módulo → icono. --}}
 
                         @foreach($permisosAgrupados as $modulo => $permisos)
                         <div class="mb-3">

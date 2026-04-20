@@ -44,7 +44,7 @@ class ecommerceController extends Controller
     // Página principal
     public function index()
     {
-
+        $marcas_aliadas = Marca::all();
         $productos_inventario = Inventario::where('cantidad', '>', 0)->pluck('id_producto')->toArray();
         $productos = Producto::where('estado', 'Activo')
             ->whereIn('id', $productos_inventario)
@@ -52,7 +52,7 @@ class ecommerceController extends Controller
             ->take(8)
             ->get();
 
-        return view('ECOMMERCE.index', compact('productos'));
+        return view('ECOMMERCE.index', compact('productos', 'marcas_aliadas'));
     }
 
         public function limpiarSesioncisnergia(Request $request)
@@ -1140,8 +1140,7 @@ class ecommerceController extends Controller
                 // Stock insuficiente: queda con aprobacion_stock = false
             }
 
-            $serieComprobante = \App\Models\SerieComprobante::where('tiposcomprobante_id', $request->tiposcomprobante_id ?? 1)
-            ->where('activo', true)
+            $serieComprobante = \App\Models\Serie::where('tiposcomprobante_id', $request->tiposcomprobante_id ?? 1)
             ->first();
 
             $numeroComprobante = $serieComprobante->generarNumero();

@@ -15,9 +15,7 @@ use App\Models\TipoOperacion;
 use App\Models\TipoDetraccion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use App\Mail\ComprobanteEmail;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Mail;
 
 class admin_VentasController extends Controller
 {
@@ -26,7 +24,6 @@ class admin_VentasController extends Controller
         $ventas = Sale::with(['cliente', 'tipocomprobante', 'mediopago', 'usuario', 'sede', 'pagos'])->orderBy('created_at', 'desc')->get();
         $pedidosPendientes = Pedido::with(['cliente', 'usuario'])
             ->where('estado', 'pendiente')
-            ->where('origen', '!=', 'ecommerce')
             ->orderBy('created_at', 'desc')
             ->get();
         return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.index', compact('ventas', 'pedidosPendientes'));
@@ -44,23 +41,18 @@ class admin_VentasController extends Controller
             }
         }
 
-        $tiposComprobante = Tiposcomprobante::whereIn('codigo', ['01', '03', '00'])
-            ->whereHas('series', function ($q) {
-                $q->where('activo', true);
-            })->get();
+        $tiposComprobante = Tiposcomprobante::whereHas('series')->get();
         $mediosPago = Mediopago::all();
         $cuentasBancarias = Cuentabanco::with(['banco', 'moneda', 'tipocuenta'])->get();
         $tiposOperacion = TipoOperacion::all();
         $tiposDetraccion = TipoDetraccion::all();
 
         // Series con correlativos para preview
-        $seriesComprobante = \App\Models\SerieComprobante::with('correlativo')
-            ->where('activo', true)
-            ->get()
+        $seriesComprobante = \App\Models\Serie::all()
             ->groupBy('tiposcomprobante_id')
             ->map(function ($series) {
                 $serie = $series->first();
-                $siguiente = ($serie->correlativo->numero ?? 0) + 1;
+                $siguiente = $serie->correlativo + 1;
                 return $serie->serie . '-' . str_pad($siguiente, 8, '0', STR_PAD_LEFT);
             });
 
@@ -105,8 +97,7 @@ class admin_VentasController extends Controller
         }
 
         // Generar número de comprobante usando series
-        $serieComprobante = \App\Models\SerieComprobante::where('tiposcomprobante_id', $validated['tiposcomprobante_id'])
-            ->where('activo', true)
+        $serieComprobante = \App\Models\Serie::where('tiposcomprobante_id', $validated['tiposcomprobante_id'])
             ->first();
 
         if (!$serieComprobante) {
@@ -115,25 +106,24 @@ class admin_VentasController extends Controller
 
         $numeroComprobante = $serieComprobante->generarNumero();
 
-        // Extraer serie y correlativo por separado
-        $serieStr = $serieComprobante->serie;
-        $correlativoNum = $serieComprobante->correlativo->numero;
-
-        // Fecha de emisión y hora actuales
-        $fechaEmision = now()->format('Y-m-d');
-        $hora = now()->format('H:i:s');
-
         // Generar código de venta
-        $prefijoCodigo = 'VTA-' . date('Y') . '-';
-        $ultimaVenta = Sale::where('codigo', 'like', $prefijoCodigo . '%')->orderBy('codigo', 'desc')->first();
-        $numero = 1;
-        if ($ultimaVenta && preg_match('/-(\d+)$/', $ultimaVenta->codigo, $matches)) {
-            $numero = intval($matches[1]) + 1;
-        }
-        $codigoVenta = $prefijoCodigo . str_pad($numero, 5, '0', STR_PAD_LEFT);
+        $ultimaVenta = Sale::latest('id')->first();
+        $numero = $ultimaVenta ? $ultimaVenta->id + 1 : 1;
+        $codigoVenta = 'VTA-' . date('Y') . '-' . str_pad($numero, 5, '0', STR_PAD_LEFT);
 
         // Tomar el primer medio de pago como principal (si existe)
         $primerPago = $validated['pagos'][0] ?? null;
+
+        // Calcular detracción si aplica
+        $montoDetraccion = 0;
+        $montoNeto = $pedido->total;
+        if (!empty($validated['tipo_detraccion_id'])) {
+            $tipoDetraccion = TipoDetraccion::find($validated['tipo_detraccion_id']);
+            if ($tipoDetraccion) {
+                $montoDetraccion = round($pedido->total * ($tipoDetraccion->porcentaje / 100), 2);
+                $montoNeto = round($pedido->total - $montoDetraccion, 2);
+            }
+        }
 
         // Crear la venta
         $venta = Sale::create([
@@ -143,46 +133,28 @@ class admin_VentasController extends Controller
             'cliente_id' => $pedido->cliente_id,
             'tiposcomprobante_id' => $validated['tiposcomprobante_id'],
             'tipo_operacion_id' => $validated['tipo_operacion_id'],
-            'numero_comprobante' => $numeroComprobante,
-            'fecha_emision' => $fechaEmision,
-            'hora' => $hora,
+            'tipo_detraccion_id' => $validated['tipo_detraccion_id'] ?? null,
             'serie_id' => $serieComprobante->id,
-            'serie' => $serieStr,
-            'correlativo' => $correlativoNum,
+            'serie' => $serieComprobante->serie,
+            'correlativo' => $serieComprobante->correlativo,
+            'numero_comprobante' => $numeroComprobante,
             'subtotal' => $pedido->subtotal,
             'descuento' => $pedido->descuento_monto,
             'igv' => $pedido->igv,
             'total' => $pedido->total,
+            'monto_detraccion' => $montoDetraccion,
+            'monto_neto' => $montoNeto,
             'mediopago_id' => $primerPago['mediopago_id'] ?? null,
             'condicion_pago' => $validated['condicion_pago'],
-            'estado' => 'Pendiente',
+            'estado' => 'completada',
             'user_id' => auth()->id(),
             'sede_id' => auth()->user()->persona->sede_id ?? null,
             'tipo_venta' => 'pedido',
             'observaciones' => 'Venta registrada desde Pedido ' . $pedido->codigo,
         ]);
 
-        // Crear detracción en tabla separada si aplica
-        if (!empty($validated['tipo_detraccion_id'])) {
-            $tipoDetraccion = TipoDetraccion::find($validated['tipo_detraccion_id']);
-            if ($tipoDetraccion) {
-                \App\Models\VentaDetraccion::create([
-                    'sale_id' => $venta->id,
-                    'tipo_detraccion_id' => $tipoDetraccion->id,
-                    'porcentaje' => $tipoDetraccion->porcentaje,
-                    'monto_detraccion' => round($pedido->total * ($tipoDetraccion->porcentaje / 100), 2),
-                    'estado' => 'Pendiente',
-                    'user_id' => auth()->id(),
-                ]);
-            }
-        }
-
-        // Copiar detalles del pedido (precio ya incluye IGV)
+        // Copiar detalles del pedido
         foreach ($pedido->detalles as $detalle) {
-            $totalLinea = $detalle->subtotal;
-            $subtotalLinea = round($totalLinea / 1.18, 2);
-            $igvLinea = round($totalLinea - $subtotalLinea, 2);
-
             Detailsale::create([
                 'sale_id' => $venta->id,
                 'producto_id' => $detalle->producto_id,
@@ -193,9 +165,7 @@ class admin_VentasController extends Controller
                 'precio_unitario' => $detalle->precio_unitario,
                 'descuento_porcentaje' => $detalle->descuento_porcentaje ?? 0,
                 'descuento_monto' => $detalle->descuento_monto ?? 0,
-                'subtotal' => $subtotalLinea,
-                'igv' => $igvLinea,
-                'total' => $totalLinea,
+                'subtotal' => $detalle->subtotal,
             ]);
         }
 
@@ -227,36 +197,25 @@ class admin_VentasController extends Controller
             }
         }
 
+        // Determinar estado según monto pagado
+        if ($sumaPagos >= $venta->total - 0.05) {
+            $venta->estado = 'completada';
+        } else {
+            $venta->estado = 'parcial';
+        }
+        $venta->save();
+
         // Guardar cuotas si es crédito
-        $numeroCuotas = 0;
         if ($validated['condicion_pago'] === 'Crédito' && !empty($validated['cuotas'])) {
-            $numeroCuotas = count($validated['cuotas']);
             foreach ($validated['cuotas'] as $index => $cuotaData) {
                 \App\Models\SaleCuota::create([
                     'sale_id' => $venta->id,
                     'numero_cuota' => $index + 1,
                     'importe' => $cuotaData['importe'],
                     'fecha_vencimiento' => $cuotaData['fecha_vencimiento'],
-                    'estado' => 'Pendiente',
                 ]);
             }
-            $venta->fecha_vencimiento = $validated['cuotas'][0]['fecha_vencimiento'];
-        } else {
-            $venta->fecha_vencimiento = $fechaEmision;
         }
-
-        // Determinar estado según condición de pago y monto pagado
-        if ($sumaPagos >= $venta->total - 0.05) {
-            $venta->estado = 'Pagado';
-        } elseif ($sumaPagos > 0) {
-            $venta->estado = 'Parcial';
-        } else {
-            $venta->estado = 'Pendiente';
-        }
-
-        $venta->monto_pagado_inicial = $sumaPagos;
-        $venta->numero_cuotas = $numeroCuotas;
-        $venta->save();
 
         // Actualizar estado del pedido
         $pedido->update([
@@ -266,16 +225,13 @@ class admin_VentasController extends Controller
         ]);
 
         return redirect()->route('admin-ventas.show', $venta)
-            ->with('success', 'Venta registrada exitosamente: ' . $venta->codigo)
-            ->with('auto_descargar_comprobante', true);
+            ->with('success', 'Venta registrada exitosamente: ' . $venta->codigo);
     }
 
     public function show(Sale $admin_venta)
     {
-        $venta = $admin_venta->load(['cliente', 'pedido', 'tipocomprobante', 'mediopago', 'usuario', 'detalles', 'tipoOperacion', 'detraccion.tipoDetraccion', 'pagos.metodoPago', 'cuotas']);
-        $totalPagado = $venta->pagos->sum('monto');
-        $saldoPendiente = $venta->total - $totalPagado;
-        return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.show', compact('venta', 'totalPagado', 'saldoPendiente'));
+        $venta = $admin_venta->load(['cliente', 'pedido', 'tipocomprobante', 'mediopago', 'usuario', 'detalles', 'tipoOperacion', 'tipoDetraccion']);
+        return view('ADMINISTRADOR.PRINCIPAL.ventas.ventas.show', compact('venta'));
     }
 
     public function edit(Sale $admin_venta)
@@ -305,23 +261,6 @@ class admin_VentasController extends Controller
         return response()->json(['success' => true, 'message' => 'Estado actualizado']);
     }
 
-    public function enviarEmail(Sale $admin_venta)
-    {
-        $admin_venta->load(['cliente', 'pedido', 'tipocomprobante']);
-
-        if (!$admin_venta->cliente || !$admin_venta->cliente->email) {
-            return back()->with('error', 'El cliente no tiene un email registrado.');
-        }
-
-        try {
-            Mail::to($admin_venta->cliente->email)->send(new ComprobanteEmail($admin_venta));
-            return back()->with('success', 'Comprobante enviado por email a ' . $admin_venta->cliente->email);
-        } catch (\Exception $e) {
-            \Log::error('Error enviando comprobante por email: ' . $e->getMessage());
-            return back()->with('error', 'No se pudo enviar el email. Verifique la configuración de correo.');
-        }
-    }
-
     public function voucher(Sale $admin_venta)
     {
         $admin_venta->load([
@@ -334,10 +273,7 @@ class admin_VentasController extends Controller
             'pedido.venta.tipocomprobante',
             'pedido.venta.mediopago',
             'pedido.venta.tipoOperacion',
-            'pedido.venta.detraccion.tipoDetraccion',
-            'pedido.venta.pagos.metodoPago',
-            'pedido.venta.detalles',
-            'pedido.venta.cuotas',
+            'pedido.venta.tipoDetraccion',
         ]);
         $pedido = $admin_venta->pedido;
 
