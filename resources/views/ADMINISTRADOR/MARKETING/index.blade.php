@@ -4,10 +4,31 @@
 
 @section('css')
 <style>
-    :root { --cisnergia-dark: #1e293b; --cisnergia-sun: #f59e0b; --cisnergia-energy: #f97316; }
-    .header-radar { background: linear-gradient(135deg, var(--cisnergia-dark) 0%, #334155 100%); border-radius: 15px; color: white; }
-    .nav-pills .nav-link { color: var(--cisnergia-dark); font-weight: bold; border-radius: 30px; padding: 10px 25px; margin: 0 5px; transition: 0.3s; }
-    .nav-pills .nav-link.active { background-color: var(--cisnergia-energy); color: white; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3); }
+    :root { 
+        --cisnergia-dark: #1C3146; 
+        --cisnergia-light-green: #20c997; 
+    }
+    
+    .header-radar { 
+        background: linear-gradient(135deg, var(--cisnergia-dark) 0%, #2a4968 100%); 
+        border-radius: 15px; 
+        color: white; 
+    }
+    
+    .nav-pills .nav-link { 
+        color: var(--cisnergia-dark); 
+        font-weight: bold; 
+        border-radius: 30px; 
+        padding: 10px 25px; 
+        margin: 0 5px; 
+        transition: 0.3s; 
+    }
+    
+    .nav-pills .nav-link.active { 
+        background-color: var(--cisnergia-dark); 
+        color: white; 
+        box-shadow: 0 4px 10px rgba(28, 49, 70, 0.3); 
+    }
     
     /* Diseño de Burbuja Interactiva */
     .comment-bubble { 
@@ -20,12 +41,15 @@
         cursor: pointer;
         position: relative;
     }
-    .comment-bubble:hover { border-color: var(--cisnergia-sun); box-shadow: 0 4px 10px rgba(245, 158, 11, 0.1); }
+    .comment-bubble:hover { 
+        border-color: var(--cisnergia-light-green); 
+        box-shadow: 0 4px 10px rgba(32, 201, 151, 0.1); 
+    }
     
     /* Estado Seleccionado para Responder */
     .comment-bubble.selected-reply {
-        border-color: var(--cisnergia-energy) !important;
-        background-color: #fff8f1;
+        border-color: var(--cisnergia-dark) !important;
+        background-color: #f8fafc;
     }
 
     /* Acciones Ocultas (Hover) */
@@ -45,14 +69,40 @@
     }
     .comment-bubble:hover .comment-actions { opacity: 1; }
 
-    .badge-likes { background: #eff6ff; color: #0866ff; border-radius: 10px; padding: 4px 8px; font-size: 0.75rem; transition: 0.3s;}
-    .user-initials { width: 35px; height: 35px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; color: var(--cisnergia-dark); }
+    .badge-likes { 
+        background: #eff6ff; 
+        color: var(--cisnergia-dark); 
+        border-radius: 10px; 
+        padding: 4px 8px; 
+        font-size: 0.75rem; 
+        transition: 0.3s;
+    }
+    .user-initials { 
+        width: 35px; 
+        height: 35px; 
+        border-radius: 50%; 
+        background: #e2e8f0; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-weight: bold; 
+        font-size: 0.8rem; 
+        color: var(--cisnergia-dark); 
+    }
     
     /* Botón Like Animado */
-    .btn-like-crm { border: none; background: transparent; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
+    .btn-like-crm { 
+        border: none; 
+        background: transparent; 
+        font-size: 0.85rem; 
+        font-weight: 600; 
+        transition: 0.2s; 
+    }
     .btn-like-crm:hover { transform: scale(1.05); }
-    .like-active { color: #0866ff; }
+    .like-active { color: var(--cisnergia-light-green); }
     .like-inactive { color: #64748b; }
+    
+    .dataTables_wrapper .dataTables_info { padding-top: 0.85em; color: #6c757d; }
 </style>
 @endsection
 
@@ -60,12 +110,12 @@
 <div class="container-fluid py-4">
     <div class="header-radar p-4 mb-4 shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-center">
         <div>
-            <h2 class="fw-bold mb-1"><i class="bi bi-radar me-2"></i> Radar Meta: Comando Central</h2>
+            <h2 class="fw-bold mb-1"><i class="bi bi-radar me-2" style="color: var(--cisnergia-light-green);"></i> Radar Meta: Comando Central</h2>
             <p class="mb-0 opacity-75">Gestión de interacciones Cisnergia Perú.</p>
         </div>
         <div class="mt-3 mt-md-0 d-flex gap-2">
-            <a href="{{ route('admin.marketing.metricas_globales') }}" class="btn btn-light text-dark fw-bold rounded-pill border-warning border-2">
-                <i class="bi bi-bar-chart-line-fill me-2 text-warning"></i> Métricas Globales
+            <a href="{{ route('admin.marketing.metricas_globales') }}" class="btn btn-light text-dark fw-bold rounded-pill border-2" style="border-color: var(--cisnergia-light-green) !important;">
+                <i class="bi bi-bar-chart-line-fill me-2" style="color: var(--cisnergia-light-green);"></i> Métricas Globales
             </a>
         </div>
     </div>
@@ -92,8 +142,8 @@
 <div class="modal fade" id="modalComentarios" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content border-0 rounded-4 shadow-lg">
-            <div class="modal-header bg-dark text-white py-3">
-                <h5 class="modal-title fw-bold"><i class="bi bi-chat-dots-fill me-2 text-warning"></i> Gestión de Comentarios</h5>
+            <div class="modal-header text-white py-3" style="background-color: var(--cisnergia-dark);">
+                <h5 class="modal-title fw-bold"><i class="bi bi-chat-dots-fill me-2" style="color: var(--cisnergia-light-green);"></i> Gestión de Comentarios</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0" style="background: #f8fafc;">
@@ -103,19 +153,19 @@
                     </div>
                     <div class="col-lg-7 d-flex flex-column" style="height: 75vh;">
                         <div class="p-3 bg-light border-bottom text-center">
-                            <span class="small text-muted fw-bold"><i class="bi bi-info-circle me-1"></i> Haz clic en cualquier comentario para responder.</span>
+                            <span class="small fw-bold" style="color: #6c757d;"><i class="bi bi-info-circle me-1"></i> Haz clic en cualquier comentario para responder.</span>
                         </div>
                         <div class="flex-grow-1 overflow-auto p-4" id="commentsListContainer"></div>
                         <div class="p-3 bg-white border-top shadow-lg">
                             <div id="replyIndicator" class="mb-2 d-none">
-                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold shadow-sm">
+                                <span class="badge rounded-pill px-3 py-2 fw-bold shadow-sm" style="background-color: var(--cisnergia-light-green); color: var(--cisnergia-dark);">
                                     Respondiendo a: <span id="replyToName"></span> 
                                     <i class="bi bi-x-circle-fill ms-2 text-danger" style="cursor:pointer;" onclick="cancelReply(event)"></i>
                                 </span>
                             </div>
                             <div class="input-group">
                                 <textarea id="textNewComment" class="form-control rounded-4 bg-light border-0" rows="2" placeholder="Escribe tu comentario o respuesta..."></textarea>
-                                <button class="btn btn-primary fw-bold px-4 rounded-4 ms-2" id="btnSendAction"><i class="bi bi-send-fill"></i></button>
+                                <button class="btn fw-bold px-4 rounded-4 ms-2 text-white" style="background-color: var(--cisnergia-dark);" id="btnSendAction"><i class="bi bi-send-fill"></i></button>
                             </div>
                         </div>
                     </div>
@@ -149,10 +199,9 @@
             const btn = badgeSpan.closest('button');
             if(newCount > 0 && btn.classList.contains('btn-light')) {
                 btn.classList.remove('btn-light', 'text-muted');
-                btn.classList.add(currentPlatform === 'ig' ? 'btn-danger' : 'btn-primary', 'text-white');
+                btn.classList.add(currentPlatform === 'ig' ? 'bg-danger' : 'bg-primary', 'text-white');
             } else if(newCount === 0) {
-                btn.classList.remove('btn-primary', 'btn-danger', 'btn-warning', 'text-white', 'text-dark');
-                btn.classList.add('btn-light', 'text-muted');
+                btn.className = "btn btn-sm btn-light border text-muted rounded-pill fw-bold shadow-sm px-3 py-1";
             }
         }
     }
@@ -163,10 +212,10 @@
         cancelReply();
         
         document.getElementById('postPreviewContainer').innerHTML = `
-            <img src="${post.full_picture || '{{ asset('img/no-image.png') }}'}" class="img-fluid rounded-4 shadow-sm mb-3">
-            <h6 class="fw-bold text-dark">Descripción:</h6>
+            <img src="${post.full_picture || '{{ asset('img/no-image.png') }}'}" class="img-fluid rounded-4 shadow-sm mb-3 border border-secondary border-opacity-25">
+            <h6 class="fw-bold" style="color: #1C3146;">Descripción:</h6>
             <p class="text-secondary small mb-3">${post.message || post.caption || 'Sin texto'}</p>
-            <a href="${post.permalink_url || post.permalink || '#'}" target="_blank" class="btn btn-sm btn-outline-dark rounded-pill w-100 fw-bold">Ver en Red Social <i class="bi bi-box-arrow-up-right"></i></a>
+            <a href="${post.permalink_url || post.permalink || '#'}" target="_blank" class="btn btn-sm rounded-pill w-100 fw-bold text-white" style="background-color: #1C3146;">Ver en Red Social <i class="bi bi-box-arrow-up-right"></i></a>
         `;
 
         allCommentsInModal = post.comments ? (post.comments.data || []) : [];
@@ -177,7 +226,7 @@
     function renderModalComments(comments) {
         const container = document.getElementById('commentsListContainer');
         if(comments.length === 0) {
-            container.innerHTML = `<div class="text-center py-5 text-muted"><i class="bi bi-chat-square-dots fs-1 opacity-25"></i><p class="mt-2">No hay comentarios aún.</p></div>`;
+            container.innerHTML = `<div class="text-center py-5" style="color: #6c757d;"><i class="bi bi-chat-square-dots fs-1 opacity-25"></i><p class="mt-2">No hay comentarios aún.</p></div>`;
             return;
         }
 
@@ -185,7 +234,7 @@
         comments.forEach(c => {
             let replies = c.comments ? c.comments.data : (c.replies ? c.replies.data : []);
             let hasReplies = replies.length > 0;
-            let borderStyle = hasReplies ? 'border-left: 4px solid #f59e0b;' : '';
+            let borderStyle = hasReplies ? 'border-left: 4px solid #20c997;' : '';
 
             // Lógica para pintar si ya le dimos Like o no
             let userLikes = c.user_likes === true;
@@ -197,7 +246,7 @@
                 ? `<button class="btn-like-crm ${btnLikeClass}" onclick="toggleLikeAction('${c.id}', ${userLikes}, event)">
                      <i class="bi ${iconLikeClass}"></i> ${btnLikeText}
                    </button>` 
-                : `<span class="badge bg-light text-secondary"><i class="bi bi-info-circle"></i> IG: Solo respuestas</span>`;
+                : `<span class="badge bg-light" style="color: #6c757d;"><i class="bi bi-info-circle"></i> IG: Solo respuestas</span>`;
 
             let isSelected = (replyToId === c.id) ? 'selected-reply' : '';
 
@@ -212,7 +261,7 @@
 
                 <div class="d-flex justify-content-between mb-2">
                     <div class="d-flex gap-2 align-items-center">
-                        <div class="user-initials bg-dark text-white">${(c.from && c.from.name ? c.from.name : 'U').substring(0,1)}</div>
+                        <div class="user-initials text-white" style="background-color: #1C3146;">${(c.from && c.from.name ? c.from.name : 'U').substring(0,1)}</div>
                         <h6 class="mb-0 fw-bold small text-dark">${c.from ? c.from.name : 'Usuario'}</h6>
                     </div>
                 </div>
@@ -227,10 +276,10 @@
                     ${replies.map(r => `
                         <div class="bg-light p-2 rounded mb-2 position-relative" id="modal-c-${r.id}" onclick="event.stopPropagation()">
                             <div class="d-flex justify-content-between">
-                                <strong class="small text-primary">${r.from ? r.from.name : 'Cisnergia'}</strong>
+                                <strong class="small" style="color: #1C3146;">${r.from ? r.from.name : 'Cisnergia'}</strong>
                                 <button class="btn btn-sm text-danger p-0" onclick="deleteComment('${r.id}', true, '${c.id}', event)"><i class="bi bi-x-circle-fill"></i></button>
                             </div>
-                            <p class="mb-0 small text-muted">${r.message}</p>
+                            <p class="mb-0 small" style="color: #6c757d;">${r.message}</p>
                         </div>
                     `).join('')}
                 </div>

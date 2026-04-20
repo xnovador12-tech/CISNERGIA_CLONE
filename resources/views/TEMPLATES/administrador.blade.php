@@ -250,7 +250,7 @@
                                 <span>Campañas</span>
                             </a>
                         </li>
-
+                        @endcan {{-- ===== COMPRAS ===== --}}
                         {{-- ===== COMPRAS ===== --}}
                         @canany(['compras.ordencompras.index', 'compras.ordenservicios.index'])
                         <li>
