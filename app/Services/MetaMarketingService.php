@@ -44,7 +44,7 @@ class MetaMarketingService
         Log::info("MetaService: Cargando Radar Pro. ID_PAGINA: {$this->pageId}");
         $pageAccessToken = $this->getPageToken();
 
-        // 1. FEED FACEBOOK (Se añadió 'user_likes' en la petición de comments para saber si ya le dimos like)
+        // 1. FEED FACEBOOK
         $fbResponse = $this->client($pageAccessToken)->get("{$this->pageId}/feed", [
             'fields' => 'id,message,created_time,full_picture,permalink_url,comments.summary(true){from,message,created_time,user_likes,like_count,comments{from,message,created_time}},insights.metric(post_impressions_unique){values}',
             'limit' => $limit
@@ -82,7 +82,6 @@ class MetaMarketingService
                             $c['from']['name'] = $c['from']['username'] ?? 'Usuario IG';
                         }
                         
-                        // Instagram NO soporta saber si la página le dio like por API. Forzamos a false.
                         $c['user_likes'] = false;
 
                         if (isset($c['replies']['data'])) {
@@ -141,12 +140,8 @@ class MetaMarketingService
         ];
     }
 
-    /**
-     * ACTUALIZADO: Manejo de respuestas bloqueando a la propia página
-     */
     public function publishComment(string $objectId, string $message, ?string $senderId = null, bool $isIg = false): array
     {
-        // 1. Validar que no nos estemos respondiendo a nosotros mismos
         $myId = $isIg ? $this->instagramId : $this->pageId;
         
         if ($senderId && $senderId === $myId) {
@@ -154,7 +149,6 @@ class MetaMarketingService
             return ['success' => false, 'message' => 'El sistema no permite que la página se responda a sí misma.'];
         }
 
-        // 2. Meta usa /replies para IG y /comments para FB
         $endpoint = $isIg ? "{$objectId}/replies" : "{$objectId}/comments";
 
         $response = $this->client()->post($endpoint, [
@@ -170,12 +164,8 @@ class MetaMarketingService
         return ['success' => false, 'message' => 'Error al publicar la respuesta en Meta.'];
     }
 
-    /**
-     * NUEVO: Lógica Toggle para Reacciones
-     */
     public function toggleLike(string $commentId, bool $isIg, bool $currentlyLiked): array
     {
-        // 1. Validar Instagram (La barrera oficial de Meta)
         if ($isIg) {
             Log::warning("MetaService: API de IG no soporta likes en comentarios.");
             return [
@@ -184,13 +174,10 @@ class MetaMarketingService
             ];
         }
 
-        // 2. Lógica Toggle para Facebook
         if ($currentlyLiked) {
-            // Si ya tiene like, hacemos DELETE a la ruta de likes
             $response = $this->client()->delete("{$commentId}/likes");
             $action = 'unlike';
         } else {
-            // Si no tiene like, hacemos POST
             $response = $this->client()->post("{$commentId}/likes");
             $action = 'like';
         }
@@ -216,12 +203,8 @@ class MetaMarketingService
         }
     }
 
-    /**
-     * ACTUALIZADO: Función de eliminación con logs detallados de error
-     */
     public function deleteComment(string $commentId): bool
     {
-        // Usamos client() porque estamos dentro del Service
         $response = $this->client()->delete($commentId);
         
         if ($response->successful()) {
@@ -229,8 +212,80 @@ class MetaMarketingService
             return true;
         }
 
-        // Si falla, nos escupe el error exacto de Facebook en Railway
         Log::error("MetaService Error al eliminar ID {$commentId}: " . $response->body());
         return false;
+    }
+
+    // =========================================================================
+    // NUEVOS MÉTODOS: PERFILES PÚBLICOS (FALLBACK IMPLEMENTADO)
+    // =========================================================================
+
+    /**
+     * Obtiene el perfil público de Facebook vía PSID.
+     * Retorna un fallback seguro si Meta aún no aprueba los permisos.
+     */
+    public function getFacebookProfile(string $psid): array
+    {
+        try {
+            $response = $this->client()->get($psid, [
+                'fields' => 'first_name,last_name,profile_pic'
+            ]);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            Log::warning("Meta FB Profile Denied/Error (A la espera de App Review) para PSID {$psid}: " . $response->body());
+
+            // FALLBACK SEGURO
+            return [
+                'first_name' => 'Usuario',
+                'last_name' => 'Facebook',
+                'profile_pic' => null,
+                'is_fallback' => true
+            ];
+
+        } catch (\Exception $e) {
+            Log::error("Excepción obteniendo FB Profile: " . $e->getMessage());
+            return ['first_name' => 'Usuario', 'last_name' => 'Facebook', 'profile_pic' => null, 'is_fallback' => true];
+        }
+    }
+
+    /**
+     * Obtiene el perfil público de Instagram vía IGSID.
+     * Retorna un fallback seguro si Meta aún no aprueba los permisos.
+     */
+    public function getInstagramProfile(string $igsid): array
+    {
+        try {
+            $response = $this->client()->get($igsid, [
+                'fields' => 'name,profile_pic'
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $partes = explode(' ', $data['name'] ?? 'Usuario Instagram', 2);
+                
+                return [
+                    'first_name' => $partes[0],
+                    'last_name' => $partes[1] ?? '',
+                    'profile_pic' => $data['profile_pic'] ?? null
+                ];
+            }
+
+            Log::warning("Meta IG Profile Denied/Error (A la espera de App Review) para IGSID {$igsid}: " . $response->body());
+
+            // FALLBACK SEGURO
+            return [
+                'first_name' => 'Usuario',
+                'last_name' => 'Instagram',
+                'profile_pic' => null,
+                'is_fallback' => true
+            ];
+
+        } catch (\Exception $e) {
+            Log::error("Excepción obteniendo IG Profile: " . $e->getMessage());
+            return ['first_name' => 'Usuario', 'last_name' => 'Instagram', 'profile_pic' => null, 'is_fallback' => true];
+        }
     }
 }

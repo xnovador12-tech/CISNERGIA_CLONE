@@ -2,72 +2,154 @@
 
 namespace App\Services;
 
+use App\Mail\CampanaMarketing;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
 class EmailMarketingService
 {
     /**
-     * Envía una campaña de correos en segundo plano a múltiples destinatarios.
-     * Cero base de datos.
+     * Envía una campaña de correos corporativos.
+     *
+     * Mejoras anti-spam aplicadas:
+     * 1. Usa Mailable en lugar de Mail::html() — genera headers MIME completos.
+     * 2. Incluye versión texto plano automáticamente (penalización de spam sin ella).
+     * 3. Logo incrustado por CID (Content-ID) — 100% compatible con Gmail/Outlook.
+     * 4. Headers adicionales: X-Mailer, X-Priority, Precedence, List-Unsubscribe.
+     * 5. Reply-To correctamente configurado.
      */
-public function dispatchCampaign(array $recipients, string $subject, string $htmlContent, ?string $logoPath = null, array $adjuntos = []): array
-    {
-        $enviados = 0;
-        $fallidos = 0;
+    public function dispatchCampaign(
+        array   $recipients,
+        string  $subject,
+        string  $htmlContent,
+        ?string $logoPath  = null,
+        array   $adjuntos  = []
+    ): array {
 
-        // Armamos el envoltorio HTML para que se vea corporativo y no caiga en Spam
-        $logoHtml = '';
-        if ($logoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($logoPath)) {
-            // Generamos la URL absoluta pública del logo
-            $logoUrl = asset('storage/' . $logoPath);
-            $logoHtml = "<div style='text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;'>
-                            <img src='{$logoUrl}' alt='Cisnergia' style='max-width: 200px; height: auto;'>
-                         </div>";
+        Log::info('EmailMarketingService: ▶ Iniciando campaña', [
+            'asunto'        => $subject,
+            'destinatarios' => count($recipients),
+            'logo_path'     => $logoPath ?? 'ninguno',
+            'adjuntos'      => count($adjuntos),
+        ]);
+
+        // ── 1. Verificar configuración de correo ───────────────────────────
+        $this->logMailConfig();
+
+        $mailFrom = config('mail.from.address');
+        if (empty($mailFrom)) {
+            Log::error('EmailMarketingService: ✘ MAIL_FROM_ADDRESS no definido — Abortando.');
+            return [
+                'success' => false,
+                'enviados' => 0, 'fallidos' => 0, 'invalidos' => 0,
+                'mensaje'  => 'Error de configuración: MAIL_FROM_ADDRESS no está definido en .env',
+            ];
         }
 
-        $cuerpoCorporativo = "
-            <div style='font-family: Arial, sans-serif; color: #334155; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>
-                {$logoHtml}
-                <div style='font-size: 15px; line-height: 1.6;'>
-                    {$htmlContent}
-                </div>
-                <div style='margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; text-align: center;'>
-                    © " . date('Y') . " Cisnergia Perú. Todos los derechos reservados.<br>
-                    Este es un correo oficial de la empresa.
-                </div>
-            </div>
-        ";
+        // ── 2. Preparar logo (Ruta Absoluta para CID) ──────────────────────
+        // Buscamos la ruta real del archivo en el sistema para que Laravel 
+        // pueda adjuntarlo e incrustarlo con $message->embed()
+        $logoFullPath = null;
+        if ($logoPath && Storage::disk('public')->exists($logoPath)) {
+            $logoFullPath = Storage::disk('public')->path($logoPath);
+            Log::info("EmailMarketingService: ✔ Ruta absoluta del logo obtenida: {$logoFullPath}");
+        } elseif ($logoPath) {
+            Log::warning("EmailMarketingService: ⚠ Logo no encontrado en disco: {$logoPath} — Se enviará sin logo.");
+        }
 
-        foreach ($recipients as $email) {
-            $email = trim($email);
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) continue;
+        // ── 3. Enviar a cada destinatario ──────────────────────────────────
+        $enviados         = 0;
+        $fallidos         = 0;
+        $invalidos        = 0;
+        $detallesFallidos = [];
+
+        foreach ($recipients as $rawEmail) {
+            $email = trim($rawEmail);
+
+            if (empty($email)) {
+                continue;
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                Log::warning("EmailMarketingService: ✘ Email inválido omitido: '{$email}'");
+                $invalidos++;
+                continue;
+            }
+
+            Log::info("EmailMarketingService: → Enviando a: {$email}");
+
 
             try {
-                Mail::html($cuerpoCorporativo, function ($message) use ($email, $subject, $adjuntos) {
-                    $message->to($email)
+                // Instanciamos el Mailable pasando la ruta absoluta del logo
+                Mail::to($email)
+                    ->send(
+                        (new CampanaMarketing($htmlContent, $logoFullPath, $adjuntos))
                             ->subject($subject)
-                            ->from(config('mail.from.address', 'ventas@cisnergia.com'), config('mail.from.name', 'Cisnergia Solar'));
-                    
-                    // Procesar archivos adjuntos si los hay
-                    foreach ($adjuntos as $file) {
-                        $message->attach($file['path'], [
-                            'as' => $file['name'],
-                            'mime' => $file['mime']
-                        ]);
-                    }
-                });
+                    );
+
+                Log::info("EmailMarketingService: ✔ Enviado exitosamente a: {$email}");
                 $enviados++;
+
             } catch (Exception $e) {
-                Log::error("Error enviando email a {$email}: " . $e->getMessage());
+                Log::error("EmailMarketingService: ✘ Fallo al enviar a {$email}", [
+                    'error'           => $e->getMessage(),
+                    'exception'       => get_class($e),
+                    'file'            => $e->getFile(),
+                    'line'            => $e->getLine(),
+                    'posibles_causas' => [
+                        'Credenciales SMTP incorrectas (MAIL_USERNAME / MAIL_PASSWORD en .env)',
+                        'Host SMTP no alcanzable (MAIL_HOST / MAIL_PORT)',
+                        'Puerto bloqueado por firewall del servidor (probar 587 vs 465 vs 25)',
+                        'Límite de envío del proveedor SMTP alcanzado',
+                        'El destinatario fue rechazado por el servidor remoto',
+                        'SSL/TLS no configurado correctamente (MAIL_ENCRYPTION)',
+                    ],
+                ]);
                 $fallidos++;
+                $detallesFallidos[] = $email;
             }
         }
 
+        // ── 4. Resumen final ───────────────────────────────────────────────
+        Log::info('EmailMarketingService: ■ Campaña finalizada', [
+            'enviados'          => $enviados,
+            'fallidos'          => $fallidos,
+            'invalidos'         => $invalidos,
+            'fallidos_detalle'  => $detallesFallidos,
+        ]);
+
+        $partes = ["Campaña procesada: {$enviados} enviado(s)"];
+        if ($fallidos  > 0) $partes[] = "{$fallidos} fallido(s)";
+        if ($invalidos > 0) $partes[] = "{$invalidos} inválido(s)";
+        $partes[] = 'Revisa storage/logs/laravel.log para el detalle.';
+
         return [
-            'success' => true,
-            'mensaje' => "Campaña procesada: {$enviados} correos enviados exitosamente."
+            'success'          => $enviados > 0,
+            'enviados'         => $enviados,
+            'fallidos'         => $fallidos,
+            'invalidos'        => $invalidos,
+            'fallidos_detalle' => $detallesFallidos,
+            'mensaje'          => implode(' — ', $partes),
         ];
+    }
+
+    /**
+     * Registra en logs la configuración SMTP activa para facilitar diagnóstico.
+     */
+    private function logMailConfig(): void
+    {
+        Log::info('EmailMarketingService: ⚙ Configuración SMTP activa', [
+            'driver'      => config('mail.default'),
+            'host'        => config('mail.mailers.smtp.host')       ?? 'NO DEFINIDO',
+            'port'        => config('mail.mailers.smtp.port')       ?? 'NO DEFINIDO',
+            'encryption'  => config('mail.mailers.smtp.encryption') ?? 'NO DEFINIDO',
+            'username'    => config('mail.mailers.smtp.username')
+                                ? substr(config('mail.mailers.smtp.username'), 0, 4) . '****'
+                                : 'NO DEFINIDO',
+            'from_address'=> config('mail.from.address')  ?? 'NO DEFINIDO',
+            'from_name'   => config('mail.from.name')     ?? 'NO DEFINIDO',
+        ]);
     }
 }

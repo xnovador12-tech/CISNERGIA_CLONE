@@ -45,6 +45,10 @@
         font-weight: bold;
         text-transform: uppercase;
     }
+    
+    /* Pequeño ajuste para las fotos de perfil */
+    .avatar-sm { width: 35px; height: 35px; object-fit: cover; }
+    .avatar-lg { width: 50px; height: 50px; object-fit: cover; }
 </style>
 @endsection
 
@@ -83,13 +87,26 @@
             @if($topFan)
             <div class="card kpi-card bg-gradient-energy h-100 shadow">
                 <div class="card-body p-4 d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="badge bg-white text-orange mb-2">TOP FAN (MÁS ACTIVO)</div>
-                        <h3 class="fw-bold mb-0">{{ $topFan['from']['name'] ?? 'Usuario Meta' }}</h3>
-                        <p class="mb-0 opacity-75">ID: {{ $topFan['from']['id'] ?? 'N/A' }}</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="position-relative">
+                            <img src="{{ $topFan['perfil']['profile_pic'] ?? asset('img/no-image.png') }}" class="rounded-circle avatar-lg border border-2 border-white shadow-sm" alt="Top Fan Avatar">
+                            <span class="position-absolute bottom-0 start-100 translate-middle p-1 bg-white border border-light rounded-circle">
+                                <i class="bi {{ $topFan['is_ig'] ? 'bi-instagram text-danger' : 'bi-facebook text-primary' }}" style="font-size: 0.65rem;"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <div class="badge bg-white text-orange mb-1">TOP FAN (MÁS ACTIVO)</div>
+                            <h3 class="fw-bold mb-0">{{ $topFan['perfil']['first_name'] ?? 'Usuario' }} {{ $topFan['perfil']['last_name'] ?? '' }}</h3>
+                            <div class="small mt-1 text-white fw-bold">
+                                {{ $topFan['total_comentarios'] }} Interacciones
+                                @if(isset($topFan['perfil']['is_fallback']) && $topFan['perfil']['is_fallback'])
+                                    <span class="ms-2 opacity-75" style="font-size:0.7rem;"><i class="bi bi-hourglass-split"></i> ID: {{ $topFan['from']['id'] }}</span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                     <div class="text-end">
-                        <i class="bi bi-star-fill display-4"></i>
+                        <i class="bi bi-star-fill display-4 text-white opacity-50"></i>
                     </div>
                 </div>
             </div>
@@ -166,16 +183,21 @@
                 <div class="card-body p-4">
                     <h6 class="fw-bold text-uppercase small text-muted mb-4"><i class="bi bi-trophy-fill text-warning me-2"></i>Mejor Comentario</h6>
                     @if($mejorComentario)
-                        <div class="p-3 bg-white rounded-3 border border-warning">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="bi bi-person-circle fs-4 text-warning"></i>
-                                <div class="fw-bold small">{{ $mejorComentario['from']['name'] ?? 'Usuario' }}</div>
+                        <div class="p-3 bg-white rounded-3 border border-warning shadow-sm">
+                            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom border-light">
+                                <img src="{{ $mejorComentario['perfil']['profile_pic'] ?? asset('img/no-image.png') }}" class="rounded-circle avatar-sm shadow-sm" alt="Avatar">
+                                <div>
+                                    <div class="fw-bold small text-dark">{{ $mejorComentario['perfil']['first_name'] ?? 'Usuario' }} {{ $mejorComentario['perfil']['last_name'] ?? '' }}</div>
+                                    @if(isset($mejorComentario['perfil']['is_fallback']) && $mejorComentario['perfil']['is_fallback'])
+                                        <div class="text-warning" style="font-size: 0.65rem;"><i class="bi bi-hourglass-split"></i> ID: {{ $mejorComentario['from']['id'] }}</div>
+                                    @endif
+                                </div>
                             </div>
-                            <p class="small mb-2 italic">"{{ $mejorComentario['message'] }}"</p>
-                            <div class="badge bg-warning text-dark w-100">{{ $mejorComentario['like_count'] }} Reacciones</div>
+                            <p class="small mb-3 italic text-secondary">"{{ $mejorComentario['message'] }}"</p>
+                            <div class="badge bg-warning text-dark w-100 py-2"><i class="bi bi-heart-fill text-danger me-1"></i> {{ $mejorComentario['like_count'] }} Reacciones</div>
                         </div>
                     @else
-                        <p class="small text-muted text-center">No hay data suficiente.</p>
+                        <p class="small text-muted text-center py-4">No hay data suficiente.</p>
                     @endif
                 </div>
             </div>
@@ -195,7 +217,6 @@
 @push('scripts')
 <script>
     function openInRadar(postId) {
-        // Redirige al radar principal y podrías implementar una lógica para abrir el post automáticamente
         window.location.href = "{{ route('admin.marketing.metricas') }}?search=" + postId;
     }
 </script>

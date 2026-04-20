@@ -45,15 +45,44 @@ class MarketingController extends Controller
 
             $fbPostsArray = $allPosts->filter(fn($post) => $post['is_ig'] === false)->values()->all();
             $igPostsArray = $allPosts->filter(fn($post) => $post['is_ig'] === true)->values()->all();
-            $allLeads = collect($metaData['top_leads']);
+            
+            // Extraer todos los comentarios para identificar la plataforma de cada Lead
+            $allComments = collect();
+            $allPosts->each(function($post) use ($allComments) {
+                if(isset($post['comments']['data'])) {
+                    foreach($post['comments']['data'] as $comment) {
+                        $comment['is_ig'] = $post['is_ig'];
+                        $allComments->push($comment);
+                    }
+                }
+            });
 
+            // ENRIQUECIMIENTO DE PERFILES PÚBLICOS
+            // Tomamos solo el top 15 global para no saturar la API de Meta y evitar lentitud
+            $enrichedLeads = collect($metaData['top_leads'])->take(15)->map(function($lead) use ($allComments) {
+                // Buscamos el primer comentario de este lead para saber si es de IG o FB
+                $firstComment = $allComments->firstWhere('from.id', $lead['id']);
+                $isIg = $firstComment['is_ig'] ?? false;
+                
+                // Llamamos a nuestro Service con Fallback Seguro
+                $perfil = $isIg 
+                    ? $this->metaService->getInstagramProfile($lead['id'])
+                    : $this->metaService->getFacebookProfile($lead['id']);
+                    
+                $lead['perfil'] = $perfil;
+                $lead['is_ig'] = $isIg;
+                
+                return $lead;
+            });
+
+            // Separamos los leads enriquecidos por plataforma
             $fbData = [
-                'top_leads' => $allLeads->take(10)->all(),
+                'top_leads' => $enrichedLeads->where('is_ig', false)->take(10)->values()->all(),
                 'recent_posts' => $fbPostsArray
             ];
 
             $igData = [
-                'top_leads' => $allLeads->skip(10)->take(10)->all(),
+                'top_leads' => $enrichedLeads->where('is_ig', true)->take(10)->values()->all(),
                 'recent_posts' => $igPostsArray
             ];
 
@@ -70,12 +99,11 @@ class MarketingController extends Controller
         $request->validate([
             'object_id' => 'required|string', 
             'message' => 'required|string',
-            'is_ig' => 'boolean' // Recibimos de qué red viene
+            'is_ig' => 'boolean'
         ]);
 
         try {
             $isIg = $request->input('is_ig', false);
-            // Pasamos null como senderId porque somos nosotros, e $isIg para que sepa la ruta de Meta
             $result = $this->metaService->publishComment($request->object_id, $request->message, null, $isIg);
             
             Log::info("MarketingController: Comentario publicado en {$request->object_id}");
@@ -91,7 +119,6 @@ class MarketingController extends Controller
         Log::warning("MarketingController: Intentando eliminar comentario ID: $id");
 
         try {
-            // ¡OJO AQUÍ! Llamamos al Service, NO usamos client() directo
             $success = $this->metaService->deleteComment($id);
             
             if ($success) {
@@ -104,7 +131,7 @@ class MarketingController extends Controller
             return response()->json(['success' => false, 'message' => 'Error en el servidor.'], 500);
         }
     }
-    // NUEVA FUNCIÓN: Para el botón de "Me gusta"
+
     public function toggleLike(Request $request, $id): JsonResponse
     {
         $request->validate([
@@ -141,6 +168,7 @@ class MarketingController extends Controller
                         if (!isset($comment['from']['name'])) {
                             $comment['from']['name'] = $comment['from']['username'] ?? 'Usuario';
                         }
+                        $comment['is_ig'] = $post['is_ig']; // Guardamos la bandera para el perfil
                         $allComments->push($comment);
                     }
                 }
@@ -157,16 +185,34 @@ class MarketingController extends Controller
                 });
             }
 
+            // ENRIQUECER MEJOR COMENTARIO
             $mejorComentario = $allComments->sortByDesc('like_count')->first();
-            $topFan = $allComments->whereNotNull('from.id')
+            if ($mejorComentario && isset($mejorComentario['from']['id'])) {
+                $mejorComentario['perfil'] = $mejorComentario['is_ig']
+                    ? $this->metaService->getInstagramProfile($mejorComentario['from']['id'])
+                    : $this->metaService->getFacebookProfile($mejorComentario['from']['id']);
+            }
+
+            // ENRIQUECER TOP FAN
+            $topFanGroup = $allComments->whereNotNull('from.id')
                                   ->groupBy('from.id')
                                   ->sortByDesc(fn($g) => $g->count())
                                   ->first();
+            
+            $topFan = $topFanGroup ? $topFanGroup->first() : null;
+            if ($topFan) {
+                $topFan['perfil'] = $topFan['is_ig']
+                    ? $this->metaService->getInstagramProfile($topFan['from']['id'])
+                    : $this->metaService->getFacebookProfile($topFan['from']['id']);
+                
+                // Agregamos el conteo total para la vista
+                $topFan['total_comentarios'] = $topFanGroup->count();
+            }
 
             return view('ADMINISTRADOR.MARKETING.metricas_globales', [
                 'allComments' => $allComments,
                 'mejorComentario' => $mejorComentario,
-                'topFan' => $topFan ? $topFan->first() : null,
+                'topFan' => $topFan,
                 'canal' => $canal,
                 'keyword' => $keyword
             ]);
@@ -178,88 +224,117 @@ class MarketingController extends Controller
     }
 
 
-public function emails(): View
-{
-    // Usamos el disco 'public' que apunta a storage/app/public
-    // Si la carpeta no existe, Laravel la gestiona mejor que mkdir() manual
-    if (!Storage::disk('public')->exists('logos_email')) {
-        Storage::disk('public')->makeDirectory('logos_email');
+    public function emails(): View
+    {
+        if (!Storage::disk('public')->exists('logos_email')) {
+            Storage::disk('public')->makeDirectory('logos_email');
+        }
+
+        $files = Storage::disk('public')->files('logos_email');
+        
+        $logos = array_map(function($file) {
+            return [
+                'path' => $file,
+                'url' => asset('storage/' . $file) 
+            ];
+        }, $files);
+
+        return view('ADMINISTRADOR.MARKETING.emails.index', compact('logos'));
     }
 
-    $files = Storage::disk('public')->files('logos_email');
-    
-    $logos = array_map(function($file) {
-        return [
-            'path' => $file,
-            'url' => asset('storage/' . $file) // La URL pública con el link simbólico
-        ];
-    }, $files);
-
-    return view('ADMINISTRADOR.MARKETING.emails.index', compact('logos'));
-}
-
-public function uploadLogo(Request $request): JsonResponse
-{
-    $request->validate(['logo' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120']);
-    
-    // Guardar usando el disco public
-    $path = $request->file('logo')->store('logos_email', 'public');
-    
-    return response()->json([
-        'success' => true, 
-        'path' => $path,
-        'url' => asset('storage/' . $path)
-    ]);
-}
-
-public function deleteLogo(Request $request): JsonResponse
-{
-    $path = $request->input('path');
-    if (Storage::disk('public')->exists($path)) {
-        Storage::disk('public')->delete($path);
-        return response()->json(['success' => true]);
+    public function uploadLogo(Request $request): JsonResponse
+    {
+        $request->validate(['logo' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120']);
+        
+        $path = $request->file('logo')->store('logos_email', 'public');
+        
+        return response()->json([
+            'success' => true, 
+            'path' => $path,
+            'url' => asset('storage/' . $path)
+        ]);
     }
-    return response()->json(['success' => false, 'message' => 'Archivo no encontrado'], 400);
-}
 
-    // 3. REEMPLAZA EL MÉTODO sendEmailCampaign()
+    public function deleteLogo(Request $request): JsonResponse
+    {
+        $path = $request->input('path');
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+            return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false, 'message' => 'Archivo no encontrado'], 400);
+    }
+
     public function sendEmailCampaign(Request $request): RedirectResponse
     {
         $request->validate([
-            'asunto' => 'required|string|max:255',
+            'asunto'        => 'required|string|max:255',
             'destinatarios' => 'required|string',
-            'contenido' => 'required|string',
-            'adjuntos.*' => 'nullable|file|max:10240' // Max 10MB por archivo
+            'contenido'     => 'required|string',
+            'adjuntos.*'    => 'nullable|file|max:10240',
+        ]);
+
+        Log::info('MarketingController: sendEmailCampaign iniciado', [
+            'asunto'        => $request->asunto,
+            'destinatarios' => $request->destinatarios,
+            'logo_path'     => $request->input('logo_path') ?? 'ninguno',
+            'tiene_adjuntos'=> $request->hasFile('adjuntos'),
+            'usuario'       => auth()->user()?->email ?? 'desconocido',
         ]);
 
         try {
-            $recipients = explode(',', $request->destinatarios);
-            $logoPath = $request->input('logo_path'); // Puede ser null si no seleccionó nada
-            
-            // Recolectar archivos adjuntos temporalmente
+            $recipients = array_filter(
+                array_map('trim', explode(',', $request->destinatarios)),
+                fn($e) => !empty($e)
+            );
+
+            if (empty($recipients)) {
+                Log::warning('MarketingController: No se encontraron destinatarios válidos en la cadena.');
+                return redirect()->back()->with('error', 'No se encontraron destinatarios válidos.');
+            }
+
+            $logoPath = $request->input('logo_path') ?: null;
+
             $adjuntos = [];
             if ($request->hasFile('adjuntos')) {
                 foreach ($request->file('adjuntos') as $file) {
+                    if (!$file->isValid()) {
+                        Log::warning('MarketingController: Archivo adjunto inválido omitido.', [
+                            'original_name' => $file->getClientOriginalName(),
+                            'error'         => $file->getErrorMessage(),
+                        ]);
+                        continue;
+                    }
                     $adjuntos[] = [
                         'path' => $file->getRealPath(),
                         'name' => $file->getClientOriginalName(),
-                        'mime' => $file->getClientMimeType()
+                        'mime' => $file->getClientMimeType(),
                     ];
+                    Log::info('MarketingController: Adjunto preparado: ' . $file->getClientOriginalName());
                 }
             }
-            
+
             $resultado = $this->emailService->dispatchCampaign(
-                array_map('trim', $recipients),
+                $recipients,
                 $request->asunto,
                 $request->contenido,
                 $logoPath,
                 $adjuntos
             );
-            
-            return redirect()->route('admin.marketing.emails')->with('success', $resultado['mensaje']);
+
+            Log::info('MarketingController: Campaña procesada', $resultado);
+
+            $tipo = $resultado['success'] ? 'success' : 'warning';
+            return redirect()->route('admin.marketing.emails')->with($tipo, $resultado['mensaje']);
+
         } catch (\Exception $e) {
-            Log::error('MarketingController Error Campaña Email: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Error al enviar los correos.');
+            Log::error('MarketingController: Excepción inesperada en sendEmailCampaign', [
+                'error'     => $e->getMessage(),
+                'exception' => get_class($e),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+            ]);
+            return redirect()->back()->with('error', 'Error inesperado al procesar la campaña. Revisa los logs.');
         }
     }
 }
