@@ -16,10 +16,10 @@ use App\Http\Controllers\ApiOse\Voucher;
 use App\Models\ComprobanteControlProceso;
 use App\Models\ComprobanteError;
 use App\Models\Detailsale;
-use App\Models\Nota;
 use App\Models\Sale;
 use App\Models\SaleCuota;
 use App\Models\VentaDetraccion;
+use App\Models\VentaReferencia;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Console\Command;
@@ -131,7 +131,7 @@ class SendSalesCommand extends Command
                 if ($saleModel->operation_type_code === '1001') {
                     $ventaDetraccion = VentaDetraccion::with([
                         'tipoDetraccion'
-                    ])->where('venta_id', $sale->id)->first();
+                    ])->where('sale_id', $sale->id)->first();
 
                     if (!empty($ventaDetraccion)) {
                         $detractionModel = new DetractionModel();
@@ -162,18 +162,19 @@ class SendSalesCommand extends Command
 
                 // Para las Notas Credito/Debito
                 if ($saleModel->voucher_type_code === '07' || $saleModel->voucher_type_code === '08') {
-                    $referencia = Nota::with([
-                        'tipoComprobante',
+                    $referencia = VentaReferencia::with([
+                        'ventaReferenciada.tipoComprobante',
+                        'sunatMotivoNota',
                     ])->where('sale_id', $sale->id)->first();
 
                     $saleModelReference = new SaleModel();
-                    $saleModelReference->voucher_type_code = $referencia->tipoComprobante->codigo;
-                    $saleModelReference->serie = $referencia->serie;
-                    $saleModelReference->correlative = $referencia->correlativo;
+                    $saleModelReference->voucher_type_code = $referencia->ventaReferenciada->tipoComprobante->codigo;
+                    $saleModelReference->serie = $referencia->ventaReferenciada->serie;
+                    $saleModelReference->correlative = $referencia->ventaReferenciada->correlativo;
 
                     $saleReferenceModel = new SaleReferenceModel();
                     $saleReferenceModel->saleModel = $saleModelReference;
-                    $saleReferenceModel->reason_code = $referencia->motivo_codigo;
+                    $saleReferenceModel->reason_code = $referencia->sunatMotivoNota->codigo;
                     $saleReferenceModel->reason_description = $referencia->motivo_descripcion;
                     $saleModel->saleReferenceModel = $saleReferenceModel;
                 }
