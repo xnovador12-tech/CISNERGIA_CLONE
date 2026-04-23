@@ -408,12 +408,15 @@
                     <p class="small mb-0 opacity-75">© 2025 Cisnergia Perú. Todos los derechos reservados.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
-                    <a href="#" class="text-light opacity-75 text-decoration-none small me-3">Términos y
-                        Condiciones</a>
-                    <a href="#" class="text-light opacity-75 text-decoration-none small me-3">Política de
-                        Privacidad</a>
-                    <a href="#" class="text-light opacity-75 text-decoration-none small">Libro de
-                        Reclamaciones</a>
+                    <a href="{{ route('ecommerce.terminos') }}" class="text-light opacity-75 text-decoration-none small me-3">
+                        Términos y Condiciones
+                    </a>
+                    <a href="{{ route('ecommerce.politicas') }}" class="text-light opacity-75 text-decoration-none small me-3">
+                        Política de Privacidad
+                    </a>
+                    <a href="#" class="text-light opacity-75 text-decoration-none small">
+                        Libro de Reclamaciones
+                    </a>
                 </div>
             </div>
         </div>

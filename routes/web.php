@@ -75,6 +75,10 @@ route::get('/comprobante_compra/{sale}', [ecommerceController::class, 'comproban
 Route::get('lista_deseo_carrito', [ecommerceController::class, 'getlista_deseo_carrito']);
 Route::get('eliminar_lista_deseo_carrito', [ecommerceController::class, 'geteliminarlista_deseo_carrito']);
 Route::get('agregar_compra_carritofavoritos', [ecommerceController::class, 'getagregar_compra_carritofavoritos']);
+// Rutas Legales
+Route::view('/politicas-de-privacidad', 'ECOMMERCE.politicas.politicas_privacidad')->name('ecommerce.politicas');
+Route::view('/terminos-y-condiciones', 'ECOMMERCE.politicas.terminos_condiciones')->name('ecommerce.terminos');
+Route::view('/libro-de-reclamaciones', 'ECOMMERCE.politicas.libro_reclamaciones')->name('ecommerce.libro_reclamaciones');
 
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');
