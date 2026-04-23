@@ -319,6 +319,93 @@ class ecommerceController extends Controller
         return view('ECOMMERCE.cuenta.mis_compras', compact('ventas', 'stats'));
     }
 
+    public function getfiltro_miscompras(Request $request){
+        if($request->ajax()){
+            $estados = [
+                'processing' => 'proceso',
+                'in-transit' => 'enviado',
+                'delivered'  => 'entregado',
+            ];
+
+            $clienteId = Auth::user()->cliente->id;
+            $busqueda  = $request->busqueda ?? '';
+
+            $ventas_query = Sale::with(['pedido', 'detalles.producto'])
+                ->whereHas('pedido', function($q) use ($request, $estados, $clienteId) {
+                    $q->where('cliente_id', $clienteId);
+                    if($request->valor_filtro !== 'all' && isset($estados[$request->valor_filtro])){
+                        $q->where('estado', $estados[$request->valor_filtro]);
+                    }
+                })
+                ->when($busqueda, function($q) use ($busqueda) {
+                    // Busca por código de pedido O por nombre de producto
+                    $q->where(function($sub) use ($busqueda) {
+                        $sub->whereHas('pedido', function($p) use ($busqueda) {
+                            $p->where('codigo', 'like', '%' . $busqueda . '%');
+                        })
+                        ->orWhereHas('detalles.producto', function($p) use ($busqueda) {
+                            $p->where('name', 'like', '%' . $busqueda . '%');
+                        });
+                    });
+                })
+                ->orderBy('created_at', 'desc');
+
+            $ventas = $ventas_query->get();
+
+            $arralist = $ventas->map(function($venta) {
+                $pedido         = $venta->pedido;
+                $primerDetalle  = $venta->detalles->first();
+                $producto       = $primerDetalle?->producto;
+                $totalDetalles  = $venta->detalles->count();
+
+                return [
+                    'codigo'          => $pedido->codigo,
+                    'estado'          => $pedido->estado,
+                    'fecha_pedido'    => optional($pedido->created_at)->format('d \d\e F, Y') ?? '-',
+                    'fecha_entrega'   => $pedido->fecha_entrega_estimada
+                                            ? \Carbon\Carbon::parse($pedido->fecha_entrega_estimada)->format('d \d\e F, Y')
+                                            : '-',
+                    'total'           => $venta->total ?? 0,
+                    'venta_id'        => $venta->id,
+                    'imagen'          => $producto?->imagen
+                                            ? asset('images/productos/' . $producto->imagen)
+                                            : asset('images/logo.webp'),
+                    'producto_nombre' => $producto?->name ?? '-',
+                    'total_productos' => $totalDetalles,
+                ];
+            });
+
+            return response()->json($arralist);
+        }
+    }
+
+    public function getdetalle_venta(Request $request){
+        if($request->ajax()){
+            $venta = Sale::with(['pedido', 'detalles.producto', 'cliente.user.persona'])
+                        ->findOrFail($request->venta_id);
+            
+            $detalles = $venta->detalles->map(function($detalle) {
+                $producto = $detalle->producto;
+                return [
+                    'imagen'          => $producto->imagen 
+                                            ? asset('images/productos/' . $producto->imagen) 
+                                            : asset('images/logo.webp'),
+                    'nombre'          => $producto->name,
+                    'cantidad'        => $detalle->cantidad,
+                    'precio_unitario' => $detalle->precio_unitario,
+                    'subtotal'        => number_format($detalle->precio_unitario * $detalle->cantidad, 2),
+                ];
+            });
+
+            return response()->json([
+                'detalles'          => $detalles,
+                'direccion'         => $venta->cliente->user->persona->direccion ?? '-',
+                'slug'              => $venta->slug,
+                'tiposcomprobante'  => $venta->tiposcomprobante_id,
+            ]);
+        }
+    }
+
     // lista de mis favoritos
     public function getMisFavoritos(){
         if(Auth::check()){

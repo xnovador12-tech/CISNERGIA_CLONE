@@ -52,6 +52,8 @@ Route::get('limpiar-sesion-cisnergia', [ecommerceController::class, 'limpiarSesi
 
 Route::get('/', [ecommerceController::class, 'index'])->name('ecommerce.index');
 Route::get('/mis_compras', [ecommerceController::class, 'misCompras'])->name('ecommerce.mis_compras');
+route::get('/getfiltro_miscompras', [ecommerceController::class, 'getfiltro_miscompras']);
+Route::get('/getdetalle_venta', [ecommerceController::class, 'getdetalle_venta']);
 Route::get('/products', [ecommerceController::class, 'products'])->name('ecommerce.products');
 Route::get('/product/{slug}', [ecommerceController::class, 'show_product'])->name('ecommerce.product.show');
 route::get('/busqueda_pmarca', [ecommerceController::class, 'getbusqueda_pmarca']);
