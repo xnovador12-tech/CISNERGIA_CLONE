@@ -619,7 +619,7 @@
 
             @forelse($cupons as $cupon)
             <div class="security-item">
-              <div class="flex-grow-1">
+              <div class="flex-grow-1 mb-2">
               @php
                   $validar_noticupon = \App\Models\Usercoupon::where('user_id',Auth::user()->id)->where('coupon_id',$cupon->id)->first();
               @endphp
@@ -630,11 +630,11 @@
                           <div class="col-1 col-md-1">
                               <i class="cupon bi bi-ticket-perforated-fill fs-1 text-primary p-2"></i>
                           </div>
-                          <div class="col-7 col-md-7">
+                          <div class="col-8 col-md-8">
                               <p class="mb-1 fw-bold">{{$validar_noticupon->user->name.' '.$validar_noticupon->user->surnames}} tu cupon ya fue utilizado</p>
                               <small class="fw-light d-block">Publicado hace {{$cupon->created_at->diffForHumans(null, true) }}</small>
                           </div>
-                          <div class="col-3 col-md-3">
+                          <div class="col-3 col-md-3 text-end">
                               <p class="mb-1 fw-bold">CÓDIGO</p>
                               <small class="fw-light d-block">{{$cupon->codigo}}</small>
                           </div>
@@ -646,11 +646,11 @@
                           <div class="col-1 col-md-1">
                               <i class="cupon bi bi-ticket-perforated-fill fs-1 text-primary"></i>
                           </div>
-                          <div class="col-7 col-md-7">
+                          <div class="col-8 col-md-8">
                               <p class="mb-1 fw-bold">{{Auth::user()->name.' '.Auth::user()->surnames}} <label class="mb-1 fw-light">tienes un cupon de descuento</label></p>
                               <small class="fw-light d-block">Publicado hace {{$cupon->created_at->diffForHumans(null, true) }}</small>
                           </div>
-                          <div class="col-3 col-md-3">
+                          <div class="col-3 col-md-3 text-end">
                               <p class="mb-1 fw-bold">CÓDIGO</p>
                               <small class="fw-light d-block">{{$cupon->codigo}}</small>
                           </div>
@@ -664,27 +664,38 @@
             @endforelse
 
             @forelse($ultimos_productos as $producto)
-            <div class="security-item">
+            <div class="security-item mt-2 mb-2">
               <div class="flex-grow-1">
-                  <div class="card-body" disabled>
-                      <div class="row align-items-center">
-                          <div class="col-1 col-md-1">
-                              <img src="{{ asset('storage/productos/'.$producto->imagen ?? 'logo.webp') }}" alt="{{$producto->name}}" class="rounded-3" style="width: 50px; height: 50px; object-fit: cover;">
-                          </div>
-                          <div class="col-7 col-md-7">
-                              <p class="mb-1 fw-bold">El {{ $producto->name }} ha sido agregado recientemente</p>
-                              <small class="fw-light d-block">Publicado hace {{$producto->created_at->diffForHumans(null, true) }}</small>
-                          </div>
-                          <div class="col-3 col-md-3">
-                              <p class="mb-1 fw-bold">CÓDIGO</p>
-                              <small class="fw-light d-block">{{$producto->codigo}}</small>
-                          </div>
-                      </div>
+                <div class="card-body">
+                  <div class="row align-items-center g-2">
+
+                    {{-- Imagen --}}
+                    <div class="col-auto">
+                      <img src="{{ $producto->imagen ? asset('images/productos/' . $producto->imagen) : asset('images/logo.webp') }}"
+                          alt="{{ $producto->name }}"
+                          class="rounded-3"
+                          style="width: 50px; height: 50px; object-fit: cover;">
+                    </div>
+
+                    {{-- Descripción --}}
+                    <div class="col">
+                      <p class="mb-1 fw-bold">{{ $producto->name }} ha sido agregado recientemente</p>
+                      <small class="fw-light text-muted d-block">
+                        Publicado hace {{ $producto->created_at->diffForHumans(null, true) }}
+                      </small>
+                    </div>
+
+                    {{-- Código --}}
+                    <div class="col-auto text-end">
+                      <p class="mb-1 fw-bold small">CÓDIGO</p>
+                      <small class="fw-light d-block text-primary">{{ $producto->codigo }}</small>
+                    </div>
+
                   </div>
+                </div>
               </div>
             </div>
             @empty
-                
             @endforelse
           </div>
         </div>
