@@ -770,6 +770,7 @@
                 Toast.fire({ icon: 'warning', title: @json(session('warning')), timer: 5000 });
             @endif
         })();
+        //integraciones repo
     </script>
 
     @yield('js')
