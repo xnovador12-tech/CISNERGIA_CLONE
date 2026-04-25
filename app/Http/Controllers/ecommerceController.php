@@ -24,6 +24,7 @@ use App\Models\Prospecto;
 use App\Models\Sale;
 use App\Models\Detailsale;
 use App\Models\Direccioncliente;
+use App\Models\Resena;
 use App\Models\User;
 use App\Models\Usercoupon;
 use App\Models\WishList;
@@ -51,8 +52,8 @@ class ecommerceController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(8)
             ->get();
-
-        return view('ECOMMERCE.index', compact('productos', 'marcas_aliadas'));
+        $reseñas = Resena::take(6)->where('estado', 'Activo')->get();
+        return view('ECOMMERCE.index', compact('productos', 'marcas_aliadas', 'reseñas'));
     }
 
         public function limpiarSesioncisnergia(Request $request)

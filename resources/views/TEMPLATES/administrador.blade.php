@@ -160,6 +160,16 @@
                                 <span>Clientes</span>
                             </a>
                         </li>
+
+                        <li class="mx-2 my-1">
+                            <a href="{{ url('admin-crm-reseñas') }}"
+                                class="nav-link px-3 {{ request()->is(['admin/crm/reseñas*']) ? 'active-item' : null }} menu">
+                                <span class="fw-bold">
+                                    <i class="bi bi-people me-2"></i>
+                                </span>
+                                <span>Reseñas</span>
+                            </a>
+                        </li>
                         @endcan
 
                         @can('crm.tickets.index')
