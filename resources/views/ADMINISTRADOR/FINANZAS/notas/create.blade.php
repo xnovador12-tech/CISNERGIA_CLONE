@@ -93,7 +93,8 @@
                                             data-index="{{ $index }}"
                                             data-detalle-id="{{ $detalle->id }}"
                                             data-detalle-subtotal="{{ $detalle->subtotal }}"
-                                            data-original-qty="{{ $detalle->cantidad }}">
+                                            data-original-qty="{{ $detalle->cantidad }}"
+                                            data-original-precio="{{ $detalle->precio_unitario }}">
                                             <td class="text-center">
                                                 <input type="checkbox" class="form-check-input item-check" data-index="{{ $index }}">
                                             </td>
@@ -108,13 +109,20 @@
                                             </td>
                                             <td class="text-center">
                                                 <input type="number" class="form-control form-control-sm text-center item-cantidad"
-                                                       step="0.01" min="0.01" max="{{ $detalle->cantidad }}"
+                                                       step="0.01" min="0.01"
+                                                       @if($tipo === 'nc') max="{{ $detalle->cantidad }}" @endif
                                                        value="{{ $detalle->cantidad }}" disabled>
                                             </td>
                                             <td class="text-end">
-                                                <span class="text-muted small">S/ {{ number_format($detalle->precio_unitario, 2) }}</span>
-                                                @if($detalle->descuento_monto > 0)
-                                                    <br><small class="text-danger">-S/ {{ number_format($detalle->descuento_monto, 2) }}</small>
+                                                @if($tipo === 'nd')
+                                                    <input type="number" class="form-control form-control-sm text-end item-precio"
+                                                           step="0.01" min="0.01"
+                                                           value="{{ $detalle->precio_unitario }}" disabled>
+                                                @else
+                                                    <span class="text-muted small">S/ {{ number_format($detalle->precio_unitario, 2) }}</span>
+                                                    @if($detalle->descuento_monto > 0)
+                                                        <br><small class="text-danger">-S/ {{ number_format($detalle->descuento_monto, 2) }}</small>
+                                                    @endif
                                                 @endif
                                             </td>
                                             <td class="text-end fw-bold item-subtotal-display">
@@ -218,47 +226,60 @@
         const tipo = '{{ $tipo }}';
         const maxDisponible = {{ $tipo === 'nc' ? ($venta->total - $totalNCPrevias) : 999999999 }};
 
-        // Montos reales de la venta original (ya con descuentos globales aplicados)
-        const ventaSubtotal = {{ $venta->subtotal }};
-        const ventaIgv      = {{ $venta->igv }};
-        const ventaTotal    = {{ $venta->total }};
-        // Suma de todos los subtotales de ítems (sin descuento global)
+        const ventaSubtotal  = {{ $venta->subtotal }};
+        const ventaIgv       = {{ $venta->igv }};
+        const ventaTotal     = {{ $venta->total }};
         const sumAllDetalles = {{ $venta->detalles->sum('subtotal') }};
+        const hasIgv         = ventaIgv > 0;
 
         function recalcular() {
-            let selectedDetallesSubtotal = 0;
-            let haySeleccionados = false;
+            let selectedDetallesSubtotal = 0; // NC: proporcional
+            let selectedTotalND          = 0; // ND: qty * precio directo
+            let haySeleccionados         = false;
 
             $('.item-row').each(function() {
-                const $row = $(this);
-                const checked = $row.find('.item-check').is(':checked');
+                const $row            = $(this);
+                const checked         = $row.find('.item-check').is(':checked');
                 const detalleSubtotal = parseFloat($row.data('detalle-subtotal')) || 0;
                 const originalQty     = parseFloat($row.data('original-qty')) || 1;
 
                 if (checked) {
                     haySeleccionados = true;
                     const qty = parseFloat($row.find('.item-cantidad').val()) || 0;
-                    // Subtotal proporcional de este ítem según qty seleccionada
-                    const itemContrib = (qty / originalQty) * detalleSubtotal;
-                    $row.find('.item-subtotal-display').text('S/ ' + itemContrib.toFixed(2));
-                    selectedDetallesSubtotal += itemContrib;
+
+                    if (tipo === 'nd') {
+                        const precio    = parseFloat($row.find('.item-precio').val()) || 0;
+                        const itemTotal = qty * precio;
+                        $row.find('.item-subtotal-display').text('S/ ' + itemTotal.toFixed(2));
+                        selectedTotalND += itemTotal;
+                    } else {
+                        const itemContrib = (qty / originalQty) * detalleSubtotal;
+                        $row.find('.item-subtotal-display').text('S/ ' + itemContrib.toFixed(2));
+                        selectedDetallesSubtotal += itemContrib;
+                    }
                 } else {
                     $row.find('.item-subtotal-display').text('S/ 0.00');
                 }
             });
 
-            // Calcular proporción sobre los montos REALES de la venta (con descuento global)
-            const ratio    = sumAllDetalles > 0 ? selectedDetallesSubtotal / sumAllDetalles : 0;
-            const subtotal = Math.round(ratio * ventaSubtotal * 100) / 100;
-            const igv      = Math.round(ratio * ventaIgv      * 100) / 100;
-            const total    = Math.round(ratio * ventaTotal    * 100) / 100;
+            let subtotal, igv, total;
+            if (tipo === 'nd') {
+                total    = Math.round(selectedTotalND * 100) / 100;
+                subtotal = hasIgv ? Math.round((total / 1.18) * 100) / 100 : total;
+                igv      = hasIgv ? Math.round((total - subtotal) * 100) / 100 : 0;
+            } else {
+                const ratio = sumAllDetalles > 0 ? selectedDetallesSubtotal / sumAllDetalles : 0;
+                subtotal = Math.round(ratio * ventaSubtotal * 100) / 100;
+                igv      = Math.round(ratio * ventaIgv      * 100) / 100;
+                total    = Math.round(ratio * ventaTotal    * 100) / 100;
+            }
 
             $('#lblSubtotal').text('S/ ' + subtotal.toFixed(2));
             $('#lblIgv').text('S/ ' + igv.toFixed(2));
             $('#lblTotal').text('S/ ' + total.toFixed(2));
 
             const motivoSeleccionado = $('#selectMotivo').val() !== '';
-            const montoValido = tipo !== 'nc' || total <= (maxDisponible + 0.05);
+            const montoValido        = tipo !== 'nc' || total <= (maxDisponible + 0.05);
 
             if (!montoValido) {
                 $('#alertaItems').removeClass('d-none').html('<i class="bi bi-exclamation-triangle me-1"></i>El monto excede el disponible (S/ ' + maxDisponible.toFixed(2) + ').');
@@ -270,7 +291,6 @@
 
             $('#btnEmitir').prop('disabled', !haySeleccionados || !motivoSeleccionado || !montoValido);
 
-            // Rellenar hidden inputs
             $('#hiddenItems').empty();
             let itemIndex = 0;
             $('.item-row').each(function() {
@@ -282,12 +302,18 @@
                     const servicioId  = $row.find('.item-servicio-id').val();
                     const detalleId   = $row.data('detalle-id');
 
+                    let extraInput = '';
+                    if (tipo === 'nd') {
+                        extraInput = '<input type="hidden" name="items[' + itemIndex + '][precio_unitario]" value="' + $row.find('.item-precio').val() + '">';
+                    }
+
                     $('#hiddenItems').append(
                         '<input type="hidden" name="items[' + itemIndex + '][detalle_id]" value="' + detalleId + '">' +
                         '<input type="hidden" name="items[' + itemIndex + '][descripcion]" value="' + descripcion + '">' +
                         '<input type="hidden" name="items[' + itemIndex + '][cantidad]" value="' + cantidad + '">' +
                         '<input type="hidden" name="items[' + itemIndex + '][producto_id]" value="' + (productoId || '') + '">' +
-                        '<input type="hidden" name="items[' + itemIndex + '][servicio_id]" value="' + (servicioId || '') + '">'
+                        '<input type="hidden" name="items[' + itemIndex + '][servicio_id]" value="' + (servicioId || '') + '">' +
+                        extraInput
                     );
                     itemIndex++;
                 }
@@ -295,11 +321,17 @@
         }
 
         $('.item-check').on('change', function() {
-            const $row = $(this).closest('.item-row');
+            const $row    = $(this).closest('.item-row');
             const checked = $(this).is(':checked');
             $row.find('.item-cantidad').prop('disabled', !checked);
+            if (tipo === 'nd') {
+                $row.find('.item-precio').prop('disabled', !checked);
+            }
             if (!checked) {
-                $row.find('.item-cantidad').val($row.find('.item-cantidad').attr('max'));
+                $row.find('.item-cantidad').val($row.data('original-qty'));
+                if (tipo === 'nd') {
+                    $row.find('.item-precio').val($row.data('original-precio'));
+                }
             }
             recalcular();
         });
@@ -310,6 +342,7 @@
         });
 
         $('.item-cantidad').on('input', recalcular);
+        $(document).on('input', '.item-precio', recalcular);
 
         $('#selectMotivo').on('change', function() {
             const motivo = $(this).find(':selected').data('codigo');
@@ -318,19 +351,22 @@
                 $('#checkAll').prop('checked', true).trigger('change');
                 $('.item-cantidad').prop('disabled', true);
                 $('.item-row').each(function() {
-                    $(this).find('.item-cantidad').val($(this).find('.item-cantidad').attr('max'));
+                    $(this).find('.item-cantidad').val($(this).data('original-qty'));
                 });
             } else {
                 $('.item-row').each(function() {
                     const checked = $(this).find('.item-check').is(':checked');
                     $(this).find('.item-cantidad').prop('disabled', !checked);
+                    if (tipo === 'nd') {
+                        $(this).find('.item-precio').prop('disabled', !checked);
+                    }
                 });
             }
             recalcular();
         });
 
         $('#formNota').on('submit', function(e) {
-            const tipoTexto = tipo === 'nc' ? 'Nota de Crédito' : 'Nota de Débito';
+            const tipoTexto  = tipo === 'nc' ? 'Nota de Crédito' : 'Nota de Débito';
             const totalTexto = $('#lblTotal').text();
             if (!confirm('¿Está seguro de emitir esta ' + tipoTexto + ' por ' + totalTexto + '?\n\nEsta acción generará un comprobante fiscal.')) {
                 e.preventDefault();
