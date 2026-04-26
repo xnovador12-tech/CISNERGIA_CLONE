@@ -75,11 +75,12 @@ class admin_NotaVentasController extends Controller
             'sunat_motivo_nota_id' => 'required|exists:sunat_motivos_nota,id',
             'observaciones'        => 'nullable|string',
             'items'                => 'required|array|min:1',
-            'items.*.detalle_id'   => 'required|integer|exists:detail_sales,id',
-            'items.*.descripcion'  => 'required|string',
-            'items.*.cantidad'     => 'required|numeric|min:0.01',
-            'items.*.producto_id'  => 'nullable|integer',
-            'items.*.servicio_id'  => 'nullable|integer',
+            'items.*.detalle_id'      => 'required|integer|exists:detail_sales,id',
+            'items.*.descripcion'     => 'required|string',
+            'items.*.cantidad'        => 'required|numeric|min:0.01',
+            'items.*.precio_unitario' => 'nullable|numeric|min:0.01',
+            'items.*.producto_id'     => 'nullable|integer',
+            'items.*.servicio_id'     => 'nullable|integer',
         ]);
 
         $venta = Sale::with(['tipocomprobante', 'detalles'])->findOrFail($validated['sale_id']);
@@ -93,21 +94,33 @@ class admin_NotaVentasController extends Controller
         $motivo = SunatMotivoNota::whereHas('tipocomprobante', fn($q) => $q->where('codigo', $codigoNota))
             ->findOrFail($validated['sunat_motivo_nota_id']);
 
-        // Calcular montos proporcionalmente respetando descuentos globales de la venta original
-        $detallesMap       = $venta->detalles->keyBy('id');
-        $sumAllSubtotales  = $venta->detalles->sum('subtotal');
+        $detallesMap      = $venta->detalles->keyBy('id');
+        $sumAllSubtotales = $venta->detalles->sum('subtotal');
 
-        $selectedSubtotal = collect($validated['items'])->sum(function ($item) use ($detallesMap) {
-            $detalle    = $detallesMap[$item['detalle_id']] ?? null;
-            $originalQty = $detalle?->cantidad ?: 1;
-            $detalleSubtotal = $detalle?->subtotal ?: 0;
-            return ($item['cantidad'] / $originalQty) * $detalleSubtotal;
-        });
-
-        $ratio    = $sumAllSubtotales > 0 ? $selectedSubtotal / $sumAllSubtotales : 0;
-        $subtotal = round($ratio * $venta->subtotal, 2);
-        $igv      = round($ratio * $venta->igv, 2);
-        $total    = round($ratio * $venta->total, 2);
+        if ($tipo === 'nd') {
+            // ND: cálculo directo desde qty * precio_unitario enviado (precio incluye IGV)
+            $totalND  = collect($validated['items'])->sum(fn($item) => $item['cantidad'] * ($item['precio_unitario'] ?? 0));
+            $total    = round($totalND, 2);
+            if ($venta->igv > 0) {
+                $subtotal = round($total / 1.18, 2);
+                $igv      = round($total - $subtotal, 2);
+            } else {
+                $subtotal = $total;
+                $igv      = 0;
+            }
+        } else {
+            // NC: cálculo proporcional respetando descuentos globales de la venta original
+            $selectedSubtotal = collect($validated['items'])->sum(function ($item) use ($detallesMap) {
+                $detalle         = $detallesMap[$item['detalle_id']] ?? null;
+                $originalQty     = $detalle?->cantidad ?: 1;
+                $detalleSubtotal = $detalle?->subtotal ?: 0;
+                return ($item['cantidad'] / $originalQty) * $detalleSubtotal;
+            });
+            $ratio    = $sumAllSubtotales > 0 ? $selectedSubtotal / $sumAllSubtotales : 0;
+            $subtotal = round($ratio * $venta->subtotal, 2);
+            $igv      = round($ratio * $venta->igv, 2);
+            $total    = round($ratio * $venta->total, 2);
+        }
 
         // Validar que NC no exceda total disponible
         if ($tipo === 'nc') {
@@ -165,21 +178,24 @@ class admin_NotaVentasController extends Controller
             ]);
 
             foreach ($validated['items'] as $item) {
-                $detalle     = $detallesMap[$item['detalle_id']] ?? null;
-                $originalQty = $detalle?->cantidad ?: 1;
-                // Precio efectivo por unidad (ya incluye descuentos del ítem)
+                $detalle        = $detallesMap[$item['detalle_id']] ?? null;
+                $originalQty    = $detalle?->cantidad ?: 1;
                 $precioEfectivo = $detalle ? round($detalle->subtotal / $originalQty, 6) : 0;
-                $itemSubtotal   = round($item['cantidad'] * $precioEfectivo, 2);
+                // Para ND usa el precio enviado por el usuario; para NC usa el precio original
+                $precioFinal  = ($tipo === 'nd' && isset($item['precio_unitario']))
+                    ? round($item['precio_unitario'], 6)
+                    : $precioEfectivo;
+                $itemSubtotal = round($item['cantidad'] * $precioFinal, 2);
 
                 Detailsale::create([
-                    'sale_id'          => $notaVenta->id,
-                    'producto_id'      => $item['producto_id'] ?? null,
-                    'servicio_id'      => $item['servicio_id'] ?? null,
-                    'tipo'             => ($item['producto_id'] ?? null) ? 'producto' : 'servicio',
-                    'descripcion'      => $item['descripcion'],
-                    'cantidad'         => $item['cantidad'],
-                    'precio_unitario'  => $precioEfectivo,
-                    'subtotal'         => $itemSubtotal,
+                    'sale_id'         => $notaVenta->id,
+                    'producto_id'     => $item['producto_id'] ?? null,
+                    'servicio_id'     => $item['servicio_id'] ?? null,
+                    'tipo'            => ($item['producto_id'] ?? null) ? 'producto' : 'servicio',
+                    'descripcion'     => $item['descripcion'],
+                    'cantidad'        => $item['cantidad'],
+                    'precio_unitario' => $precioFinal,
+                    'subtotal'        => $itemSubtotal,
                 ]);
             }
 

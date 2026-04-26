@@ -153,15 +153,19 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($orden->detallecompra as $index => $detalle)
+                                    @forelse($orden->detallecompra as $index => $detalle)
                                     <tr>
                                         <td class="text-center">{{ $index + 1 }}</td>
-                                        <td>{{ $detalle->descripcion ?? $detalle->producto->nombre ?? 'N/A' }}</td>
-                                        <td class="text-center">{{ $detalle->cantidad }}</td>
+                                        <td>{{ $detalle->descripcion ?? $detalle->producto ?? 'N/A' }}</td>
+                                        <td class="text-center">{{ $detalle->cantidad }} {{ $detalle->umedida ? '('.$detalle->umedida.')' : '' }}</td>
                                         <td class="text-end">S/ {{ number_format($detalle->precio_unitario ?? $detalle->precio ?? 0, 2) }}</td>
                                         <td class="text-end">S/ {{ number_format($detalle->subtotal ?? ($detalle->cantidad * ($detalle->precio_unitario ?? $detalle->precio ?? 0)), 2) }}</td>
                                     </tr>
-                                    @endforeach
+                                    @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-3">Sin detalle de productos registrado</td>
+                                    </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
