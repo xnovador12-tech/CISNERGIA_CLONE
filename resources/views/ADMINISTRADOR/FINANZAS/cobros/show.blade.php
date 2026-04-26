@@ -104,6 +104,9 @@
                                         <th class="small text-uppercase fw-bold">Fecha Vencimiento</th>
                                         <th class="text-end small text-uppercase fw-bold">Importe</th>
                                         <th class="text-center small text-uppercase fw-bold">Estado</th>
+                                        @if($saldoPendiente > 0.05)
+                                        <th class="text-center small text-uppercase fw-bold">Cobrar</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -130,6 +133,14 @@
                                                 <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Pendiente</span>
                                             @endif
                                         </td>
+                                        @if($saldoPendiente > 0.05)
+                                        <td class="text-center">
+                                            @if(!$cuotaPagada)
+                                                <input type="checkbox" class="form-check-input cuota-checkbox"
+                                                       data-importe="{{ $cuota->importe }}" style="width:1.2em;height:1.2em;cursor:pointer;">
+                                            @endif
+                                        </td>
+                                        @endif
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -218,8 +229,8 @@
                                 <div class="input-group">
                                     <span class="input-group-text">S/</span>
                                     <input type="number" step="0.01" min="0.01" max="{{ number_format($saldoPendiente, 2, '.', '') }}"
-                                           name="monto" class="form-control"
-                                           value="{{ number_format($saldoPendiente, 2, '.', '') }}" required>
+                                           name="monto" id="monto-cobrar" class="form-control"
+                                           value="{{ ($venta->condicion_pago == 'Crédito' && $venta->cuotas && $venta->cuotas->where('estado', '!=', 'Pagado')->count() > 0) ? '0.00' : number_format($saldoPendiente, 2, '.', '') }}" required>
                                 </div>
                                 <small class="text-muted">Saldo pendiente: S/ {{ number_format($saldoPendiente, 2) }}</small>
                             </div>
@@ -259,6 +270,14 @@
 @section('js')
 <script>
     $(document).ready(function() {
+        $(document).on('change', '.cuota-checkbox', function() {
+            let total = 0;
+            $('.cuota-checkbox:checked').each(function() {
+                total += parseFloat($(this).data('importe'));
+            });
+            $('#monto-cobrar').val(total > 0 ? total.toFixed(2) : '0.00');
+        });
+
         $(document).on('change', '.select-metodo-pago', function() {
             const $form = $(this).closest('form');
             const texto = $(this).find('option:selected').data('tipo') || '';

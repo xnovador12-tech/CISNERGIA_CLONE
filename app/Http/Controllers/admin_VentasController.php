@@ -199,9 +199,11 @@ class admin_VentasController extends Controller
 
         // Determinar estado según monto pagado
         if ($sumaPagos >= $venta->total - 0.05) {
-            $venta->estado = 'completada';
+            $venta->estado = 'Pagado';
+        } elseif ($sumaPagos > 0) {
+            $venta->estado = 'Parcial';
         } else {
-            $venta->estado = 'parcial';
+            $venta->estado = 'Pendiente';
         }
         $venta->save();
 
