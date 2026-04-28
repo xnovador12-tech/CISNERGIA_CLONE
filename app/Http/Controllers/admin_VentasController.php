@@ -146,7 +146,7 @@ class admin_VentasController extends Controller
             'monto_neto' => $montoNeto,
             'mediopago_id' => $primerPago['mediopago_id'] ?? null,
             'condicion_pago' => $validated['condicion_pago'],
-            'estado' => 'completada',
+            'estado' => 'Pendiente',
             'user_id' => auth()->id(),
             'sede_id' => auth()->user()->persona->sede_id ?? null,
             'tipo_venta' => 'pedido',
@@ -199,9 +199,11 @@ class admin_VentasController extends Controller
 
         // Determinar estado según monto pagado
         if ($sumaPagos >= $venta->total - 0.05) {
-            $venta->estado = 'completada';
+            $venta->estado = 'Pagado';
+        } elseif ($sumaPagos > 0) {
+            $venta->estado = 'Parcial';
         } else {
-            $venta->estado = 'parcial';
+            $venta->estado = 'Pendiente';
         }
         $venta->save();
 

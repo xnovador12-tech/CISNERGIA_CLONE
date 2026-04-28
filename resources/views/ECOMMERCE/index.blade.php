@@ -554,58 +554,32 @@
           <p style="color:var(--c-muted);">Más de 850 familias y empresas confían en nosotros</p>
         </div>
         <div class="row g-4">
-
+          @forelse($reseñas as $reseña)
           <div class="col-md-4">
             <div class="cis-testi">
               <span class="cis-testi-q">"</span>
-              <p class="mb-3" style="color:var(--c-text-muted); font-size:.95rem;">Mi factura de luz bajó de S/450 a solo S/50 mensuales. La instalación fue rápida y profesional.</p>
+              <p class="mb-3" style="color:var(--c-text-muted); font-size:.95rem;">{{$reseña->comentarios}}</p>
               <div class="d-flex align-items-center gap-3">
                 <div class="cis-avatar"><i class="bi bi-person-fill"></i></div>
                 <div>
-                  <strong style="color:var(--bs-primary); font-size:.88rem;">María González</strong>
-                  <small style="color:var(--c-muted); display:block;">Lima, Perú</small>
+                  <strong style="color:var(--bs-primary); font-size:.88rem;">{{$reseña->cliente->nombres.' '.$reseña->cliente->apellidos}}</strong>
+                  <small style="color:var(--c-muted); display:block;">{{$reseña->cliente->distrito ? $reseña->cliente->distrito->nombre : ''}}</small>
                 </div>
                 <div class="ms-auto" style="color:var(--c-accent); font-size:.8rem;">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                  @if($reseña->valoracion >= 1)<i class="bi bi-star-fill"></i>@else<i class="bi bi-star"></i>@endif
+                  @if($reseña->valoracion >= 2)<i class="bi bi-star-fill"></i>@else<i class="bi bi-star"></i>@endif
+                  @if($reseña->valoracion >= 3)<i class="bi bi-star-fill"></i>@else<i class="bi bi-star"></i>@endif
+                  @if($reseña->valoracion >= 4)<i class="bi bi-star-fill"></i>@else<i class="bi bi-star"></i>@endif
+                  @if($reseña->valoracion >= 5)<i class="bi bi-star-fill"></i>@else<i class="bi bi-star"></i>@endif
                 </div>
               </div>
             </div>
           </div>
-
-          <div class="col-md-4">
-            <div class="cis-testi">
-              <span class="cis-testi-q">"</span>
-              <p class="mb-3" style="color:var(--c-text-muted); font-size:.95rem;">La mejor inversión que he hecho. El equipo técnico fue muy profesional y me explicaron todo el proceso.</p>
-              <div class="d-flex align-items-center gap-3">
-                <div class="cis-avatar"><i class="bi bi-person-fill"></i></div>
-                <div>
-                  <strong style="color:var(--bs-primary); font-size:.88rem;">Carlos Mendoza</strong>
-                  <small style="color:var(--c-muted); display:block;">Arequipa, Perú</small>
-                </div>
-                <div class="ms-auto" style="color:var(--c-accent); font-size:.8rem;">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                </div>
-              </div>
-            </div>
+          @empty
+          <div class="col-12">
+            <p class="text-center" style="color:var(--c-muted);">No hay reseñas disponibles en este momento.</p>
           </div>
-
-          <div class="col-md-4">
-            <div class="cis-testi">
-              <span class="cis-testi-q">"</span>
-              <p class="mb-3" style="color:var(--c-text-muted); font-size:.95rem;">Instalamos un sistema de 15kW y estamos ahorrando más de S/2,000 mensuales. ¡Excelente retorno!</p>
-              <div class="d-flex align-items-center gap-3">
-                <div class="cis-avatar"><i class="bi bi-building"></i></div>
-                <div>
-                  <strong style="color:var(--bs-primary); font-size:.88rem;">Restaurante El Sol</strong>
-                  <small style="color:var(--c-muted); display:block;">Cusco, Perú</small>
-                </div>
-                <div class="ms-auto" style="color:var(--c-accent); font-size:.8rem;">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-
+          @endforelse
         </div>
       </div>
     </section>

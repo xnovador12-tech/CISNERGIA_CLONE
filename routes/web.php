@@ -40,6 +40,7 @@ use App\Http\Controllers\admin_CrmClientesController;
 use App\Http\Controllers\admin_CrmTicketsController;
 use App\Http\Controllers\admin_OperacionesController;
 use App\Http\Controllers\admin_CrmMantenimientosController;
+use App\Http\Controllers\admin_CrmReseñasController;
 use App\Http\Controllers\admin_ModeloController;
 use App\Http\Controllers\admin_UbigeoController;
 use App\Http\Controllers\Marketing\MarketingController;
@@ -565,6 +566,9 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:crm.clientes.create')->name('admin-clientes.store');
     Route::get('admin-clientes/{cliente}/datos',[admin_CrmClientesController::class, 'getDatos'])
         ->middleware('permission:crm.clientes.index')->name('admin-clientes.datos');
+    Route::resource('admin-crm-reseñas', admin_CrmReseñasController::class);
+    Route::put('admin-crm-reseñas/{admin_crm_reseña}/estado', [admin_CrmReseñasController::class, 'estados'])
+        ->name('admin-crm-reseñas.estado');
 
     // ---------------------------------------------------------
     // VENTAS — PEDIDOS

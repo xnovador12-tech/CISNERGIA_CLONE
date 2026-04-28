@@ -9,7 +9,7 @@ class Detallecompra extends Model
 {
     use HasFactory;
     protected $table = 'detallecompras';
-    protected $fillable = array('*');
+    protected $guarded = [];
 
     public function ordenescompras()
     {
