@@ -149,7 +149,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+            <!-- <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <div class="card border-4 borde-top-secondary box-shadow h-100" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
                     <div class="card-header bg-transparent">
                         <span class="text-uppercase text-secondary fw-bold">Facturación</span>
@@ -164,7 +164,7 @@
                         </ul>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
     {{-- Fin contenido --}}

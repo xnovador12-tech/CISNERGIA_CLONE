@@ -67,7 +67,7 @@
                             <tr>
                                 <td class="fw-normal text-center align-middle">{{ $contador }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_cobertura->name }}</td>
-                                <td class="fw-normal text-center align-middle">{{ $admin_cobertura->departamento->name.' - '.$admin_cobertura->provincia->name.' - '.$admin_cobertura->distrito->name }}</td>
+                                <td class="fw-normal text-center align-middle">{{ $admin_cobertura->departamento->nombre.' - '.$admin_cobertura->provincia->nombre.' - '.$admin_cobertura->distrito->nombre }}</td>
                                 <td class="fw-normal text-center align-middle">{{ $admin_cobertura->precio }}</td>
                                 <td class="fw-normal align-middle">
                                     <form method="POST" action="/admin-coberturas/estado/{{$admin_cobertura->slug}}" class="form-update">

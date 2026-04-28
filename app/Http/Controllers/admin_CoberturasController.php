@@ -19,7 +19,7 @@ class admin_CoberturasController extends Controller
         $ubigeos = DB::table('departamentos as dep')
             ->join('provincias as prov','prov.departamento_id','dep.id')
             ->join('distritos as dis','dis.provincia_id','prov.id')
-            ->select('dep.id as departamento_ids','dis.id as distrito_ids','prov.id as provincia_ids','dep.name as departamento_name','dis.name as distrito_name','prov.name as provincia_name')
+            ->select('dep.id as departamento_ids','dis.id as distrito_ids','prov.id as provincia_ids','dep.nombre as departamento_name','dis.nombre as distrito_name','prov.nombre as provincia_name')
             ->get();
         return view('ADMINISTRADOR.PRINCIPAL.configuraciones.coberturas.index',compact('admin_coberturas', 'ubigeos'));
     }
