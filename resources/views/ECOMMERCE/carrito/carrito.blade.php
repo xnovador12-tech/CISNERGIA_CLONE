@@ -47,9 +47,23 @@
                 <!-- Lista de productos -->
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4" id="lista_carrito_compras_id">
+                        @php
+                            $subtotal_base = 0;
+                            $total_descuentos = 0;
+                        @endphp
                         @foreach($cart as $item)
                             @php
+                                //especificar el producto para mostrar su precio base
                                 $valores_productos = \App\Models\Producto::where('id', $item['producto_id'])->first();
+                                $subtotal_base = $subtotal_base + ($valores_productos->precio * $item['cantidad']);
+
+                                
+                                $cantidad = $item['cantidad'] ?? 1;
+                                $precio_original = $valores_productos->precio;
+                                $precio_con_descuento = $valores_productos->precio_descuento ?? $valores_productos->precio; // Si es NULL usa precio normal
+                                
+                                $descuento_item = ($precio_original - $precio_con_descuento) * $cantidad;
+                                $total_descuentos += $descuento_item;
                             @endphp
                         <div class="row align-items-center mb-3 pb-3 {{ $loop->last ? '' : 'border-bottom' }}" data-item-id="{{ $item['producto_id'] }}">
                             <div class="col-auto">
@@ -84,8 +98,15 @@
                             <div class="col-auto text-end">
                                 <div class="mb-1">
                                     
-                                    <h5 class="text-primary fw-bold mb-0 item-subtotal">S/ {{ number_format(($valores_productos->precio * $item['cantidad']) - 0, 2) }}</h5>
-                                    <span class="badge bg-secondary">{{ number_format($item['porcentaje'], 0) }}% OFF</span>
+                                    <h5 class="text-primary fw-bold mb-0 item-subtotal">S/ {{ number_format((($valores_productos->precio_descuento > 0 ? $valores_productos->precio_descuento : $valores_productos->precio) * $item['cantidad']) - 0, 2) }}</h5>
+                                    @if($item['porcentaje'] > 0)
+                                        <span class="badge bg-success">{{ number_format($item['porcentaje'], 0) }}% 
+                                            ON
+                                        @else
+                                        <span class="badge bg-secondary">{{ number_format($item['porcentaje'], 0) }}% 
+                                            OFF
+                                        @endif
+                                    </span>
                                 </div>
                             </div>
                             <div class="col-auto">
@@ -104,17 +125,22 @@
                 <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-4">Resumen de la orden</h5>
-                        
+                        <!-- Subtotal -->
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span class="fw-bold">S/ {{ number_format($subtotal_base, 2) }}</span>
+                        </div>
+
+                        <!-- Descuentos -->
+                        <div class="d-flex justify-content-between mb-2 text-success">
+                            <span>Descuentos</span>
+                            <span class="fw-semibold">- S/ {{ number_format($total_descuentos, 2) }}</span>
+                        </div>
+
                         <!-- Productos -->
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Productos ({{ count($cart) }})</span>
                             <span class="fw-semibold" id="cart-subtotal">S/ {{ number_format($subtotal, 2) }}</span>
-                        </div>
-
-                        <!-- Descuentos -->
-                        <div class="d-flex justify-content-between mb-3 text-success">
-                            <span>Descuentos</span>
-                            <span class="fw-semibold">- S/ {{ number_format(0, 2) }}</span>
                         </div>
 
                         <!-- IGV -->

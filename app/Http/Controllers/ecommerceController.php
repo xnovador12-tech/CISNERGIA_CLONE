@@ -777,7 +777,7 @@ class ecommerceController extends Controller
                         'ymdhis' => date('YmdHis'),
                         'name_producto' => $product->name,
                         'imagen_producto' => $product->imagen ? asset('images/productos/' . $product->imagen) : asset('images/logo.webp'),
-                        'precio' => $product->precio,
+                        'precio' => $product->precio_descuento > 0 ? $product->precio_descuento : $product->precio,
                         'producto_id' => $product->id,
                         'cantidad' => 1,
                         'precio_descuento' => $product->precio_descuento > 0 ? $product->precio_descuento : 0,
@@ -1008,6 +1008,8 @@ class ecommerceController extends Controller
             if ($cupon_id) {
                 $cupon = Coupon::find($cupon_id);
                 if ($cupon && UserCoupon::where('user_id', Auth::user()->id)->where('coupon_id', $cupon_id)->exists()) {
+                    $cupon_aplicado = '0';
+                }else{
                     $descuento = round($total * ($cupon->porcentaje / 100), 2);
                     $total = round($total - $descuento, 2);
                     $cupon_aplicado = $cupon;
@@ -1319,8 +1321,22 @@ class ecommerceController extends Controller
             ->take(8)
             ->get();
 
+            $descuento = 0;
+            $cupon_aplicado = null;
+            $cupon_id = session('cupon_carrito');
+            if ($cupon_id) {
+                $cupon = Coupon::find($cupon_id);
+                if ($cupon && UserCoupon::where('user_id', Auth::user()->id)->where('coupon_id', $cupon_id)->exists()) {
+                    $cupon_aplicado = '0';
+                }else{
+                    $descuento = round($sale->total * ($cupon->porcentaje / 100), 2);
+                    $total = round($sale->total - $descuento, 2);
+                    $cupon_aplicado = $cupon;
+                }
+            }
 
-            return view('ECOMMERCE.carrito.confirmacion', compact('pedido','sale','dtlle_venta','productos_destacados'));
+
+            return view('ECOMMERCE.carrito.confirmacion', compact('pedido','sale','dtlle_venta','productos_destacados','cupon_aplicado'));
         }else{
             return redirect()->route('ecommerce.index');
         }
@@ -1505,10 +1521,13 @@ class ecommerceController extends Controller
             $pedido->codigo = $codigoPedido;
             $pedido->slug = Str::slug($codigoPedido);
             $pedido->cliente_id = $cliente->id;
-            $pedido->subtotal = $cart->subtotal;
-            $pedido->descuento_monto = $cart->descuento;
-            $pedido->igv = $cart->igv;
-            $pedido->total = $cart->total;
+            $pedido->subtotal = $request->subtotal_base;
+            if(floatval($request->igv) > 0){
+                $pedido->incluye_igv = 1;
+            }
+            $pedido->descuento_monto = $request->descuento;
+            $pedido->igv = $request->igv;
+            $pedido->total = $request->total;
             $pedido->estado = 'proceso'; // Ya pagado online y en operación
             $pedido->aprobacion_stock = true; // Stock descontado al crear
             $pedido->aprobacion_finanzas = true; // Pago online confirmado automáticamente
@@ -1529,10 +1548,10 @@ class ecommerceController extends Controller
                 'cliente_id' => $cliente->id,
                 'tiposcomprobante_id' => 1, // Boleta por defecto para ecommerce
                 'numero_comprobante' => 'ECOM-' . $codigoPedido,
-                'subtotal' => $cart->subtotal,
-                'descuento' => $cart->descuento,
-                'igv' => $cart->igv,
-                'total' => $cart->total,
+                'subtotal' => $request->subtotal,
+                'descuento' => $request->descuento,
+                'igv' => $request->igv,
+                'total' => $request->total,
                 'mediopago_id' => 1, // Configurar según metodo_pago
                 'condicion_pago' => $request->metodo_pago === 'credito' ? 'Crédito' : 'Contado',
                 'estado' => 'Pagado',

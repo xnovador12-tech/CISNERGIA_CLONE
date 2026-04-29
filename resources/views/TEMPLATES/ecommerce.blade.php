@@ -651,6 +651,12 @@
                                     todo += '<div class="col-9 ps-2">';
                                         todo += '<p class="mb-0 fw-bold" align="justify">'+value[2]+'</p>';
                                         todo += '<p class="text-primary text-start fw-bold mb-0">S/ '+value[4]+'</p>';
+                                        if(value[8] > 0){
+                                            todo += '<div class="d-flex align-items-center gap-1">';
+                                                todo += '<p class="text-muted text-start mb-0">Descuento aplicado del</p>';
+                                                todo += '<span class="badge bg-success text-start mb-0"> '+value[8]+'%</span>';
+                                            todo += '</div>';
+                                        }
                                     todo += '</div>';
                             todo += '</div>';
                         todo += '</div>';
