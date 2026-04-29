@@ -122,7 +122,13 @@
                                     <select name="tiposcomprobante_id" id="selectTipoComprobante" class="form-select" required>
                                         <option value="">Seleccionar...</option>
                                         @foreach($tiposComprobante as $tipo)
-                                            <option value="{{ $tipo->id }}" data-name="{{ strtolower($tipo->name) }}">{{ $tipo->name }}</option>
+                                            @php
+                                                $nombreNormalizado = strtolower(trim($tipo->name));
+                                                $tiposPermitidos = ['factura', 'boleta de venta', 'nota de venta'];
+                                            @endphp
+                                            @if(in_array($nombreNormalizado, $tiposPermitidos))
+                                                <option value="{{ $tipo->id }}" data-name="{{ $nombreNormalizado }}">{{ $tipo->name }}</option>
+                                            @endif
                                         @endforeach
                                     </select>
                                 </div>

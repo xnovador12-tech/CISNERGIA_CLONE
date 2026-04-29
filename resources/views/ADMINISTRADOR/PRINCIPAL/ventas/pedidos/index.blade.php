@@ -260,73 +260,13 @@
                                             </li>
                                         @endif
                                         
-                                        @if($pedido->estado !== 'cancelado')
+                                        @if($pedido->estado !== 'cancelado' && !$pedido->venta)
                                             <li>
-                                                @if($pedido->venta)
-                                                    {{-- No mostrar opción de anular si tiene venta --}}
-                                                @else
-                                                    {{-- Si no tiene venta, mostrar botón que abre modal --}}
-                                                    <button type="button" class="dropdown-item text-danger" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#modalCancelarPedido{{ $pedido->id }}">
-                                                        <i class="bi bi-x-circle me-2"></i>Anular Pedido
-                                                    </button>
-                                                    
-                                                    {{-- Modal de Confirmación --}}
-                                                    <div class="modal fade" id="modalCancelarPedido{{ $pedido->id }}" tabindex="-1">
-                                                        <div class="modal-dialog modal-dialog-centered">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header bg-danger bg-opacity-10 border-danger">
-                                                                    <h5 class="modal-title fw-bold">⚠️ Anular Pedido {{ $pedido->codigo }}</h5>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                                </div>
-                                                                <form action="{{ route('admin-pedidos.estado', $pedido) }}" method="POST">
-                                                                    @csrf
-                                                                    @method('PUT')
-                                                                    <input type="hidden" name="estado" value="cancelado">
-                                                                    
-                                                                    <div class="modal-body">
-                                                                        <p class="text-muted mb-3">
-                                                                            <strong>Origen:</strong> <span class="badge bg-info">{{ ucfirst($pedido->origen) }}</span><br>
-                                                                            <strong>Estado:</strong> <span class="badge bg-warning">{{ ucfirst($pedido->estado) }}</span>
-                                                                        </p>
-                                                                        
-                                                                        @if($pedido->aprobacion_stock)
-                                                                            <div class="alert alert-info small mb-3">
-                                                                                <i class="bi bi-info-circle me-2"></i>
-                                                                                Se restaurarán <strong>{{ $pedido->detalles->count() }}</strong> línea(s) de stock al inventario.
-                                                                            </div>
-                                                                        @endif
-                                                                        
-                                                                        <label class="form-label fw-bold">Motivo de Cancelación</label>
-                                                                        <select name="motivo" class="form-select form-select-sm mb-3" required>
-                                                                            <option value="">-- Seleccione un motivo --</option>
-                                                                            <option value="Solicitud del cliente">Solicitud del cliente</option>
-                                                                            <option value="Error en el pedido">Error en el pedido</option>
-                                                                            <option value="Producto no disponible">Producto no disponible</option>
-                                                                            @if($pedido->origen === 'cotizacion')
-                                                                                <option value="Cliente no responde">Cliente no responde</option>
-                                                                                <option value="Prospecto inactivo">Prospecto inactivo</option>
-                                                                            @endif
-                                                                            <option value="Otro (especificar)">Otro (especificar en observaciones)</option>
-                                                                        </select>
-                                                                        
-                                                                        <label class="form-label fw-bold small">Observaciones (Opcional)</label>
-                                                                        <textarea name="observaciones_cancelacion" class="form-control form-control-sm" 
-                                                                                  rows="3" placeholder="Detalles adicionales sobre la cancelación..."></textarea>
-                                                                    </div>
-                                                                    
-                                                                    <div class="modal-footer">
-                                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                                                                        <button type="submit" class="btn btn-danger btn-sm">
-                                                                            <i class="bi bi-check-circle me-1"></i>Confirmar Anulación
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endif
+                                                <button type="button" class="dropdown-item text-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modalCancelarPedido{{ $pedido->id }}">
+                                                    <i class="bi bi-x-circle me-2"></i>Anular Pedido
+                                                </button>
                                             </li>
                                         @endif
 
@@ -353,6 +293,67 @@
             </div>
         </div>
     </div>
+
+    {{-- ============================================================ --}}
+    {{-- MODALES DE ANULACIÓN (fuera de la tabla y dropdown)         --}}
+    {{-- ============================================================ --}}
+    @foreach($pedidos as $pedido)
+        @if($pedido->estado !== 'cancelado' && !$pedido->venta)
+            <div class="modal fade" id="modalCancelarPedido{{ $pedido->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger bg-opacity-10 border-danger">
+                            <h5 class="modal-title fw-bold">⚠️ Anular Pedido {{ $pedido->codigo }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form action="{{ route('admin-pedidos.estado', $pedido) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="estado" value="cancelado">
+
+                            <div class="modal-body">
+                                <p class="text-muted mb-3">
+                                    <strong>Origen:</strong> <span class="badge bg-info">{{ ucfirst($pedido->origen) }}</span><br>
+                                    <strong>Estado:</strong> <span class="badge bg-warning">{{ ucfirst($pedido->estado) }}</span>
+                                </p>
+
+                                @if($pedido->aprobacion_stock)
+                                    <div class="alert alert-info small mb-3">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        Se restaurarán <strong>{{ $pedido->detalles->count() }}</strong> línea(s) de stock al inventario.
+                                    </div>
+                                @endif
+
+                                <label class="form-label fw-bold">Motivo de Cancelación</label>
+                                <select name="motivo" class="form-select form-select-sm mb-3" required>
+                                    <option value="">-- Seleccione un motivo --</option>
+                                    <option value="Solicitud del cliente">Solicitud del cliente</option>
+                                    <option value="Error en el pedido">Error en el pedido</option>
+                                    <option value="Producto no disponible">Producto no disponible</option>
+                                    @if($pedido->origen === 'cotizacion')
+                                        <option value="Cliente no responde">Cliente no responde</option>
+                                        <option value="Prospecto inactivo">Prospecto inactivo</option>
+                                    @endif
+                                    <option value="Otro (especificar)">Otro (especificar en observaciones)</option>
+                                </select>
+
+                                <label class="form-label fw-bold small">Observaciones (Opcional)</label>
+                                <textarea name="observaciones_cancelacion" class="form-control form-control-sm"
+                                          rows="3" placeholder="Detalles adicionales sobre la cancelación..."></textarea>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="bi bi-check-circle me-1"></i>Confirmar Anulación
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endforeach
 @endsection
 
 @section('js')
