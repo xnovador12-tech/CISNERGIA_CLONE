@@ -13,15 +13,15 @@ class UserTableSeeder extends Seeder
     public function run(): void
     {
         $usuarios = [
-            ['nombre' => 'Gerencia Cisnergia',      'email' => 'gerencia@cisnergia.com',     'rol' => 'Gerencia'],
-            ['nombre' => 'Administrador Cisnergia',  'email' => 'administrador@cisnergia.com', 'rol' => 'Administrador'],
-            ['nombre' => 'Vendedor Cisnergia',       'email' => 'ventas@cisnergia.com',        'rol' => 'Ventas'],
-            ['nombre' => 'Finanzas Cisnergia',       'email' => 'finanzas@cisnergia.com',      'rol' => 'Finanzas'],
-            ['nombre' => 'Compras Cisnergia',        'email' => 'compras@cisnergia.com',       'rol' => 'Compras'],
-            ['nombre' => 'Almacen Cisnergia',        'email' => 'almacen@cisnergia.com',       'rol' => 'Almacen'],
-            ['nombre' => 'Operaciones Cisnergia',    'email' => 'operaciones@cisnergia.com',   'rol' => 'Operaciones'],
-            ['nombre' => 'Tecnico Cisnergia',        'email' => 'tecnico@cisnergia.com',       'rol' => 'Tecnico'],
-            ['nombre' => 'Cliente Demo',             'email' => 'cliente@cisnergia.com',       'rol' => 'Cliente'],
+            ['nombre' => 'Gerencia Cisnergia',      'email' => 'gerencia@cisnergiamarketplace.com',     'rol' => 'Gerencia'],
+            ['nombre' => 'Administrador Cisnergia',  'email' => 'administrador@cisnergiamarketplace.com', 'rol' => 'Administrador'],
+            ['nombre' => 'Vendedor Cisnergia',       'email' => 'ventas@cisnergiamarketplace.com',        'rol' => 'Ventas'],
+            ['nombre' => 'Finanzas Cisnergia',       'email' => 'finanzas@cisnergiamarketplace.com',      'rol' => 'Finanzas'],
+            ['nombre' => 'Compras Cisnergia',        'email' => 'compras@cisnergiamarketplace.com',       'rol' => 'Compras'],
+            ['nombre' => 'Almacen Cisnergia',        'email' => 'almacen@cisnergiamarketplace.com',       'rol' => 'Almacen'],
+            ['nombre' => 'Operaciones Cisnergia',    'email' => 'operaciones@cisnergiamarketplace.com',   'rol' => 'Operaciones'],
+            ['nombre' => 'Tecnico Cisnergia',        'email' => 'tecnico@cisnergiamarketplace.com',       'rol' => 'Tecnico'],
+            ['nombre' => 'Cliente Demo',             'email' => 'cliente@cisnergiamarketplace.com',       'rol' => 'Cliente'],
         ];
 
         foreach ($usuarios as $data) {
@@ -39,7 +39,7 @@ class UserTableSeeder extends Seeder
 
             $user = User::create([
                 'email'      => $data['email'],
-                'password'   => Hash::make('password'),
+                'password'   => Hash::make('Cisnergi@123'),
                 'estado'     => 'Activo',
                 'persona_id' => $persona->id,
             ]);
