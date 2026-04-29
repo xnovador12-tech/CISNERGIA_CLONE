@@ -127,9 +127,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:reportes.index')
         ->name('admin-reportes.index');
 
-    // Información de la empresa (todos los métodos requieren permiso de editar)
+    // Información de la empresa (registro único, solo se edita)
     Route::middleware('permission:informacion.edit')->group(function () {
-        Route::resource('admin-informacion', admin_InformacionController::class);
+        Route::get('admin-informacion',     [admin_InformacionController::class, 'index'])->name('admin-informacion.index');
+        Route::put('admin-informacion',     [admin_InformacionController::class, 'update'])->name('admin-informacion.update');
     });
 
     // Perfil propio — cualquier autenticado puede ver/editar su propio perfil (sin permiso especial)

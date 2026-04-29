@@ -342,10 +342,18 @@
                         de alta calidad.
                     </p>
                     <div class="d-flex gap-2 mb-3">
-                        <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-linkedin"></i></a>
-                        <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-youtube"></i></a>
+                        @if(!empty($infoEmpresa->facebook))
+                            <a href="{{ $infoEmpresa->facebook }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-sm"><i class="bi bi-facebook"></i></a>
+                        @endif
+                        @if(!empty($infoEmpresa->instagram))
+                            <a href="{{ $infoEmpresa->instagram }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-sm"><i class="bi bi-instagram"></i></a>
+                        @endif
+                        @if(!empty($infoEmpresa->linkedin))
+                            <a href="{{ $infoEmpresa->linkedin }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-sm"><i class="bi bi-linkedin"></i></a>
+                        @endif
+                        @if(!empty($infoEmpresa->youtube))
+                            <a href="{{ $infoEmpresa->youtube }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-sm"><i class="bi bi-youtube"></i></a>
+                        @endif
                     </div>
                 </div>
 
@@ -385,18 +393,26 @@
                 <div class="col-lg-3 col-md-6">
                     <h6 class="fw-bold mb-3">Contacto</h6>
                     <ul class="list-unstyled">
-                        <li class="mb-2 text-light opacity-75">
-                            <i class="bi bi-geo-alt-fill text-light me-2"></i>Av. Principal 123, San Isidro, Lima
-                        </li>
-                        <li class="mb-2 text-light opacity-75">
-                            <i class="bi bi-telephone-fill text-light me-2"></i>+51 999 999 999
-                        </li>
-                        <li class="mb-2 text-light opacity-75">
-                            <i class="bi bi-envelope-fill text-light me-2"></i>ventas@cisnergia.pe
-                        </li>
-                        <li class="mb-2 text-light opacity-75">
-                            <i class="bi bi-clock-fill text-light me-2"></i>Lun-Vie: 9AM-6PM
-                        </li>
+                        @if(!empty($infoEmpresa->direccion))
+                            <li class="mb-2 text-light opacity-75">
+                                <i class="bi bi-geo-alt-fill text-light me-2"></i>{{ $infoEmpresa->direccion }}
+                            </li>
+                        @endif
+                        @if(!empty($infoEmpresa->telefono) || !empty($infoEmpresa->celular))
+                            <li class="mb-2 text-light opacity-75">
+                                <i class="bi bi-telephone-fill text-light me-2"></i>{{ $infoEmpresa->telefono ?? $infoEmpresa->celular }}
+                            </li>
+                        @endif
+                        @if(!empty($infoEmpresa->email))
+                            <li class="mb-2 text-light opacity-75">
+                                <i class="bi bi-envelope-fill text-light me-2"></i>{{ $infoEmpresa->email }}
+                            </li>
+                        @endif
+                        @if(!empty($infoEmpresa->horario_atencion))
+                            <li class="mb-2 text-light opacity-75">
+                                <i class="bi bi-clock-fill text-light me-2"></i>{{ $infoEmpresa->horario_atencion }}
+                            </li>
+                        @endif
                     </ul>
                 </div>
             </div>
@@ -405,7 +421,7 @@
 
             <div class="row">
                 <div class="col-md-6 text-center text-md-start">
-                    <p class="small mb-0 opacity-75">© 2025 Cisnergia Perú. Todos los derechos reservados.</p>
+                    <p class="small mb-0 opacity-75">© {{ date('Y') }} {{ $infoEmpresa->razon_social ?? 'Cisnergia Perú' }}. Todos los derechos reservados.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <a href="{{ route('ecommerce.terminos') }}" class="text-light opacity-75 text-decoration-none small me-3">

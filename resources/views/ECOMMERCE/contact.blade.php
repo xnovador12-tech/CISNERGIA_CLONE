@@ -27,19 +27,24 @@
 
         <!-- Quick cards -->
         <div class="row g-3 mb-4">
+          @if(!empty($infoEmpresa->telefono) || !empty($infoEmpresa->celular))
+            @php $telLink = preg_replace('/\D/', '', $infoEmpresa->telefono ?? $infoEmpresa->celular); @endphp
           <div class="col-md-6">
-            <a href="tel:+51999999999" class="cp-quick-card">
+            <a href="tel:+{{ $telLink }}" class="cp-quick-card">
               <div class="cp-quick-card__icon cp-quick-card__icon--phone">
                 <i class="bi bi-telephone-fill"></i>
               </div>
               <div>
                 <span class="cp-quick-card__lbl">Llámanos ahora</span>
-                <span class="cp-quick-card__val">+51 999 999 999</span>
+                <span class="cp-quick-card__val">{{ $infoEmpresa->telefono ?? $infoEmpresa->celular }}</span>
               </div>
             </a>
           </div>
+          @endif
+          @if(!empty($infoEmpresa->whatsapp))
+            @php $waLink = preg_replace('/\D/', '', $infoEmpresa->whatsapp); @endphp
           <div class="col-md-6">
-            <a href="https://wa.me/51999999999" target="_blank" class="cp-quick-card">
+            <a href="https://wa.me/{{ $waLink }}" target="_blank" rel="noopener" class="cp-quick-card">
               <div class="cp-quick-card__icon cp-quick-card__icon--wa">
                 <i class="bi bi-whatsapp"></i>
               </div>
@@ -49,6 +54,7 @@
               </div>
             </a>
           </div>
+          @endif
         </div>
 
         <!-- Stats strip -->
@@ -171,20 +177,28 @@
 
     <div class="row g-4">
       <!-- Teléfono -->
+      @if(!empty($infoEmpresa->telefono) || !empty($infoEmpresa->celular))
+        @php
+          $telDisplay = $infoEmpresa->telefono ?? $infoEmpresa->celular;
+          $telLink2   = preg_replace('/\D/', '', $telDisplay);
+        @endphp
       <div class="col-lg-3 col-md-6">
         <div class="cp-channel">
           <div class="cp-channel__icon cp-channel__icon--primary">
             <i class="bi bi-telephone-fill"></i>
           </div>
           <h5 class="cp-channel__title">Teléfono</h5>
-          <p class="cp-channel__info">Lun-Vie: 9AM–6PM<br>Sáb: 9AM–1PM</p>
-          <a href="tel:+51999999999" class="cp-channel__btn cp-channel__btn--solid">
-            <i class="bi bi-telephone"></i>+51 999 999 999
+          <p class="cp-channel__info">{{ $infoEmpresa->horario_atencion ?? 'Lun-Vie: 9AM-6PM' }}</p>
+          <a href="tel:+{{ $telLink2 }}" class="cp-channel__btn cp-channel__btn--solid">
+            <i class="bi bi-telephone"></i>{{ $telDisplay }}
           </a>
         </div>
       </div>
+      @endif
 
       <!-- WhatsApp -->
+      @if(!empty($infoEmpresa->whatsapp))
+        @php $waLink2 = preg_replace('/\D/', '', $infoEmpresa->whatsapp); @endphp
       <div class="col-lg-3 col-md-6">
         <div class="cp-channel">
           <div class="cp-channel__icon cp-channel__icon--success">
@@ -192,13 +206,15 @@
           </div>
           <h5 class="cp-channel__title">WhatsApp</h5>
           <p class="cp-channel__info">Respuesta inmediata<br>24/7 disponible</p>
-          <a href="https://wa.me/51999999999" target="_blank" class="cp-channel__btn cp-channel__btn--outline">
+          <a href="https://wa.me/{{ $waLink2 }}" target="_blank" rel="noopener" class="cp-channel__btn cp-channel__btn--outline">
             <i class="bi bi-whatsapp"></i>Chatear ahora
           </a>
         </div>
       </div>
+      @endif
 
       <!-- Email -->
+      @if(!empty($infoEmpresa->email))
       <div class="col-lg-3 col-md-6">
         <div class="cp-channel">
           <div class="cp-channel__icon cp-channel__icon--mid">
@@ -206,11 +222,12 @@
           </div>
           <h5 class="cp-channel__title">Email</h5>
           <p class="cp-channel__info">Respuesta en 24 h<br>Consultas detalladas</p>
-          <a href="mailto:ventas@cisnergia.pe" class="cp-channel__btn cp-channel__btn--outline">
+          <a href="mailto:{{ $infoEmpresa->email }}" class="cp-channel__btn cp-channel__btn--outline">
             <i class="bi bi-envelope"></i>Enviar email
           </a>
         </div>
       </div>
+      @endif
 
       <!-- Oficina -->
       <div class="col-lg-3 col-md-6">
@@ -341,7 +358,7 @@
           </div>
           <div>
             <p class="cp-office-item__title">Dirección</p>
-            <p class="cp-office-item__body">Av. Principal 123, Oficina 501<br>San Isidro, Lima 15047</p>
+            <p class="cp-office-item__body">{{ $infoEmpresa->direccion ?? 'Av. Principal 123, Oficina 501' }}</p>
           </div>
         </div>
 
@@ -352,9 +369,7 @@
           <div>
             <p class="cp-office-item__title">Horario de Atención</p>
             <p class="cp-office-item__body">
-              Lunes a Viernes: 9:00 AM – 6:00 PM<br>
-              Sábados: 9:00 AM – 1:00 PM<br>
-              Domingos: Cerrado
+              {!! nl2br(e($infoEmpresa->horario_atencion ?? "Lunes a Viernes: 9:00 AM – 6:00 PM\nSábados: 9:00 AM – 1:00 PM\nDomingos: Cerrado")) !!}
             </p>
           </div>
         </div>

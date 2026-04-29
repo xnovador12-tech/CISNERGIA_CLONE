@@ -34,10 +34,12 @@
                     <div class="card-body pb-0">
                         <p class="fw-normal" align="justify">Gestiona la información general del sistema, roles, usuarios y tu perfil personal.</p>
                         <ul class="list-unstyled">
+                            @can('informacion.edit')
                             <li class="text-primary menu_item">
                                 <i class="bi bi-building me-2"></i>
                                 <a href="{{ route('admin-informacion.index') }}" class="link-primary text-decoration-none">Información</a>
                             </li>
+                            @endcan
                             <li class="text-primary menu_item">
                                 <i class="bi bi-award me-2"></i>
                                 <a href="{{ route('admin-roles.index') }}" class="link-primary text-decoration-none">Roles</a>

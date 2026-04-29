@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 use App\Models\User;
 use App\Models\Pedido;
+use App\Models\InformacionEmpresa;
 use App\Observers\UserObserver;
 use App\Observers\PedidoObserver;
 use Illuminate\Pagination\Paginator;
@@ -40,6 +42,23 @@ class AppServiceProvider extends ServiceProvider
 
         // paginacion
         Paginator::useBootstrapFive(); 
-        app()->setLocale('es'); 
+        app()->setLocale('es');
+
+        // ─────────────────────────────────────────────────────────────
+        // View Composer: información de la empresa para el ecommerce
+        // Inyecta la variable $infoEmpresa automáticamente en el layout
+        // del ecommerce y en la página de contacto, evitando tener que
+        // pasarla manualmente desde cada controlador.
+        // ─────────────────────────────────────────────────────────────
+        View::composer(['TEMPLATES.ecommerce', 'ECOMMERCE.contact'], function ($view) {
+            try {
+                if (Schema::hasTable('informacion_empresa')) {
+                    $view->with('infoEmpresa', InformacionEmpresa::current());
+                }
+            } catch (\Throwable $e) {
+                // En migraciones iniciales o entornos sin tabla aún,
+                // no romper la vista. El layout usará valores por defecto.
+            }
+        }); 
     }
 }
