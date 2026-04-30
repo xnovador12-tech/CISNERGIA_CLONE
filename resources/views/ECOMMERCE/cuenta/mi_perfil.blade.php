@@ -737,6 +737,32 @@
       document.getElementById(targetSection).classList.add('active');
     });
   });
+
+  function toggleEditMode() {
+    const profileView = document.getElementById('profile-view');
+    const profileEdit = document.getElementById('profile-edit');
+
+    if (!profileView || !profileEdit) {
+      return;
+    }
+
+    const isEditing = profileEdit.style.display !== 'none';
+    profileView.style.display = isEditing ? 'block' : 'none';
+    profileEdit.style.display = isEditing ? 'none' : 'block';
+  }
+
+  function saveProfile(event) {
+    event.preventDefault();
+
+    Swal.fire({
+      icon: 'success',
+      confirmButtonColor: '#1C3146',
+      title: '¡Cambios guardados!',
+      text: 'Tus datos fueron actualizados correctamente.'
+    });
+
+    toggleEditMode();
+  }
 </script>
 
 <script>

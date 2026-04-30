@@ -12,6 +12,7 @@ use App\Models\DetallePedido;
 use App\Models\Cliente;
 use App\Models\Category;
 use App\Models\Comment;
+use App\Models\Contact;
 use App\Models\Coupon;
 use App\Models\Inventario;
 use App\Models\Likecomment;
@@ -975,7 +976,56 @@ class ecommerceController extends Controller
 
     public function contact()
     {
-        return view('ECOMMERCE.contact');
+        $departamentos = Departamento::all();
+        return view('ECOMMERCE.contact', compact('departamentos'));
+    }
+
+    public function storeContacto(Request $request)
+    {
+            $emailInput = (string) $request->input('email', $request->input('correo', ''));
+
+            // Bloqueo adicional antes de validar (dominios desechables / local-parts falsos)
+            $blockMessage = $this->checkEmail($emailInput);
+            if ($blockMessage) {
+                return $request->expectsJson()
+                ? response()->json(['success' => false, 'errors' => ['email' => [$blockMessage]]])
+                : back()->withErrors(['email' => $blockMessage])->withInput();
+            }
+
+            $validated = $request->validate([
+                'nombre' => 'required|string|max:255',
+                'apellido' => 'required|string|max:255',
+                'email' => 'required|email:rfc|max:255',
+                'telefono' => 'required|string|max:20',
+                'departamento' => 'nullable|string|max:255',
+                'tipo_proyecto' => 'required|string|max:255',
+                'mensaje' => 'nullable|string|min:20|max:5000',
+                'consumo' => 'nullable|string|max:255',
+                'acepto_terminos' => 'required|accepted'
+            ]);
+
+            Contact::create([
+                'nombre' => $validated['nombre'],
+                'apellido' => $validated['apellido'],
+                'slug' => Str::slug($validated['nombre'] . '-' . time()),
+                'email' => $validated['email'],
+                'telefono' => $validated['telefono'],
+                'departamento' => (string) ($validated['departamento'] ?? ''),
+                'tipo_proyecto' => $validated['tipo_proyecto'],
+                'mensaje' => (string) ($validated['mensaje'] ?? ''),
+                'consumo' => (string) ($validated['consumo'] ?? ''),
+                'acepto_terminos' => true,
+                'estado' => 'Pendiente'
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mensaje enviado con exito! Nos pondremos en contacto contigo pronto.'
+                ]);
+            }
+
+            return redirect()->route('ecommerce.contact')->with('success', 'Mensaje enviado con exito!');
     }
 
 
@@ -1669,5 +1719,57 @@ class ecommerceController extends Controller
     {
         $cart = $this->getOrCreateCart();
         return response()->json(['count' => $cart->getTotalItems()]);
+    }
+
+    private function checkEmail(string $email): ?string
+    {
+        $email = strtolower(trim($email));
+
+        if ($email === '') {
+            return 'El correo es obligatorio.';
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return 'El correo no tiene un formato valido.';
+        }
+
+        [$localPart, $domain] = array_pad(explode('@', $email, 2), 2, '');
+
+        if ($domain === '') {
+            return 'El correo no tiene un dominio valido.';
+        }
+
+        $blockedDomains = [
+            'mailinator.com',
+            'guerrillamail.com',
+            '10minutemail.com',
+            'temp-mail.org',
+            'yopmail.com',
+            'sharklasers.com',
+            'dispostable.com',
+            'throwawaymail.com',
+        ];
+
+        if (in_array($domain, $blockedDomains, true)) {
+            return 'No se permiten correos temporales o desechables.';
+        }
+
+        $blockedLocalParts = [
+            'test',
+            'testing',
+            'fake',
+            'falso',
+            'noreply',
+            'no-reply',
+            'example',
+            'demo',
+            'admin',
+        ];
+
+        if (in_array($localPart, $blockedLocalParts, true)) {
+            return 'Ingresa un correo personal o corporativo valido.';
+        }
+
+        return null;
     }
 }

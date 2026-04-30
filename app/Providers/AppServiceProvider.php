@@ -53,7 +53,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer(['TEMPLATES.ecommerce', 'ECOMMERCE.contact'], function ($view) {
             try {
                 if (Schema::hasTable('informacion_empresa')) {
-                    $view->with('infoEmpresa', InformacionEmpresa::current());
+                    $view->with('infoEmpresa', InformacionEmpresa::current() ?? new InformacionEmpresa());
                 }
             } catch (\Throwable $e) {
                 // En migraciones iniciales o entornos sin tabla aún,

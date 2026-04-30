@@ -428,7 +428,7 @@
                             <div class="text-white small fw-bold text-uppercase px-3 mt-3">Otros</div>
                         </li>
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-contacto.index') --}}"
+                            <a href="{{route('admin-contacto.index')}}"
                                 class="nav-link px-3 {{ request()->is(['admin-contacto*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-envelope me-2"></i>

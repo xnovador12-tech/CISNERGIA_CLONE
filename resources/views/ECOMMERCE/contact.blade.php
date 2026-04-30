@@ -89,40 +89,51 @@
             </div>
           </div>
           <div class="cp-form-body">
-            <form>
+              @if(session('success'))
+                <div class="alert alert-success" role="alert">
+                  {{ session('success') }}
+                </div>
+              @endif
+              @if($errors->any())
+                <div class="alert alert-danger" role="alert">
+                  Revisa los campos del formulario e intenta nuevamente.
+                </div>
+              @endif
+              <form id="contactForm" method="POST" action="{{ route('ecommerce.storeContacto') }}">
+              @csrf
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="cp-label">Nombre <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" placeholder="Juan" required>
+                  <input type="text" class="form-control form-control-lg @error('nombre') is-invalid @enderror" id="nombre" name="nombre" placeholder="Ej: Juan Pérez López" value="{{ old('nombre') }}" required>
+                  @error('nombre')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
                   <label class="cp-label">Apellido <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" placeholder="Pérez" required>
+                  <input type="text" class="form-control form-control-lg @error('apellido') is-invalid @enderror" id="apellido" name="apellido" placeholder="Ej: Pérez López" value="{{ old('apellido') }}" required>
+                  @error('apellido')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
                   <label class="cp-label">Teléfono <span class="text-danger">*</span></label>
-                  <input type="tel" class="form-control" placeholder="+51 999 999 999" required>
+                  <input type="text" class="form-control form-control-lg @error('telefono') is-invalid @enderror" id="telefono" name="telefono" placeholder="Ej: +51 999 999 999" value="{{ old('telefono') }}" required>
+                  @error('telefono')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
                   <label class="cp-label">Email <span class="text-danger">*</span></label>
-                  <input type="email" class="form-control" placeholder="tu@email.com" required>
+                  <input type="email" class="form-control form-control-lg @error('email') is-invalid @enderror" id="email" name="email" placeholder="tu@email.com" value="{{ old('email') }}" required>
+                  @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
                   <label class="cp-label">Departamento</label>
-                  <select class="form-select">
+                  <select class="form-select" name="departamento" id="departamento">
                     <option selected>Seleccionar...</option>
-                    <option>Lima</option>
-                    <option>Arequipa</option>
-                    <option>Cusco</option>
-                    <option>Trujillo</option>
-                    <option>Piura</option>
-                    <option>Chiclayo</option>
-                    <option>Otro</option>
+                    @foreach($departamentos as $departamento)
+                      <option value="{{ $departamento->nombre }}">{{ $departamento->nombre }}</option>
+                    @endforeach
                   </select>
                 </div>
                 <div class="col-md-6">
                   <label class="cp-label">Tipo de proyecto</label>
-                  <select class="form-select">
+                  <select class="form-select" name="tipo_proyecto" id="tipo_proyecto">
                     <option selected>Seleccionar...</option>
                     <option>Residencial (Casa/Depto)</option>
                     <option>Comercial (Oficina/Tienda)</option>
@@ -131,19 +142,20 @@
                 </div>
                 <div class="col-12">
                   <label class="cp-label">Consumo mensual aproximado (S/)</label>
-                  <input type="number" class="form-control" placeholder="Ej: 350">
+                  <input type="number" class="form-control" placeholder="Ej: 350" name="consumo" id="consumo" value="{{ old('consumo') }}">
                   <small class="text-muted">Revisa tu último recibo de luz</small>
                 </div>
                 <div class="col-12">
                   <label class="cp-label">Mensaje (opcional)</label>
-                  <textarea class="form-control" rows="2" placeholder="Cuéntanos sobre tu proyecto..."></textarea>
+                  <textarea class="form-control" rows="2" placeholder="Cuéntanos sobre tu proyecto..." name="mensaje" id="mensaje">{{ old('mensaje') }}</textarea>
                 </div>
                 <div class="col-12">
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="terminos" required>
+                    <input class="form-check-input @error('acepto_terminos') is-invalid @enderror" type="checkbox" id="terminos" name="acepto_terminos" value="1" {{ old('acepto_terminos') ? 'checked' : '' }} required>
                     <label class="form-check-label small text-muted" for="terminos">
                       Acepto la <a href="#" class="cp-link">política de privacidad</a> y el tratamiento de mis datos.
                     </label>
+                    @error('acepto_terminos')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                   </div>
                 </div>
                 <div class="col-12">

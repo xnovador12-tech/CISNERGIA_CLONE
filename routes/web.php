@@ -27,6 +27,7 @@ use App\Http\Controllers\admin_CobrosController;
 use App\Http\Controllers\admin_PagosController;
 use App\Http\Controllers\admin_CajaChicaController;
 use App\Http\Controllers\admin_ComprobantesFinanzasController;
+use App\Http\Controllers\admin_ContactsController;
 use App\Http\Controllers\admin_NotaVentasController;
 use App\Http\Controllers\admin_SalidasController;
 use App\Http\Controllers\admin_InventarioController;
@@ -83,6 +84,7 @@ Route::view('/libro-de-reclamaciones', 'ECOMMERCE.politicas.libro_reclamaciones'
 
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');
+Route::post('contacto_store', [ecommerceController::class, 'storeContacto'])->name('ecommerce.storeContacto');
 route::get('/mi/perfil', [ecommerceController::class, 'getmiperfil'])->name('ecommerce.mi_perfil');
 route::post('/mis/direcciones/crear', [ecommerceController::class, 'crearDireccion'])->name('ecommerce-direccion.create');
 route::put('/mis/direcciones/actualizar/{id}', [ecommerceController::class, 'getMisDirecciones'])->name('ecommerce-direccion.actualizar');
@@ -934,6 +936,9 @@ Route::middleware(['auth'])->group(function () {
 
 
 }); // Fin middleware auth
+
+Route::resource('admin-contacto', admin_ContactsController::class);
+Route::put('/admin-contacto/{admin_contacto}/estado', [admin_ContactsController::class, 'estado']);
 
 Route::prefix('administrador/marketing')->name('admin.marketing.')->middleware(['auth'])->group(function () {
         // Dashboards
