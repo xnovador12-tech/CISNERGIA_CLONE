@@ -32,7 +32,7 @@
                 <button class="nav-link active rounded border-0 fw-bold px-4 shadow-sm" style="background-color: transparent; color: #495057;" 
                         id="ventas-tab" data-bs-toggle="tab" data-bs-target="#ventas" type="button" role="tab" 
                         aria-controls="ventas" aria-selected="true"
-                        onclick="this.style.backgroundColor='#0d6efd'; this.style.color='white';"
+                        onclick="this.style.backgroundColor='#0F172A'; this.style.color='white';"
                         onmouseout="if(!this.classList.contains('active')) { this.style.backgroundColor='white'; this.style.color='#495057'; }">
                     <i class="bi bi-cart3 me-2"></i> Ventas Digitales
                 </button>
@@ -42,7 +42,7 @@
                 <button class="nav-link rounded border-0 fw-bold px-4 shadow-sm bg-white text-secondary" 
                         id="crm-tab" data-bs-toggle="tab" data-bs-target="#crm" type="button" role="tab" 
                         aria-controls="crm" aria-selected="false"
-                        onclick="document.getElementById('ventas-tab').style.backgroundColor='white'; document.getElementById('ventas-tab').style.color='#495057'; this.style.backgroundColor='#0d6efd'; this.style.color='white';"
+                        onclick="document.getElementById('ventas-tab').style.backgroundColor='white'; document.getElementById('ventas-tab').style.color='#495057'; this.style.backgroundColor='#0F172A'; this.style.color='white';"
                         onmouseout="if(!this.classList.contains('active')) { this.style.backgroundColor='white'; this.style.color='#495057'; }">
                     <i class="bi bi-people-fill me-2"></i> CRM & Prospectos
                 </button>
@@ -52,7 +52,7 @@
                 <button class="nav-link rounded border-0 fw-bold px-4 shadow-sm bg-white text-secondary" 
                         id="inventario-tab" data-bs-toggle="tab" data-bs-target="#inventario" type="button" role="tab" 
                         aria-controls="inventario" aria-selected="false"
-                        onclick="document.getElementById('ventas-tab').style.backgroundColor='white'; document.getElementById('ventas-tab').style.color='#495057'; this.style.backgroundColor='#0d6efd'; this.style.color='white';"
+                        onclick="document.getElementById('ventas-tab').style.backgroundColor='white'; document.getElementById('ventas-tab').style.color='#495057'; this.style.backgroundColor='#0F172A'; this.style.color='white';"
                         onmouseout="if(!this.classList.contains('active')) { this.style.backgroundColor='white'; this.style.color='#495057'; }">
                     <i class="bi bi-boxes me-2"></i> Inventario (Próximamente)
                 </button>
@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Chart.js defaults globales para que todos los gráficos se vean coherentes
     Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif";
-    Chart.defaults.color = '#6c757d';
+    Chart.defaults.color = '#6C757D';
     Chart.defaults.plugins.legend.labels.usePointStyle = true;
 
     // ═══════════════════════════════════════════════════════════════
@@ -516,27 +516,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     {
                         label: 'Oportunidades Ganadas',
                         data: @json($mesesGanadas),
-                        borderColor: '#198754',
-                        backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         borderWidth: 2.5,
                         fill: true,
                         tension: 0.35,
                         pointRadius: 4,
                         pointHoverRadius: 6,
-                        pointBackgroundColor: '#198754',
+                        pointBackgroundColor: '#10B981',
                         yAxisID: 'y',
                     },
                     {
                         label: 'Valor Cerrado (S/.)',
                         data: @json($mesesValorCerrado),
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.05)',
+                        borderColor: '#003E64',
+                        backgroundColor: 'rgba(0, 62, 100, 0.05)',
                         borderWidth: 2.5,
                         fill: false,
                         tension: 0.35,
                         pointRadius: 4,
                         pointHoverRadius: 6,
-                        pointBackgroundColor: '#0d6efd',
+                        pointBackgroundColor: '#003E64',
                         borderDash: [5, 5],
                         yAxisID: 'y1',
                     }

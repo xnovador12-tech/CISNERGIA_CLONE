@@ -77,7 +77,7 @@ class admin_DashboardController extends Controller
         // Cuenta oportunidades por etapa, respetando el orden del pipeline.
         $etapasOrdenadas = ['calificacion', 'evaluacion', 'cotizacion', 'negociacion', 'ganada', 'perdida'];
         $etapasLabels    = ['Calificación', 'Evaluación', 'Cotización', 'Negociación', 'Ganada', 'Perdida'];
-        $etapasColores   = ['#0d6efd', '#0dcaf0', '#ffc107', '#6c757d', '#198754', '#dc3545'];
+        $etapasColores   = ['#003E64', '#0F172A', '#6C757D', '#003E64DD', '#10B981', '#6C757D'];
 
         $conteoEtapasRaw = Oportunidad::select('etapa', DB::raw('COUNT(*) as total'))
             ->groupBy('etapa')
@@ -98,20 +98,20 @@ class admin_DashboardController extends Controller
 
         // Diccionario origen → etiqueta legible + color
         $origenesMap = [
-            'ecommerce'       => ['label' => 'E-commerce',      'color' => '#0d6efd'],
-            'sitio_web'       => ['label' => 'Sitio Web',       'color' => '#0dcaf0'],
-            'redes_sociales'  => ['label' => 'Redes Sociales',  'color' => '#6f42c1'],
-            'llamada'         => ['label' => 'Llamada',         'color' => '#198754'],
-            'referido'        => ['label' => 'Referido',        'color' => '#ffc107'],
-            'directo'         => ['label' => 'Directo',         'color' => '#fd7e14'],
-            'otro'            => ['label' => 'Otro',            'color' => '#6c757d'],
+            'ecommerce'       => ['label' => 'E-commerce',      'color' => '#0F172A'],
+            'sitio_web'       => ['label' => 'Sitio Web',       'color' => '#003E64'],
+            'redes_sociales'  => ['label' => 'Redes Sociales',  'color' => '#003E64BB'],
+            'llamada'         => ['label' => 'Llamada',         'color' => '#10B981'],
+            'referido'        => ['label' => 'Referido',        'color' => '#10B981BB'],
+            'directo'         => ['label' => 'Directo',         'color' => '#6C757D'],
+            'otro'            => ['label' => 'Otro',            'color' => '#6C757DBB'],
         ];
 
         $origenLabels = [];
         $origenData   = [];
         $origenColors = [];
         foreach ($prospectosPorOrigenRaw as $origen => $total) {
-            $info = $origenesMap[$origen] ?? ['label' => ucfirst($origen), 'color' => '#adb5bd'];
+            $info = $origenesMap[$origen] ?? ['label' => ucfirst($origen), 'color' => '#6C757D'];
             $origenLabels[] = $info['label'];
             $origenData[]   = $total;
             $origenColors[] = $info['color'];

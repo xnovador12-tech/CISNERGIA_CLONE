@@ -781,10 +781,6 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:crm.actividades.edit')->name('actividades.no-realizada');
         Route::post('actividades/{actividad}/seguimiento',          [admin_CrmActividadesController::class, 'crearSeguimiento'])
             ->middleware('permission:crm.actividades.create')->name('actividades.seguimiento');
-        Route::get('actividades-eventos',                           [admin_CrmActividadesController::class, 'eventosCalendario'])
-            ->middleware('permission:crm.actividades.index')->name('actividades.eventos');
-        Route::patch('actividades/{actividad}/fecha',               [admin_CrmActividadesController::class, 'actualizarFecha'])
-            ->middleware('permission:crm.actividades.edit')->name('actividades.actualizar-fecha');
         Route::get('actividades-pendientes',                        [admin_CrmActividadesController::class, 'misPendientes'])
             ->middleware('permission:crm.actividades.index')->name('actividades.pendientes');
         Route::get('actividades-notificaciones',                    [admin_CrmActividadesController::class, 'notificacionesCampana'])

@@ -16,7 +16,6 @@ return new class extends Migration
             $table->enum('categoria', [
                 'producto',  // Productos del catálogo (paneles, inversores, etc.)
                 'servicio',  // Instalación, mantenimiento, trámites, mano de obra, etc.
-                'otro'       // Ítem libre: garantías extendidas, seguros, otros conceptos
             ])->default('producto');
             
             // Descripción del ítem

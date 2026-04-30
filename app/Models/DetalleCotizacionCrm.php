@@ -45,7 +45,6 @@ class DetalleCotizacionCrm extends Model
     public const CATEGORIAS = [
         'producto'  => ['nombre' => 'Producto', 'icono' => 'bi-box',       'color' => 'primary'],
         'servicio'  => ['nombre' => 'Servicio', 'icono' => 'bi-gear',      'color' => 'info'],
-        'otro'      => ['nombre' => 'Otro',     'icono' => 'bi-three-dots','color' => 'secondary'],
     ];
 
     /**
@@ -117,7 +116,7 @@ class DetalleCotizacionCrm extends Model
 
     public function getCategoriaInfoAttribute(): array
     {
-        return self::CATEGORIAS[$this->categoria] ?? self::CATEGORIAS['otro'];
+        return self::CATEGORIAS[$this->categoria] ?? self::CATEGORIAS['producto'];
     }
 
     public function getNombreUnidadAttribute(): string
