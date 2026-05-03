@@ -60,7 +60,7 @@
                             <h4 class="fw-bold text-primary mb-0">{{ $cuenta->moneda->simbolo }} {{ number_format($cuenta->saldo_actual, 2) }}</h4>
                         </div>
                         <div class="btn-group">
-                            <a href="{{-- route('admin-cuentasbancarias.edit', $cuenta->id) --}}" class="btn btn-sm btn-outline-secondary rounded-pill me-1 px-3">
+                            <a href="{{ route('admin-cuentasbancarias.edit', $cuenta->id) }}" class="btn btn-sm btn-outline-secondary rounded-pill me-1 px-3">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
                         </div>

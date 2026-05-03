@@ -557,6 +557,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:finanzas.cuentasbancarias.create')->name('admin-cuentasbancarias.create');
     Route::post('admin-cuentasbancarias',        [admin_CuentabancoController::class, 'store'])
         ->middleware('permission:finanzas.cuentasbancarias.create')->name('admin-cuentasbancarias.store');
+    Route::get('admin-cuentasbancarias/{admin_cuentasbancaria}/edit', [admin_CuentabancoController::class, 'edit'])
+        ->middleware('permission:finanzas.cuentasbancarias.index')->name('admin-cuentasbancarias.edit');
+    Route::put('admin-cuentasbancarias/{admin_cuentasbancaria}',      [admin_CuentabancoController::class, 'update'])
+        ->middleware('permission:finanzas.cuentasbancarias.index')->name('admin-cuentasbancarias.update');
 
     // ---------------------------------------------------------
     // UBIGEO — AJAX (utility, cualquier autenticado)
