@@ -51,10 +51,10 @@
                     @endif
                     <div class="col text-end">
                         @if($caja->estado === 'Abierto')
-                            <form action="{{ route('admin-caja-chica.cerrar', $caja) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de cerrar la caja? Esta acción no se puede deshacer.')">
+                            <form id="form-cerrar-caja" action="{{ route('admin-caja-chica.cerrar', $caja) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('PUT')
-                                <button type="submit" class="btn btn-outline-danger">
+                                <button type="button" class="btn btn-outline-danger" onclick="confirmarCierreCaja()">
                                     <i class="bi bi-lock me-1"></i>Cerrar Caja
                                 </button>
                             </form>
@@ -317,5 +317,22 @@
             }
         });
     });
+
+    function confirmarCierreCaja() {
+        Swal.fire({
+            title: '¿Cerrar la caja?',
+            text: 'Esta acción no se puede deshacer.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, cerrar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('form-cerrar-caja').submit();
+            }
+        });
+    }
 </script>
 @endsection
