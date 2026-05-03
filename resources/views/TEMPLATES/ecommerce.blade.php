@@ -430,7 +430,7 @@
                     <a href="{{ route('ecommerce.politicas') }}" class="text-light opacity-75 text-decoration-none small me-3">
                         Política de Privacidad
                     </a>
-                    <a href="#" class="text-light opacity-75 text-decoration-none small">
+                    <a href="{{ route('ecommerce.libro_reclamaciones') }}" class="text-light opacity-75 text-decoration-none small">
                         Libro de Reclamaciones
                     </a>
                 </div>
@@ -443,6 +443,7 @@
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/scripts.js"></script>
     <script src="/js/sweetalert2.all.min.js"></script>
+    <script src="/js/select2.full.min.js"></script>
     
     <!-- Script para cargar contador del carrito -->
     <script>

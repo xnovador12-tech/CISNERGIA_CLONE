@@ -17,6 +17,7 @@ class CreateSedesTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug');
+            $table->string('ruc')->nullable();
             $table->string('direccion')->nullable();
             $table->string('referencia')->nullable();
             $table->string('nro_contacto')->nullable();

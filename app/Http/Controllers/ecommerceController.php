@@ -25,6 +25,7 @@ use App\Models\Prospecto;
 use App\Models\Sale;
 use App\Models\Detailsale;
 use App\Models\Direccioncliente;
+use App\Models\ReclamoLibro;
 use App\Models\Resena;
 use App\Models\User;
 use App\Models\Usercoupon;
@@ -1771,5 +1772,65 @@ class ecommerceController extends Controller
         }
 
         return null;
+    }
+
+    private function generarNumeroRegistro()
+    {
+        $fecha = date('Ymd');
+        $numero = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        return "REC-{$fecha}-{$numero}";
+    }
+    
+    public function storereclamaciones(Request $request)
+    {
+        $validated = $request->validate([
+            // Datos del consumidor
+            'nombres'          => 'required|string|max:100',
+            'apellidos'        => 'required|string|max:100',
+            'tipo_documento'   => 'required|in:DNI,RUC,Carné de Extranjería,Pasaporte',
+            'numero_documento' => 'required|string|max:20',
+            'direccion'        => 'nullable|string|max:255',   // opcional en el form
+            'telefono'         => 'required|string|max:20',
+            'correo'           => 'required|email|max:100',
+
+            // Bien / Servicio
+            'producto_id'     => 'nullable|string|max:100',
+            'nro_pedido'       => 'nullable|string|max:50',
+            'fecha_compra'     => 'nullable|date',
+            'monto_pagado'     => 'nullable|numeric|min:0',
+
+            // Detalle
+            'tipo_reclamo'         => 'required|in:Reclamo,Queja',  // solo 2 valores posibles
+            'descripcion_reclamo'  => 'required|string|min:10',
+            'solucion_esperada'    => 'required|string|min:10',
+        ]);
+
+        $numeroRegistro = $this->generarNumeroRegistro();
+
+        $reclamo = ReclamoLibro::create([
+            'numero_registro'     => $numeroRegistro,
+            'fecha_reclamo'       => now(),                // se genera automáticamente
+            'nombres'             => $validated['nombres'],
+            'apellidos'           => $validated['apellidos'],
+            'tipo_documento'      => $validated['tipo_documento'],
+            'numero_documento'    => $validated['numero_documento'],
+            'direccion'           => $validated['direccion'] ?? null,
+            'telefono'            => $validated['telefono'],
+            'correo'              => $validated['correo'],
+            'producto_id'           => $validated['producto_id'] ?? null,
+            'nro_pedido'          => $validated['nro_pedido'] ?? null,
+            'fecha_compra'        => $validated['fecha_compra'] ?? null,
+            'monto_pagado'        => $validated['monto_pagado'] ?? null,
+            'tipo_reclamo'        => $validated['tipo_reclamo'],
+            'descripcion_reclamo' => $validated['descripcion_reclamo'],
+            'solucion_esperada'   => $validated['solucion_esperada'],
+            'estado'              => 'Pendiente',           // valor por defecto
+        ]);
+
+        // El fetch() en el JS espera JSON, no un redirect
+        return response()->json([
+            'ok'              => true,
+            'numero_registro' => $numeroRegistro,
+        ]);
     }
 }

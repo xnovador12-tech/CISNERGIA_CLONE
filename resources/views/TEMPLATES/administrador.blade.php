@@ -437,8 +437,8 @@
                             </a>
                         </li>
                         <li class="mx-2 my-1">
-                            <a href="{{-- route('admin-contacto.index') --}}"
-                                class="nav-link px-3 {{ request()->is(['admin-contacto*']) ? 'active-item' : null }} menu">
+                            <a href="{{route('admin-libro-reclamaciones.index')}}"
+                                class="nav-link px-3 {{ request()->is(['admin-libro-reclamaciones*']) ? 'active-item' : null }} menu">
                                 <span class="fw-bold">
                                     <i class="bi bi-journal-text me-2"></i>
                                 </span>

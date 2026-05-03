@@ -42,6 +42,7 @@ use App\Http\Controllers\admin_CrmTicketsController;
 use App\Http\Controllers\admin_OperacionesController;
 use App\Http\Controllers\admin_CrmMantenimientosController;
 use App\Http\Controllers\admin_CrmReseñasController;
+use App\Http\Controllers\admin_LibroReclamacionesController;
 use App\Http\Controllers\admin_ModeloController;
 use App\Http\Controllers\admin_UbigeoController;
 use App\Http\Controllers\Marketing\MarketingController;
@@ -81,6 +82,7 @@ Route::get('agregar_compra_carritofavoritos', [ecommerceController::class, 'geta
 Route::view('/politicas-de-privacidad', 'ECOMMERCE.politicas.politicas_privacidad')->name('ecommerce.politicas');
 Route::view('/terminos-y-condiciones', 'ECOMMERCE.politicas.terminos_condiciones')->name('ecommerce.terminos');
 Route::view('/libro-de-reclamaciones', 'ECOMMERCE.politicas.libro_reclamaciones')->name('ecommerce.libro_reclamaciones');
+Route::post('/libro-de-reclamaciones/crear', [ecommerceController::class, 'storereclamaciones'])->name('ecommerce.reclamaciones.store');
 
 Route::get('/installation', [ecommerceController::class, 'installation'])->name('ecommerce.installation');
 Route::get('/contact', [ecommerceController::class, 'contact'])->name('ecommerce.contact');
@@ -939,6 +941,8 @@ Route::middleware(['auth'])->group(function () {
 
 Route::resource('admin-contacto', admin_ContactsController::class);
 Route::put('/admin-contacto/{admin_contacto}/estado', [admin_ContactsController::class, 'estado']);
+Route::get('admin-libro-reclamaciones', [admin_LibroReclamacionesController::class, 'index'])->name('admin-libro-reclamaciones.index');
+Route::put('admin-libro-reclamaciones/{reclamo}/estado', [admin_LibroReclamacionesController::class, 'updateEstado'])->name('admin-libro-reclamaciones.estado');
 
 Route::prefix('administrador/marketing')->name('admin.marketing.')->middleware(['auth'])->group(function () {
         // Dashboards
