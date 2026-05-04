@@ -175,7 +175,7 @@ class SendSalesCommand extends Command
                     $saleReferenceModel = new SaleReferenceModel();
                     $saleReferenceModel->saleModel = $saleModelReference;
                     $saleReferenceModel->reason_code = $referencia->sunatMotivoNota->codigo;
-                    $saleReferenceModel->reason_description = $referencia->motivo_descripcion;
+                    $saleReferenceModel->reason_description = $referencia->motivo_descripcion ?? $referencia->sunatMotivoNota->descripcion;
                     $saleModel->saleReferenceModel = $saleReferenceModel;
                 }
 
