@@ -40,9 +40,7 @@ class admin_OperacionesController extends Controller
             $stats[$key] = Pedido::enKanban()->where('estado_operativo', $key)->count();
         }
 
-        $tecnicos = User::whereHas('role', function ($q) {
-                $q->whereIn('slug', ['administrador', 'logistica', 'almacen']);
-            })
+        $tecnicos = User::role(['Administrador', 'Operaciones', 'Almacen'])
             ->where('estado', 'Activo')
             ->with('persona')
             ->get();
