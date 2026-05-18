@@ -63,10 +63,10 @@
                             <a href="{{ route('admin-caja-chica.show', $cajaAbierta) }}" class="btn btn-outline-primary btn-sm me-1">
                                 <i class="bi bi-eye me-1"></i>Ver
                             </a>
-                            <form action="{{ route('admin-caja-chica.cerrar', $cajaAbierta) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de cerrar la caja? Esta acción no se puede deshacer.')">
+                            <form id="form-cerrar-caja-index" action="{{ route('admin-caja-chica.cerrar', $cajaAbierta) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('PUT')
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmarCierreCaja()">
                                     <i class="bi bi-lock me-1"></i>Cerrar
                                 </button>
                             </form>
@@ -90,9 +90,13 @@
                             </div>
                         </div>
                         <div class="col-md-4 text-end">
-                            <a href="{{ route('admin-caja-chica.create') }}" class="btn btn-success">
+                            <form id="form-abrir-caja" action="{{ route('admin-caja-chica.store') }}" method="POST" class="d-none">
+                                @csrf
+                                <input type="hidden" name="saldo_inicial" id="input-saldo-inicial" value="0">
+                            </form>
+                            <button type="button" class="btn btn-success" onclick="abrirCaja()">
                                 <i class="bi bi-plus-circle me-2"></i>Abrir Caja
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -185,5 +189,60 @@
             dom: '<"row mb-3"<"col-sm-6"l><"col-sm-6"f>>rtip'
         });
     });
+
+    function abrirCaja() {
+        Swal.fire({
+            title: 'Abrir Caja Chica',
+            html: `
+                <div class="text-start mb-2">
+                    <small class="text-muted">Fecha: <strong>{{ now()->format('d/m/Y H:i') }}</strong></small><br>
+                    <small class="text-muted">Usuario: <strong>{{ auth()->user()->name }}</strong></small>
+                </div>
+                <label class="form-label fw-bold w-100 text-start">Saldo Inicial</label>
+                <div class="input-group">
+                    <span class="input-group-text">S/</span>
+                    <input type="number" id="swal-saldo" class="form-control form-control-lg"
+                           value="0.00" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <small class="text-muted">Monto en efectivo al momento de abrir la caja</small>
+            `,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="bi bi-unlock me-1"></i> Abrir Caja',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const saldo = parseFloat(document.getElementById('swal-saldo').value);
+                if (isNaN(saldo) || saldo < 0) {
+                    Swal.showValidationMessage('Ingrese un saldo inicial válido (mínimo 0)');
+                    return false;
+                }
+                return saldo;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('input-saldo-inicial').value = result.value;
+                document.getElementById('form-abrir-caja').submit();
+            }
+        });
+    }
+
+    function confirmarCierreCaja() {
+        Swal.fire({
+            title: '¿Cerrar la caja?',
+            text: 'Esta acción no se puede deshacer.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, cerrar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('form-cerrar-caja-index').submit();
+            }
+        });
+    }
 </script>
 @endsection

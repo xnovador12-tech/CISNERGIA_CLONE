@@ -12,6 +12,7 @@ use App\Models\DetallePedido;
 use App\Models\Cliente;
 use App\Models\Category;
 use App\Models\Comment;
+use App\Models\Contact;
 use App\Models\Coupon;
 use App\Models\Inventario;
 use App\Models\Likecomment;
@@ -24,6 +25,8 @@ use App\Models\Prospecto;
 use App\Models\Sale;
 use App\Models\Detailsale;
 use App\Models\Direccioncliente;
+use App\Models\ReclamoLibro;
+use App\Models\Resena;
 use App\Models\User;
 use App\Models\Usercoupon;
 use App\Models\WishList;
@@ -44,15 +47,15 @@ class ecommerceController extends Controller
     // Página principal
     public function index()
     {
-
+        $marcas_aliadas = Marca::all();
         $productos_inventario = Inventario::where('cantidad', '>', 0)->pluck('id_producto')->toArray();
         $productos = Producto::where('estado', 'Activo')
             ->whereIn('id', $productos_inventario)
             ->orderBy('created_at', 'desc')
             ->take(8)
             ->get();
-
-        return view('ECOMMERCE.index', compact('productos'));
+        $reseñas = Resena::take(6)->where('estado', 'Activo')->get();
+        return view('ECOMMERCE.index', compact('productos', 'marcas_aliadas', 'reseñas'));
     }
 
         public function limpiarSesioncisnergia(Request $request)
@@ -317,6 +320,93 @@ class ecommerceController extends Controller
         ];
 
         return view('ECOMMERCE.cuenta.mis_compras', compact('ventas', 'stats'));
+    }
+
+    public function getfiltro_miscompras(Request $request){
+        if($request->ajax()){
+            $estados = [
+                'processing' => 'proceso',
+                'in-transit' => 'enviado',
+                'delivered'  => 'entregado',
+            ];
+
+            $clienteId = Auth::user()->cliente->id;
+            $busqueda  = $request->busqueda ?? '';
+
+            $ventas_query = Sale::with(['pedido', 'detalles.producto'])
+                ->whereHas('pedido', function($q) use ($request, $estados, $clienteId) {
+                    $q->where('cliente_id', $clienteId);
+                    if($request->valor_filtro !== 'all' && isset($estados[$request->valor_filtro])){
+                        $q->where('estado', $estados[$request->valor_filtro]);
+                    }
+                })
+                ->when($busqueda, function($q) use ($busqueda) {
+                    // Busca por código de pedido O por nombre de producto
+                    $q->where(function($sub) use ($busqueda) {
+                        $sub->whereHas('pedido', function($p) use ($busqueda) {
+                            $p->where('codigo', 'like', '%' . $busqueda . '%');
+                        })
+                        ->orWhereHas('detalles.producto', function($p) use ($busqueda) {
+                            $p->where('name', 'like', '%' . $busqueda . '%');
+                        });
+                    });
+                })
+                ->orderBy('created_at', 'desc');
+
+            $ventas = $ventas_query->get();
+
+            $arralist = $ventas->map(function($venta) {
+                $pedido         = $venta->pedido;
+                $primerDetalle  = $venta->detalles->first();
+                $producto       = $primerDetalle?->producto;
+                $totalDetalles  = $venta->detalles->count();
+
+                return [
+                    'codigo'          => $pedido->codigo,
+                    'estado'          => $pedido->estado,
+                    'fecha_pedido'    => optional($pedido->created_at)->format('d \d\e F, Y') ?? '-',
+                    'fecha_entrega'   => $pedido->fecha_entrega_estimada
+                                            ? \Carbon\Carbon::parse($pedido->fecha_entrega_estimada)->format('d \d\e F, Y')
+                                            : '-',
+                    'total'           => $venta->total ?? 0,
+                    'venta_id'        => $venta->id,
+                    'imagen'          => $producto?->imagen
+                                            ? asset('images/productos/' . $producto->imagen)
+                                            : asset('images/logo.webp'),
+                    'producto_nombre' => $producto?->name ?? '-',
+                    'total_productos' => $totalDetalles,
+                ];
+            });
+
+            return response()->json($arralist);
+        }
+    }
+
+    public function getdetalle_venta(Request $request){
+        if($request->ajax()){
+            $venta = Sale::with(['pedido', 'detalles.producto', 'cliente.user.persona'])
+                        ->findOrFail($request->venta_id);
+            
+            $detalles = $venta->detalles->map(function($detalle) {
+                $producto = $detalle->producto;
+                return [
+                    'imagen'          => $producto->imagen 
+                                            ? asset('images/productos/' . $producto->imagen) 
+                                            : asset('images/logo.webp'),
+                    'nombre'          => $producto->name,
+                    'cantidad'        => $detalle->cantidad,
+                    'precio_unitario' => $detalle->precio_unitario,
+                    'subtotal'        => number_format($detalle->precio_unitario * $detalle->cantidad, 2),
+                ];
+            });
+
+            return response()->json([
+                'detalles'          => $detalles,
+                'direccion'         => $venta->cliente->user->persona->direccion ?? '-',
+                'slug'              => $venta->slug,
+                'tiposcomprobante'  => $venta->tiposcomprobante_id,
+            ]);
+        }
     }
 
     // lista de mis favoritos
@@ -689,7 +779,7 @@ class ecommerceController extends Controller
                         'ymdhis' => date('YmdHis'),
                         'name_producto' => $product->name,
                         'imagen_producto' => $product->imagen ? asset('images/productos/' . $product->imagen) : asset('images/logo.webp'),
-                        'precio' => $product->precio,
+                        'precio' => $product->precio_descuento > 0 ? $product->precio_descuento : $product->precio,
                         'producto_id' => $product->id,
                         'cantidad' => 1,
                         'precio_descuento' => $product->precio_descuento > 0 ? $product->precio_descuento : 0,
@@ -887,7 +977,56 @@ class ecommerceController extends Controller
 
     public function contact()
     {
-        return view('ECOMMERCE.contact');
+        $departamentos = Departamento::all();
+        return view('ECOMMERCE.contact', compact('departamentos'));
+    }
+
+    public function storeContacto(Request $request)
+    {
+            $emailInput = (string) $request->input('email', $request->input('correo', ''));
+
+            // Bloqueo adicional antes de validar (dominios desechables / local-parts falsos)
+            $blockMessage = $this->checkEmail($emailInput);
+            if ($blockMessage) {
+                return $request->expectsJson()
+                ? response()->json(['success' => false, 'errors' => ['email' => [$blockMessage]]])
+                : back()->withErrors(['email' => $blockMessage])->withInput();
+            }
+
+            $validated = $request->validate([
+                'nombre' => 'required|string|max:255',
+                'apellido' => 'required|string|max:255',
+                'email' => 'required|email:rfc|max:255',
+                'telefono' => 'required|string|max:20',
+                'departamento' => 'nullable|string|max:255',
+                'tipo_proyecto' => 'required|string|max:255',
+                'mensaje' => 'nullable|string|min:20|max:5000',
+                'consumo' => 'nullable|string|max:255',
+                'acepto_terminos' => 'required|accepted'
+            ]);
+
+            Contact::create([
+                'nombre' => $validated['nombre'],
+                'apellido' => $validated['apellido'],
+                'slug' => Str::slug($validated['nombre'] . '-' . time()),
+                'email' => $validated['email'],
+                'telefono' => $validated['telefono'],
+                'departamento' => (string) ($validated['departamento'] ?? ''),
+                'tipo_proyecto' => $validated['tipo_proyecto'],
+                'mensaje' => (string) ($validated['mensaje'] ?? ''),
+                'consumo' => (string) ($validated['consumo'] ?? ''),
+                'acepto_terminos' => true,
+                'estado' => 'Pendiente'
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mensaje enviado con exito! Nos pondremos en contacto contigo pronto.'
+                ]);
+            }
+
+            return redirect()->route('ecommerce.contact')->with('success', 'Mensaje enviado con exito!');
     }
 
 
@@ -920,6 +1059,8 @@ class ecommerceController extends Controller
             if ($cupon_id) {
                 $cupon = Coupon::find($cupon_id);
                 if ($cupon && UserCoupon::where('user_id', Auth::user()->id)->where('coupon_id', $cupon_id)->exists()) {
+                    $cupon_aplicado = '0';
+                }else{
                     $descuento = round($total * ($cupon->porcentaje / 100), 2);
                     $total = round($total - $descuento, 2);
                     $cupon_aplicado = $cupon;
@@ -1140,8 +1281,7 @@ class ecommerceController extends Controller
                 // Stock insuficiente: queda con aprobacion_stock = false
             }
 
-            $serieComprobante = \App\Models\SerieComprobante::where('tiposcomprobante_id', $request->tiposcomprobante_id ?? 1)
-            ->where('activo', true)
+            $serieComprobante = \App\Models\Serie::where('tiposcomprobante_id', $request->tiposcomprobante_id ?? 1)
             ->first();
 
             $numeroComprobante = $serieComprobante->generarNumero();
@@ -1165,7 +1305,7 @@ class ecommerceController extends Controller
             $venta->igv = $igv;
             $venta->total = $request->total ?? 0;
             $venta->condicion_pago = 'Contado';
-            $venta->estado = 'pagado';
+            $venta->estado = 'Pagado';
             $venta->mediopago_id = $mediopagoId;
             $venta->user_id = Auth::id();
             $venta->sede_id = 1;
@@ -1232,8 +1372,22 @@ class ecommerceController extends Controller
             ->take(8)
             ->get();
 
+            $descuento = 0;
+            $cupon_aplicado = null;
+            $cupon_id = session('cupon_carrito');
+            if ($cupon_id) {
+                $cupon = Coupon::find($cupon_id);
+                if ($cupon && UserCoupon::where('user_id', Auth::user()->id)->where('coupon_id', $cupon_id)->exists()) {
+                    $cupon_aplicado = '0';
+                }else{
+                    $descuento = round($sale->total * ($cupon->porcentaje / 100), 2);
+                    $total = round($sale->total - $descuento, 2);
+                    $cupon_aplicado = $cupon;
+                }
+            }
 
-            return view('ECOMMERCE.carrito.confirmacion', compact('pedido','sale','dtlle_venta','productos_destacados'));
+
+            return view('ECOMMERCE.carrito.confirmacion', compact('pedido','sale','dtlle_venta','productos_destacados','cupon_aplicado'));
         }else{
             return redirect()->route('ecommerce.index');
         }
@@ -1418,10 +1572,13 @@ class ecommerceController extends Controller
             $pedido->codigo = $codigoPedido;
             $pedido->slug = Str::slug($codigoPedido);
             $pedido->cliente_id = $cliente->id;
-            $pedido->subtotal = $cart->subtotal;
-            $pedido->descuento_monto = $cart->descuento;
-            $pedido->igv = $cart->igv;
-            $pedido->total = $cart->total;
+            $pedido->subtotal = $request->subtotal_base;
+            if(floatval($request->igv) > 0){
+                $pedido->incluye_igv = 1;
+            }
+            $pedido->descuento_monto = $request->descuento;
+            $pedido->igv = $request->igv;
+            $pedido->total = $request->total;
             $pedido->estado = 'proceso'; // Ya pagado online y en operación
             $pedido->aprobacion_stock = true; // Stock descontado al crear
             $pedido->aprobacion_finanzas = true; // Pago online confirmado automáticamente
@@ -1442,13 +1599,13 @@ class ecommerceController extends Controller
                 'cliente_id' => $cliente->id,
                 'tiposcomprobante_id' => 1, // Boleta por defecto para ecommerce
                 'numero_comprobante' => 'ECOM-' . $codigoPedido,
-                'subtotal' => $cart->subtotal,
-                'descuento' => $cart->descuento,
-                'igv' => $cart->igv,
-                'total' => $cart->total,
+                'subtotal' => $request->subtotal,
+                'descuento' => $request->descuento,
+                'igv' => $request->igv,
+                'total' => $request->total,
                 'mediopago_id' => 1, // Configurar según metodo_pago
                 'condicion_pago' => $request->metodo_pago === 'credito' ? 'Crédito' : 'Contado',
-                'estado' => 'pagado',
+                'estado' => 'Pagado',
                 'tipo_venta' => 'ecommerce',
                 'observaciones' => 'Venta generada automáticamente desde E-commerce: ' . $codigoPedido,
             ]);
@@ -1563,5 +1720,117 @@ class ecommerceController extends Controller
     {
         $cart = $this->getOrCreateCart();
         return response()->json(['count' => $cart->getTotalItems()]);
+    }
+
+    private function checkEmail(string $email): ?string
+    {
+        $email = strtolower(trim($email));
+
+        if ($email === '') {
+            return 'El correo es obligatorio.';
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return 'El correo no tiene un formato valido.';
+        }
+
+        [$localPart, $domain] = array_pad(explode('@', $email, 2), 2, '');
+
+        if ($domain === '') {
+            return 'El correo no tiene un dominio valido.';
+        }
+
+        $blockedDomains = [
+            'mailinator.com',
+            'guerrillamail.com',
+            '10minutemail.com',
+            'temp-mail.org',
+            'yopmail.com',
+            'sharklasers.com',
+            'dispostable.com',
+            'throwawaymail.com',
+        ];
+
+        if (in_array($domain, $blockedDomains, true)) {
+            return 'No se permiten correos temporales o desechables.';
+        }
+
+        $blockedLocalParts = [
+            'test',
+            'testing',
+            'fake',
+            'falso',
+            'noreply',
+            'no-reply',
+            'example',
+            'demo',
+            'admin',
+        ];
+
+        if (in_array($localPart, $blockedLocalParts, true)) {
+            return 'Ingresa un correo personal o corporativo valido.';
+        }
+
+        return null;
+    }
+
+    private function generarNumeroRegistro()
+    {
+        $fecha = date('Ymd');
+        $numero = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        return "REC-{$fecha}-{$numero}";
+    }
+    
+    public function storereclamaciones(Request $request)
+    {
+        $validated = $request->validate([
+            // Datos del consumidor
+            'nombres'          => 'required|string|max:100',
+            'apellidos'        => 'required|string|max:100',
+            'tipo_documento'   => 'required|in:DNI,RUC,Carné de Extranjería,Pasaporte',
+            'numero_documento' => 'required|string|max:20',
+            'direccion'        => 'nullable|string|max:255',   // opcional en el form
+            'telefono'         => 'required|string|max:20',
+            'correo'           => 'required|email|max:100',
+
+            // Bien / Servicio
+            'producto_id'     => 'nullable|string|max:100',
+            'nro_pedido'       => 'nullable|string|max:50',
+            'fecha_compra'     => 'nullable|date',
+            'monto_pagado'     => 'nullable|numeric|min:0',
+
+            // Detalle
+            'tipo_reclamo'         => 'required|in:Reclamo,Queja',  // solo 2 valores posibles
+            'descripcion_reclamo'  => 'required|string|min:10',
+            'solucion_esperada'    => 'required|string|min:10',
+        ]);
+
+        $numeroRegistro = $this->generarNumeroRegistro();
+
+        $reclamo = ReclamoLibro::create([
+            'numero_registro'     => $numeroRegistro,
+            'fecha_reclamo'       => now(),                // se genera automáticamente
+            'nombres'             => $validated['nombres'],
+            'apellidos'           => $validated['apellidos'],
+            'tipo_documento'      => $validated['tipo_documento'],
+            'numero_documento'    => $validated['numero_documento'],
+            'direccion'           => $validated['direccion'] ?? null,
+            'telefono'            => $validated['telefono'],
+            'correo'              => $validated['correo'],
+            'producto_id'           => $validated['producto_id'] ?? null,
+            'nro_pedido'          => $validated['nro_pedido'] ?? null,
+            'fecha_compra'        => $validated['fecha_compra'] ?? null,
+            'monto_pagado'        => $validated['monto_pagado'] ?? null,
+            'tipo_reclamo'        => $validated['tipo_reclamo'],
+            'descripcion_reclamo' => $validated['descripcion_reclamo'],
+            'solucion_esperada'   => $validated['solucion_esperada'],
+            'estado'              => 'Pendiente',           // valor por defecto
+        ]);
+
+        // El fetch() en el JS espera JSON, no un redirect
+        return response()->json([
+            'ok'              => true,
+            'numero_registro' => $numeroRegistro,
+        ]);
     }
 }

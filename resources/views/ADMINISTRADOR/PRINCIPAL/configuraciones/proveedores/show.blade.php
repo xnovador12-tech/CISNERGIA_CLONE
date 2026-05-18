@@ -33,7 +33,7 @@
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="">Principal</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-configuraciones') }}">Configuraciones</a></li>
                         <li class="breadcrumb-item"><a class="text-decoration-none link" href="{{ url('admin-proveedores') }}">Proveedores</a></li>
-                        <li class="breadcrumb-item" aria-current="page">{{ $admin_proveedore->name }}</li>
+                        <li class="breadcrumb-item" aria-current="page">{{ $admin_proveedor->name }}</li>
                     </ol>
                 </div>
             </div>
@@ -56,7 +56,7 @@
                                                 <span class="text-uppercase small">Nro de identificación</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->nro_identificacion }}</span>
+                                                <span>{{ $admin_proveedor->nro_identificacion }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -68,16 +68,16 @@
                                                 <span class="text-uppercase small">Identificación</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                @if($admin_proveedore->tipo_documento == 'RUC')
-                                                    <span>Registro unico del contribuyente - {{ $admin_proveedore->tipo_documento }}</span>
-                                                @elseif($admin_proveedore->tipo_documento == 'DNI')
-                                                    <span>Documento Nacional de identidad - {{ $admin_proveedore->tipo_documento }}</span>
-                                                @elseif($admin_proveedore->tipo_documento == 'CE')
-                                                    <span>Carnet de extranjería - {{ $admin_proveedore->tipo_documento }}</span>
-                                                @elseif($admin_proveedore->tipo_documento == 'PP')
-                                                    <span>Pasaporte - {{ $admin_proveedore->tipo_documento }}</span>
+                                                @if($admin_proveedor->tipo_documento == 'RUC')
+                                                    <span>Registro unico del contribuyente - {{ $admin_proveedor->tipo_documento }}</span>
+                                                @elseif($admin_proveedor->tipo_documento == 'DNI')
+                                                    <span>Documento Nacional de identidad - {{ $admin_proveedor->tipo_documento }}</span>
+                                                @elseif($admin_proveedor->tipo_documento == 'CE')
+                                                    <span>Carnet de extranjería - {{ $admin_proveedor->tipo_documento }}</span>
+                                                @elseif($admin_proveedor->tipo_documento == 'PP')
+                                                    <span>Pasaporte - {{ $admin_proveedor->tipo_documento }}</span>
                                                 @else
-                                                    <span>Documento tributario no domiciliado sin ruc - {{ $admin_proveedore->tipo_documento }}</span>
+                                                    <span>Documento tributario no domiciliado sin ruc - {{ $admin_proveedor->tipo_documento }}</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -90,7 +90,7 @@
                                                 <span class="text-uppercase small">Giro</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->proveedor->giro }}</span>
+                                                <span>{{ $admin_proveedor->proveedor->giro }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -103,7 +103,7 @@
                                                 <span class="text-uppercase small">Nombre o razón social</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->proveedor->name_contacto }}</span>
+                                                <span>{{ $admin_proveedor->proveedor->name_contacto }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -116,7 +116,7 @@
                                                 <span class="text-uppercase small">Correo electrónico</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->proveedor->email_contacto }}</span>
+                                                <span>{{ $admin_proveedor->proveedor->email_contacto }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -129,7 +129,7 @@
                                                 <span class="text-uppercase small">Nro de contacto</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->celular }}</span>
+                                                <span>{{ $admin_proveedor->celular }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -142,7 +142,7 @@
                                                 <span class="text-uppercase small">Dirección</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->direccion }}</span>
+                                                <span>{{ $admin_proveedor->direccion }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -155,7 +155,7 @@
                                                 <span class="text-uppercase small">Referencia</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->referencia }}</span>
+                                                <span>{{ $admin_proveedor->referencia }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -168,7 +168,7 @@
                                                 <span class="text-uppercase small">Dirección fiscal</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->proveedor->direccion_fiscal }}</span>
+                                                <span>{{ $admin_proveedor->proveedor->direccion_fiscal }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -181,7 +181,7 @@
                                                 <span class="text-uppercase small">Departamento</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <option>{{ $admin_proveedore->proveedor->departamento->name}}</option>
+                                                <option>{{ $admin_proveedor->proveedor->departamento->nombre}}</option>
                                             </div>
                                         </div>
                                     </div>
@@ -192,7 +192,7 @@
                                             <div class="card-header py-1">
                                                 <p class="small text-uppercase mb-0">Tipos</p>
                                             </div>
-                                            @foreach($admin_proveedore->proveedor->tipos as $tipo)
+                                            @foreach($admin_proveedor->proveedor->tipos as $tipo)
                                                 <div class="card-body py-1 me-2">
                                                     <li class="fw-normal mb-0">{{ $tipo->name }}</li>
                                                 </div>
@@ -212,7 +212,7 @@
                                                 <span class="text-uppercase small">Nombres y apellidos</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->name }}</span>
+                                                <span>{{ $admin_proveedor->name }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -224,7 +224,7 @@
                                                 <span class="text-uppercase small">Correo electrónico</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->email_pnatural }}</span>
+                                                <span>{{ $admin_proveedor->email_pnatural }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -236,7 +236,7 @@
                                                 <span class="text-uppercase small">Nro. Contacto</span>
                                             </div>
                                             <div class="card-body py-2">
-                                                <span>{{ $admin_proveedore->celular }}</span>
+                                                <span>{{ $admin_proveedor->celular }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -246,7 +246,7 @@
                         <div class="col-12 col-md-6 col-lg-6">
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Cuentas bancaria</p>
                             <div class="overflow-auto scroll-thin" style="max-height: 220px;">
-                                @foreach($admin_proveedore->proveedor->proveedorcuentas as $cuenta)
+                                @foreach($admin_proveedor->proveedor->proveedorcuentas as $cuenta)
                                 <div class="pb-3">
                                     <div class="card">
                                         <div class="card-header py-1">
@@ -292,7 +292,7 @@
                                         <span class="text-uppercase small">Tipo de cuenta</span>
                                     </div>
                                     <div class="card-body py-2">
-                                        <span>{{ $admin_proveedore->proveedor->tipo_cuenta_detraccion }}</span>
+                                        <span>{{ $admin_proveedor->proveedor->tipo_cuenta_detraccion }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -303,7 +303,7 @@
                                         <span class="text-uppercase small">Banco</span>
                                     </div>
                                     <div class="card-body py-2">
-                                        <span>{{ $admin_proveedore->proveedor->entidad_bancaria_detraccion }}</span>
+                                        <span>{{ $admin_proveedor->proveedor->entidad_bancaria_detraccion }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -314,7 +314,7 @@
                                         <span class="text-uppercase small">Nro de cuenta de detracción</span>
                                     </div>
                                     <div class="card-body py-2">
-                                        <span>{{ $admin_proveedore->proveedor->nro_cuenta_detraccion }}</span>
+                                        <span>{{ $admin_proveedor->proveedor->nro_cuenta_detraccion }}</span>
                                     </div>
                                 </div>
                             </div>

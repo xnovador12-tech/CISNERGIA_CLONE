@@ -27,7 +27,7 @@
 <!-- fin encabezado -->
 
     {{-- Contenido --}}
-    <form method="POST" action="/admin-proveedores/{{ $admin_proveedore->slug }}" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
+    <form method="POST" action="/admin-proveedores/{{ $admin_proveedor->slug }}" enctype="multipart/form-data" autocomplete="off" class="needs-validation" novalidate>      
         @csrf
         @method('put')
         <div class="container-fluid">
@@ -44,7 +44,7 @@
                         </div>
                     </div>      
                     <div class="row">
-                        <input hidden id="proveedors_id" value="{{ $admin_proveedore->proveedor->id }}">
+                        <input hidden id="proveedors_id" value="{{ $admin_proveedor->proveedor->id }}">
                         <div class="col-12 col-md-6 col-lg-6">
                             <p class="text-secondary mb-2 small text-uppercase fw-bold">Datos del proveedor</p>
                             <div class="row">
@@ -52,7 +52,7 @@
                                     <div class="pb-2">
                                         <label for="nro_identificacion_id" class="">Nro de Identificación<span class="text-danger">*</span></label>
                                         <div class="input-group input-group-sm">
-                                            <input type="number" value="{{ $admin_proveedore->nro_identificacion }}" name="nro_identificacion" required class="form-control @error('nro_identificacion') is-invalid @enderror">
+                                            <input type="number" value="{{ $admin_proveedor->nro_identificacion }}" name="nro_identificacion" required class="form-control @error('nro_identificacion') is-invalid @enderror">
                                             <button class="btn btn-secondary" type="button" id="button-addon2">Buscar</button>
                                         </div>
                                         @error('nro_identificacion')
@@ -64,16 +64,16 @@
                                     <div class="pb-2">
                                         <label for="identificacion_id"  class="">Identificación<span class="text-danger">*</span></label>
                                         <select class="form-select form-select-sm @error('identificacion') is-invalid @enderror" required name="identificacion">
-                                            @if($admin_proveedore->identificacion == 'RUC')
-                                                <option value="{{ $admin_proveedore->identificacion }}" selected="selected" hidden="hidden">Registro unico del contribuyente</option>
-                                            @elseif($admin_proveedore->identificacion == 'DNI')
-                                                <option value="{{ $admin_proveedore->identificacion }}" selected="selected" hidden="hidden">Documento Nacional de identidad</option>
-                                            @elseif($admin_proveedore->identificacion == 'CE')
-                                                <option value="{{ $admin_proveedore->identificacion }}" selected="selected" hidden="hidden">Carnet de extranjería</option>
-                                            @elseif($admin_proveedore->identificacion == 'PP')
-                                                <option value="{{ $admin_proveedore->identificacion }}" selected="selected" hidden="hidden">Pasaporte</option>
+                                            @if($admin_proveedor->identificacion == 'RUC')
+                                                <option value="{{ $admin_proveedor->identificacion }}" selected="selected" hidden="hidden">Registro unico del contribuyente</option>
+                                            @elseif($admin_proveedor->identificacion == 'DNI')
+                                                <option value="{{ $admin_proveedor->identificacion }}" selected="selected" hidden="hidden">Documento Nacional de identidad</option>
+                                            @elseif($admin_proveedor->identificacion == 'CE')
+                                                <option value="{{ $admin_proveedor->identificacion }}" selected="selected" hidden="hidden">Carnet de extranjería</option>
+                                            @elseif($admin_proveedor->identificacion == 'PP')
+                                                <option value="{{ $admin_proveedor->identificacion }}" selected="selected" hidden="hidden">Pasaporte</option>
                                             @else
-                                                <option value="{{ $admin_proveedore->identificacion }}" selected="selected" hidden="hidden">Documento tributario no domiciliado sin ruc</option>
+                                                <option value="{{ $admin_proveedor->identificacion }}" selected="selected" hidden="hidden">Documento tributario no domiciliado sin ruc</option>
                                             @endif
                                             @foreach($tiposdocumento as $tiposdocumentos)
                                                 <option value="{{ $tiposdocumentos->abreviatura }}">{{ $tiposdocumentos->name }}</option>
@@ -88,7 +88,7 @@
                                     <div class="pb-2">
                                         <label for="giro_id" class="">Giro<span class="text-danger">*</span></label>
                                         <select class="form-select form-select-sm @error('giro') is-invalid @enderror" required name="giro" id="giro_id" >
-                                            <option value="{{ $admin_proveedore->proveedor->giro }}" selected="selected" hidden="hidden">{{ $admin_proveedore->proveedor->giro }}</option>
+                                            <option value="{{ $admin_proveedor->proveedor->giro }}" selected="selected" hidden="hidden">{{ $admin_proveedor->proveedor->giro }}</option>
                                             <option value="Fabricante">Fabricante</option>
                                             <option value="Importador">Importador</option>
                                             <option value="Distribuidor">Distribuidor</option>
@@ -103,7 +103,7 @@
                                 <div class="col-12 col-md-6 col-lg-6">
                                     <div class="pb-2">
                                         <label for="name_contacto_id" class="">Nombre o Razón social<span class="text-danger">*</span></label>
-                                        <input type="text" name="name_contacto" id="name_contacto_id" class="form-control form-control-sm @error('name_contacto') is-invalid @enderror" required value="{{ $admin_proveedore->proveedor->name_contacto }}" maxLength="100">  
+                                        <input type="text" name="name_contacto" id="name_contacto_id" class="form-control form-control-sm @error('name_contacto') is-invalid @enderror" required value="{{ $admin_proveedor->proveedor->name_contacto }}" maxLength="100">  
                                         @error('name_contacto')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -113,7 +113,7 @@
                                 <div class="col-12 col-md-6 col-lg-6">
                                     <div class="pb-2">
                                         <label for="email_contacto_id" class="">Correo electrónico<span class="text-danger">*</span></label>
-                                        <input type="email" name="email_contacto" id="email_contacto_id" class="form-control form-control-sm @error('email_contacto') is-invalid @enderror" required value="{{ $admin_proveedore->proveedor->email_contacto }}" maxLength="100">  
+                                        <input type="email" name="email_contacto" id="email_contacto_id" class="form-control form-control-sm @error('email_contacto') is-invalid @enderror" required value="{{ $admin_proveedor->proveedor->email_contacto }}" maxLength="100">  
                                         @error('email_contacto')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -123,7 +123,7 @@
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
                                         <label for="nro_celular_contacto_id" class="">Nro de contacto<span class="text-danger">*</span></label>
-                                        <input type="number" name="nro_celular_contacto" id="nro_celular_contacto_id" class="form-control form-control-sm @error('nro_celular_contacto') is-invalid @enderror" required value="{{ $admin_proveedore->proveedor->nro_celular_contacto }}" maxLength="100">  
+                                        <input type="number" name="nro_celular_contacto" id="nro_celular_contacto_id" class="form-control form-control-sm @error('nro_celular_contacto') is-invalid @enderror" required value="{{ $admin_proveedor->proveedor->nro_celular_contacto }}" maxLength="100">  
                                         @error('nro_celular_contacto')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -133,7 +133,7 @@
                                 <div class="col-12 col-md-6 col-lg-8">
                                     <div class="pb-2">
                                         <label for="direccion_id" class="">Dirección</label>
-                                        <input type="text" name="direccion" id="direccion_id" class="form-control form-control-sm @error('direccion') is-invalid @enderror" value="{{ $admin_proveedore->direccion }}" maxLength="100">  
+                                        <input type="text" name="direccion" id="direccion_id" class="form-control form-control-sm @error('direccion') is-invalid @enderror" value="{{ $admin_proveedor->direccion }}" maxLength="100">  
                                         @error('direccion')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -143,7 +143,7 @@
                                 <div class="col-12 col-md-6 col-lg-6">
                                     <div class="pb-2">
                                         <label for="referencia_id" class="">Referencia</label>
-                                        <input type="text" name="referencia" id="referencia_id" class="form-control form-control-sm @error('referencia') is-invalid @enderror" value="{{ $admin_proveedore->referencia }}" maxLength="100">  
+                                        <input type="text" name="referencia" id="referencia_id" class="form-control form-control-sm @error('referencia') is-invalid @enderror" value="{{ $admin_proveedor->referencia }}" maxLength="100">  
                                         @error('referencia')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -153,7 +153,7 @@
                                 <div class="col-12 col-md-6 col-lg-6">
                                     <div class="pb-2">
                                         <label for="direccion_fiscal__id" class="">Dirección Fiscal</label>
-                                        <input type="text" name="direccion_fiscal" id="direccion_fiscal__id" class="form-control form-control-sm @error('direccion_fiscal') is-invalid @enderror" value="{{ $admin_proveedore->proveedor->direccion_fiscal }}" maxLength="100">  
+                                        <input type="text" name="direccion_fiscal" id="direccion_fiscal__id" class="form-control form-control-sm @error('direccion_fiscal') is-invalid @enderror" value="{{ $admin_proveedor->proveedor->direccion_fiscal }}" maxLength="100">  
                                         @error('direccion_fiscal')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -164,7 +164,7 @@
                                     <div class="pb-2">
                                         <label for="identificacion_id" class="">Departamento<span class="text-danger">*</span></label>
                                         <select id="ubigeos__ids" class="form-select form-select-sm @error('distrito_id') is-invalid @enderror">
-                                            <option value="{{ $admin_proveedore->proveedor->departamento->id }}" selected="selected" hidden="hidden">{{ $admin_proveedore->proveedor->departamento->name}}</option>
+                                            <option value="{{ $admin_proveedor->proveedor->departamento->id }}" selected="selected" hidden="hidden">{{ $admin_proveedor->proveedor->departamento->name}}</option>
                                             @foreach($ubigeos as $ubigeo) 
                                                 <option value="{{ $ubigeo->departamento_ids }}">{{ $ubigeo->departamento_name}}</option>
                                             @endforeach
@@ -188,7 +188,7 @@
                                                     $tipos_asigns = DB::table('proveedor_tipo')->join('tipos','proveedor_tipo.tipo_id','=','tipos.id')
                                                     ->select('proveedor_tipo.tipo_id', 'tipos.name')
                                                     ->where('proveedor_tipo.tipo_id',$tipo->id)
-                                                    ->where('proveedor_tipo.proveedor_id',$admin_proveedore->proveedor->id)->get();
+                                                    ->where('proveedor_tipo.proveedor_id',$admin_proveedor->proveedor->id)->get();
     
                                                     foreach($tipos_asigns as $tipos_asign){
                                                         $tip = $tipos_asign->tipo_id;
@@ -209,7 +209,7 @@
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
                                         <label for="name_id" class="">Nombres y Apellidos</label>
-                                        <input type="text" name="name" id="name_id" class="form-control form-control-sm @error('name') is-invalid @enderror" value="{{ $admin_proveedore->name }}" maxLength="100">  
+                                        <input type="text" name="name" id="name_id" class="form-control form-control-sm @error('name') is-invalid @enderror" value="{{ $admin_proveedor->name }}" maxLength="100">  
                                         @error('name')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -218,7 +218,7 @@
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
                                         <label for="email_pnatural_id" class="">Correo electrónico</label>
-                                        <input type="email" name="email_pnatural" id="email_pnatural_id" class="form-control form-control-sm @error('email_pnatural') is-invalid @enderror" value="{{ $admin_proveedore->email_pnatural }}" maxLength="100">  
+                                        <input type="email" name="email_pnatural" id="email_pnatural_id" class="form-control form-control-sm @error('email_pnatural') is-invalid @enderror" value="{{ $admin_proveedor->email_pnatural }}" maxLength="100">  
                                         @error('email_pnatural')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -227,7 +227,7 @@
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <div class="pb-2">
                                         <label for="celular__id" class="">Nro de contacto</label>
-                                        <input type="number" name="celular" id="celular__id" class="form-control form-control-sm @error('celular') is-invalid @enderror" value="{{ $admin_proveedore->celular }}" maxLength="100">  
+                                        <input type="number" name="celular" id="celular__id" class="form-control form-control-sm @error('celular') is-invalid @enderror" value="{{ $admin_proveedor->celular }}" maxLength="100">  
                                         @error('celular')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -324,7 +324,7 @@
 
                             <div class="pb-2">
                                 <label for="nro_cuenta_detraccion__id" class="">Nro de cuenta de detracción<span class="text-danger">*</span></label>
-                                <input type="number" name="nro_cuenta_detraccion" class="form-control form-control-sm @error('nro_cuenta_detraccion') is-invalid @enderror" required value="{{ $admin_proveedore->proveedor->nro_cuenta_detraccion }}">   
+                                <input type="number" name="nro_cuenta_detraccion" class="form-control form-control-sm @error('nro_cuenta_detraccion') is-invalid @enderror" required value="{{ $admin_proveedor->proveedor->nro_cuenta_detraccion }}">   
                                 @error('nro_cuenta_detraccion')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror

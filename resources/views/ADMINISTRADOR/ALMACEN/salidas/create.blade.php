@@ -278,6 +278,7 @@ $(document).ready(function() {
             if(valormotivo == 'Muestra'){
                 $('#cliente_div').show();
             }
+            console.log(valormotivo, valor_almacen);
             $.get('/busqueda_producto_inventario', {valormotivo: valormotivo, valor_almacen: valor_almacen}, function(productos){
                 $('#bienes_id').empty();
                 $('#bienes_id').append("<option selected='selected' hidden='hidden'>-- Seleccione --</option>");

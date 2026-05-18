@@ -55,6 +55,29 @@ class admin_CrmTicketsController extends Controller
     {
         $query = Ticket::with(['cliente', 'asignado', 'creador', 'mantenimiento', 'pedido']);
 
+        // ── Filtros de VISIBILIDAD por rol (no hardcoded, basado en permisos) ──
+        //
+        //   - Si el user tiene 'crm.tickets.ver-todos' → ve todos los tickets.
+        //     (Gerencia, Administrador, Operaciones tienen este permiso).
+        //
+        //   - Si NO lo tiene → solo ve:
+        //       a) Tickets ASIGNADOS a él (tickets.user_id = auth()->id())
+        //          → caso típico: Técnico que resuelve sus tickets asignados.
+        //       b) Tickets de SUS CLIENTES (cliente.vendedor_id = auth()->id())
+        //          → caso típico: Vendedor que ve tickets de clientes que le pertenecen.
+        //
+        //   La unión (OR) permite que un mismo user vea todo lo relevante para él,
+        //   sin necesidad de hardcodear roles. Si mañana Gerencia crea un rol
+        //   "Comercial" con permiso 'crm.tickets.edit' pero sin 'ver-todos', ese
+        //   usuario también verá solo tickets de sus clientes automáticamente.
+        $user = auth()->user();
+        if (!$user->can('crm.tickets.ver-todos')) {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)   // tickets asignados a él
+                  ->orWhereHas('cliente', fn($q2) => $q2->where('vendedor_id', $user->id));
+            });
+        }
+
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
             $query->where(function ($q) use ($buscar) {
@@ -90,15 +113,21 @@ class admin_CrmTicketsController extends Controller
 
         $tickets = $query->get();
 
+        // Stats consistentes con la visibilidad: si Ventas solo ve 3 tickets de sus clientes,
+        // no tiene sentido mostrarle "50 abiertos totales". Aplicamos el mismo filtro.
         $stats = [
-            'abiertos'        => Ticket::abiertos()->count(),
-            'en_progreso'     => Ticket::where('estado', 'en_progreso')->count(),
-            'resueltos_hoy'   => Ticket::where('estado', 'resuelto')->whereDate('fecha_resolucion', today())->count(),
+            'abiertos'        => $this->aplicarFiltroVisibilidad(Ticket::abiertos(), $user)->count(),
+            'en_progreso'     => $this->aplicarFiltroVisibilidad(Ticket::where('estado', 'en_progreso'), $user)->count(),
+            'resueltos_hoy'   => $this->aplicarFiltroVisibilidad(
+                                    Ticket::where('estado', 'resuelto')->whereDate('fecha_resolucion', today()),
+                                    $user
+                                 )->count(),
             'tiempo_promedio' => $this->calcularTiempoRespuestaPromedio() . 'h',
         ];
 
-        $porCategoria = Ticket::selectRaw('categoria, COUNT(*) as total')
-            ->abiertos()->groupBy('categoria')->pluck('total', 'categoria');
+        $porCategoria = $this->aplicarFiltroVisibilidad(Ticket::abiertos(), $user)
+            ->selectRaw('categoria, COUNT(*) as total')
+            ->groupBy('categoria')->pluck('total', 'categoria');
 
         return view('ADMINISTRADOR.CRM.tickets.index', compact('tickets', 'stats', 'porCategoria'));
     }
@@ -226,6 +255,8 @@ class admin_CrmTicketsController extends Controller
 
     public function show(Ticket $ticket)
     {
+        $this->abortarSiNoVisible($ticket);
+
         $ticket->load(['cliente', 'pedido', 'venta', 'asignado', 'creador', 'mantenimiento']);
 
         $tiempoTranscurrido = $ticket->created_at->diffForHumans();
@@ -233,9 +264,7 @@ class admin_CrmTicketsController extends Controller
             ? ($ticket->sla_vencimiento->isPast() ? 'Vencido' : $ticket->sla_vencimiento->diffForHumans())
             : null;
 
-        $usuarios = User::with('persona')
-            ->whereHas('roles', fn($q) => $q->whereIn('name', ['Tecnico', 'Operaciones']))
-            ->get()->sortBy(fn($u) => $u->persona?->name);
+        $usuarios = $this->usuariosAsignables();
 
         return view('ADMINISTRADOR.CRM.tickets.show', compact(
             'ticket', 'tiempoTranscurrido', 'tiempoRestanteSla', 'usuarios'
@@ -246,10 +275,10 @@ class admin_CrmTicketsController extends Controller
 
     public function edit(Ticket $ticket)
     {
+        $this->abortarSiNoVisible($ticket);
+
         $clientes = Cliente::orderBy('nombre')->get();
-        $usuarios = User::with('persona')
-            ->whereHas('roles', fn($q) => $q->whereIn('name', ['Tecnico', 'Operaciones']))
-            ->get()->sortBy(fn($u) => $u->persona?->name);
+        $usuarios = $this->usuariosAsignables();
 
         $pedidos = Pedido::where('cliente_id', $ticket->cliente_id)
             ->whereIn('estado', ['pendiente', 'proceso', 'entregado'])
@@ -266,6 +295,8 @@ class admin_CrmTicketsController extends Controller
 
     public function update(Request $request, Ticket $ticket)
     {
+        $this->abortarSiNoVisible($ticket);
+
         $validated = $request->validate([
             'asunto'              => 'required|string|max:200',
             'descripcion'         => 'required|string',
@@ -322,6 +353,8 @@ class admin_CrmTicketsController extends Controller
 
     public function destroy(Ticket $ticket)
     {
+        $this->abortarSiNoVisible($ticket);
+
         if ($ticket->estado === 'resuelto') {
             return redirect()
                 ->route('admin.crm.tickets.show', $ticket)
@@ -339,6 +372,8 @@ class admin_CrmTicketsController extends Controller
 
     public function cambiarEstado(Request $request, Ticket $ticket)
     {
+        $this->abortarSiNoVisible($ticket);
+
         $validated = $request->validate([
             'estado'               => 'required|in:abierto,asignado,en_progreso,pendiente_cliente,pendiente_proveedor,resuelto,reabierto',
             'comentario'           => 'nullable|string|max:500',
@@ -397,6 +432,8 @@ class admin_CrmTicketsController extends Controller
 
     public function asignar(Request $request, Ticket $ticket)
     {
+        $this->abortarSiNoVisible($ticket);
+
         $validated = $request->validate(['user_id' => 'required|exists:users,id']);
 
         $ticket->update([
@@ -418,6 +455,8 @@ class admin_CrmTicketsController extends Controller
      */
     public function agendarVisita(Request $request, Ticket $ticket)
     {
+        $this->abortarSiNoVisible($ticket);
+
         if (!in_array($ticket->categoria, ['soporte_tecnico', 'garantia'])) {
             return back()->with('error', 'Solo tickets de Soporte Técnico o Garantía pueden agendar una visita desde aquí.');
         }
@@ -479,5 +518,81 @@ class admin_CrmTicketsController extends Controller
     protected function checklistPorTipo(string $tipo): array
     {
         return Mantenimiento::checklistPorTipo($tipo);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // HELPERS PRIVADOS DE AUTORIZACIÓN Y VISIBILIDAD
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Aplica el filtro de visibilidad por rol a un query de tickets.
+     *
+     *   - Si el user tiene el permiso 'crm.tickets.ver-todos' → query sin filtro.
+     *   - Si NO lo tiene → filtra a tickets donde:
+     *       a) user_id = auth()->id()  (asignados directamente a él, caso Técnico)
+     *       b) cliente.vendedor_id = auth()->id()  (de clientes que le pertenecen, caso Ventas)
+     *
+     * Se usa tanto en el index como en las stats para mantener coherencia:
+     * si el usuario solo ve N tickets, las estadísticas también reflejan N.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \App\Models\User $user
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    private function aplicarFiltroVisibilidad($query, $user)
+    {
+        if (!$user->can('crm.tickets.ver-todos')) {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereHas('cliente', fn($q2) => $q2->where('vendedor_id', $user->id));
+            });
+        }
+        return $query;
+    }
+
+    /**
+     * Aborta con 403 si el usuario actual NO puede ver este ticket.
+     *
+     * Criterios (mismos que aplicarFiltroVisibilidad):
+     *   - Tiene permiso 'crm.tickets.ver-todos' → OK.
+     *   - Está asignado al ticket (ticket.user_id === auth()->id()) → OK.
+     *   - Es vendedor del cliente del ticket (cliente.vendedor_id === auth()->id()) → OK.
+     *   - En cualquier otro caso → 403 Forbidden.
+     *
+     * Protección contra acceso directo por URL (ej: Ventas manipulando /admin/crm/tickets/{id}).
+     */
+    private function abortarSiNoVisible(Ticket $ticket): void
+    {
+        $user = auth()->user();
+
+        if ($user->can('crm.tickets.ver-todos')) {
+            return;
+        }
+
+        $esAsignado = $ticket->user_id === $user->id;
+        $esVendedorDelCliente = $ticket->cliente && $ticket->cliente->vendedor_id === $user->id;
+
+        if (!$esAsignado && !$esVendedorDelCliente) {
+            abort(403, 'No tienes permiso para acceder a este ticket.');
+        }
+    }
+
+    /**
+     * Retorna los usuarios asignables como responsables de un ticket.
+     *
+     * CRITERIO: usuarios con el permiso 'crm.tickets.resolver'. Quien pueda
+     * resolver tickets es quien puede ser asignado. Filtra por permiso (no
+     * por rol hardcoded) para que cualquier rol nuevo con ese permiso aparezca
+     * automáticamente sin tocar código.
+     *
+     * Solo usuarios con estado 'Activo' (evita usuarios dados de baja).
+     */
+    private function usuariosAsignables()
+    {
+        return User::permission('crm.tickets.resolver')
+            ->where('estado', 'Activo')
+            ->with('persona')
+            ->get()
+            ->sortBy(fn($u) => $u->persona?->name);
     }
 }

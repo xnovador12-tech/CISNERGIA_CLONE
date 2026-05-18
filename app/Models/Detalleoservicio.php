@@ -9,5 +9,5 @@ class Detalleoservicio extends Model
 {
     use HasFactory;
     protected $table = 'detalleoservicios';
-    protected $fillable = array('*');
+    protected $guarded = [];
 }

@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Contact;
+use App\Models\Prospecto;
+use Illuminate\Http\Request;
+
+class admin_ContactsController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $admin_contactos = Contact::all();
+        return view('ADMINISTRADOR.OTROS.contacto.index', compact('admin_contactos'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        //
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Contact $admin_contacto)
+    {
+        if ($admin_contacto->estado !== 'Atendido') {
+            $request->validate([
+                'mensaje_respuesta' => 'required|string|min:3',
+            ], [
+                'mensaje_respuesta.required' => 'Debes redactar un mensaje antes de marcar como atendido.',
+            ]);
+
+            $admin_contacto->estado = 'Atendido';
+            $admin_contacto->save();
+
+            return redirect()->route('admin-contacto.index')->with('update', 'ok');
+        }
+
+        return redirect()->route('admin-contacto.index')->with('already_attended', 'ok');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
+    }
+}

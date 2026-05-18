@@ -219,10 +219,14 @@
                   </div>
                   <h4 class="fw-bold mb-0">Productos Comprados</h4>
                 </div>
-
+                @php
+                    $subtotal_base = 0;
+                    $total_descuentos = 0;
+                @endphp
                 @foreach($dtlle_venta as $dtlle_ventas)
                 @php
                     $producto = App\Models\Producto::where('id', $dtlle_ventas->producto_id)->first();
+                    $subtotal_base = $subtotal_base + ($producto->precio * $dtlle_ventas->cantidad);
                 @endphp
                 <div class="mb-3 pb-3 border-bottom">
                   <div class="d-flex align-items-center">
@@ -239,24 +243,34 @@
                 </div>
                 @endforeach
 
-                <hr class="my-3">
-
                 <div class="d-flex justify-content-between mb-2">
-                  <span class="text-muted">Subtotal</span>
-                  <span class="fw-bold">S/ {{ number_format($sale->subtotal, 2) }}</span>
+                    <span class="text-muted">Subtotal:</span>
+                    <span class="fw-semibold">S/ {{ number_format($subtotal_base, 2) }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2 text-success">
-                    <span>Descuento:</span>
-                    @if($sale->pedido->descuento_porcentaje)
-                        <span class="badge bg-success ms-2">({{ $sale->pedido->descuento_porcentaje }}%)</span>
-                        <input type="hidden" id="descuento_porcentaje" value="{{ $sale->pedido->descuento_porcentaje }}">
-                    @endif
-                    <span class="fw-semibold">- S/ {{ number_format($sale->pedido->descuento_monto, 2) }}</span>
-                    <input type="hidden" id="descuento" value="{{ $sale->pedido->descuento_monto }}">
+                  <span class="text-success">Descuento</span>
+                  <span class="fw-bold">S/ {{ number_format($sale->descuento, 2) }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Productos:</span>
+                    <span class="fw-semibold">S/ {{ number_format(($subtotal_base - $sale->descuento), 2) }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-3">
                   <span class="text-muted">IGV (18%)</span>
-                  <span class="fw-bold">S/ {{$sale->igv}}</span>
+                  <span class="fw-bold">S/ {{ number_format($sale->igv, 2) }}</span>
+                </div>
+                <hr class="my-3">
+                <div class="d-flex justify-content-between mb-3 text-success">
+                    <span>Descuento por cupón</span>
+                    @if($cupon_aplicado)
+                        <span class="badge bg-success ms-2">{{ $cupon_aplicado->codigo }} ({{ $cupon_aplicado->porcentaje }}%)</span>
+                        <input type="hidden" id="descuento_porcentaje" name="descuento_porcentaje" value="{{ $cupon_aplicado->porcentaje }}">
+                        <span class="fw-semibold" id="cupon_html">- S/ {{ number_format(((($subtotal_base - $sale->descuento) + $sale->igv) * ($cupon_aplicado->porcentaje / 100)), 2) }}</span>
+                    @else
+                        <input type="hidden" id="descuento_porcentaje" name="descuento_porcentaje" value="0">
+                        <span class="fw-semibold" id="cupon_html">- S/ 0.00</span>
+                    @endif
+                    <input type="hidden" id="valor_cuponera_hidden" name="valor_cuponera_hidden" value="0">
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                   <span class="text-muted">Envío</span>

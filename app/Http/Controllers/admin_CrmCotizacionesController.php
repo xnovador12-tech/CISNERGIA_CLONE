@@ -64,7 +64,7 @@ class admin_CrmCotizacionesController extends Controller
             'pendientes'  => CotizacionCrm::whereIn('estado', ['borrador', 'enviada'])->count(),
         ];
 
-        $usuarios = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $usuarios = $this->vendedoresDisponibles();
 
         return view('ADMINISTRADOR.CRM.cotizaciones.index', compact('cotizaciones', 'stats', 'usuarios', 'esAdmin'));
     }
@@ -74,10 +74,18 @@ class admin_CrmCotizacionesController extends Controller
      */
     public function create(Request $request)
     {
-        $oportunidades = Oportunidad::with(['prospecto', 'servicio'])
-            ->activas()
-            ->orderByDesc('created_at')
-            ->get();
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+
+        // OPORTUNIDADES: solo las que el usuario puede cotizar.
+        //   - Admin: todas las activas.
+        //   - No-admin: solo las asignadas a él (consistente con el index de oportunidades).
+        // Evita que un vendedor cotice oportunidades que son de otro vendedor.
+        $queryOportunidades = Oportunidad::with(['prospecto', 'servicio'])->activas();
+        if (!$esAdmin) {
+            $queryOportunidades->where('user_id', $user->id);
+        }
+        $oportunidades = $queryOportunidades->orderByDesc('created_at')->get();
 
         $oportunidadId = $request->get('oportunidad_id');
 
@@ -214,9 +222,23 @@ class admin_CrmCotizacionesController extends Controller
 
         $cotizacion->load(['detalles.producto', 'detalles.servicio', 'oportunidad.prospecto', 'oportunidad.servicio']);
 
+        // OPORTUNIDADES: mismo filtro que create, pero SIEMPRE incluir la
+        // oportunidad de la cotización actual aunque no pertenezca al usuario
+        // (evita que el edit rompa si la cotización fue reasignada por un admin).
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+
         $oportunidades = Oportunidad::with(['prospecto', 'servicio'])
-            ->where(function ($q) use ($cotizacion) {
-                $q->activas()->orWhere('id', $cotizacion->oportunidad_id);
+            ->where(function ($q) use ($cotizacion, $esAdmin, $user) {
+                // Condición 1: oportunidades activas (filtradas por user si no es admin)
+                $q->where(function ($q2) use ($esAdmin, $user) {
+                    $q2->activas();
+                    if (!$esAdmin) {
+                        $q2->where('user_id', $user->id);
+                    }
+                });
+                // Condición 2: O la oportunidad de la cotización actual (siempre presente)
+                $q->orWhere('id', $cotizacion->oportunidad_id);
             })
             ->orderByDesc('created_at')
             ->get();
@@ -539,5 +561,23 @@ class admin_CrmCotizacionesController extends Controller
 
         // Actualizar tiempo total (reset a 0 si no hay servicios, suma si los hay)
         $cotizacion->update(['tiempo_ejecucion_dias' => $tiempoTotal]);
+    }
+
+    /**
+     * Retorna la lista de usuarios que pueden aparecer en el filtro de
+     * vendedor del listado de cotizaciones.
+     *
+     * CRITERIO (basado en permisos, NO en roles hardcoded):
+     *   - Solo usuarios con el permiso 'crm.cotizaciones.edit'. Quien pueda
+     *     editar cotizaciones es quien puede haberlas creado.
+     *   - Solo usuarios con estado 'Activo'.
+     */
+    private function vendedoresDisponibles()
+    {
+        return User::permission('crm.cotizaciones.edit')
+            ->where('estado', 'Activo')
+            ->with('persona')
+            ->get()
+            ->sortBy(fn($u) => $u->persona?->name);
     }
 }

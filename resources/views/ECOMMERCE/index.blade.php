@@ -554,58 +554,32 @@
           <p style="color:var(--c-muted);">Más de 850 familias y empresas confían en nosotros</p>
         </div>
         <div class="row g-4">
-
+          @forelse($reseñas as $reseña)
           <div class="col-md-4">
             <div class="cis-testi">
               <span class="cis-testi-q">"</span>
-              <p class="mb-3" style="color:var(--c-text-muted); font-size:.95rem;">Mi factura de luz bajó de S/450 a solo S/50 mensuales. La instalación fue rápida y profesional.</p>
+              <p class="mb-3" style="color:var(--c-text-muted); font-size:.95rem;">{{$reseña->comentarios}}</p>
               <div class="d-flex align-items-center gap-3">
                 <div class="cis-avatar"><i class="bi bi-person-fill"></i></div>
                 <div>
-                  <strong style="color:var(--bs-primary); font-size:.88rem;">María González</strong>
-                  <small style="color:var(--c-muted); display:block;">Lima, Perú</small>
+                  <strong style="color:var(--bs-primary); font-size:.88rem;">{{$reseña->cliente->nombres.' '.$reseña->cliente->apellidos}}</strong>
+                  <small style="color:var(--c-muted); display:block;">{{$reseña->cliente->distrito ? $reseña->cliente->distrito->nombre : ''}}</small>
                 </div>
                 <div class="ms-auto" style="color:var(--c-accent); font-size:.8rem;">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                  @if($reseña->valoracion >= 1)<i class="bi bi-star-fill"></i>@else<i class="bi bi-star"></i>@endif
+                  @if($reseña->valoracion >= 2)<i class="bi bi-star-fill"></i>@else<i class="bi bi-star"></i>@endif
+                  @if($reseña->valoracion >= 3)<i class="bi bi-star-fill"></i>@else<i class="bi bi-star"></i>@endif
+                  @if($reseña->valoracion >= 4)<i class="bi bi-star-fill"></i>@else<i class="bi bi-star"></i>@endif
+                  @if($reseña->valoracion >= 5)<i class="bi bi-star-fill"></i>@else<i class="bi bi-star"></i>@endif
                 </div>
               </div>
             </div>
           </div>
-
-          <div class="col-md-4">
-            <div class="cis-testi">
-              <span class="cis-testi-q">"</span>
-              <p class="mb-3" style="color:var(--c-text-muted); font-size:.95rem;">La mejor inversión que he hecho. El equipo técnico fue muy profesional y me explicaron todo el proceso.</p>
-              <div class="d-flex align-items-center gap-3">
-                <div class="cis-avatar"><i class="bi bi-person-fill"></i></div>
-                <div>
-                  <strong style="color:var(--bs-primary); font-size:.88rem;">Carlos Mendoza</strong>
-                  <small style="color:var(--c-muted); display:block;">Arequipa, Perú</small>
-                </div>
-                <div class="ms-auto" style="color:var(--c-accent); font-size:.8rem;">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                </div>
-              </div>
-            </div>
+          @empty
+          <div class="col-12">
+            <p class="text-center" style="color:var(--c-muted);">No hay reseñas disponibles en este momento.</p>
           </div>
-
-          <div class="col-md-4">
-            <div class="cis-testi">
-              <span class="cis-testi-q">"</span>
-              <p class="mb-3" style="color:var(--c-text-muted); font-size:.95rem;">Instalamos un sistema de 15kW y estamos ahorrando más de S/2,000 mensuales. ¡Excelente retorno!</p>
-              <div class="d-flex align-items-center gap-3">
-                <div class="cis-avatar"><i class="bi bi-building"></i></div>
-                <div>
-                  <strong style="color:var(--bs-primary); font-size:.88rem;">Restaurante El Sol</strong>
-                  <small style="color:var(--c-muted); display:block;">Cusco, Perú</small>
-                </div>
-                <div class="ms-auto" style="color:var(--c-accent); font-size:.8rem;">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-
+          @endforelse
         </div>
       </div>
     </section>
@@ -623,56 +597,17 @@
         </div>
 
         <div class="row g-3 justify-content-center">
+        @forelse($marcas_aliadas as $marcas_aliada)
           <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.vestas.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/VESTA.png" alt="Vestas"></div>
+            <a href="{{ $marcas_aliada->url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+              <div class="cis-partner"><img src="{{ $marcas_aliada->logo }}" alt="{{ $marcas_aliada->name }}"></div>
             </a>
           </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.cat.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/CAT.png" alt="CAT"></div>
-            </a>
+        @empty
+          <div class="col-12">
+            <p class="text-center" style="color:var(--c-muted);">No hay marcas aliadas disponibles en este momento.</p>
           </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.cropx.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/CRPOX.png" alt="Cropx"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.cip.org.pe/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/CIP.png" alt="CIP"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.jinkosolar.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/JINKO-SOLAR.png" alt="Jinko Solar"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.yinglisolar.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/YINGLI-SOLAR.png" alt="Yingli Solar"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.ethosenergygroup.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/ETHOS-ENERGY.png" alt="Ethos Energy"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.liugong.com/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/LIUGONG-1.png" alt="LiuGong"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.udep.edu.pe/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/UDEP.png" alt="UDEP"></div>
-            </a>
-          </div>
-          <div class="col-6 col-md-4 col-lg-2">
-            <a href="https://www.ulima.edu.pe/" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="cis-partner"><img src="https://cisnergia.com/wp-content/uploads/2023/07/LIMAQ.png" alt="Limaq"></div>
-            </a>
-          </div>
+        @endforelse
         </div>
 
         <div class="text-center mt-5">

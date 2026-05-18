@@ -342,10 +342,18 @@
                         de alta calidad.
                     </p>
                     <div class="d-flex gap-2 mb-3">
-                        <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-linkedin"></i></a>
-                        <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-youtube"></i></a>
+                        @if(!empty($infoEmpresa->facebook))
+                            <a href="{{ $infoEmpresa->facebook }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-sm"><i class="bi bi-facebook"></i></a>
+                        @endif
+                        @if(!empty($infoEmpresa->instagram))
+                            <a href="{{ $infoEmpresa->instagram }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-sm"><i class="bi bi-instagram"></i></a>
+                        @endif
+                        @if(!empty($infoEmpresa->linkedin))
+                            <a href="{{ $infoEmpresa->linkedin }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-sm"><i class="bi bi-linkedin"></i></a>
+                        @endif
+                        @if(!empty($infoEmpresa->youtube))
+                            <a href="{{ $infoEmpresa->youtube }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-sm"><i class="bi bi-youtube"></i></a>
+                        @endif
                     </div>
                 </div>
 
@@ -385,18 +393,26 @@
                 <div class="col-lg-3 col-md-6">
                     <h6 class="fw-bold mb-3">Contacto</h6>
                     <ul class="list-unstyled">
-                        <li class="mb-2 text-light opacity-75">
-                            <i class="bi bi-geo-alt-fill text-light me-2"></i>Av. Principal 123, San Isidro, Lima
-                        </li>
-                        <li class="mb-2 text-light opacity-75">
-                            <i class="bi bi-telephone-fill text-light me-2"></i>+51 999 999 999
-                        </li>
-                        <li class="mb-2 text-light opacity-75">
-                            <i class="bi bi-envelope-fill text-light me-2"></i>ventas@cisnergia.pe
-                        </li>
-                        <li class="mb-2 text-light opacity-75">
-                            <i class="bi bi-clock-fill text-light me-2"></i>Lun-Vie: 9AM-6PM
-                        </li>
+                        @if(!empty($infoEmpresa->direccion))
+                            <li class="mb-2 text-light opacity-75">
+                                <i class="bi bi-geo-alt-fill text-light me-2"></i>{{ $infoEmpresa->direccion }}
+                            </li>
+                        @endif
+                        @if(!empty($infoEmpresa->telefono) || !empty($infoEmpresa->celular))
+                            <li class="mb-2 text-light opacity-75">
+                                <i class="bi bi-telephone-fill text-light me-2"></i>{{ $infoEmpresa->telefono ?? $infoEmpresa->celular }}
+                            </li>
+                        @endif
+                        @if(!empty($infoEmpresa->email))
+                            <li class="mb-2 text-light opacity-75">
+                                <i class="bi bi-envelope-fill text-light me-2"></i>{{ $infoEmpresa->email }}
+                            </li>
+                        @endif
+                        @if(!empty($infoEmpresa->horario_atencion))
+                            <li class="mb-2 text-light opacity-75">
+                                <i class="bi bi-clock-fill text-light me-2"></i>{{ $infoEmpresa->horario_atencion }}
+                            </li>
+                        @endif
                     </ul>
                 </div>
             </div>
@@ -405,15 +421,18 @@
 
             <div class="row">
                 <div class="col-md-6 text-center text-md-start">
-                    <p class="small mb-0 opacity-75">© 2025 Cisnergia Perú. Todos los derechos reservados.</p>
+                    <p class="small mb-0 opacity-75">© {{ date('Y') }} {{ $infoEmpresa->razon_social ?? 'Cisnergia Perú' }}. Todos los derechos reservados.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
-                    <a href="#" class="text-light opacity-75 text-decoration-none small me-3">Términos y
-                        Condiciones</a>
-                    <a href="#" class="text-light opacity-75 text-decoration-none small me-3">Política de
-                        Privacidad</a>
-                    <a href="#" class="text-light opacity-75 text-decoration-none small">Libro de
-                        Reclamaciones</a>
+                    <a href="{{ route('ecommerce.terminos') }}" class="text-light opacity-75 text-decoration-none small me-3">
+                        Términos y Condiciones
+                    </a>
+                    <a href="{{ route('ecommerce.politicas') }}" class="text-light opacity-75 text-decoration-none small me-3">
+                        Política de Privacidad
+                    </a>
+                    <a href="{{ route('ecommerce.libro_reclamaciones') }}" class="text-light opacity-75 text-decoration-none small">
+                        Libro de Reclamaciones
+                    </a>
                 </div>
             </div>
         </div>
@@ -424,6 +443,7 @@
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/scripts.js"></script>
     <script src="/js/sweetalert2.all.min.js"></script>
+    <script src="/js/select2.full.min.js"></script>
     
     <!-- Script para cargar contador del carrito -->
     <script>
@@ -632,6 +652,12 @@
                                     todo += '<div class="col-9 ps-2">';
                                         todo += '<p class="mb-0 fw-bold" align="justify">'+value[2]+'</p>';
                                         todo += '<p class="text-primary text-start fw-bold mb-0">S/ '+value[4]+'</p>';
+                                        if(value[8] > 0){
+                                            todo += '<div class="d-flex align-items-center gap-1">';
+                                                todo += '<p class="text-muted text-start mb-0">Descuento aplicado del</p>';
+                                                todo += '<span class="badge bg-success text-start mb-0"> '+value[8]+'%</span>';
+                                            todo += '</div>';
+                                        }
                                     todo += '</div>';
                             todo += '</div>';
                         todo += '</div>';

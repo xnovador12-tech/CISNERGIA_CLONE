@@ -253,9 +253,9 @@ class UtilService
         $emitterModel->secondary_user = 'MODDATOS';
         $emitterModel->secondary_user_password = 'MODDATOS';
         $emitterModel->certificate_name = '20601599881.pfx';
-        $emitterModel->certificate_password = '20601599881';
-        $emitterModel->certificate_start_date = '2026-03-05';
-        $emitterModel->certificate_end_date = '2027-03-05';
+        $emitterModel->certificate_password = '8mCmPUqRBG0vLGB';
+        $emitterModel->certificate_start_date = '2026-04-22';
+        $emitterModel->certificate_end_date = '2029-04-22';
 
         $branchModel = new BranchModel();
         $branchModel->emitterModel = $emitterModel;

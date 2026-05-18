@@ -34,10 +34,12 @@
                     <div class="card-body pb-0">
                         <p class="fw-normal" align="justify">Gestiona la información general del sistema, roles, usuarios y tu perfil personal.</p>
                         <ul class="list-unstyled">
+                            @can('informacion.edit')
                             <li class="text-primary menu_item">
                                 <i class="bi bi-building me-2"></i>
                                 <a href="{{ route('admin-informacion.index') }}" class="link-primary text-decoration-none">Información</a>
                             </li>
+                            @endcan
                             <li class="text-primary menu_item">
                                 <i class="bi bi-award me-2"></i>
                                 <a href="{{ route('admin-roles.index') }}" class="link-primary text-decoration-none">Roles</a>
@@ -149,7 +151,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+            <!-- <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <div class="card border-4 borde-top-secondary box-shadow h-100" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
                     <div class="card-header bg-transparent">
                         <span class="text-uppercase text-secondary fw-bold">Facturación</span>
@@ -164,7 +166,7 @@
                         </ul>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
     {{-- Fin contenido --}}

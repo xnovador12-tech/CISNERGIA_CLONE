@@ -27,19 +27,24 @@
 
         <!-- Quick cards -->
         <div class="row g-3 mb-4">
+          @if(!empty($infoEmpresa->telefono) || !empty($infoEmpresa->celular))
+            @php $telLink = preg_replace('/\D/', '', $infoEmpresa->telefono ?? $infoEmpresa->celular); @endphp
           <div class="col-md-6">
-            <a href="tel:+51999999999" class="cp-quick-card">
+            <a href="tel:+{{ $telLink }}" class="cp-quick-card">
               <div class="cp-quick-card__icon cp-quick-card__icon--phone">
                 <i class="bi bi-telephone-fill"></i>
               </div>
               <div>
                 <span class="cp-quick-card__lbl">Llámanos ahora</span>
-                <span class="cp-quick-card__val">+51 999 999 999</span>
+                <span class="cp-quick-card__val">{{ $infoEmpresa->telefono ?? $infoEmpresa->celular }}</span>
               </div>
             </a>
           </div>
+          @endif
+          @if(!empty($infoEmpresa->whatsapp))
+            @php $waLink = preg_replace('/\D/', '', $infoEmpresa->whatsapp); @endphp
           <div class="col-md-6">
-            <a href="https://wa.me/51999999999" target="_blank" class="cp-quick-card">
+            <a href="https://wa.me/{{ $waLink }}" target="_blank" rel="noopener" class="cp-quick-card">
               <div class="cp-quick-card__icon cp-quick-card__icon--wa">
                 <i class="bi bi-whatsapp"></i>
               </div>
@@ -49,6 +54,7 @@
               </div>
             </a>
           </div>
+          @endif
         </div>
 
         <!-- Stats strip -->
@@ -83,40 +89,51 @@
             </div>
           </div>
           <div class="cp-form-body">
-            <form>
+              @if(session('success'))
+                <div class="alert alert-success" role="alert">
+                  {{ session('success') }}
+                </div>
+              @endif
+              @if($errors->any())
+                <div class="alert alert-danger" role="alert">
+                  Revisa los campos del formulario e intenta nuevamente.
+                </div>
+              @endif
+              <form id="contactForm" method="POST" action="{{ route('ecommerce.storeContacto') }}">
+              @csrf
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="cp-label">Nombre <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" placeholder="Juan" required>
+                  <input type="text" class="form-control form-control-lg @error('nombre') is-invalid @enderror" id="nombre" name="nombre" placeholder="Ej: Juan Pérez López" value="{{ old('nombre') }}" required>
+                  @error('nombre')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
                   <label class="cp-label">Apellido <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" placeholder="Pérez" required>
+                  <input type="text" class="form-control form-control-lg @error('apellido') is-invalid @enderror" id="apellido" name="apellido" placeholder="Ej: Pérez López" value="{{ old('apellido') }}" required>
+                  @error('apellido')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
                   <label class="cp-label">Teléfono <span class="text-danger">*</span></label>
-                  <input type="tel" class="form-control" placeholder="+51 999 999 999" required>
+                  <input type="text" class="form-control form-control-lg @error('telefono') is-invalid @enderror" id="telefono" name="telefono" placeholder="Ej: +51 999 999 999" value="{{ old('telefono') }}" required>
+                  @error('telefono')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
                   <label class="cp-label">Email <span class="text-danger">*</span></label>
-                  <input type="email" class="form-control" placeholder="tu@email.com" required>
+                  <input type="email" class="form-control form-control-lg @error('email') is-invalid @enderror" id="email" name="email" placeholder="tu@email.com" value="{{ old('email') }}" required>
+                  @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
                   <label class="cp-label">Departamento</label>
-                  <select class="form-select">
+                  <select class="form-select" name="departamento" id="departamento">
                     <option selected>Seleccionar...</option>
-                    <option>Lima</option>
-                    <option>Arequipa</option>
-                    <option>Cusco</option>
-                    <option>Trujillo</option>
-                    <option>Piura</option>
-                    <option>Chiclayo</option>
-                    <option>Otro</option>
+                    @foreach($departamentos as $departamento)
+                      <option value="{{ $departamento->nombre }}">{{ $departamento->nombre }}</option>
+                    @endforeach
                   </select>
                 </div>
                 <div class="col-md-6">
                   <label class="cp-label">Tipo de proyecto</label>
-                  <select class="form-select">
+                  <select class="form-select" name="tipo_proyecto" id="tipo_proyecto">
                     <option selected>Seleccionar...</option>
                     <option>Residencial (Casa/Depto)</option>
                     <option>Comercial (Oficina/Tienda)</option>
@@ -125,19 +142,20 @@
                 </div>
                 <div class="col-12">
                   <label class="cp-label">Consumo mensual aproximado (S/)</label>
-                  <input type="number" class="form-control" placeholder="Ej: 350">
+                  <input type="number" class="form-control" placeholder="Ej: 350" name="consumo" id="consumo" value="{{ old('consumo') }}">
                   <small class="text-muted">Revisa tu último recibo de luz</small>
                 </div>
                 <div class="col-12">
                   <label class="cp-label">Mensaje (opcional)</label>
-                  <textarea class="form-control" rows="2" placeholder="Cuéntanos sobre tu proyecto..."></textarea>
+                  <textarea class="form-control" rows="2" placeholder="Cuéntanos sobre tu proyecto..." name="mensaje" id="mensaje">{{ old('mensaje') }}</textarea>
                 </div>
                 <div class="col-12">
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="terminos" required>
+                    <input class="form-check-input @error('acepto_terminos') is-invalid @enderror" type="checkbox" id="terminos" name="acepto_terminos" value="1" {{ old('acepto_terminos') ? 'checked' : '' }} required>
                     <label class="form-check-label small text-muted" for="terminos">
                       Acepto la <a href="#" class="cp-link">política de privacidad</a> y el tratamiento de mis datos.
                     </label>
+                    @error('acepto_terminos')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                   </div>
                 </div>
                 <div class="col-12">
@@ -171,20 +189,28 @@
 
     <div class="row g-4">
       <!-- Teléfono -->
+      @if(!empty($infoEmpresa->telefono) || !empty($infoEmpresa->celular))
+        @php
+          $telDisplay = $infoEmpresa->telefono ?? $infoEmpresa->celular;
+          $telLink2   = preg_replace('/\D/', '', $telDisplay);
+        @endphp
       <div class="col-lg-3 col-md-6">
         <div class="cp-channel">
           <div class="cp-channel__icon cp-channel__icon--primary">
             <i class="bi bi-telephone-fill"></i>
           </div>
           <h5 class="cp-channel__title">Teléfono</h5>
-          <p class="cp-channel__info">Lun-Vie: 9AM–6PM<br>Sáb: 9AM–1PM</p>
-          <a href="tel:+51999999999" class="cp-channel__btn cp-channel__btn--solid">
-            <i class="bi bi-telephone"></i>+51 999 999 999
+          <p class="cp-channel__info">{{ $infoEmpresa->horario_atencion ?? 'Lun-Vie: 9AM-6PM' }}</p>
+          <a href="tel:+{{ $telLink2 }}" class="cp-channel__btn cp-channel__btn--solid">
+            <i class="bi bi-telephone"></i>{{ $telDisplay }}
           </a>
         </div>
       </div>
+      @endif
 
       <!-- WhatsApp -->
+      @if(!empty($infoEmpresa->whatsapp))
+        @php $waLink2 = preg_replace('/\D/', '', $infoEmpresa->whatsapp); @endphp
       <div class="col-lg-3 col-md-6">
         <div class="cp-channel">
           <div class="cp-channel__icon cp-channel__icon--success">
@@ -192,13 +218,15 @@
           </div>
           <h5 class="cp-channel__title">WhatsApp</h5>
           <p class="cp-channel__info">Respuesta inmediata<br>24/7 disponible</p>
-          <a href="https://wa.me/51999999999" target="_blank" class="cp-channel__btn cp-channel__btn--outline">
+          <a href="https://wa.me/{{ $waLink2 }}" target="_blank" rel="noopener" class="cp-channel__btn cp-channel__btn--outline">
             <i class="bi bi-whatsapp"></i>Chatear ahora
           </a>
         </div>
       </div>
+      @endif
 
       <!-- Email -->
+      @if(!empty($infoEmpresa->email))
       <div class="col-lg-3 col-md-6">
         <div class="cp-channel">
           <div class="cp-channel__icon cp-channel__icon--mid">
@@ -206,11 +234,12 @@
           </div>
           <h5 class="cp-channel__title">Email</h5>
           <p class="cp-channel__info">Respuesta en 24 h<br>Consultas detalladas</p>
-          <a href="mailto:ventas@cisnergia.pe" class="cp-channel__btn cp-channel__btn--outline">
+          <a href="mailto:{{ $infoEmpresa->email }}" class="cp-channel__btn cp-channel__btn--outline">
             <i class="bi bi-envelope"></i>Enviar email
           </a>
         </div>
       </div>
+      @endif
 
       <!-- Oficina -->
       <div class="col-lg-3 col-md-6">
@@ -341,7 +370,7 @@
           </div>
           <div>
             <p class="cp-office-item__title">Dirección</p>
-            <p class="cp-office-item__body">Av. Principal 123, Oficina 501<br>San Isidro, Lima 15047</p>
+            <p class="cp-office-item__body">{{ $infoEmpresa->direccion ?? 'Av. Principal 123, Oficina 501' }}</p>
           </div>
         </div>
 
@@ -352,9 +381,7 @@
           <div>
             <p class="cp-office-item__title">Horario de Atención</p>
             <p class="cp-office-item__body">
-              Lunes a Viernes: 9:00 AM – 6:00 PM<br>
-              Sábados: 9:00 AM – 1:00 PM<br>
-              Domingos: Cerrado
+              {!! nl2br(e($infoEmpresa->horario_atencion ?? "Lunes a Viernes: 9:00 AM – 6:00 PM\nSábados: 9:00 AM – 1:00 PM\nDomingos: Cerrado")) !!}
             </p>
           </div>
         </div>

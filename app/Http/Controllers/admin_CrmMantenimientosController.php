@@ -17,6 +17,26 @@ class admin_CrmMantenimientosController extends Controller
     {
         $query = Mantenimiento::with(['cliente', 'tecnico']);
 
+        // ── Filtros de VISIBILIDAD por rol (basado en permisos) ──
+        //
+        //   - Si el user tiene 'crm.mantenimientos.ver-todos' → ve todos.
+        //     (Gerencia, Administrador, Operaciones tienen este permiso).
+        //
+        //   - Si NO lo tiene → solo ve:
+        //       a) Mantenimientos ASIGNADOS a él (mantenimientos.tecnico_id = auth()->id())
+        //          → caso típico: Técnico que ejecuta el mantenimiento.
+        //       b) Mantenimientos de SUS CLIENTES (cliente.vendedor_id = auth()->id())
+        //          → caso típico: Vendedor que ve mantenimientos de sus clientes.
+        //
+        //   Mismo patrón que tickets para consistencia.
+        $user = auth()->user();
+        if (!$user->can('crm.mantenimientos.ver-todos')) {
+            $query->where(function ($q) use ($user) {
+                $q->where('tecnico_id', $user->id)   // técnico asignado
+                  ->orWhereHas('cliente', fn($q2) => $q2->where('vendedor_id', $user->id));
+            });
+        }
+
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
             $query->where(function($q) use ($buscar) {
@@ -55,30 +75,47 @@ class admin_CrmMantenimientosController extends Controller
         $mantenimientos = $query->get();
 
         $hoy = now();
+
+        // Stats coherentes con la visibilidad del usuario (si Ventas solo ve 3,
+        // no tiene sentido mostrarle "50 programados" global).
         $stats = [
-            'programados'     => Mantenimiento::whereIn('estado', ['programado', 'confirmado'])->count(),
-            'en_ejecucion'    => Mantenimiento::where('estado', 'en_progreso')->count(),
-            'completados_mes' => Mantenimiento::where('estado', 'completado')
-                ->where(function ($q) use ($hoy) {
-                    $q->where(function ($q2) use ($hoy) {
-                        $q2->whereNotNull('fecha_realizada')
-                           ->whereMonth('fecha_realizada', $hoy->month)
-                           ->whereYear('fecha_realizada', $hoy->year);
-                    })->orWhere(function ($q2) use ($hoy) {
-                        $q2->whereNull('fecha_realizada')
-                           ->whereMonth('updated_at', $hoy->month)
-                           ->whereYear('updated_at', $hoy->year);
-                    });
-                })->count(),
-            'proximos'        => Mantenimiento::whereBetween('fecha_programada', [$hoy, $hoy->copy()->addDays(7)])
-                ->whereIn('estado', ['programado', 'confirmado'])->count(),
-            'sin_tecnico'     => Mantenimiento::whereNull('tecnico_id')
-                ->whereNotIn('estado', ['completado', 'cancelado'])->count(),
+            'programados'     => $this->aplicarFiltroVisibilidad(
+                                    Mantenimiento::whereIn('estado', ['programado', 'confirmado']),
+                                    $user
+                                 )->count(),
+            'en_ejecucion'    => $this->aplicarFiltroVisibilidad(
+                                    Mantenimiento::where('estado', 'en_progreso'),
+                                    $user
+                                 )->count(),
+            'completados_mes' => $this->aplicarFiltroVisibilidad(
+                                    Mantenimiento::where('estado', 'completado')
+                                        ->where(function ($q) use ($hoy) {
+                                            $q->where(function ($q2) use ($hoy) {
+                                                $q2->whereNotNull('fecha_realizada')
+                                                   ->whereMonth('fecha_realizada', $hoy->month)
+                                                   ->whereYear('fecha_realizada', $hoy->year);
+                                            })->orWhere(function ($q2) use ($hoy) {
+                                                $q2->whereNull('fecha_realizada')
+                                                   ->whereMonth('updated_at', $hoy->month)
+                                                   ->whereYear('updated_at', $hoy->year);
+                                            });
+                                        }),
+                                    $user
+                                 )->count(),
+            'proximos'        => $this->aplicarFiltroVisibilidad(
+                                    Mantenimiento::whereBetween('fecha_programada', [$hoy, $hoy->copy()->addDays(7)])
+                                        ->whereIn('estado', ['programado', 'confirmado']),
+                                    $user
+                                 )->count(),
+            'sin_tecnico'     => $this->aplicarFiltroVisibilidad(
+                                    Mantenimiento::whereNull('tecnico_id')
+                                        ->whereNotIn('estado', ['completado', 'cancelado']),
+                                    $user
+                                 )->count(),
         ];
 
-        $tecnicos = User::with('persona')
-            ->whereHas('roles', fn($q) => $q->whereIn('name', ['Tecnico', 'Operaciones']))
-            ->get()->sortBy(fn($u) => $u->persona?->name);
+        // TÉCNICOS: filtrar por permiso 'crm.mantenimientos.edit' (patrón estándar).
+        $tecnicos = $this->tecnicosDisponibles();
         $clientes = Cliente::orderBy('nombre')->get();
 
         return view('ADMINISTRADOR.CRM.mantenimientos.index', compact(
@@ -88,6 +125,8 @@ class admin_CrmMantenimientosController extends Controller
 
     public function show(Mantenimiento $mantenimiento)
     {
+        $this->abortarSiNoVisible($mantenimiento);
+
         $mantenimiento->load(['cliente', 'tecnico', 'ticket']);
 
         $historial = Mantenimiento::where('cliente_id', $mantenimiento->cliente_id)
@@ -110,21 +149,23 @@ class admin_CrmMantenimientosController extends Controller
 
     public function edit(Mantenimiento $mantenimiento)
     {
+        $this->abortarSiNoVisible($mantenimiento);
+
         if (in_array($mantenimiento->estado, ['completado', 'cancelado'])) {
             return redirect()
                 ->route('admin.crm.mantenimientos.show', $mantenimiento)
                 ->with('info', 'Los mantenimientos completados o cancelados no pueden editarse.');
         }
 
-        $tecnicos = User::with('persona')
-            ->whereHas('roles', fn($q) => $q->whereIn('name', ['Tecnico', 'Operaciones']))
-            ->get()->sortBy(fn($u) => $u->persona?->name);
+        $tecnicos = $this->tecnicosDisponibles();
 
         return view('ADMINISTRADOR.CRM.mantenimientos.edit', compact('mantenimiento', 'tecnicos'));
     }
 
     public function update(Request $request, Mantenimiento $mantenimiento)
     {
+        $this->abortarSiNoVisible($mantenimiento);
+
         // Actualización de checklist desde el show (técnico marcando tareas)
         if ($request->has('solo_checklist')) {
             $checklist = [];
@@ -159,6 +200,8 @@ class admin_CrmMantenimientosController extends Controller
 
     public function destroy(Mantenimiento $mantenimiento)
     {
+        $this->abortarSiNoVisible($mantenimiento);
+
         if ($mantenimiento->estado === 'completado') {
             return redirect()
                 ->route('admin.crm.mantenimientos.show', $mantenimiento)
@@ -181,6 +224,8 @@ class admin_CrmMantenimientosController extends Controller
 
     public function confirmar(Mantenimiento $mantenimiento)
     {
+        $this->abortarSiNoVisible($mantenimiento);
+
         if ($mantenimiento->estado !== 'programado') {
             return back()->with('error', 'Solo se pueden confirmar mantenimientos programados.');
         }
@@ -192,6 +237,8 @@ class admin_CrmMantenimientosController extends Controller
 
     public function iniciar(Mantenimiento $mantenimiento)
     {
+        $this->abortarSiNoVisible($mantenimiento);
+
         if ($mantenimiento->estado !== 'confirmado') {
             return back()->with('error', 'Solo se pueden iniciar mantenimientos confirmados.');
         }
@@ -209,6 +256,8 @@ class admin_CrmMantenimientosController extends Controller
      */
     public function completar(Request $request, Mantenimiento $mantenimiento)
     {
+        $this->abortarSiNoVisible($mantenimiento);
+
         if ($mantenimiento->estado !== 'en_progreso') {
             return back()->with('error', 'Solo se pueden completar mantenimientos en progreso.');
         }
@@ -284,6 +333,8 @@ class admin_CrmMantenimientosController extends Controller
 
     public function cancelar(Request $request, Mantenimiento $mantenimiento)
     {
+        $this->abortarSiNoVisible($mantenimiento);
+
         if (in_array($mantenimiento->estado, ['completado', 'cancelado'])) {
             return back()->with('error', 'Este mantenimiento no puede cancelarse.');
         }
@@ -324,6 +375,8 @@ class admin_CrmMantenimientosController extends Controller
 
     public function reprogramar(Request $request, Mantenimiento $mantenimiento)
     {
+        $this->abortarSiNoVisible($mantenimiento);
+
         if (in_array($mantenimiento->estado, ['completado', 'en_progreso', 'cancelado'])) {
             return back()->with('error', 'Este mantenimiento no puede reprogramarse.');
         }
@@ -357,5 +410,77 @@ class admin_CrmMantenimientosController extends Controller
     protected function getChecklistPorTipo(string $tipo): array
     {
         return Mantenimiento::checklistPorTipo($tipo);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // HELPERS PRIVADOS DE AUTORIZACIÓN Y VISIBILIDAD
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Aplica el filtro de visibilidad por rol a un query de mantenimientos.
+     *
+     *   - Si el user tiene 'crm.mantenimientos.ver-todos' → query sin filtro.
+     *   - Si NO lo tiene → filtra a mantenimientos donde:
+     *       a) tecnico_id = auth()->id()  (asignados a él, caso Técnico)
+     *       b) cliente.vendedor_id = auth()->id()  (de sus clientes, caso Ventas)
+     *
+     * Mismo patrón que tickets. Se usa tanto en el index como en las stats
+     * para mantener coherencia visual.
+     */
+    private function aplicarFiltroVisibilidad($query, $user)
+    {
+        if (!$user->can('crm.mantenimientos.ver-todos')) {
+            $query->where(function ($q) use ($user) {
+                $q->where('tecnico_id', $user->id)
+                  ->orWhereHas('cliente', fn($q2) => $q2->where('vendedor_id', $user->id));
+            });
+        }
+        return $query;
+    }
+
+    /**
+     * Aborta con 403 si el usuario actual NO puede ver este mantenimiento.
+     *
+     * Criterios (mismos que aplicarFiltroVisibilidad):
+     *   - Tiene permiso 'crm.mantenimientos.ver-todos' → OK.
+     *   - Está asignado al mantenimiento (tecnico_id === auth()->id()) → OK.
+     *   - Es vendedor del cliente del mantenimiento → OK.
+     *   - En cualquier otro caso → 403 Forbidden.
+     *
+     * Protección contra acceso directo por URL.
+     */
+    private function abortarSiNoVisible(Mantenimiento $mantenimiento): void
+    {
+        $user = auth()->user();
+
+        if ($user->can('crm.mantenimientos.ver-todos')) {
+            return;
+        }
+
+        $esTecnicoAsignado = $mantenimiento->tecnico_id === $user->id;
+        $esVendedorDelCliente = $mantenimiento->cliente && $mantenimiento->cliente->vendedor_id === $user->id;
+
+        if (!$esTecnicoAsignado && !$esVendedorDelCliente) {
+            abort(403, 'No tienes permiso para acceder a este mantenimiento.');
+        }
+    }
+
+    /**
+     * Retorna los usuarios asignables como técnicos de un mantenimiento.
+     *
+     * CRITERIO: usuarios con el permiso 'crm.mantenimientos.edit'. Quien pueda
+     * editar mantenimientos puede ser asignado como técnico. Filtra por
+     * permiso (no por rol hardcoded) para que cualquier rol nuevo con ese
+     * permiso aparezca automáticamente sin tocar código.
+     *
+     * Solo usuarios con estado 'Activo'.
+     */
+    private function tecnicosDisponibles()
+    {
+        return User::permission('crm.mantenimientos.edit')
+            ->where('estado', 'Activo')
+            ->with('persona')
+            ->get()
+            ->sortBy(fn($u) => $u->persona?->name);
     }
 }

@@ -265,14 +265,27 @@
 
                         <div class="col-md-4">
                             <label class="form-label">Vendedor Asignado</label>
-                            <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" data-placeholder="Seleccionar vendedor...">
-                                <option value="">Sin asignar</option>
-                                @foreach($vendedores ?? [] as $vendedor)
-                                    <option value="{{ $vendedor->id }}" {{ old('user_id', $oportunidad->user_id) == $vendedor->id ? 'selected' : '' }}>
-                                        {{ $vendedor->persona->name ?? $vendedor->email }} {{ $vendedor->persona->surnames ?? '' }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            @if($esAdmin ?? false)
+                                {{-- Admin puede reasignar la oportunidad a otro vendedor --}}
+                                <select class="form-select form-select-sm select2_bootstrap w-100" name="user_id" data-placeholder="Seleccionar vendedor...">
+                                    <option value="">Sin asignar</option>
+                                    @foreach($vendedores ?? [] as $vendedor)
+                                        <option value="{{ $vendedor->id }}" {{ old('user_id', $oportunidad->user_id) == $vendedor->id ? 'selected' : '' }}>
+                                            {{ $vendedor->persona->name ?? $vendedor->email }} {{ $vendedor->persona->surnames ?? '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                {{-- No-admin: campo readonly mostrando el vendedor asignado.
+                                     El update() del controller ignora cualquier user_id del request
+                                     y preserva el original — no se puede reasignar. --}}
+                                <input type="text"
+                                       class="form-control form-control-sm"
+                                       value="{{ $oportunidad->vendedor?->persona?->name ?? $oportunidad->vendedor?->email ?? 'Sin asignar' }} {{ $oportunidad->vendedor?->persona?->surnames ?? '' }}"
+                                       readonly
+                                       style="background-color: #f8f9fa; cursor: not-allowed;">
+                                <small class="text-muted">Solo Gerencia/Administrador puede reasignar.</small>
+                            @endif
                         </div>
 
                         {{-- DESCRIPCIÓN Y NOTAS --}}

@@ -97,14 +97,26 @@ class admin_CrmOportunidadesController extends Controller
      */
     public function create(Request $request)
     {
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+
+        // PROSPECTOS: solo los que el usuario puede ver.
+        //   - Admin: todos (excepto descartados).
+        //   - No-admin: solo los asignados a él (mismo criterio del index).
+        //
         // Incluir prospectos convertidos: un cliente puede tener nuevas oportunidades
         // (ampliación, mantenimiento, segundo proyecto, etc.)
         // Solo se excluyen los descartados
-        $prospectos = Prospecto::where('estado', '!=', 'descartado')
-            ->orderBy('nombre')
-            ->get();
-        
-        $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+        $queryProspectos = Prospecto::where('estado', '!=', 'descartado');
+        if (!$esAdmin) {
+            $queryProspectos->where('user_id', $user->id);
+        }
+        $prospectos = $queryProspectos->orderBy('nombre')->get();
+
+        // VENDEDORES: filtrar por PERMISO, no por rol hardcoded.
+        // Quien tenga 'crm.oportunidades.edit' puede ser asignado como responsable.
+        // Si mañana el cliente crea un rol nuevo con ese permiso, aparece automático.
+        $vendedores = $this->vendedoresDisponibles();
 
         // Tipos con categorías (cascada) — mismo patrón que cotizaciones
         $tipos = Tipo::with(['categories' => function ($q) {
@@ -132,7 +144,8 @@ class admin_CrmOportunidadesController extends Controller
             'productos',
             'servicios',
             'prospectoId',
-            'montoEstimado'
+            'montoEstimado',
+            'esAdmin'
         ));
     }
 
@@ -146,7 +159,19 @@ class admin_CrmOportunidadesController extends Controller
         $validated['etapa'] = 'calificacion';
         $validated['probabilidad'] = Oportunidad::ETAPAS['calificacion']['probabilidad'];
         $validated['fecha_creacion'] = now();
-        $validated['user_id'] = $validated['user_id'] ?? auth()->id();
+
+        // SEGURIDAD: si el usuario NO es admin, ignorar cualquier user_id que
+        // venga en el request. La oportunidad se asigna automáticamente al
+        // vendedor que la está creando. Evita que un vendedor asigne sus
+        // oportunidades a otro (por accidente o manipulación del form).
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+        if (!$esAdmin) {
+            $validated['user_id'] = $user->id;
+        } else {
+            $validated['user_id'] = $validated['user_id'] ?? $user->id;
+        }
+
         $validated['requiere_visita_tecnica'] = $request->has('requiere_visita_tecnica');
 
         $oportunidad = Oportunidad::create($validated);
@@ -223,9 +248,22 @@ class admin_CrmOportunidadesController extends Controller
      */
     public function edit(Oportunidad $oportunidad)
     {
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+
         $oportunidad->load('productosInteres.marca');
-        $prospectos = Prospecto::orderBy('nombre')->get();
-        $vendedores = User::with('persona')->get()->sortBy(fn($u) => $u->persona?->name);
+
+        // PROSPECTOS: mismo filtro que en create para consistencia.
+        // Admin ve todos; vendedor solo los suyos.
+        $queryProspectos = Prospecto::query();
+        if (!$esAdmin) {
+            $queryProspectos->where('user_id', $user->id);
+        }
+        $prospectos = $queryProspectos->orderBy('nombre')->get();
+
+        // VENDEDORES: filtrado por permiso (ver método privado al final).
+        $vendedores = $this->vendedoresDisponibles();
+
         $clientes = \App\Models\Cliente::orderBy('nombre')->get();
 
         // Tipos con categorías (cascada)
@@ -263,7 +301,8 @@ class admin_CrmOportunidadesController extends Controller
             'tipos',
             'productos',
             'servicios',
-            'productosExistentesJson'
+            'productosExistentesJson',
+            'esAdmin'
         ));
     }
 
@@ -273,6 +312,14 @@ class admin_CrmOportunidadesController extends Controller
     public function update(UpdateOportunidadRequest $request, Oportunidad $oportunidad)
     {
         $validated = $request->validated();
+
+        // SEGURIDAD: si el usuario NO es admin, preservar el user_id original.
+        // Un vendedor no puede reasignar la oportunidad a otro vendedor.
+        $user = auth()->user();
+        $esAdmin = $user->hasAnyRole(['Gerencia', 'Administrador']);
+        if (!$esAdmin) {
+            $validated['user_id'] = $oportunidad->user_id;
+        }
 
         $validated['requiere_visita_tecnica'] = $request->has('requiere_visita_tecnica');
 
@@ -516,5 +563,25 @@ class admin_CrmOportunidadesController extends Controller
             'wishlist' => $wishlistItems,
             'count' => $wishlistItems->count(),
         ]);
+    }
+
+    /**
+     * Retorna la lista de usuarios que pueden ser ASIGNADOS como responsables
+     * de una oportunidad.
+     *
+     * CRITERIO (basado en permisos, NO en roles hardcoded):
+     *   - Solo usuarios con el permiso 'crm.oportunidades.edit'.
+     *   - Solo usuarios con estado 'Activo'.
+     *
+     * BENEFICIO: si Gerencia crea un rol nuevo (ej: "Comercial") y le asigna
+     * el permiso desde la UI, los usuarios de ese rol aparecerán automáticamente.
+     */
+    private function vendedoresDisponibles()
+    {
+        return User::permission('crm.oportunidades.edit')
+            ->where('estado', 'Activo')
+            ->with('persona')
+            ->get()
+            ->sortBy(fn($u) => $u->persona?->name);
     }
 }

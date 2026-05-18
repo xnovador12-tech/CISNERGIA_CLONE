@@ -276,7 +276,7 @@
                                          <li><a class="dropdown-item" href="{{ route('admin-ventas.voucher', $venta) }}" target="_blank">
                                              <i class="bi bi-file-earmark-check text-success me-2"></i>Descargar Comprobante</a>
                                          </li>
-                                         @if($venta->cliente && $venta->cliente->email)
+                                         {{-- @if($venta->cliente && $venta->cliente->email)
                                          <li>
                                              <form action="{{ route('admin-ventas.enviar-email', $venta) }}" method="POST">
                                                  @csrf
@@ -285,7 +285,7 @@
                                                  </button>
                                              </form>
                                          </li>
-                                         @endif
+                                         @endif --}}
                                     </ul>
                                 </div>
                             </td>
