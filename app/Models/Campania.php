@@ -20,12 +20,9 @@ class Campania extends Model
         'tipo',
         'descuento_porcentaje',
         'descuento_monto',
-        'condicion_minimo',
         'fecha_inicio',
         'fecha_fin',
         'estado',
-        'imagen_banner',
-        'aplica_todos_productos',
         'creado_por',
         'activado_por',
         'activado_at',
@@ -39,10 +36,8 @@ class Campania extends Model
         'fecha_fin' => 'date',
         'activado_at' => 'datetime',
         'pausado_at' => 'datetime',
-        'aplica_todos_productos' => 'boolean',
         'descuento_porcentaje' => 'decimal:2',
         'descuento_monto' => 'decimal:2',
-        'condicion_minimo' => 'decimal:2',
     ];
 
     // Relaciones
@@ -78,17 +73,19 @@ class Campania extends Model
         return $this->hasMany(Pedido::class, 'campania_id');
     }
 
+    public function ventas()
+    {
+        return $this->belongsToMany(Sale::class, 'sale_campania', 'campania_id', 'sale_id')
+            ->withPivot(['monto_aplicado', 'descuento_aplicado', 'productos_count'])
+            ->withTimestamps();
+    }
+
     // Scopes
     public function scopeActivas($query)
     {
         return $query->where('estado', 'activa')
             ->where('fecha_inicio', '<=', Carbon::today())
             ->where('fecha_fin', '>=', Carbon::today());
-    }
-
-    public function scopeBorradores($query)
-    {
-        return $query->where('estado', 'borrador');
     }
 
     public function scopePausadas($query)
@@ -135,24 +132,10 @@ class Campania extends Model
         return $this->metricas->sum('descuento_total_aplicado');
     }
 
-    public function getTotalVisitasAttribute()
-    {
-        return $this->metricas->sum('visitas');
-    }
-
-    public function getTasaConversionAttribute()
-    {
-        $visitas = $this->total_visitas;
-        if ($visitas <= 0) return 0;
-        return round(($this->total_pedidos / $visitas) * 100, 1);
-    }
-
     public function getTipoLabelAttribute()
     {
         return match ($this->tipo) {
             'descuento' => 'Descuento',
-            'envio_gratis' => 'Envío Gratis',
-            'combo' => 'Combo/Kit',
             'temporada' => 'Temporada',
             'flash_sale' => 'Flash Sale',
             default => $this->tipo,
@@ -167,9 +150,6 @@ class Campania extends Model
         if ($this->descuento_monto) {
             return 'S/ ' . number_format($this->descuento_monto, 2) . ' dto.';
         }
-        if ($this->tipo === 'envio_gratis') {
-            return 'Envío Gratis';
-        }
         return '';
     }
 
@@ -182,6 +162,8 @@ class Campania extends Model
             'activado_at' => now(),
             'motivo_pausa' => null,
         ]);
+
+        $this->aplicarDescuentoAProductos();
     }
 
     public function pausar($motivo, $userId = null)
@@ -192,6 +174,8 @@ class Campania extends Model
             'pausado_at' => now(),
             'motivo_pausa' => $motivo,
         ]);
+
+        $this->resetearDescuentoDeProductos();
     }
 
     public function reanudar($userId = null)
@@ -204,18 +188,61 @@ class Campania extends Model
             'pausado_por' => null,
             'pausado_at' => null,
         ]);
+
+        $this->aplicarDescuentoAProductos();
     }
 
     public function finalizar()
     {
         $this->update(['estado' => 'finalizada']);
+
+        $this->resetearDescuentoDeProductos();
     }
 
-    // Verificar si aplica a un producto
-    public function aplicaAProducto($productoId)
+    /**
+     * Puente Campania -> productos.precio_descuento / porcentaje
+     * Aplica a los 3 tipos vigentes: descuento, temporada, flash_sale.
+     */
+    public function aplicarDescuentoAProductos(): void
     {
-        if ($this->aplica_todos_productos) return true;
-        return $this->productos()->where('productos.id', $productoId)->exists();
+        if (!in_array($this->tipo, ['descuento', 'temporada', 'flash_sale'])) {
+            return;
+        }
+
+        if (!$this->descuento_porcentaje && !$this->descuento_monto) {
+            return;
+        }
+
+        $productos = $this->productos()->get();
+
+        foreach ($productos as $producto) {
+            $precioConDescuento = $this->calcularPrecioConDescuento($producto);
+
+            if ($precioConDescuento >= $producto->precio) {
+                continue;
+            }
+
+            $porcentaje = $producto->precio > 0
+                ? round((($producto->precio - $precioConDescuento) / $producto->precio) * 100, 2)
+                : 0;
+
+            $producto->update([
+                'precio_descuento' => $precioConDescuento,
+                'porcentaje'       => $porcentaje,
+            ]);
+        }
+    }
+
+    public function resetearDescuentoDeProductos(): void
+    {
+        $productos = $this->productos()->get();
+
+        foreach ($productos as $producto) {
+            $producto->update([
+                'precio_descuento' => 0,
+                'porcentaje'       => 0,
+            ]);
+        }
     }
 
     // Calcular precio con descuento
@@ -224,11 +251,9 @@ class Campania extends Model
         $precio = $producto->precio;
 
         // Verificar descuento específico del pivote
-        if (!$this->aplica_todos_productos) {
-            $pivot = $this->productos()->where('productos.id', $producto->id)->first();
-            if ($pivot && $pivot->pivot->descuento_especifico) {
-                return round($precio * (1 - $pivot->pivot->descuento_especifico / 100), 2);
-            }
+        $pivot = $this->productos()->where('productos.id', $producto->id)->first();
+        if ($pivot && $pivot->pivot->descuento_especifico) {
+            return round($precio * (1 - $pivot->pivot->descuento_especifico / 100), 2);
         }
 
         // Descuento general

@@ -230,7 +230,7 @@
     <!-- Fin encabezado -->
 
     {{-- Contenido --}}
-    <form method="POST" action="{{ route('admin-operaciones-campanias.store') }}" enctype="multipart/form-data" autocomplete="off" id="formCampania" class="needs-validation" novalidate>
+    <form method="POST" action="{{ route('admin-operaciones-campanias.store') }}" autocomplete="off" id="formCampania" class="needs-validation" novalidate>
         @csrf
         <div class="container-fluid">
             <div class="card card-form" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
@@ -255,8 +255,6 @@
                             <select class="form-select @error('tipo') is-invalid @enderror" name="tipo" id="tipo" required>
                                 <option value="" selected hidden>Seleccionar...</option>
                                 <option value="descuento" {{ old('tipo') == 'descuento' ? 'selected' : '' }}>Descuento</option>
-                                <option value="envio_gratis" {{ old('tipo') == 'envio_gratis' ? 'selected' : '' }}>Envio Gratis</option>
-                                <option value="combo" {{ old('tipo') == 'combo' ? 'selected' : '' }}>Combo/Kit</option>
                                 <option value="temporada" {{ old('tipo') == 'temporada' ? 'selected' : '' }}>Temporada</option>
                                 <option value="flash_sale" {{ old('tipo') == 'flash_sale' ? 'selected' : '' }}>Flash Sale</option>
                             </select>
@@ -295,7 +293,7 @@
                             @enderror
                         </div>
                         <div class="col-md-4 col-lg-2">
-                            <label for="descuento_porcentaje" class="form-label small fw-bold">Descuento (%)</label>
+                            <label for="descuento_porcentaje" class="form-label small fw-bold">Descuento (%) <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <input type="number" class="form-control @error('descuento_porcentaje') is-invalid @enderror" name="descuento_porcentaje" id="descuento_porcentaje" value="{{ old('descuento_porcentaje') }}" min="0" max="100" step="0.01" placeholder="0">
                                 <span class="input-group-text">%</span>
@@ -305,7 +303,7 @@
                             @enderror
                         </div>
                         <div class="col-md-4 col-lg-2">
-                            <label for="descuento_monto" class="form-label small fw-bold">Descuento (Monto)</label>
+                            <label for="descuento_monto" class="form-label small fw-bold">Descuento (Monto) <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">S/</span>
                                 <input type="number" class="form-control @error('descuento_monto') is-invalid @enderror" name="descuento_monto" id="descuento_monto" value="{{ old('descuento_monto') }}" min="0" step="0.01" placeholder="0.00">
@@ -314,15 +312,8 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
-                        <div class="col-md-4 col-lg-2">
-                            <label for="condicion_minimo" class="form-label small fw-bold">Compra Minima</label>
-                            <div class="input-group">
-                                <span class="input-group-text">S/</span>
-                                <input type="number" class="form-control @error('condicion_minimo') is-invalid @enderror" name="condicion_minimo" id="condicion_minimo" value="{{ old('condicion_minimo') }}" min="0" step="0.01" placeholder="0.00">
-                            </div>
-                            @error('condicion_minimo')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                        <div class="col-12">
+                            <small class="text-muted"><i class="bi bi-info-circle"></i> Debes ingresar un descuento: porcentaje o monto (no ambos).</small>
                         </div>
                     </div>
 
@@ -333,18 +324,8 @@
                         <i class="bi bi-box text-primary"></i> Productos Asociados
                     </div>
                     <div class="row g-3 mb-4">
-                        {{-- Checkbox aplica todos --}}
-                        <div class="col-12">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="aplica_todos_productos" id="aplica_todos_productos" value="1" {{ old('aplica_todos_productos') ? 'checked' : '' }}>
-                                <label class="form-check-label small fw-bold" for="aplica_todos_productos">
-                                    Aplicar a todos los productos del catalogo
-                                </label>
-                            </div>
-                        </div>
-
                         {{-- Product selector area --}}
-                        <div class="col-12" id="productSelectorArea">
+                        <div class="col-12">
                             {{-- Search input --}}
                             <label class="form-label small fw-bold">Buscar y agregar productos</label>
                             <div class="product-search-wrapper">
@@ -362,7 +343,10 @@
                                         <tr>
                                             <th>Producto</th>
                                             <th class="text-end" style="width: 120px;">Precio</th>
-                                            <th class="text-center" style="width: 130px;">Dto. Especifico (%)</th>
+                                            <th class="text-center" style="width: 150px;" title="Sobreescribe el descuento general para este producto. Déjalo vacío para usar el general de la campaña.">
+                                                Dto. Específico (%)
+                                                <i class="bi bi-info-circle ms-1 text-muted" style="font-size:0.75rem;"></i>
+                                            </th>
                                             <th class="text-center" style="width: 80px;">Quitar</th>
                                         </tr>
                                     </thead>
@@ -374,36 +358,10 @@
                                     <i class="bi bi-inbox"></i>
                                     <span class="small">No hay productos seleccionados. Usa el buscador para agregar productos.</span>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- ================================================
-                        SECCION D: Configuracion
-                    ================================================= --}}
-                    <div class="form-section-title">
-                        <i class="bi bi-gear text-primary"></i> Configuracion
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="estado" class="form-label small fw-bold">Estado Inicial</label>
-                            <select class="form-select @error('estado') is-invalid @enderror" name="estado" id="estado">
-                                <option value="borrador" {{ old('estado', 'borrador') == 'borrador' ? 'selected' : '' }}>Borrador (publicar despues)</option>
-                                <option value="activa" {{ old('estado') == 'activa' ? 'selected' : '' }}>Activa (publicar inmediatamente)</option>
-                            </select>
-                            @error('estado')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label for="imagen_banner" class="form-label small fw-bold">Imagen de Banner</label>
-                            <input type="file" class="form-control @error('imagen_banner') is-invalid @enderror" name="imagen_banner" id="imagen_banner" accept="image/*">
-                            @error('imagen_banner')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                            <div class="image-preview-container mt-2" id="imagePreviewContainer">
-                                <span class="placeholder-text" id="imagePreviewPlaceholder"><i class="bi bi-image me-1"></i>Vista previa</span>
-                                <img src="" alt="Vista previa" id="imagePreview" style="display: none;">
+                                <small class="text-muted d-block mt-2">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Dto. Específico (%)</strong>: opcional. Déjalo vacío para que el producto use el descuento general de la campaña. Si pones un valor, ese producto usará ese % en su lugar.
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -436,21 +394,32 @@
             var searchTimer = null;
 
             // =============================================
-            // Toggle product selector based on checkbox
+            // Descuento porcentaje / monto: mutuamente excluyentes
             // =============================================
-            function toggleProductSelector() {
-                if ($('#aplica_todos_productos').is(':checked')) {
-                    $('#productSelectorArea').slideUp(250);
+            function toggleDescuentoFields() {
+                var $pct = $('input[name="descuento_porcentaje"]');
+                var $mon = $('input[name="descuento_monto"]');
+                var pctVal = parseFloat($pct.val()) || 0;
+                var monVal = parseFloat($mon.val()) || 0;
+
+                if (pctVal > 0) {
+                    $mon.val('').prop('disabled', true);
+                    $pct.prop('disabled', false);
+                } else if (monVal > 0) {
+                    $pct.val('').prop('disabled', true);
+                    $mon.prop('disabled', false);
                 } else {
-                    $('#productSelectorArea').slideDown(250);
+                    $pct.prop('disabled', false);
+                    $mon.prop('disabled', false);
                 }
             }
 
-            // Initialize on page load
-            toggleProductSelector();
+            $('input[name="descuento_porcentaje"], input[name="descuento_monto"]').on('input', toggleDescuentoFields);
+            toggleDescuentoFields();
 
-            $('#aplica_todos_productos').on('change', function () {
-                toggleProductSelector();
+            // Evitar que el scroll del mouse modifique el valor de inputs numéricos
+            $(document).on('wheel', 'input[type="number"]:focus', function () {
+                $(this).blur();
             });
 
             // =============================================
@@ -560,7 +529,7 @@
                         '<td class="text-end align-middle">S/ ' + precioStr + '</td>' +
                         '<td class="text-center align-middle">' +
                             '<div class="input-group input-group-sm justify-content-center">' +
-                                '<input type="number" class="form-control input-descuento" name="descuentos_especificos[' + id + ']" value="0" min="0" max="100" step="0.01">' +
+                                '<input type="number" class="form-control input-descuento" name="descuentos_especificos[' + id + ']" value="" min="0" max="100" step="0.01" placeholder="—">' +
                                 '<span class="input-group-text">%</span>' +
                             '</div>' +
                         '</td>' +
@@ -613,24 +582,6 @@
                 // Products are available for search, not auto-added
                 // They will be found via the AJAX search endpoint
             @endif
-
-            // =============================================
-            // Image Preview on file select
-            // =============================================
-            $('#imagen_banner').on('change', function () {
-                var file = this.files[0];
-                if (file) {
-                    var reader = new FileReader();
-                    reader.onload = function (e) {
-                        $('#imagePreview').attr('src', e.target.result).show();
-                        $('#imagePreviewPlaceholder').hide();
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    $('#imagePreview').hide().attr('src', '');
-                    $('#imagePreviewPlaceholder').show();
-                }
-            });
 
             // =============================================
             // Form Validation before submit
@@ -686,12 +637,23 @@
                     $('#fecha_fin').addClass('is-invalid');
                 }
 
-                // Validate products (if not aplica todos)
-                if (!$('#aplica_todos_productos').is(':checked')) {
-                    if ($('#selectedProductsBody tr').length === 0) {
-                        isValid = false;
-                        errorMessages.push('Selecciona al menos un producto o marca "Aplicar a todos los productos".');
-                    }
+                // Validate descuento (al menos uno: porcentaje o monto)
+                var pctVal = parseFloat($('#descuento_porcentaje').val()) || 0;
+                var monVal = parseFloat($('#descuento_monto').val()) || 0;
+                if (pctVal <= 0 && monVal <= 0) {
+                    isValid = false;
+                    errorMessages.push('Debes ingresar un descuento: porcentaje o monto.');
+                    $('#descuento_porcentaje').addClass('is-invalid');
+                    $('#descuento_monto').addClass('is-invalid');
+                } else {
+                    $('#descuento_porcentaje').removeClass('is-invalid');
+                    $('#descuento_monto').removeClass('is-invalid');
+                }
+
+                // Validate products (siempre requerido)
+                if ($('#selectedProductsBody tr').length === 0) {
+                    isValid = false;
+                    errorMessages.push('Selecciona al menos un producto para la campaña.');
                 }
 
                 if (!isValid) {

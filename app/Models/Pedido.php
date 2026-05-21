@@ -195,7 +195,7 @@ class Pedido extends Model
     public function scopeEnKanban($query)
     {
         return $query->whereHas('venta', function ($q) {
-            $q->where('estado', 'completada');
+            $q->where('estado', 'Pagado')->where('anulado', false);
         });
     }
 

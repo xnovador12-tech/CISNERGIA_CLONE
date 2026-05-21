@@ -245,7 +245,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('admin-operaciones-campanias.update', $campania->id) }}" enctype="multipart/form-data" autocomplete="off" id="formEditCampania">
+        <form method="POST" action="{{ route('admin-operaciones-campanias.update', $campania->id) }}" autocomplete="off" id="formEditCampania">
             @csrf
             @method('PUT')
 
@@ -269,10 +269,8 @@
                         <select name="tipo" class="form-select @error('tipo') is-invalid @enderror" required>
                             <option value="">Seleccionar...</option>
                             <option value="descuento" {{ old('tipo', $campania->tipo) == 'descuento' ? 'selected' : '' }}>Descuento</option>
-                            <option value="envio-gratis" {{ old('tipo', $campania->tipo) == 'envio-gratis' ? 'selected' : '' }}>Envio Gratis</option>
-                            <option value="combo" {{ old('tipo', $campania->tipo) == 'combo' ? 'selected' : '' }}>Combo/Kit</option>
                             <option value="temporada" {{ old('tipo', $campania->tipo) == 'temporada' ? 'selected' : '' }}>Temporada</option>
-                            <option value="flash-sale" {{ old('tipo', $campania->tipo) == 'flash-sale' ? 'selected' : '' }}>Flash Sale</option>
+                            <option value="flash_sale" {{ old('tipo', $campania->tipo) == 'flash_sale' ? 'selected' : '' }}>Flash Sale</option>
                         </select>
                         @error('tipo')
                             <small class="text-danger">{{ $message }}</small>
@@ -311,7 +309,7 @@
                         @enderror
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Descuento (%)</label>
+                        <label class="form-label">Descuento (%) <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <input type="number" name="descuento_porcentaje" class="form-control @error('descuento_porcentaje') is-invalid @enderror" min="0" max="100" step="0.01" value="{{ old('descuento_porcentaje', $campania->descuento_porcentaje) }}" placeholder="0">
                             <span class="input-group-text">%</span>
@@ -321,7 +319,7 @@
                         @enderror
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Descuento Monto Fijo</label>
+                        <label class="form-label">Descuento Monto Fijo <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text">S/</span>
                             <input type="number" name="descuento_monto" class="form-control @error('descuento_monto') is-invalid @enderror" min="0" step="0.01" value="{{ old('descuento_monto', $campania->descuento_monto) }}" placeholder="0.00">
@@ -330,15 +328,8 @@
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Condicion Minima (Monto)</label>
-                        <div class="input-group">
-                            <span class="input-group-text">S/</span>
-                            <input type="number" name="condicion_minimo" class="form-control @error('condicion_minimo') is-invalid @enderror" min="0" step="0.01" value="{{ old('condicion_minimo', $campania->condicion_minimo) }}" placeholder="0.00">
-                        </div>
-                        @error('condicion_minimo')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
+                    <div class="col-12">
+                        <small class="text-muted"><i class="bi bi-info-circle"></i> Debes ingresar un descuento: porcentaje o monto (no ambos).</small>
                     </div>
                 </div>
             </div>
@@ -351,16 +342,8 @@
                     <i class="bi bi-box text-primary"></i> Productos Asociados
                 </div>
 
-                {{-- Checkbox aplica a todos --}}
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" name="aplica_todos_productos" value="1" id="aplicaTodosProductos" {{ old('aplica_todos_productos', $campania->aplica_todos_productos) ? 'checked' : '' }}>
-                    <label class="form-check-label fw-bold" for="aplicaTodosProductos">
-                        Aplicar a todos los productos del catalogo
-                    </label>
-                </div>
-
                 {{-- Selector de productos --}}
-                <div id="productSelectorContainer" style="{{ old('aplica_todos_productos', $campania->aplica_todos_productos) ? 'display:none;' : '' }}">
+                <div id="productSelectorContainer">
                     {{-- Buscador --}}
                     <div class="mb-3">
                         <label class="form-label">Buscar y agregar productos</label>
@@ -381,7 +364,10 @@
                                     <th>Codigo</th>
                                     <th>Producto</th>
                                     <th class="text-end">Precio</th>
-                                    <th class="text-center">Dto. Especifico (%)</th>
+                                    <th class="text-center" title="Sobreescribe el descuento general para este producto. Déjalo vacío para usar el general de la campaña.">
+                                        Dto. Específico (%)
+                                        <i class="bi bi-info-circle ms-1 text-muted" style="font-size:0.75rem;"></i>
+                                    </th>
                                     <th class="text-center" style="width: 60px;">Accion</th>
                                 </tr>
                             </thead>
@@ -396,47 +382,11 @@
                         <i class="bi bi-inbox"></i>
                         <p class="mb-0">No hay productos asociados. Usa el buscador para agregar productos.</p>
                     </div>
-                </div>
-            </div>
 
-            {{-- ============================================= --}}
-            {{-- SECCION: Imagen Banner --}}
-            {{-- ============================================= --}}
-            <div class="form-card" data-aos="fade-up" data-aos-delay="300">
-                <div class="form-section-title">
-                    <i class="bi bi-image text-primary"></i> Imagen Banner
-                </div>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Imagen Actual</label>
-                        <div class="banner-preview-container" id="currentBannerPreview">
-                            @if($campania->imagen_banner)
-                                <img src="{{ asset('images/campanias/' . $campania->imagen_banner) }}" alt="Banner actual">
-                            @else
-                                <i class="bi bi-image placeholder-icon"></i>
-                            @endif
-                        </div>
-                        <small class="text-muted">
-                            @if($campania->imagen_banner)
-                                Archivo actual: {{ $campania->imagen_banner }}
-                            @else
-                                No hay imagen de banner cargada.
-                            @endif
-                        </small>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Subir Nueva Imagen</label>
-                        <input type="file" name="imagen_banner" class="form-control @error('imagen_banner') is-invalid @enderror" id="imagenBannerInput" accept="image/*">
-                        @error('imagen_banner')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                        <small class="text-muted d-block mt-1">Formatos: JPG, PNG, WEBP. Peso maximo: 2 MB.</small>
-
-                        {{-- Preview de nueva imagen --}}
-                        <div class="banner-preview-container mt-2" id="newBannerPreview" style="display:none;">
-                            <img src="" alt="Nueva imagen" id="newBannerImage">
-                        </div>
-                    </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Dto. Específico (%)</strong>: opcional. Déjalo vacío para que el producto use el descuento general de la campaña. Si pones un valor, ese producto usará ese % en su lugar.
+                    </small>
                 </div>
             </div>
 
@@ -504,7 +454,7 @@
                         '<td class="text-center">' +
                             '<div class="input-group input-group-sm justify-content-center">' +
                                 '<input type="number" class="form-control discount-input" name="descuentos_especificos[' + prod.id + ']" ' +
-                                    'value="' + (prod.descuento_especifico || '') + '" min="0" max="100" step="0.01" placeholder="0">' +
+                                    'value="' + (prod.descuento_especifico || '') + '" min="0" max="100" step="0.01" placeholder="—">' +
                                 '<span class="input-group-text">%</span>' +
                             '</div>' +
                         '</td>' +
@@ -523,14 +473,32 @@
             renderSelectedProducts();
 
             // =============================================
-            // TOGGLE: Aplica a todos los productos
+            // Descuento porcentaje / monto: mutuamente excluyentes
             // =============================================
-            $('#aplicaTodosProductos').on('change', function () {
-                if ($(this).is(':checked')) {
-                    $('#productSelectorContainer').slideUp(200);
+            function toggleDescuentoFields() {
+                var $pct = $('input[name="descuento_porcentaje"]');
+                var $mon = $('input[name="descuento_monto"]');
+                var pctVal = parseFloat($pct.val()) || 0;
+                var monVal = parseFloat($mon.val()) || 0;
+
+                if (pctVal > 0) {
+                    $mon.val('').prop('disabled', true);
+                    $pct.prop('disabled', false);
+                } else if (monVal > 0) {
+                    $pct.val('').prop('disabled', true);
+                    $mon.prop('disabled', false);
                 } else {
-                    $('#productSelectorContainer').slideDown(200);
+                    $pct.prop('disabled', false);
+                    $mon.prop('disabled', false);
                 }
+            }
+
+            $('input[name="descuento_porcentaje"], input[name="descuento_monto"]').on('input', toggleDescuentoFields);
+            toggleDescuentoFields();
+
+            // Evitar que el scroll del mouse modifique el valor de inputs numéricos
+            $(document).on('wheel', 'input[type="number"]:focus', function () {
+                $(this).blur();
             });
 
             // =============================================
@@ -554,7 +522,7 @@
                     $.ajax({
                         url: "{{ route('admin-operaciones-campanias.ajax.productos') }}",
                         method: 'GET',
-                        data: { q: query },
+                        data: { q: query, campania_id: {{ $campania->id }} },
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -645,25 +613,6 @@
             $(document).on('click', function (e) {
                 if (!$(e.target).closest('.product-search-wrapper').length) {
                     $('#productSearchResults').hide();
-                }
-            });
-
-            // =============================================
-            // IMAGE PREVIEW: Nueva imagen de banner
-            // =============================================
-            $('#imagenBannerInput').on('change', function () {
-                var file = this.files[0];
-
-                if (file) {
-                    var reader = new FileReader();
-                    reader.onload = function (e) {
-                        $('#newBannerImage').attr('src', e.target.result);
-                        $('#newBannerPreview').show();
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    $('#newBannerPreview').hide();
-                    $('#newBannerImage').attr('src', '');
                 }
             });
 

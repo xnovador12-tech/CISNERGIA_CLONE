@@ -79,7 +79,6 @@ class RolePermissionSeeder extends Seeder
             'configuraciones.coberturas.index',
             'configuraciones.servicios.index',
             'configuraciones.kits.index',
-            'configuraciones.descuentos.index',
             'configuraciones.cupones.index',
         ];
         $this->asignar('Ventas', $permisosVentas);
@@ -151,7 +150,7 @@ class RolePermissionSeeder extends Seeder
         $this->asignar('Almacen', $permisosAlmacen);
 
         // ═══════════════════════════════════════════════════════════════
-        // OPERACIONES: Asignaciones/Calidad/Trazabilidad/Campañas + tickets
+        // OPERACIONES: Asignaciones/Calidad/Campañas + tickets
         // ═══════════════════════════════════════════════════════════════
         $permisosOperaciones = [
             'perfil.edit',
@@ -159,7 +158,6 @@ class RolePermissionSeeder extends Seeder
             // Operaciones completo
             'operaciones.asignaciones.index', 'operaciones.asignaciones.asignar',
             'operaciones.calidad.index', 'operaciones.calidad.aprobar', 'operaciones.calidad.rechazar',
-            'operaciones.trazabilidad.index',
             'operaciones.campanias.index', 'operaciones.campanias.create', 'operaciones.campanias.edit', 'operaciones.campanias.delete', 'operaciones.campanias.gestionar',
 
             // Supervisión pedidos

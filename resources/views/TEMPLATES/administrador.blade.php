@@ -219,7 +219,7 @@
 
 
                         {{-- ===== OPERACIONES ===== --}}
-                        @canany(['operaciones.asignaciones.index', 'operaciones.calidad.index', 'operaciones.campanias.index', 'operaciones.trazabilidad.index'])
+                        @canany(['operaciones.asignaciones.index', 'operaciones.calidad.index', 'operaciones.campanias.index'])
                         <!-- Operaciones -->
                         <li>
                             <div class="text-white small fw-bold text-uppercase px-3 mt-3">Operaciones</div>
@@ -629,12 +629,12 @@
         // Validaciones en segundo plano
         $(document).ready(function() {
             setInterval(() => {
-                $.get('/ver_descuento', { validar_descuento: 'varificar_descuento' }, function(busqueda) {
-                    $.each(busqueda, function(index, value) {
-                        console.log(value[0] == 'no_existe' ? 'no_existe' : 'existe');
-                    });
+                $.get('/ver_campania', function(res) {
+                    if (res && res.finalizadas > 0) {
+                        console.log('Campañas finalizadas automáticamente:', res.finalizadas);
+                    }
                 });
-                
+
                 $.get('/ver_cuponera', { validar_cupones: 'varificar_cupones' }, function(busqueda) {
                     $.each(busqueda, function(index, value) {
                         console.log(value[0] == 'no_existe' ? 'no_existe_cupon' : 'existe_cupon');

@@ -98,11 +98,6 @@ class PermissionSeeder extends Seeder
             ['modulo' => 'Config - Proveedores',     'name' => 'configuraciones.proveedores.edit',    'label' => 'Editar Proveedores'],
             ['modulo' => 'Config - Proveedores',     'name' => 'configuraciones.proveedores.delete',  'label' => 'Eliminar Proveedores'],
 
-            ['modulo' => 'Config - Descuentos',      'name' => 'configuraciones.descuentos.index',    'label' => 'Ver Descuentos'],
-            ['modulo' => 'Config - Descuentos',      'name' => 'configuraciones.descuentos.create',   'label' => 'Crear Descuentos'],
-            ['modulo' => 'Config - Descuentos',      'name' => 'configuraciones.descuentos.edit',     'label' => 'Editar Descuentos'],
-            ['modulo' => 'Config - Descuentos',      'name' => 'configuraciones.descuentos.delete',   'label' => 'Eliminar Descuentos'],
-
             ['modulo' => 'Config - Cupones',         'name' => 'configuraciones.cupones.index',       'label' => 'Ver Cupones'],
             ['modulo' => 'Config - Cupones',         'name' => 'configuraciones.cupones.create',      'label' => 'Crear Cupones'],
             ['modulo' => 'Config - Cupones',         'name' => 'configuraciones.cupones.edit',        'label' => 'Editar Cupones'],
@@ -240,9 +235,6 @@ class PermissionSeeder extends Seeder
             ['modulo' => 'Operaciones - Calidad',    'name' => 'operaciones.calidad.index',           'label' => 'Ver Control de Calidad'],
             ['modulo' => 'Operaciones - Calidad',    'name' => 'operaciones.calidad.aprobar',         'label' => 'Aprobar Control de Calidad'],
             ['modulo' => 'Operaciones - Calidad',    'name' => 'operaciones.calidad.rechazar',        'label' => 'Rechazar Control de Calidad'],
-
-            // ─── OPERACIONES - TRAZABILIDAD ───────────────────────────────
-            ['modulo' => 'Operaciones - Trazab.',    'name' => 'operaciones.trazabilidad.index',      'label' => 'Ver Trazabilidad'],
 
             // ─── OPERACIONES - CAMPAÑAS ───────────────────────────────────
             ['modulo' => 'Operaciones - Campañas',   'name' => 'operaciones.campanias.index',         'label' => 'Ver Campañas'],

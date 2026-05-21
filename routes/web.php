@@ -14,7 +14,6 @@ use App\Http\Controllers\admin_EtiquetasController;
 use App\Http\Controllers\admin_ProveedoresController;
 use App\Http\Controllers\admin_ProductosController;
 use App\Http\Controllers\admin_CoberturasController;
-use App\Http\Controllers\admin_DescuentosController;
 use App\Http\Controllers\admin_CuponesController;
 use App\Http\Controllers\admin_IngresosController;
 use App\Http\Controllers\admin_KitsController;
@@ -343,28 +342,6 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:configuraciones.kits.edit')->name('admin-kits.update');
     Route::delete('admin-kits/{admin_kit}',         [admin_KitsController::class, 'destroy'])
         ->middleware('permission:configuraciones.kits.delete')->name('admin-kits.destroy');
-
-    // Descuentos
-    Route::get('admin-descuentos',                          [admin_DescuentosController::class, 'index'])
-        ->middleware('permission:configuraciones.descuentos.index')->name('admin-descuentos.index');
-    Route::get('admin-descuentos/create',                   [admin_DescuentosController::class, 'create'])
-        ->middleware('permission:configuraciones.descuentos.create')->name('admin-descuentos.create');
-    Route::post('admin-descuentos',                         [admin_DescuentosController::class, 'store'])
-        ->middleware('permission:configuraciones.descuentos.create')->name('admin-descuentos.store');
-    Route::put('admin-descuentos/estado/{admin_descuento}', [admin_DescuentosController::class, 'estado'])
-        ->middleware('permission:configuraciones.descuentos.edit');
-    Route::get('descuentos_productos/filtro',               [admin_DescuentosController::class, 'getfiltro_producto'])
-        ->middleware('permission:configuraciones.descuentos.create');
-    Route::get('ver_descuento',                             [admin_DescuentosController::class, 'getver_descuento'])
-        ->middleware('permission:configuraciones.descuentos.index');
-    Route::get('admin-descuentos/{admin_descuento}',        [admin_DescuentosController::class, 'show'])
-        ->middleware('permission:configuraciones.descuentos.index')->name('admin-descuentos.show');
-    Route::get('admin-descuentos/{admin_descuento}/edit',   [admin_DescuentosController::class, 'edit'])
-        ->middleware('permission:configuraciones.descuentos.edit')->name('admin-descuentos.edit');
-    Route::put('admin-descuentos/{admin_descuento}',        [admin_DescuentosController::class, 'update'])
-        ->middleware('permission:configuraciones.descuentos.edit')->name('admin-descuentos.update');
-    Route::delete('admin-descuentos/{admin_descuento}',     [admin_DescuentosController::class, 'destroy'])
-        ->middleware('permission:configuraciones.descuentos.delete')->name('admin-descuentos.destroy');
 
     // Cupones
     Route::get('admin-cupones',                     [admin_CuponesController::class, 'index'])
@@ -899,16 +876,6 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:operaciones.calidad.index')->name('admin-operaciones-calidad.show');
 
     // ---------------------------------------------------------
-    // OPERACIONES — TRAZABILIDAD
-    // ---------------------------------------------------------
-    Route::get('admin-operaciones-trazabilidad',            [admin_OperacionesController::class, 'trazabilidadIndex'])
-        ->middleware('permission:operaciones.trazabilidad.index')->name('admin-operaciones-trazabilidad.index');
-    Route::get('admin-operaciones-trazabilidad/buscar',     [admin_OperacionesController::class, 'trazabilidadBuscar'])
-        ->middleware('permission:operaciones.trazabilidad.index')->name('admin-operaciones-trazabilidad.buscar');
-    Route::get('admin-operaciones-trazabilidad/{id}',       [admin_OperacionesController::class, 'trazabilidadGetPedido'])
-        ->middleware('permission:operaciones.trazabilidad.index')->name('admin-operaciones-trazabilidad.show');
-
-    // ---------------------------------------------------------
     // OPERACIONES — CAMPAÑAS
     // ---------------------------------------------------------
     Route::get('admin-operaciones-campanias',                   [admin_OperacionesController::class, 'campaniasIndex'])
@@ -939,6 +906,9 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:operaciones.campanias.index')->name('admin-operaciones-campanias.metricas');
     Route::get('admin-operaciones-campanias/{id}',              [admin_OperacionesController::class, 'campaniasShow'])
         ->middleware('permission:operaciones.campanias.index')->name('admin-operaciones-campanias.show');
+
+    // Sincronización automática de campañas (polling desde layout admin)
+    Route::get('ver_campania', [admin_OperacionesController::class, 'campaniasSincronizar'])->name('campanias.sincronizar');
 
 
 }); // Fin middleware auth
