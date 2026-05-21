@@ -21,77 +21,129 @@ class MarketingController extends Controller
 
     public function metricas(Request $request): View
     {
-        $search = $request->get('search');
-        $fechaInicio = $request->get('fecha_inicio');
-        $fechaFin = $request->get('fecha_fin');
-        $limit = 30;
-
         try {
-            $metaData = $this->metaService->getOrganicLeadScoring($limit);
-            $allPosts = collect($metaData['recent_posts']);
-
-            if ($fechaInicio && $fechaFin) {
-                $allPosts = $allPosts->filter(function($post) use ($fechaInicio, $fechaFin) {
-                    $date = \Carbon\Carbon::parse($post['created_time'])->startOfDay();
-                    return $date->between($fechaInicio, $fechaFin);
-                });
-            }
-
-            if ($search) {
-                $allPosts = $allPosts->filter(function($post) use ($search) {
-                    return str_contains(strtolower($post['message'] ?? ''), strtolower($search));
-                });
-            }
-
-            $fbPostsArray = $allPosts->filter(fn($post) => $post['is_ig'] === false)->values()->all();
-            $igPostsArray = $allPosts->filter(fn($post) => $post['is_ig'] === true)->values()->all();
-            
-            // Extraer todos los comentarios para identificar la plataforma de cada Lead
-            $allComments = collect();
-            $allPosts->each(function($post) use ($allComments) {
-                if(isset($post['comments']['data'])) {
-                    foreach($post['comments']['data'] as $comment) {
-                        $comment['is_ig'] = $post['is_ig'];
-                        $allComments->push($comment);
-                    }
-                }
-            });
-
-            // ENRIQUECIMIENTO DE PERFILES PÚBLICOS
-            // Tomamos solo el top 15 global para no saturar la API de Meta y evitar lentitud
-            $enrichedLeads = collect($metaData['top_leads'])->take(15)->map(function($lead) use ($allComments) {
-                // Buscamos el primer comentario de este lead para saber si es de IG o FB
-                $firstComment = $allComments->firstWhere('from.id', $lead['id']);
-                $isIg = $firstComment['is_ig'] ?? false;
-                
-                // Llamamos a nuestro Service con Fallback Seguro
-                $perfil = $isIg 
-                    ? $this->metaService->getInstagramProfile($lead['id'])
-                    : $this->metaService->getFacebookProfile($lead['id']);
-                    
-                $lead['perfil'] = $perfil;
-                $lead['is_ig'] = $isIg;
-                
-                return $lead;
-            });
-
-            // Separamos los leads enriquecidos por plataforma
-            $fbData = [
-                'top_leads' => $enrichedLeads->where('is_ig', false)->take(10)->values()->all(),
-                'recent_posts' => $fbPostsArray
-            ];
-
-            $igData = [
-                'top_leads' => $enrichedLeads->where('is_ig', true)->take(10)->values()->all(),
-                'recent_posts' => $igPostsArray
-            ];
-
-            return view('ADMINISTRADOR.MARKETING.index', compact('fbData', 'igData', 'search', 'fechaInicio', 'fechaFin'));
-
+            $data = $this->buildRadarData($request, enrichLeads: true);
+            return view('ADMINISTRADOR.MARKETING.index', $data);
         } catch (\Exception $e) {
             Log::error('Marketing Error: ' . $e->getMessage());
             return view('ADMINISTRADOR.MARKETING.index')->with('error', 'Fallo conexión Meta.');
         }
+    }
+
+    public function metricasData(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->buildRadarData($request, enrichLeads: false);
+            return response()->json([
+                'success' => true,
+                'fb' => [
+                    'posts' => $data['fbData']['recent_posts'],
+                    'total' => count($data['fbData']['recent_posts']),
+                ],
+                'ig' => [
+                    'posts' => $data['igData']['recent_posts'],
+                    'total' => count($data['igData']['recent_posts']),
+                ],
+                'filtros' => [
+                    'search' => $data['search'],
+                    'canal' => $data['canal'],
+                    'fecha_inicio' => $data['fechaInicio'],
+                    'fecha_fin' => $data['fechaFin'],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Marketing Error (data): ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Fallo conexión Meta.'], 500);
+        }
+    }
+
+    private function buildRadarData(Request $request, bool $enrichLeads): array
+    {
+        $search = trim((string) $request->input('search'));
+        $canal = $request->input('canal', 'all');
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
+
+        $metaData = $this->metaService->getOrganicLeadScoring(30);
+        $posts = collect($metaData['recent_posts']);
+
+        $posts = $this->aplicarFiltrosPosts($posts, $search, $canal, $fechaInicio, $fechaFin);
+
+        $fbPosts = $posts->where('is_ig', false)->values()->all();
+        $igPosts = $posts->where('is_ig', true)->values()->all();
+
+        $allComments = $this->extraerComentarios($posts);
+
+        $topLeads = $enrichLeads
+            ? $this->enriquecerLeads(collect($metaData['top_leads'])->take(15), $allComments)
+            : collect();
+
+        return [
+            'fbData' => [
+                'top_leads' => $topLeads->where('is_ig', false)->take(10)->values()->all(),
+                'recent_posts' => $fbPosts,
+            ],
+            'igData' => [
+                'top_leads' => $topLeads->where('is_ig', true)->take(10)->values()->all(),
+                'recent_posts' => $igPosts,
+            ],
+            'search' => $search,
+            'canal' => $canal,
+            'fechaInicio' => $fechaInicio,
+            'fechaFin' => $fechaFin,
+        ];
+    }
+
+    private function aplicarFiltrosPosts($posts, ?string $search, string $canal, ?string $fechaInicio, ?string $fechaFin)
+    {
+        if ($fechaInicio && $fechaFin) {
+            $posts = $posts->filter(function ($post) use ($fechaInicio, $fechaFin) {
+                $date = \Carbon\Carbon::parse($post['created_time'])->startOfDay();
+                return $date->between($fechaInicio, $fechaFin);
+            });
+        }
+
+        if ($search !== '') {
+            $posts = $posts->filter(fn($post) => str_contains(
+                strtolower($post['message'] ?? ''),
+                strtolower($search)
+            ));
+        }
+
+        if ($canal === 'fb') {
+            $posts = $posts->where('is_ig', false);
+        } elseif ($canal === 'ig') {
+            $posts = $posts->where('is_ig', true);
+        }
+
+        return $posts;
+    }
+
+    private function extraerComentarios($posts)
+    {
+        $comments = collect();
+        $posts->each(function ($post) use ($comments) {
+            foreach ($post['comments']['data'] ?? [] as $comment) {
+                $comment['is_ig'] = $post['is_ig'];
+                $comments->push($comment);
+            }
+        });
+        return $comments;
+    }
+
+    private function enriquecerLeads($leads, $allComments)
+    {
+        return $leads->map(function ($lead) use ($allComments) {
+            $firstComment = $allComments->firstWhere('from.id', $lead['id']);
+            $isIg = $firstComment['is_ig'] ?? false;
+
+            $lead['perfil'] = $isIg
+                ? $this->metaService->getInstagramProfile($lead['id'])
+                : $this->metaService->getFacebookProfile($lead['id']);
+            $lead['is_ig'] = $isIg;
+
+            return $lead;
+        });
     }
 
     public function publishComment(Request $request): JsonResponse
@@ -150,8 +202,8 @@ class MarketingController extends Controller
 
     public function metricasGlobales(Request $request): View
     {
-        $canal = $request->get('canal', 'all');
-        $keyword = $request->get('keyword');
+        $canal = $request->input('canal', 'all');
+        $keyword = $request->input('keyword');
         
         try {
             $metaData = $this->metaService->getOrganicLeadScoring(50);

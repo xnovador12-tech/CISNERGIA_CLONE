@@ -921,7 +921,9 @@ Route::put('admin-libro-reclamaciones/{reclamo}/estado', [admin_LibroReclamacion
 Route::prefix('administrador/marketing')->name('admin.marketing.')->middleware(['auth'])->group(function () {
         // Dashboards
         Route::get('/metricas', [MarketingController::class, 'metricas'])->name('metricas');
+        Route::get('/metricas/data', [MarketingController::class, 'metricasData'])->name('metricas.data');
         Route::get('/metricas/globales', [MarketingController::class, 'metricasGlobales'])->name('metricas_globales');
+        Route::get('/metricas/globales/data', [MarketingController::class, 'metricasGlobalesData'])->name('metricas_globales.data');
         // Acciones Meta (Comentarios)
         Route::post('/comment/publish', [MarketingController::class, 'publishComment'])->name('comment.publish');
         Route::delete('/comment/{id}', [MarketingController::class, 'deleteComment'])->name('comment.delete');
