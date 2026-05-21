@@ -202,7 +202,6 @@ class admin_ProductosController extends Controller
         $producto->peso = $request->input('peso');
         $producto->costo = $request->input('costo');
         $producto->precio = $request->input('precio');
-        $producto->precio_descuento = $request->input('precio_descuento');
         $producto->tipo_id = $request->input('tipo_id');
         $producto->potencia_nominal = $request->input('potencia_nominal');
         $producto->eficiencia = $request->input('eficiencia');
@@ -328,7 +327,6 @@ class admin_ProductosController extends Controller
         $admin_producto->fill($request->except(['codigo', 'slug', 'imagen']));
         $admin_producto->stock_critico = $request->input('stock_min');
         $admin_producto->stock_seguro = $request->input('stock_max');
-        $admin_producto->precio_descuento = $request->input('precio_descuento');
         $admin_producto->save();
 
         if($request->input('etiquetas')){

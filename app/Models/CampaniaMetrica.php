@@ -15,7 +15,6 @@ class CampaniaMetrica extends Model
     protected $fillable = [
         'campania_id',
         'fecha',
-        'visitas',
         'pedidos_generados',
         'productos_vendidos',
         'monto_total',
@@ -33,19 +32,11 @@ class CampaniaMetrica extends Model
         return $this->belongsTo(Campania::class, 'campania_id');
     }
 
-    public static function incrementarVisita($campaniaId)
-    {
-        self::updateOrCreate(
-            ['campania_id' => $campaniaId, 'fecha' => Carbon::today()],
-            []
-        )->increment('visitas');
-    }
-
-    public static function registrarPedido($campaniaId, $monto, $descuento, $cantidadProductos)
+    public static function registrarPedido(int $campaniaId, float $monto, float $descuento, int $cantidadProductos): void
     {
         $metrica = self::firstOrCreate(
             ['campania_id' => $campaniaId, 'fecha' => Carbon::today()],
-            ['visitas' => 0, 'pedidos_generados' => 0, 'productos_vendidos' => 0, 'monto_total' => 0, 'descuento_total_aplicado' => 0]
+            ['pedidos_generados' => 0, 'productos_vendidos' => 0, 'monto_total' => 0, 'descuento_total_aplicado' => 0]
         );
 
         $metrica->increment('pedidos_generados');

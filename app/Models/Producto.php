@@ -34,6 +34,7 @@ class Producto extends Model
         'estado',
         'precio',
         'precio_descuento',
+        'porcentaje',
         'peso',
         'stock_critico',
         'stock_seguro',

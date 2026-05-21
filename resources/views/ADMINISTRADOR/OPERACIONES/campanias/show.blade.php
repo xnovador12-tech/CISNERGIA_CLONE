@@ -26,11 +26,6 @@
             color: #198754;
         }
 
-        .estado-badge.borrador {
-            background: #6c757d20;
-            color: #6c757d;
-        }
-
         .estado-badge.pausada {
             background: #ffc10720;
             color: #cc9a00;
@@ -76,10 +71,6 @@
 
         .show-header-banner.activa {
             background: linear-gradient(90deg, #198754, #20c997);
-        }
-
-        .show-header-banner.borrador {
-            background: linear-gradient(90deg, #6c757d, #adb5bd);
         }
 
         .show-header-banner.pausada {
@@ -497,9 +488,6 @@
                                     @case('activa')
                                         <i class="bi bi-lightning-charge"></i>Activa
                                         @break
-                                    @case('borrador')
-                                        <i class="bi bi-pencil-square"></i>Borrador
-                                        @break
                                     @case('pausada')
                                         <i class="bi bi-pause-circle"></i>Pausada
                                         @break
@@ -528,10 +516,6 @@
                                     <i class="bi bi-clock-history"></i> Finalizada
                                 </span>
                             @endif
-                        @elseif($campania->estado === 'borrador')
-                            <span class="dias-restantes-badge vigente">
-                                <i class="bi bi-clock-history"></i> {{ $campania->dias_restantes }} dias de duracion
-                            </span>
                         @else
                             <span class="dias-restantes-badge">
                                 <i class="bi bi-check-circle"></i> Campana finalizada
@@ -572,13 +556,6 @@
                 <div class="metric-number">S/ {{ number_format($campania->total_ventas, 2) }}</div>
                 <div class="metric-label">Total Ventas</div>
             </div>
-            <div class="metric-card conversion">
-                <div class="metric-icon">
-                    <i class="bi bi-graph-up-arrow"></i>
-                </div>
-                <div class="metric-number">{{ number_format($campania->tasa_conversion, 1) }}%</div>
-                <div class="metric-label">Tasa Conversion</div>
-            </div>
             <div class="metric-card descuento">
                 <div class="metric-icon">
                     <i class="bi bi-tag-fill"></i>
@@ -610,13 +587,7 @@
                         <i class="bi bi-box text-primary"></i> Productos en Promocion
                     </div>
 
-                    @if($campania->aplica_todos_productos)
-                        <div class="all-products-message">
-                            <i class="bi bi-boxes"></i>
-                            <span>Esta campana aplica a todos los productos del catalogo</span>
-                        </div>
-                    @else
-                        @if($campania->productos->count() > 0)
+                    @if($campania->productos->count() > 0)
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered table-hover align-middle">
                                     <thead class="table-light">
@@ -655,12 +626,11 @@
                                     </tbody>
                                 </table>
                             </div>
-                        @else
-                            <div class="all-products-message">
-                                <i class="bi bi-info-circle"></i>
-                                <span>No hay productos asociados a esta campana</span>
-                            </div>
-                        @endif
+                    @else
+                        <div class="all-products-message">
+                            <i class="bi bi-info-circle"></i>
+                            <span>No hay productos asociados a esta campana</span>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -671,8 +641,11 @@
                      ============================================= -->
                 <div class="timeline-card">
                     <div class="section-title">
-                        <i class="bi bi-clock-history text-primary"></i> Actividad
+                        <i class="bi bi-flag text-primary"></i> Hitos de la campaña
                     </div>
+                    <small class="text-muted d-block mb-2">
+                        Muestra solo cambios de estado (creación, activación, pausa). No registra ediciones de campos.
+                    </small>
 
                     <div class="timeline">
                         {{-- Creation --}}
@@ -751,25 +724,9 @@
                             <span class="text-muted">Descuento</span>
                             <span class="fw-semibold text-danger">{{ $campania->descuento_texto }}</span>
                         </li>
-                        @if($campania->condicion_minimo)
-                            <li class="d-flex justify-content-between py-2 border-bottom">
-                                <span class="text-muted">Compra minima</span>
-                                <span class="fw-semibold">S/ {{ number_format($campania->condicion_minimo, 2) }}</span>
-                            </li>
-                        @endif
-                        <li class="d-flex justify-content-between py-2 border-bottom">
-                            <span class="text-muted">Total Visitas</span>
-                            <span class="fw-semibold">{{ number_format($campania->total_visitas) }}</span>
-                        </li>
                         <li class="d-flex justify-content-between py-2">
                             <span class="text-muted">Productos</span>
-                            <span class="fw-semibold">
-                                @if($campania->aplica_todos_productos)
-                                    Todos
-                                @else
-                                    {{ $campania->productos->count() }}
-                                @endif
-                            </span>
+                            <span class="fw-semibold">{{ $campania->productos->count() }}</span>
                         </li>
                     </ul>
                 </div>
@@ -802,18 +759,6 @@
                             </a>
                             <button type="button" class="btn btn-success" id="btnReanudar">
                                 <i class="bi bi-play-fill me-1"></i> Reanudar
-                            </button>
-                            @break
-
-                        @case('borrador')
-                            <button type="button" class="btn btn-outline-danger" id="btnEliminar">
-                                <i class="bi bi-trash me-1"></i> Eliminar
-                            </button>
-                            <a href="{{ route('admin-operaciones-campanias.edit', $campania->id) }}" class="btn btn-outline-primary">
-                                <i class="bi bi-pencil me-1"></i> Editar
-                            </a>
-                            <button type="button" class="btn btn-success" id="btnActivar">
-                                <i class="bi bi-lightning-charge me-1"></i> Activar
                             </button>
                             @break
 
@@ -1026,7 +971,7 @@
                             url: "{{ route('admin-operaciones-campanias.pausar', $campania->id) }}",
                             type: 'POST',
                             data: {
-                                motivo_pausa: motivo
+                                motivo: motivo
                             },
                             dataType: 'json'
                         }).then(function(response) {
@@ -1086,86 +1031,12 @@
             });
 
             // =============================================
-            // ACTION: Activar Campana
-            // =============================================
-            $('#btnActivar').on('click', function() {
-                Swal.fire({
-                    title: 'Activar Campana',
-                    text: 'La campana se publicara y estara visible para los clientes. Deseas continuar?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#198754',
-                    confirmButtonText: '<i class="bi bi-lightning-charge me-1"></i> Activar',
-                    cancelButtonText: 'Cancelar',
-                    showLoaderOnConfirm: true,
-                    preConfirm: function() {
-                        return $.ajax({
-                            url: "{{ route('admin-operaciones-campanias.activar', $campania->id) }}",
-                            type: 'POST',
-                            dataType: 'json'
-                        }).then(function(response) {
-                            return response;
-                        }).catch(function(xhr) {
-                            Swal.showValidationMessage('Error: ' + (xhr.responseJSON?.message || 'No se pudo activar la campana'));
-                        });
-                    },
-                    allowOutsideClick: function() {
-                        return !Swal.isLoading();
-                    }
-                }).then(function(result) {
-                    if (result.isConfirmed) {
-                        toastr.success('La campana ha sido activada correctamente');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }
-                });
-            });
-
-            // =============================================
-            // ACTION: Eliminar Campana
-            // =============================================
-            $('#btnEliminar').on('click', function() {
-                Swal.fire({
-                    title: 'Eliminar Campana',
-                    html: 'Esta accion no se puede deshacer.<br><strong>Se eliminara permanentemente esta campana.</strong>',
-                    icon: 'error',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    confirmButtonText: '<i class="bi bi-trash me-1"></i> Si, eliminar',
-                    cancelButtonText: 'Cancelar',
-                    showLoaderOnConfirm: true,
-                    preConfirm: function() {
-                        return $.ajax({
-                            url: "{{ route('admin-operaciones-campanias.destroy', $campania->id) }}",
-                            type: 'DELETE',
-                            dataType: 'json'
-                        }).then(function(response) {
-                            return response;
-                        }).catch(function(xhr) {
-                            Swal.showValidationMessage('Error: ' + (xhr.responseJSON?.message || 'No se pudo eliminar la campana'));
-                        });
-                    },
-                    allowOutsideClick: function() {
-                        return !Swal.isLoading();
-                    }
-                }).then(function(result) {
-                    if (result.isConfirmed) {
-                        toastr.success('La campana ha sido eliminada correctamente');
-                        setTimeout(function() {
-                            window.location.href = "{{ route('admin-operaciones-campanias.index') }}";
-                        }, 1000);
-                    }
-                });
-            });
-
-            // =============================================
             // ACTION: Duplicar Campana
             // =============================================
             $('#btnDuplicar').on('click', function() {
                 Swal.fire({
                     title: 'Duplicar Campana',
-                    text: 'Se creara una copia de esta campana en estado borrador. Deseas continuar?',
+                    text: 'Se creara una copia de esta campana en estado pausado para que la revises antes de activarla. Deseas continuar?',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#0d6efd',

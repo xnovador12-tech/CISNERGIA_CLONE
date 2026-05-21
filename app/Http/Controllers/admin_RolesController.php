@@ -206,7 +206,7 @@ class admin_RolesController extends Controller
      *   4. Compras (Órdenes)
      *   5. Almacén (Ingresos, Salidas, Inventario)
      *   6. Finanzas (Cobros, Pagos, Caja Chica, Comprobantes, Notas, Cuentas)
-     *   7. Operaciones (Asignaciones, Calidad, Trazabilidad, Campañas)
+     *   7. Operaciones (Asignaciones, Calidad, Campañas)
      *   8. Configuraciones - Acceso (Roles, Usuarios)
      *   9. Configuraciones - Catálogo (Tipos, Modelos, Categorías, Marcas, Productos,
      *      Proveedores, Servicios, Kits, Coberturas, Descuentos, Cupones, Etiquetas)

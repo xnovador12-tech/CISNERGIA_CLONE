@@ -124,10 +124,6 @@
                                 <a href="{{ route('admin-coberturas.index') }}" class="link-primary text-decoration-none">Cobertura</a>
                             </li>
                             <li class="text-primary menu_item">
-                                <i class="bi bi-percent me-2"></i>
-                                <a href="{{ route('admin-descuentos.index') }}" class="link-primary text-decoration-none">Descuento</a>
-                            </li>
-                            <li class="text-primary menu_item">
                                 <i class="bi bi-receipt me-2"></i>
                                 <a href="{{ route('admin-cupones.index') }}" class="link-primary text-decoration-none">Cupones</a>
                             </li>

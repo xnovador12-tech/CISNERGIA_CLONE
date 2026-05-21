@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use App\Models\User;
 use App\Models\Pedido;
+use App\Models\Sale;
 use App\Models\InformacionEmpresa;
 use App\Observers\UserObserver;
 use App\Observers\PedidoObserver;
+use App\Observers\SaleObserver;
 use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
@@ -39,6 +41,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Observer Operaciones
         Pedido::observe(PedidoObserver::class);
+
+        // Observer Operaciones - Métricas de Campañas al pagar Venta
+        Sale::observe(SaleObserver::class);
 
         // paginacion
         Paginator::useBootstrapFive(); 

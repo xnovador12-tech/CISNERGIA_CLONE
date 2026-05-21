@@ -11,6 +11,7 @@ use App\Models\PedidoVerificacion;
 use App\Models\Producto;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class admin_OperacionesController extends Controller
@@ -199,7 +200,7 @@ class admin_OperacionesController extends Controller
             ];
         }
 
-        // Timeline (reutilizado de trazabilidad)
+        // Timeline del pedido (etapas operativas)
         $ordenEtapas = ['sin_asignar', 'logistica', 'almacen', 'calidad', 'despacho', 'completado'];
         $etapasConfig = [
             'sin_asignar' => ['label' => 'Pedido Creado', 'icono' => 'bi-cart-check', 'descripcion' => 'Pedido registrado en el sistema.'],
@@ -653,148 +654,6 @@ class admin_OperacionesController extends Controller
 
     /**
      * =============================================
-     * TRAZABILIDAD
-     * =============================================
-     */
-
-    /**
-     * Mostrar vista de consulta rápida de trazabilidad
-     */
-    public function trazabilidadIndex()
-    {
-        return view('ADMINISTRADOR.OPERACIONES.trazabilidad.index');
-    }
-
-    /**
-     * Buscar pedidos para trazabilidad (AJAX)
-     */
-    public function trazabilidadBuscar(Request $request)
-    {
-        $search = $request->input('q', '');
-        if (strlen($search) < 2) {
-            return response()->json([]);
-        }
-
-        $pedidos = Pedido::with(['cliente', 'tecnico.persona'])
-            ->where(function ($q) use ($search) {
-                $q->where('codigo', 'like', "%{$search}%")
-                  ->orWhereHas('cliente', function ($q2) use ($search) {
-                      $q2->where('nombre', 'like', "%{$search}%")
-                         ->orWhere('apellidos', 'like', "%{$search}%")
-                         ->orWhere('razon_social', 'like', "%{$search}%");
-                  });
-            })
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function ($p) {
-                $clienteNombre = $p->cliente ? $p->cliente->nombre_completo : '';
-                return [
-                    'id' => $p->id,
-                    'codigo' => $p->codigo,
-                    'cliente_nombre' => $clienteNombre ?: 'Sin nombre',
-                    'estado_operativo' => $p->estado_operativo,
-                    'total' => number_format($p->total, 2),
-                ];
-            });
-
-        return response()->json($pedidos);
-    }
-
-    /**
-     * Obtener trazabilidad de un pedido (AJAX)
-     */
-    public function trazabilidadGetPedido($id)
-    {
-        $pedido = Pedido::with([
-            'cliente',
-            'tecnico.persona',
-            'detalles.producto',
-            'distrito',
-        ])->findOrFail($id);
-
-        $clienteNombre = $pedido->cliente ? $pedido->cliente->nombre_completo : '';
-        $clienteCelular = $pedido->cliente->celular ?? $pedido->cliente->telefono ?? '';
-        $clienteEmail = $pedido->cliente->email ?? '';
-
-        $tecnicoNombre = '';
-        if ($pedido->tecnico && $pedido->tecnico->persona) {
-            $tecnicoNombre = trim($pedido->tecnico->persona->name . ' ' . ($pedido->tecnico->persona->surnames ?? ''));
-        }
-
-        // Construir timeline basado en el estado operativo actual
-        $ordenEtapas = ['sin_asignar', 'logistica', 'almacen', 'calidad', 'despacho', 'completado'];
-        $etapasConfig = [
-            'sin_asignar' => ['label' => 'Pedido Creado', 'icono' => 'bi-cart-check', 'descripcion' => 'Pedido registrado en el sistema.'],
-            'logistica'   => ['label' => 'Logística', 'icono' => 'bi-truck', 'descripcion' => 'Coordinación logística y verificación de stock.'],
-            'almacen'     => ['label' => 'Almacén', 'icono' => 'bi-box-seam', 'descripcion' => 'Preparación, empaque y etiquetado de productos.'],
-            'calidad'     => ['label' => 'Control de Calidad', 'icono' => 'bi-clipboard2-check', 'descripcion' => 'Verificación de calidad y documentación.'],
-            'despacho'    => ['label' => 'Despacho', 'icono' => 'bi-send', 'descripcion' => 'Envío al cliente.'],
-            'completado'  => ['label' => 'Completado', 'icono' => 'bi-check-circle', 'descripcion' => 'Pedido entregado al cliente.'],
-        ];
-
-        $estadoActualIdx = array_search($pedido->estado_operativo, $ordenEtapas);
-        $timeline = [];
-
-        // Si llegó aquí es porque tiene venta completada
-        $pagado = true;
-
-        foreach ($ordenEtapas as $idx => $etapa) {
-            $config = $etapasConfig[$etapa];
-            if ($idx < $estadoActualIdx) {
-                $estado = 'completado';
-            } elseif ($idx === $estadoActualIdx) {
-                $estado = 'activo';
-            } else {
-                $estado = 'pendiente';
-            }
-
-            $timeline[] = [
-                'etapa'       => $etapa,
-                'label'       => $config['label'],
-                'icono'       => $config['icono'],
-                'descripcion' => $config['descripcion'],
-                'estado'      => $estado,
-            ];
-        }
-
-        $productos = $pedido->detalles->map(function ($d) {
-            return [
-                'descripcion'     => $d->descripcion ?? ($d->producto->name ?? 'Producto'),
-                'cantidad'        => $d->cantidad,
-                'precio_unitario' => $d->precio_unitario,
-                'subtotal'        => $d->subtotal,
-            ];
-        });
-
-        return response()->json([
-            'id'                     => $pedido->id,
-            'codigo'                 => $pedido->codigo,
-            'cliente_nombre'         => $clienteNombre,
-            'cliente_celular'        => $clienteCelular,
-            'cliente_email'          => $clienteEmail,
-            'fecha_pedido'           => $pedido->created_at->format('d/m/Y h:i A'),
-            'prioridad'              => $pedido->prioridad,
-            'estado'                 => $pedido->estado,
-            'estado_operativo'       => $pedido->estado_operativo,
-            'estado_operativo_label' => $this->estadosKanban[$pedido->estado_operativo] ?? $pedido->estado_operativo,
-            'total'                  => number_format($pedido->total, 2),
-            'subtotal'               => number_format($pedido->subtotal, 2),
-            'igv'                    => number_format($pedido->igv, 2),
-            'direccion'              => $pedido->direccion_instalacion ?? 'No especificada',
-            'distrito'               => $pedido->distrito->nombre ?? '',
-            'tecnico_nombre'         => $tecnicoNombre,
-            'fecha_asignacion'       => $pedido->fecha_asignacion ? $pedido->fecha_asignacion->format('d/m/Y h:i A') : null,
-            'fecha_entrega_estimada' => $pedido->fecha_entrega_estimada ? $pedido->fecha_entrega_estimada->format('d/m/Y') : null,
-            'origen'                 => $pedido->origen,
-            'pagado'                 => $pagado,
-            'productos'              => $productos,
-            'timeline'               => $timeline,
-        ]);
-    }
-
-    /**
-     * =============================================
      * CAMPAÑAS Y PROMOCIONES
      * =============================================
      */
@@ -802,13 +661,12 @@ class admin_OperacionesController extends Controller
     public function campaniasIndex()
     {
         $campanias = Campania::with(['creador.persona', 'productos', 'metricas'])
-            ->orderByRaw("FIELD(estado, 'activa', 'borrador', 'pausada', 'finalizada')")
+            ->orderByRaw("FIELD(estado, 'activa', 'pausada', 'finalizada')")
             ->orderBy('created_at', 'desc')
             ->get();
 
         $stats = [
             'activas' => Campania::where('estado', 'activa')->count(),
-            'borradores' => Campania::where('estado', 'borrador')->count(),
             'pausadas' => Campania::where('estado', 'pausada')->count(),
             'finalizadas' => Campania::where('estado', 'finalizada')->count(),
         ];
@@ -829,24 +687,36 @@ class admin_OperacionesController extends Controller
     {
         $request->validate([
             'nombre' => 'required|max:150|unique:campanias,nombre',
-            'tipo' => 'required|in:descuento,envio_gratis,combo,temporada,flash_sale',
+            'tipo' => 'required|in:descuento,temporada,flash_sale',
             'descripcion' => 'nullable|string',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after:fecha_inicio',
-            'descuento_porcentaje' => 'nullable|numeric|between:0.01,99.99',
-            'descuento_monto' => 'nullable|numeric|min:0.01',
-            'condicion_minimo' => 'nullable|numeric|min:0',
-            'aplica_todos_productos' => 'nullable|boolean',
-            'productos' => 'nullable|array',
+            'descuento_porcentaje' => 'required_without:descuento_monto|nullable|numeric|between:0.01,99.99|prohibits:descuento_monto',
+            'descuento_monto' => 'required_without:descuento_porcentaje|nullable|numeric|min:0.01|prohibits:descuento_porcentaje',
+            'productos' => 'required|array|min:1',
             'productos.*' => 'exists:productos,id',
             'descuentos_especificos' => 'nullable|array',
-            'estado' => 'required|in:borrador,activa',
-            'imagen_banner' => 'nullable|image|max:2048',
+        ], [
+            'descuento_porcentaje.prohibits' => 'Solo puedes usar un tipo de descuento: porcentaje O monto, no ambos.',
+            'descuento_monto.prohibits' => 'Solo puedes usar un tipo de descuento: porcentaje O monto, no ambos.',
+            'descuento_porcentaje.required_without' => 'Debes ingresar un descuento: porcentaje o monto.',
+            'descuento_monto.required_without' => 'Debes ingresar un descuento: porcentaje o monto.',
+            'productos.required' => 'Debes seleccionar al menos un producto para la campaña.',
+            'productos.min' => 'Debes seleccionar al menos un producto para la campaña.',
         ]);
 
-        $imagenPath = null;
-        if ($request->hasFile('imagen_banner')) {
-            $imagenPath = $request->file('imagen_banner')->store('campanias', 'public');
+        $productosEnConflicto = DB::table('campania_productos')
+            ->join('campanias', 'campanias.id', '=', 'campania_productos.campania_id')
+            ->where('campanias.estado', 'activa')
+            ->whereDate('campanias.fecha_fin', '>=', now()->toDateString())
+            ->whereNull('campanias.deleted_at')
+            ->whereIn('campania_productos.producto_id', $request->productos)
+            ->exists();
+
+        if ($productosEnConflicto) {
+            return back()
+                ->withErrors(['productos' => 'Uno o más productos seleccionados ya están en otra campaña activa. Refresca la página y vuelve a elegirlos.'])
+                ->withInput();
         }
 
         $userId = $request->user() ? $request->user()->id : 1;
@@ -858,26 +728,22 @@ class admin_OperacionesController extends Controller
             'tipo' => $request->tipo,
             'descuento_porcentaje' => $request->descuento_porcentaje,
             'descuento_monto' => $request->descuento_monto,
-            'condicion_minimo' => $request->condicion_minimo,
             'fecha_inicio' => $request->fecha_inicio,
             'fecha_fin' => $request->fecha_fin,
-            'estado' => $request->estado,
-            'imagen_banner' => $imagenPath,
-            'aplica_todos_productos' => $request->boolean('aplica_todos_productos'),
+            'estado' => 'activa',
             'creado_por' => $userId,
-            'activado_por' => $request->estado === 'activa' ? $userId : null,
-            'activado_at' => $request->estado === 'activa' ? now() : null,
+            'activado_por' => $userId,
+            'activado_at' => now(),
         ]);
 
-        // Asociar productos si no aplica a todos
-        if (!$request->boolean('aplica_todos_productos') && $request->filled('productos')) {
-            $syncData = [];
-            foreach ($request->productos as $productoId) {
-                $descEsp = $request->descuentos_especificos[$productoId] ?? null;
-                $syncData[$productoId] = ['descuento_especifico' => $descEsp];
-            }
-            $campania->productos()->sync($syncData);
+        $syncData = [];
+        foreach ($request->productos as $productoId) {
+            $descEsp = $request->descuentos_especificos[$productoId] ?? null;
+            $syncData[$productoId] = ['descuento_especifico' => $descEsp];
         }
+        $campania->productos()->sync($syncData);
+
+        $campania->aplicarDescuentoAProductos();
 
         return redirect()->route('admin-operaciones-campanias.index')
             ->with('success', 'Campaña creada exitosamente.');
@@ -912,19 +778,38 @@ class admin_OperacionesController extends Controller
 
         $request->validate([
             'nombre' => 'required|max:150|unique:campanias,nombre,' . $id,
-            'tipo' => 'required|in:descuento,envio_gratis,combo,temporada,flash_sale',
+            'tipo' => 'required|in:descuento,temporada,flash_sale',
             'descripcion' => 'nullable|string',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after:fecha_inicio',
-            'descuento_porcentaje' => 'nullable|numeric|between:0.01,99.99',
-            'descuento_monto' => 'nullable|numeric|min:0.01',
-            'condicion_minimo' => 'nullable|numeric|min:0',
-            'aplica_todos_productos' => 'nullable|boolean',
-            'productos' => 'nullable|array',
+            'descuento_porcentaje' => 'required_without:descuento_monto|nullable|numeric|between:0.01,99.99|prohibits:descuento_monto',
+            'descuento_monto' => 'required_without:descuento_porcentaje|nullable|numeric|min:0.01|prohibits:descuento_porcentaje',
+            'productos' => 'required|array|min:1',
             'productos.*' => 'exists:productos,id',
             'descuentos_especificos' => 'nullable|array',
-            'imagen_banner' => 'nullable|image|max:2048',
+        ], [
+            'descuento_porcentaje.prohibits' => 'Solo puedes usar un tipo de descuento: porcentaje O monto, no ambos.',
+            'descuento_monto.prohibits' => 'Solo puedes usar un tipo de descuento: porcentaje O monto, no ambos.',
+            'descuento_porcentaje.required_without' => 'Debes ingresar un descuento: porcentaje o monto.',
+            'descuento_monto.required_without' => 'Debes ingresar un descuento: porcentaje o monto.',
+            'productos.required' => 'Debes seleccionar al menos un producto para la campaña.',
+            'productos.min' => 'Debes seleccionar al menos un producto para la campaña.',
         ]);
+
+        $productosEnConflicto = DB::table('campania_productos')
+            ->join('campanias', 'campanias.id', '=', 'campania_productos.campania_id')
+            ->where('campanias.estado', 'activa')
+            ->whereDate('campanias.fecha_fin', '>=', now()->toDateString())
+            ->whereNull('campanias.deleted_at')
+            ->where('campanias.id', '!=', $id)
+            ->whereIn('campania_productos.producto_id', $request->productos)
+            ->exists();
+
+        if ($productosEnConflicto) {
+            return back()
+                ->withErrors(['productos' => 'Uno o más productos seleccionados ya están en otra campaña activa. Refresca la página y vuelve a elegirlos.'])
+                ->withInput();
+        }
 
         $data = [
             'nombre' => $request->nombre,
@@ -933,27 +818,21 @@ class admin_OperacionesController extends Controller
             'tipo' => $request->tipo,
             'descuento_porcentaje' => $request->descuento_porcentaje,
             'descuento_monto' => $request->descuento_monto,
-            'condicion_minimo' => $request->condicion_minimo,
             'fecha_inicio' => $request->fecha_inicio,
             'fecha_fin' => $request->fecha_fin,
-            'aplica_todos_productos' => $request->boolean('aplica_todos_productos'),
         ];
-
-        if ($request->hasFile('imagen_banner')) {
-            $data['imagen_banner'] = $request->file('imagen_banner')->store('campanias', 'public');
-        }
 
         $campania->update($data);
 
-        if (!$request->boolean('aplica_todos_productos') && $request->filled('productos')) {
-            $syncData = [];
-            foreach ($request->productos as $productoId) {
-                $descEsp = $request->descuentos_especificos[$productoId] ?? null;
-                $syncData[$productoId] = ['descuento_especifico' => $descEsp];
-            }
-            $campania->productos()->sync($syncData);
-        } elseif ($request->boolean('aplica_todos_productos')) {
-            $campania->productos()->detach();
+        $syncData = [];
+        foreach ($request->productos as $productoId) {
+            $descEsp = $request->descuentos_especificos[$productoId] ?? null;
+            $syncData[$productoId] = ['descuento_especifico' => $descEsp];
+        }
+        $campania->productos()->sync($syncData);
+
+        if ($campania->estado === 'activa') {
+            $campania->aplicarDescuentoAProductos();
         }
 
         return redirect()->route('admin-operaciones-campanias.index')
@@ -972,8 +851,8 @@ class admin_OperacionesController extends Controller
     {
         $campania = Campania::with('productos')->findOrFail($id);
 
-        if (!$campania->aplica_todos_productos && $campania->productos->isEmpty()) {
-            return response()->json(['success' => false, 'message' => 'La campaña debe tener productos asociados o aplicar a todos.'], 422);
+        if ($campania->productos->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'La campaña debe tener productos asociados.'], 422);
         }
 
         $userId = request()->user() ? request()->user()->id : null;
@@ -984,7 +863,10 @@ class admin_OperacionesController extends Controller
 
     public function campaniasPausar(Request $request, $id)
     {
-        $request->validate(['motivo' => 'required|string|max:255']);
+        $request->validate(['motivo' => 'required|string|max:255'], [
+            'motivo.required' => 'Debes indicar un motivo para pausar la campaña.',
+            'motivo.max' => 'El motivo no puede superar los 255 caracteres.',
+        ]);
 
         $campania = Campania::findOrFail($id);
         $userId = $request->user() ? $request->user()->id : null;
@@ -1023,7 +905,10 @@ class admin_OperacionesController extends Controller
         $nueva = $original->replicate(['activado_por', 'activado_at', 'pausado_por', 'pausado_at', 'motivo_pausa']);
         $nueva->nombre = $original->nombre . ' (Copia)';
         $nueva->slug = Str::slug($nueva->nombre) . '-' . time();
-        $nueva->estado = 'borrador';
+        $nueva->estado = 'pausada';
+        $nueva->motivo_pausa = 'Duplicada desde "' . $original->nombre . '". Revisa y reanuda para activar.';
+        $nueva->pausado_por = $userId;
+        $nueva->pausado_at = now();
         $nueva->creado_por = $userId;
         $nueva->save();
 
@@ -1036,7 +921,7 @@ class admin_OperacionesController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Campaña duplicada como borrador.',
+            'message' => 'Campaña duplicada (pausada). Revísala y reanúdala para activar.',
             'redirect' => route('admin-operaciones-campanias.edit', $nueva->id),
         ]);
     }
@@ -1053,6 +938,22 @@ class admin_OperacionesController extends Controller
             });
         }
 
+        // Excluir productos ya asociados a campañas activas vigentes
+        // (excepto la campaña actual cuando se está editando)
+        $campaniaActualId = $request->input('campania_id');
+
+        $productosEnCampaniasActivas = DB::table('campania_productos')
+            ->join('campanias', 'campanias.id', '=', 'campania_productos.campania_id')
+            ->where('campanias.estado', 'activa')
+            ->whereDate('campanias.fecha_fin', '>=', now()->toDateString())
+            ->whereNull('campanias.deleted_at')
+            ->when($campaniaActualId, fn($q) => $q->where('campanias.id', '!=', $campaniaActualId))
+            ->pluck('campania_productos.producto_id');
+
+        if ($productosEnCampaniasActivas->isNotEmpty()) {
+            $query->whereNotIn('id', $productosEnCampaniasActivas);
+        }
+
         $productos = $query->orderBy('name')->limit(50)->get(['id', 'name', 'codigo', 'precio']);
 
         return response()->json($productos);
@@ -1067,7 +968,25 @@ class admin_OperacionesController extends Controller
             'labels' => $metricas->pluck('fecha')->map(fn($f) => $f->format('d/m')),
             'pedidos' => $metricas->pluck('pedidos_generados'),
             'ventas' => $metricas->pluck('monto_total'),
-            'visitas' => $metricas->pluck('visitas'),
+        ]);
+    }
+
+    /**
+     * Auto-finaliza campañas vencidas y resetea precios de sus productos.
+     * Disparado por polling AJAX desde el layout administrador (cada 3s).
+     */
+    public function campaniasSincronizar()
+    {
+        $vencidas = Campania::where('estado', 'activa')
+            ->whereDate('fecha_fin', '<', now()->toDateString())
+            ->get();
+
+        foreach ($vencidas as $campania) {
+            $campania->finalizar();
+        }
+
+        return response()->json([
+            'finalizadas' => $vencidas->count(),
         ]);
     }
 }

@@ -63,11 +63,6 @@
             color: #198754;
         }
 
-        .stat-card.borradores .stat-icon {
-            background: #6c757d20;
-            color: #6c757d;
-        }
-
         .stat-card.pausadas .stat-icon {
             background: #ffc10720;
             color: #cc9a00;
@@ -146,10 +141,6 @@
             background: linear-gradient(90deg, #198754, #20c997);
         }
 
-        .campaign-banner.borrador {
-            background: linear-gradient(90deg, #6c757d, #adb5bd);
-        }
-
         .campaign-banner.pausada {
             background: linear-gradient(90deg, #ffc107, #ffda6a);
         }
@@ -191,11 +182,6 @@
         .campaign-status.activa {
             background: #19875420;
             color: #198754;
-        }
-
-        .campaign-status.borrador {
-            background: #6c757d20;
-            color: #6c757d;
         }
 
         .campaign-status.pausada {
@@ -350,7 +336,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
-        .empty-state i {
+        .empty-state > i {
             font-size: 3.5rem;
             color: #dee2e6;
             margin-bottom: 1rem;
@@ -366,6 +352,30 @@
             color: #6c757d;
             font-size: 0.9rem;
             margin-bottom: 1.5rem;
+        }
+
+        .empty-state .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb), 0.25);
+            transition: all 0.2s ease;
+        }
+
+        .empty-state .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.35);
+            transform: translateY(-1px);
+        }
+
+        .empty-state .btn-primary i {
+            font-size: 1rem;
+            line-height: 1;
+            color: inherit;
+            margin-bottom: 0;
         }
 
         /* =============================================
@@ -462,13 +472,6 @@
                 <div class="stat-number">{{ $stats['activas'] }}</div>
                 <div class="stat-label">Activas</div>
             </div>
-            <div class="stat-card borradores">
-                <div class="stat-icon">
-                    <i class="bi bi-pencil-square"></i>
-                </div>
-                <div class="stat-number">{{ $stats['borradores'] }}</div>
-                <div class="stat-label">Borradores</div>
-            </div>
             <div class="stat-card pausadas">
                 <div class="stat-icon">
                     <i class="bi bi-pause-circle"></i>
@@ -499,7 +502,6 @@
                         <select class="form-select" id="filterEstado">
                             <option value="">Todos</option>
                             <option value="activa">Activas</option>
-                            <option value="borrador">Borradores</option>
                             <option value="pausada">Pausadas</option>
                             <option value="finalizada">Finalizadas</option>
                         </select>
@@ -511,9 +513,8 @@
                         <select class="form-select" id="filterTipo">
                             <option value="">Todos</option>
                             <option value="descuento">Descuento</option>
-                            <option value="envio-gratis">Envío Gratis</option>
-                            <option value="combo">Combo/Kit</option>
                             <option value="temporada">Temporada</option>
+                            <option value="flash_sale">Flash Sale</option>
                         </select>
                     </div>
                 </div>
@@ -551,13 +552,13 @@
                             <div class="campaign-dates">
                                 <div class="campaign-date-item">
                                     <span class="date-label">Inicio</span>
-                                    <span class="date-value {{ $campania->estado === 'borrador' ? 'text-muted' : '' }}">
+                                    <span class="date-value">
                                         {{ \Carbon\Carbon::parse($campania->fecha_inicio)->isoFormat('DD MMM YYYY') }}
                                     </span>
                                 </div>
                                 <div class="campaign-date-item">
                                     <span class="date-label">Fin</span>
-                                    <span class="date-value {{ $campania->estado === 'borrador' ? 'text-muted' : '' }}">
+                                    <span class="date-value">
                                         {{ \Carbon\Carbon::parse($campania->fecha_fin)->isoFormat('DD MMM YYYY') }}
                                     </span>
                                 </div>
@@ -565,7 +566,7 @@
                                     @if($campania->estado === 'pausada')
                                         <span class="date-label">Motivo</span>
                                         <span class="date-value text-warning">{{ Str::limit($campania->motivo_pausa, 15) }}</span>
-                                    @elseif($campania->estado === 'finalizada' || $campania->estado === 'borrador')
+                                    @elseif($campania->estado === 'finalizada')
                                         <span class="date-label">Duración</span>
                                         <span class="date-value">
                                             {{ \Carbon\Carbon::parse($campania->fecha_inicio)->diffInDays(\Carbon\Carbon::parse($campania->fecha_fin)) }} días
@@ -580,38 +581,22 @@
                             </div>
                             <div class="campaign-metrics">
                                 <div class="campaign-metric">
-                                    <div class="metric-value">
-                                        {{ $campania->estado === 'borrador' ? '—' : $campania->total_pedidos }}
-                                    </div>
+                                    <div class="metric-value">{{ $campania->total_pedidos }}</div>
                                     <div class="metric-label">Pedidos</div>
                                 </div>
                                 <div class="campaign-metric">
                                     <div class="metric-value">
-                                        @if($campania->estado === 'borrador')
-                                            —
-                                        @else
-                                            S/ {{ $campania->total_ventas >= 1000 ? number_format($campania->total_ventas / 1000, 1) . 'K' : number_format($campania->total_ventas, 0) }}
-                                        @endif
+                                        S/ {{ $campania->total_ventas >= 1000 ? number_format($campania->total_ventas / 1000, 1) . 'K' : number_format($campania->total_ventas, 0) }}
                                     </div>
                                     <div class="metric-label">Ventas</div>
                                 </div>
-                                <div class="campaign-metric">
-                                    <div class="metric-value">
-                                        {{ $campania->estado === 'borrador' ? '—' : $campania->tasa_conversion . '%' }}
-                                    </div>
-                                    <div class="metric-label">Conversión</div>
-                                </div>
                             </div>
                             <div class="campaign-products">
-                                @if($campania->aplica_todos_productos)
-                                    <span class="product-tag">Todos los productos</span>
-                                @else
-                                    @foreach($campania->productos->take(3) as $producto)
-                                        <span class="product-tag">{{ $producto->nombre }}</span>
-                                    @endforeach
-                                    @if($campania->productos->count() > 3)
-                                        <span class="product-tag more">+{{ $campania->productos->count() - 3 }} más</span>
-                                    @endif
+                                @foreach($campania->productos->take(3) as $producto)
+                                    <span class="product-tag">{{ $producto->nombre }}</span>
+                                @endforeach
+                                @if($campania->productos->count() > 3)
+                                    <span class="product-tag more">+{{ $campania->productos->count() - 3 }} más</span>
                                 @endif
                             </div>
                         </div>
@@ -622,17 +607,7 @@
                             </span>
                             <div>
                                 {{-- Acciones según estado --}}
-                                @if($campania->estado === 'borrador')
-                                    <a href="{{ route('admin-operaciones-campanias.edit', $campania->id) }}" class="btn btn-outline-secondary btn-sm me-1" title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <button class="btn btn-success btn-sm me-1 btn-activar" data-id="{{ $campania->id }}" data-nombre="{{ $campania->nombre }}" title="Activar">
-                                        <i class="bi bi-play-fill me-1"></i>Activar
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-sm btn-eliminar" data-id="{{ $campania->id }}" data-nombre="{{ $campania->nombre }}" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                @elseif($campania->estado === 'activa')
+                                @if($campania->estado === 'activa')
                                     <button class="btn btn-outline-warning btn-sm me-1 btn-pausar" data-id="{{ $campania->id }}" data-nombre="{{ $campania->nombre }}" title="Pausar">
                                         <i class="bi bi-pause-fill"></i>
                                     </button>
@@ -665,7 +640,7 @@
                         <h5>No hay campañas registradas</h5>
                         <p>Crea tu primera campaña para comenzar a impulsar tus ventas con promociones y descuentos especiales.</p>
                         <a href="{{ route('admin-operaciones-campanias.create') }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-1"></i>Crear Primera Campaña
+                            <i class="bi bi-plus-circle"></i>Crear Primera Campaña
                         </a>
                     </div>
                 </div>
@@ -732,42 +707,6 @@
             });
 
             // =============================================
-            // ACTIVAR CAMPAÑA (borrador -> activa)
-            // =============================================
-            $(document).on('click', '.btn-activar', function() {
-                var id = $(this).data('id');
-                var nombre = $(this).data('nombre');
-
-                Swal.fire({
-                    title: '¿Activar campaña?',
-                    html: 'La campaña <strong>' + nombre + '</strong> se activará y será visible para los clientes.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#198754',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: '<i class="bi bi-play-fill me-1"></i>Sí, activar',
-                    cancelButtonText: 'Cancelar'
-                }).then(function(result) {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: baseUrlCampanias + '/' + id + '/activar',
-                            type: 'POST',
-                            success: function(response) {
-                                toastr.success('La campaña "' + nombre + '" ha sido activada exitosamente.');
-                                setTimeout(function() {
-                                    location.reload();
-                                }, 1000);
-                            },
-                            error: function(xhr) {
-                                var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Ocurrió un error al activar la campaña.';
-                                toastr.error(msg);
-                            }
-                        });
-                    }
-                });
-            });
-
-            // =============================================
             // PAUSAR CAMPAÑA (activa -> pausada)
             // =============================================
             $(document).on('click', '.btn-pausar', function() {
@@ -800,7 +739,7 @@
                             url: baseUrlCampanias + '/' + id + '/pausar',
                             type: 'POST',
                             data: {
-                                motivo_pausa: result.value
+                                motivo: result.value
                             },
                             success: function(response) {
                                 toastr.warning('La campaña "' + nombre + '" ha sido pausada.');
@@ -854,42 +793,6 @@
             });
 
             // =============================================
-            // ELIMINAR CAMPAÑA (solo borradores)
-            // =============================================
-            $(document).on('click', '.btn-eliminar', function() {
-                var id = $(this).data('id');
-                var nombre = $(this).data('nombre');
-
-                Swal.fire({
-                    title: '¿Eliminar campaña?',
-                    html: 'La campaña <strong>' + nombre + '</strong> será eliminada permanentemente. Esta acción no se puede deshacer.',
-                    icon: 'error',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: '<i class="bi bi-trash me-1"></i>Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then(function(result) {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: baseUrlCampanias + '/' + id,
-                            type: 'DELETE',
-                            success: function(response) {
-                                toastr.success('La campaña "' + nombre + '" ha sido eliminada.');
-                                setTimeout(function() {
-                                    location.reload();
-                                }, 1000);
-                            },
-                            error: function(xhr) {
-                                var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Ocurrió un error al eliminar la campaña.';
-                                toastr.error(msg);
-                            }
-                        });
-                    }
-                });
-            });
-
-            // =============================================
             // DUPLICAR CAMPAÑA (finalizadas)
             // =============================================
             $(document).on('click', '.btn-duplicar', function() {
@@ -898,7 +801,7 @@
 
                 Swal.fire({
                     title: '¿Duplicar campaña?',
-                    html: 'Se creará una copia de <strong>' + nombre + '</strong> en estado borrador con las mismas configuraciones.',
+                    html: 'Se creará una copia de <strong>' + nombre + '</strong> en estado pausado para que la revises antes de activarla.',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#0d6efd',
