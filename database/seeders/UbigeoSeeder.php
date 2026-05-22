@@ -14,6 +14,11 @@ class UbigeoSeeder extends Seeder
      */
     public function run(): void
     {
+        if (DB::table('departamentos')->exists()) {
+            $this->command->info('UbigeoSeeder: departamentos ya poblada, omitiendo.');
+            return;
+        }
+
         // =====================================================
         // DEPARTAMENTOS
         // =====================================================

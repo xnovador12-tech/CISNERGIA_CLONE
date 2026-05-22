@@ -296,6 +296,15 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     const CFG = document.getElementById('marketingConfig').dataset;
+    window.FALLBACK_AVATAR = CFG.fallbackImg;
+
+    document.addEventListener('error', function(e) {
+        const img = e.target;
+        if (img.tagName === 'IMG' && img.dataset.fallback === '1' && img.src !== window.FALLBACK_AVATAR) {
+            img.src = window.FALLBACK_AVATAR;
+            img.dataset.fallback = '0';
+        }
+    }, true);
 
     axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     axios.defaults.headers.common['X-CSRF-TOKEN'] = CFG.csrf;
@@ -628,7 +637,11 @@
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <div class="d-flex gap-2 align-items-center">
-                        <div class="user-initials text-white" style="background-color: #1C3146;">${(c.from?.name || 'U').substring(0,1)}</div>
+                        <img src="${c.perfil?.profile_pic || window.FALLBACK_AVATAR}"
+                             class="rounded-circle border border-2 border-light shadow-sm"
+                             style="width: 35px; height: 35px; object-fit: cover;"
+                             alt="Avatar"
+                             data-fallback="1">
                         <h6 class="mb-0 fw-bold small text-dark">${c.from?.name || 'Usuario'}</h6>
                     </div>
                 </div>

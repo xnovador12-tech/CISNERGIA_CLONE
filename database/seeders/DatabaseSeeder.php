@@ -3,38 +3,55 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
-     *
      * ORDEN CRÍTICO:
      *   1. RoleTableSeeder        → crea los 8 roles
      *   2. PermissionSeeder       → crea los ~70 permisos
      *   3. RolePermissionSeeder   → asigna permisos a Gerencia y Administrador
-     *   4. UserTableSeeder        → crea usuarios y les asigna roles (usa assignRole)
+     *   4. UserTableSeeder        → crea usuarios y les asigna roles
      *
-     * NOTA: NO usar WithoutModelEvents aquí.
-     * Los modelos CRM (Prospecto, Oportunidad, Cliente, etc.) dependen
-     * de boot() events para auto-generar codigo y slug.
+     * Los seeders "pesados" (catálogos, ubigeo, productos) corren UNA SOLA VEZ
+     * cuando la BD está vacía. Los seeders idempotentes (plantillas marketing)
+     * siempre corren.
      */
     public function run(): void
     {
-        // Ubigeo (Departamentos, Provincias, Distritos) - DEBE IR PRIMERO
-        $this->call(UbigeoSeeder::class);
+        $primerArranque = $this->esPrimerArranque();
 
+        if ($primerArranque) {
+            $this->seedersPesados();
+        } else {
+            $this->command->info('BD ya inicializada. Saltando seeders pesados de catálogos.');
+        }
+
+        $this->seedersIdempotentes();
+    }
+
+    private function esPrimerArranque(): bool
+    {
+        if (!Schema::hasTable('departamentos')) {
+            return true;
+        }
+        return DB::table('departamentos')->count() === 0;
+    }
+
+    private function seedersPesados(): void
+    {
+        $this->call(UbigeoSeeder::class);
         $this->call(IdentificacionTableSeeder::class);
         $this->call(TipoTableSeeder::class);
         $this->call(SedeTableSeeder::class);
 
-        // ─── Auth (Spatie) ────────────────────────────────────────────────
-        $this->call(RoleTableSeeder::class);       // 1. Roles
-        $this->call(PermissionSeeder::class);      // 2. Permisos
-        $this->call(RolePermissionSeeder::class);  // 3. Asignación rol ↔ permiso
-        $this->call(UserTableSeeder::class);       // 4. Usuarios con assignRole()
+        $this->call(RoleTableSeeder::class);
+        $this->call(PermissionSeeder::class);
+        $this->call(RolePermissionSeeder::class);
+        $this->call(UserTableSeeder::class);
 
-        // ─── Catálogos ────────────────────────────────────────────────────
         $this->call(CategoryTableSeeder::class);
         $this->call(MonedaSeeder::class);
         $this->call(BancoTableSeeder::class);
@@ -53,21 +70,20 @@ class DatabaseSeeder extends Seeder
         $this->call(SerieComprobanteSeeder::class);
         $this->call(CuentaBancariaTestSeeder::class);
 
-        // Productos (necesario antes del CRM para las cotizaciones)
         $this->call(ModeloSeeder::class);
         $this->call(ProductoSeeder::class);
         $this->call(InventarioSeeder::class);
 
-        // Servicios del catálogo (antes del CRM para trazabilidad en cotizaciones)
         $this->call(ServicioSeeder::class);
 
-        // Operaciones Module Seeders
         $this->call(ChecklistItemTableSeeder::class);
         $this->call(KanbanTestDataSeeder::class);
         $this->call(OrdenCompraTestSeeder::class);
         $this->call(OrdenCompraCuotasTestSeeder::class);
+    }
 
-        // Marketing
+    private function seedersIdempotentes(): void
+    {
         $this->call(PlantillasEmailSeeder::class);
     }
 }

@@ -602,6 +602,245 @@
     }
     .etiquetas-selector .btn-nueva-etiqueta:hover { border-color: var(--cs-accent); color: var(--cs-accent); }
 
+    /* ── Campo "Para" con badge contador ── */
+    .cs-para-wrap {
+        flex: 1;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .cs-para-input { flex: 1; }
+    .cs-para-badge {
+        flex-shrink: 0;
+        background: var(--cs-dark);
+        color: white;
+        border: none;
+        padding: 9px 14px;
+        border-radius: 7px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.2s;
+        white-space: nowrap;
+    }
+    .cs-para-badge:hover { background: var(--cs-dark-2); }
+    .cs-para-badge:disabled { opacity: 0.5; cursor: not-allowed; }
+    .cs-para-badge.empty { background: #adb5bd; color: white; }
+
+    /* ── Modal flotante destinatarios ── */
+    .modal-destinatarios {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1070;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s;
+    }
+    .modal-destinatarios.activo { opacity: 1; pointer-events: auto; }
+
+    .md-card {
+        width: 100%;
+        max-width: 520px;
+        max-height: 80vh;
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transform: scale(0.95);
+        transition: transform 0.25s cubic-bezier(.25,.8,.25,1);
+    }
+    .modal-destinatarios.activo .md-card { transform: scale(1); }
+
+    .md-header {
+        background: var(--cs-dark);
+        color: white;
+        padding: 16px 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .md-header h4 {
+        font-family: 'Crimson Pro', serif;
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .md-close {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        line-height: 1;
+        padding: 4px 8px;
+        border-radius: 50%;
+        transition: 0.15s;
+    }
+    .md-close:hover { background: rgba(255,255,255,0.15); }
+
+    .md-search {
+        padding: 14px 22px 8px;
+        position: relative;
+    }
+    .md-search input {
+        width: 100%;
+        border: 1px solid var(--cs-border);
+        border-radius: 8px;
+        padding: 8px 12px 8px 34px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        outline: none;
+    }
+    .md-search input:focus { border-color: var(--cs-accent); }
+    .md-search svg {
+        position: absolute;
+        left: 32px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--cs-muted);
+    }
+
+    .md-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 4px 14px 14px;
+    }
+    .md-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--cs-muted);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+    }
+    .md-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border-radius: 7px;
+        margin-bottom: 4px;
+        transition: 0.15s;
+    }
+    .md-item:hover { background: var(--cs-light); }
+    .md-item-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+    .md-item-email {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        color: var(--cs-dark);
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .md-item-origen {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: var(--cs-muted);
+    }
+    .md-item-origen.manual { color: #6c757d; }
+    .md-item-origen.crm { color: var(--cs-accent); }
+    .md-item-origen.meta { color: #20c997; }
+    .md-item-del {
+        background: none;
+        border: none;
+        color: var(--cs-muted);
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 5px;
+        line-height: 1;
+        transition: 0.15s;
+    }
+    .md-item-del:hover { background: rgba(220,53,69,0.12); color: var(--cs-danger); }
+
+    .md-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 8px 14px 4px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 12px;
+    }
+    .md-pagination button {
+        background: white;
+        border: 1px solid var(--cs-border);
+        color: var(--cs-dark);
+        padding: 4px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        transition: 0.15s;
+    }
+    .md-pagination button:hover:not(:disabled) { border-color: var(--cs-dark); }
+    .md-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .md-pagination .md-page-info {
+        color: var(--cs-muted);
+        padding: 0 8px;
+    }
+
+    .md-footer {
+        padding: 12px 22px;
+        background: var(--cs-light);
+        border-top: 1px solid var(--cs-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .md-footer-stats {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 12px;
+        color: var(--cs-muted);
+    }
+    .md-btn-vaciar {
+        background: none;
+        border: 1px solid var(--cs-border);
+        color: var(--cs-danger);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.15s;
+    }
+    .md-btn-vaciar:hover { background: rgba(220,53,69,0.08); border-color: var(--cs-danger); }
+
+    .md-aviso-limite {
+        margin: 0 22px 8px;
+        padding: 8px 12px;
+        background: rgba(255,193,7,0.12);
+        border: 1px solid rgba(255,193,7,0.4);
+        border-radius: 6px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 11px;
+        color: #856404;
+        display: none;
+    }
+    .md-aviso-limite.activo { display: block; }
+
     @media (max-width: 767px) {
         .cs-composer-wrap { padding: 16px 8px; }
         .cs-panel-header { padding: 16px 18px; flex-wrap: wrap; gap: 8px; }
@@ -664,13 +903,20 @@
                 <input type="hidden" name="contenido"  id="contenidoHtml">
                 <input type="hidden" name="logo_path"  id="selectedLogoPath">
                 <input type="hidden" name="enviar_el"  id="enviarEl">
+                <input type="hidden" name="destinatarios" id="destinatariosCsv">
 
                 {{-- Para + Asunto --}}
                 <div class="cs-section" style="background:#fafafa;">
                     <div class="cs-field-row" style="margin-bottom:14px;">
                         <span class="cs-label">Para</span>
-                        <input type="text" name="destinatarios" class="cs-input"
-                               placeholder="cliente@empresa.com, otro@correo.com" required>
+                        <div class="cs-para-wrap">
+                            <input type="email" id="paraInput" class="cs-input cs-para-input"
+                                   placeholder="Escribe un correo y presiona Enter o coma">
+                            <button type="button" class="cs-para-badge" id="btnAbrirDestinatarios" title="Ver lista de destinatarios">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <span id="contadorDestinatarios">0</span> destinatarios
+                            </button>
+                        </div>
                     </div>
                     <div class="cs-field-row">
                         <span class="cs-label">Asunto</span>
@@ -762,6 +1008,36 @@
     </div>
 </div>
 
+<div class="modal-destinatarios" id="modalDestinatarios" aria-hidden="true">
+    <div class="md-card">
+        <div class="md-header">
+            <h4>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Lista de destinatarios
+            </h4>
+            <button type="button" class="md-close" id="btnCerrarDestinatarios" title="Cerrar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <div class="md-aviso-limite" id="mdAvisoLimite"></div>
+
+        <div class="md-search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="mdBusqueda" placeholder="Buscar correo en la lista…">
+        </div>
+
+        <div class="md-body" id="mdBody"></div>
+
+        <div class="md-pagination" id="mdPaginacion"></div>
+
+        <div class="md-footer">
+            <span class="md-footer-stats" id="mdStats">0 destinatarios</span>
+            <button type="button" class="md-btn-vaciar" id="btnVaciarDestinatarios">Vaciar lista</button>
+        </div>
+    </div>
+</div>
+
 <div class="panel-backdrop" id="panelBackdrop"></div>
 <aside class="panel-plantillas" id="panelPlantillas" aria-hidden="true">
     <div class="panel-header">
@@ -829,6 +1105,201 @@
     const EMAILS_CFG = document.getElementById('emailsConfig').dataset;
     axios.defaults.headers.common['X-CSRF-TOKEN'] = EMAILS_CFG.csrf;
     axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+    // ── DESTINATARIOS — estado + modal flotante con paginate ─────────────
+    const LIMITE_GMAIL_DIARIO = 500;
+    const POR_PAGINA = 10;
+    let destinatariosList = [];
+    let mdPaginaActual = 1;
+    let mdBusquedaActual = '';
+
+    const paraInput = document.getElementById('paraInput');
+    const contadorEl = document.getElementById('contadorDestinatarios');
+    const btnAbrirMd = document.getElementById('btnAbrirDestinatarios');
+    const modalMd = document.getElementById('modalDestinatarios');
+    const mdBody = document.getElementById('mdBody');
+    const mdStats = document.getElementById('mdStats');
+    const mdPaginacionEl = document.getElementById('mdPaginacion');
+    const mdAvisoLimite = document.getElementById('mdAvisoLimite');
+    const mdBusquedaInput = document.getElementById('mdBusqueda');
+
+    function esEmailValido(s) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+    }
+
+    function agregarDestinatario(email, origen = 'manual', meta = {}) {
+        email = String(email).trim().toLowerCase();
+        if (!email) return false;
+        if (!esEmailValido(email)) {
+            Swal.fire('Correo inválido', email + ' no es un email válido.', 'warning');
+            return false;
+        }
+        if (destinatariosList.some(d => d.email === email)) return false;
+        destinatariosList.push({ email, origen, ...meta });
+        actualizarUI();
+        return true;
+    }
+
+    function eliminarDestinatario(email) {
+        destinatariosList = destinatariosList.filter(d => d.email !== email);
+        const totalPag = Math.max(1, Math.ceil(destinatariosFiltrados().length / POR_PAGINA));
+        if (mdPaginaActual > totalPag) mdPaginaActual = totalPag;
+        actualizarUI();
+    }
+
+    function vaciarDestinatarios() {
+        destinatariosList = [];
+        mdPaginaActual = 1;
+        actualizarUI();
+    }
+
+    function destinatariosFiltrados() {
+        const q = mdBusquedaActual.toLowerCase();
+        if (!q) return destinatariosList;
+        return destinatariosList.filter(d => d.email.includes(q));
+    }
+
+    function actualizarUI() {
+        const n = destinatariosList.length;
+        contadorEl.textContent = n;
+        btnAbrirMd.classList.toggle('empty', n === 0);
+        mdStats.textContent = n + ' destinatario' + (n === 1 ? '' : 's');
+
+        if (n > LIMITE_GMAIL_DIARIO) {
+            mdAvisoLimite.classList.add('activo');
+            mdAvisoLimite.innerHTML = '⚠ Tienes <strong>' + n + '</strong> destinatarios. Gmail SMTP solo permite ~' + LIMITE_GMAIL_DIARIO + '/día. Los excedentes serán rechazados.';
+        } else {
+            mdAvisoLimite.classList.remove('activo');
+        }
+
+        renderModalLista();
+    }
+
+    function renderModalLista() {
+        const lista = destinatariosFiltrados();
+        if (lista.length === 0) {
+            mdBody.innerHTML = '<div class="md-empty">' +
+                (mdBusquedaActual ? 'No hay coincidencias para "' + mdBusquedaActual + '"' : 'Aún no has agregado destinatarios. Escribe un correo en el campo "Para" y presiona Enter.') +
+                '</div>';
+            mdPaginacionEl.innerHTML = '';
+            return;
+        }
+
+        const totalPag = Math.ceil(lista.length / POR_PAGINA);
+        if (mdPaginaActual > totalPag) mdPaginaActual = totalPag;
+        const inicio = (mdPaginaActual - 1) * POR_PAGINA;
+        const pagina = lista.slice(inicio, inicio + POR_PAGINA);
+
+        mdBody.innerHTML = pagina.map(d => `
+            <div class="md-item">
+                <div class="md-item-info">
+                    <span class="md-item-email">${escapeHtml(d.email)}</span>
+                    <span class="md-item-origen ${d.origen}">${d.origen === 'manual' ? 'Manual' : (d.origen === 'crm' ? 'CRM' : 'Meta')}</span>
+                </div>
+                <button type="button" class="md-item-del" data-email="${escapeHtml(d.email)}" title="Quitar">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+        `).join('');
+
+        if (totalPag > 1) {
+            mdPaginacionEl.innerHTML = `
+                <button type="button" data-accion="prev" ${mdPaginaActual === 1 ? 'disabled' : ''}>‹ Anterior</button>
+                <span class="md-page-info">Página ${mdPaginaActual} de ${totalPag}</span>
+                <button type="button" data-accion="next" ${mdPaginaActual === totalPag ? 'disabled' : ''}>Siguiente ›</button>
+            `;
+        } else {
+            mdPaginacionEl.innerHTML = '';
+        }
+    }
+
+    // Eventos del modal
+    btnAbrirMd.addEventListener('click', () => {
+        modalMd.classList.add('activo');
+        modalMd.setAttribute('aria-hidden', 'false');
+        renderModalLista();
+    });
+
+    document.getElementById('btnCerrarDestinatarios').addEventListener('click', () => {
+        modalMd.classList.remove('activo');
+        modalMd.setAttribute('aria-hidden', 'true');
+    });
+
+    modalMd.addEventListener('click', (e) => {
+        if (e.target === modalMd) {
+            modalMd.classList.remove('activo');
+            modalMd.setAttribute('aria-hidden', 'true');
+        }
+    });
+
+    mdBusquedaInput.addEventListener('input', (e) => {
+        mdBusquedaActual = e.target.value;
+        mdPaginaActual = 1;
+        renderModalLista();
+    });
+
+    mdBody.addEventListener('click', (e) => {
+        const btn = e.target.closest('.md-item-del');
+        if (btn) eliminarDestinatario(btn.dataset.email);
+    });
+
+    mdPaginacionEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-accion]');
+        if (!btn) return;
+        const totalPag = Math.ceil(destinatariosFiltrados().length / POR_PAGINA);
+        if (btn.dataset.accion === 'prev' && mdPaginaActual > 1) mdPaginaActual--;
+        if (btn.dataset.accion === 'next' && mdPaginaActual < totalPag) mdPaginaActual++;
+        renderModalLista();
+    });
+
+    document.getElementById('btnVaciarDestinatarios').addEventListener('click', async () => {
+        if (destinatariosList.length === 0) return;
+        const r = await Swal.fire({
+            title: '¿Vaciar lista?',
+            text: 'Se eliminarán ' + destinatariosList.length + ' destinatarios.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Sí, vaciar',
+            cancelButtonText: 'Cancelar',
+        });
+        if (r.isConfirmed) vaciarDestinatarios();
+    });
+
+    // Input "Para" — Enter o coma agrega a la lista
+    paraInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            if (agregarDestinatario(paraInput.value, 'manual')) {
+                paraInput.value = '';
+            }
+        }
+    });
+
+    paraInput.addEventListener('blur', () => {
+        if (paraInput.value.trim()) {
+            if (agregarDestinatario(paraInput.value, 'manual')) {
+                paraInput.value = '';
+            }
+        }
+    });
+
+    // Pegar lista de correos separados por coma o salto de línea
+    paraInput.addEventListener('paste', (e) => {
+        const texto = (e.clipboardData || window.clipboardData).getData('text');
+        if (texto.includes(',') || texto.includes('\n') || texto.includes(' ')) {
+            e.preventDefault();
+            const correos = texto.split(/[\s,;]+/).filter(Boolean);
+            let agregados = 0;
+            correos.forEach(c => { if (agregarDestinatario(c, 'manual')) agregados++; });
+            paraInput.value = '';
+            if (agregados > 0) {
+                Swal.fire({ icon: 'success', title: agregados + ' agregados', timer: 1200, showConfirmButton: false });
+            }
+        }
+    });
+
+    actualizarUI();
 
     var quill = new Quill('#editor-container', {
         theme: 'snow',
@@ -983,32 +1454,51 @@
         btnSendLabel.textContent = toggleProgramar.checked ? 'Programar envío' : 'Enviar propuesta';
     });
 
-    document.getElementById('btnSend').addEventListener('click', function(e) {
+    document.getElementById('btnSend').addEventListener('click', async function(e) {
+        e.preventDefault();
         const form = document.getElementById('emailForm');
 
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            e.preventDefault();
+        if (paraInput.value.trim()) {
+            if (agregarDestinatario(paraInput.value, 'manual')) paraInput.value = '';
+        }
+
+        if (destinatariosList.length === 0) {
+            Swal.fire('Atención', 'Agrega al menos un destinatario.', 'warning');
             return;
+        }
+
+        if (!document.querySelector('input[name="asunto"]').value.trim()) {
+            Swal.fire('Atención', 'El asunto es obligatorio.', 'warning');
+            return;
+        }
+
+        const total = destinatariosList.length;
+        if (total > LIMITE_GMAIL_DIARIO) {
+            const r = await Swal.fire({
+                title: 'Excede el límite diario de Gmail',
+                html: 'Tienes <strong>' + total + '</strong> destinatarios, pero Gmail SMTP solo permite ~' + LIMITE_GMAIL_DIARIO + ' al día.<br><br>Los excedentes serán rechazados automáticamente. ¿Continuar de todos modos?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#198754',
+            });
+            if (!r.isConfirmed) return;
         }
 
         const contenido = quill.root.innerHTML.trim();
         if (contenido === '<p><br></p>' || contenido === '') {
             Swal.fire('Atención', 'El cuerpo del correo no puede estar vacío.', 'warning');
-            e.preventDefault();
             return;
         }
 
         if (toggleProgramar.checked) {
             if (!datetimeProgramar.value) {
                 Swal.fire('Atención', 'Selecciona la fecha y hora del envío programado.', 'warning');
-                e.preventDefault();
                 return;
             }
-            const fechaSeleccionada = new Date(datetimeProgramar.value);
-            if (fechaSeleccionada <= new Date()) {
+            if (new Date(datetimeProgramar.value) <= new Date()) {
                 Swal.fire('Atención', 'La fecha debe ser futura.', 'warning');
-                e.preventDefault();
                 return;
             }
             document.getElementById('enviarEl').value = datetimeProgramar.value;
@@ -1017,10 +1507,11 @@
         }
 
         document.getElementById('contenidoHtml').value = contenido;
+        document.getElementById('destinatariosCsv').value = destinatariosList.map(d => d.email).join(',');
 
-        const btn = this;
-        btn.classList.add('sending');
-        btn.innerHTML = '<span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:17px;">progress_activity</span> ' + (toggleProgramar.checked ? 'Programando…' : 'Enviando…');
+        this.classList.add('sending');
+        this.innerHTML = '<span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:17px;">progress_activity</span> ' + (toggleProgramar.checked ? 'Programando…' : 'Enviando…');
+        form.submit();
     });
 
     // ── PANEL PLANTILLAS ─────────────────────────────────────────────────

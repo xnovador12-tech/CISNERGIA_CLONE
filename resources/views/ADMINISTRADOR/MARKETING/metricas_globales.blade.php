@@ -56,10 +56,77 @@
     .text-cisnergia-dark { color: var(--cisnergia-dark) !important; }
     .text-cisnergia-green { color: var(--cisnergia-light-green) !important; }
     .text-muted-custom { padding-top: 0.85em; color: var(--cisnergia-muted); }
+
+    /* ── Filtros instantáneos ── */
+    .filter-input-wrap { position: relative; }
+    .filter-spinner {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 14px;
+        height: 14px;
+        border: 2px solid #e9ecef;
+        border-top-color: var(--cisnergia-light-green);
+        border-radius: 50%;
+        opacity: 0;
+        animation: spin 0.7s linear infinite;
+        transition: opacity 0.15s;
+    }
+    .filter-spinner.activo { opacity: 1; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .filter-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+    }
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(32, 201, 151, 0.12);
+        color: var(--cisnergia-dark);
+        border: 1px solid rgba(32, 201, 151, 0.35);
+        padding: 4px 10px;
+        border-radius: 14px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .filter-chip button {
+        background: none;
+        border: none;
+        color: var(--cisnergia-dark);
+        cursor: pointer;
+        padding: 0;
+        font-size: 13px;
+        line-height: 1;
+        opacity: 0.6;
+        transition: opacity 0.15s;
+    }
+    .filter-chip button:hover { opacity: 1; }
+
+    .btn-limpiar-filtros {
+        background: none;
+        border: 1px dashed #adb5bd;
+        color: #6c757d;
+        padding: 4px 10px;
+        border-radius: 14px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: 0.15s;
+    }
+    .btn-limpiar-filtros:hover { border-color: var(--cisnergia-dark); color: var(--cisnergia-dark); }
 </style>
 @endsection
 
 @section('content')
+<div id="globalConfig" data-fallback-avatar="{{ asset('img/no-image.png') }}"></div>
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -128,31 +195,44 @@
     </div>
 
     <div class="search-panel mb-4">
-        <form action="{{ route('admin.marketing.metricas_globales') }}" method="GET" class="row g-3 align-items-end">
-            <div class="col-md-4">
+        <form action="{{ route('admin.marketing.metricas_globales') }}" method="GET" id="filtrosForm" class="row g-3 align-items-end">
+            <div class="col-md-7">
                 <label class="form-label fw-bold small" style="color: #6c757d;">BÚSQUEDA POR PALABRA CLAVE</label>
-                <div class="input-group">
+                <div class="input-group filter-input-wrap">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                    <input type="text" name="keyword" value="{{ $keyword }}" class="form-control border-start-0" placeholder="Ej: Precio, Info, Stock...">
+                    <input type="text" name="keyword" id="inputKeyword" value="{{ $keyword }}"
+                           class="form-control border-start-0"
+                           placeholder="Escribe y filtra al instante — Ej: Precio, Info, Stock...">
+                    <span class="filter-spinner" id="filterSpinner"></span>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-5">
                 <label class="form-label fw-bold small" style="color: #6c757d;">FILTRAR POR CANAL</label>
-                <select name="canal" class="form-select">
+                <select name="canal" id="selectCanal" class="form-select">
                     <option value="all" {{ $canal == 'all' ? 'selected' : '' }}>Todos los canales</option>
                     <option value="fb" {{ $canal == 'fb' ? 'selected' : '' }}>Facebook</option>
                     <option value="ig" {{ $canal == 'ig' ? 'selected' : '' }}>Instagram</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-custom w-100 fw-bold rounded-pill shadow-sm">
-                    <i class="bi bi-funnel-fill me-2"></i> Aplicar Inteligencia
-                </button>
-            </div>
-            <div class="col-md-2 text-center">
-                <a href="{{ route('admin.marketing.metricas_globales') }}" class="btn btn-link small px-0" style="color: #6c757d;">Limpiar filtros</a>
-            </div>
         </form>
+
+        @if($keyword || $canal !== 'all')
+        <div class="filter-chips">
+            @if($keyword)
+                <span class="filter-chip">
+                    Palabra: "{{ $keyword }}"
+                    <button type="button" data-clear="keyword" title="Quitar">✕</button>
+                </span>
+            @endif
+            @if($canal !== 'all')
+                <span class="filter-chip">
+                    Canal: {{ $canal === 'fb' ? 'Facebook' : 'Instagram' }}
+                    <button type="button" data-clear="canal" title="Quitar">✕</button>
+                </span>
+            @endif
+            <button type="button" class="btn-limpiar-filtros" id="btnLimpiarTodo">Limpiar todo</button>
+        </div>
+        @endif
     </div>
 
     <div class="row">
@@ -167,6 +247,11 @@
                         <div class="comment-row p-3 mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ $comment['perfil']['profile_pic'] ?? asset('img/no-image.png') }}"
+                                         class="rounded-circle avatar-sm border border-2 border-light shadow-sm"
+                                         style="width: 32px; height: 32px;"
+                                         alt="Avatar"
+                                         data-fallback="1">
                                     <span class="platform-badge {{ $comment['platform'] == 'Facebook' ? '' : 'bg-secondary' }}">
                                         {{ $comment['platform'] }}
                                     </span>
@@ -235,8 +320,56 @@
 
 @push('scripts')
 <script>
+    const FALLBACK_AVATAR = document.getElementById('globalConfig').dataset.fallbackAvatar;
+
+    document.addEventListener('error', function(e) {
+        const img = e.target;
+        if (img.tagName === 'IMG' && img.dataset.fallback === '1' && img.src !== FALLBACK_AVATAR) {
+            img.src = FALLBACK_AVATAR;
+            img.dataset.fallback = '0';
+        }
+    }, true);
+
     function openInRadar(postId) {
         window.location.href = "{{ route('admin.marketing.metricas') }}?search=" + postId;
     }
+
+    (function() {
+        const form = document.getElementById('filtrosForm');
+        const inputKeyword = document.getElementById('inputKeyword');
+        const selectCanal = document.getElementById('selectCanal');
+        const spinner = document.getElementById('filterSpinner');
+        if (!form) return;
+
+        function submitConSpinner() {
+            spinner.classList.add('activo');
+            form.submit();
+        }
+
+        let debounceTimer = null;
+        inputKeyword.addEventListener('input', () => {
+            spinner.classList.add('activo');
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(submitConSpinner, 500);
+        });
+
+        selectCanal.addEventListener('change', submitConSpinner);
+
+        document.querySelectorAll('[data-clear]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const campo = btn.dataset.clear;
+                if (campo === 'keyword') inputKeyword.value = '';
+                if (campo === 'canal') selectCanal.value = 'all';
+                submitConSpinner();
+            });
+        });
+
+        const btnLimpiar = document.getElementById('btnLimpiarTodo');
+        if (btnLimpiar) {
+            btnLimpiar.addEventListener('click', () => {
+                window.location.href = "{{ route('admin.marketing.metricas_globales') }}";
+            });
+        }
+    })();
 </script>
 @endpush
