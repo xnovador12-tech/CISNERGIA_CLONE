@@ -445,4 +445,71 @@ class MarketingController extends Controller
         return redirect()->route('admin.marketing.emails')
             ->with('success', "Campaña programada para el {$fechaTexto}. Se enviará automáticamente.");
     }
+
+    public function debugQueue(): View
+    {
+        $pendientes = \DB::table('jobs')
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get()
+            ->map(function ($j) {
+                $payload = json_decode($j->payload, true);
+                return [
+                    'id'            => $j->id,
+                    'queue'         => $j->queue,
+                    'display'       => $payload['displayName']     ?? $payload['data']['commandName'] ?? '—',
+                    'attempts'      => $j->attempts,
+                    'available_at'  => $j->available_at ? \Carbon\Carbon::createFromTimestamp($j->available_at)->format('d M H:i:s') : '—',
+                    'created_at'    => $j->created_at   ? \Carbon\Carbon::createFromTimestamp($j->created_at)->format('d M H:i:s') : '—',
+                ];
+            });
+
+        $fallidos = \DB::table('failed_jobs')
+            ->orderByDesc('failed_at')
+            ->limit(20)
+            ->get()
+            ->map(function ($f) {
+                $payload = json_decode($f->payload, true);
+                return [
+                    'id'         => $f->id,
+                    'queue'      => $f->queue,
+                    'display'    => $payload['displayName'] ?? '—',
+                    'exception'  => $f->exception,
+                    'failed_at'  => $f->failed_at,
+                ];
+            });
+
+        $programadas = \App\Models\CampanaEmailProgramada::orderByDesc('id')
+            ->limit(20)
+            ->get(['id', 'asunto', 'estado', 'enviar_el', 'procesado_en', 'created_at', 'destinatarios', 'enviados_count', 'fallidos_count', 'detalle_error']);
+
+        $resumen = [
+            'pendientes_total' => \DB::table('jobs')->count(),
+            'fallidos_total'   => \DB::table('failed_jobs')->count(),
+            'programadas_pendientes' => \App\Models\CampanaEmailProgramada::where('estado', \App\Models\CampanaEmailProgramada::ESTADO_PENDIENTE)->count(),
+            'mail_host'        => config('mail.mailers.smtp.host'),
+            'mail_port'        => config('mail.mailers.smtp.port'),
+            'mail_username'    => config('mail.mailers.smtp.username'),
+            'mail_from'        => config('mail.from.address'),
+            'mail_timeout'     => config('mail.mailers.smtp.timeout'),
+            'queue_connection' => config('queue.default'),
+            'log_channel'      => config('logging.default'),
+        ];
+
+        return view('ADMINISTRADOR.MARKETING.emails.debug_queue', compact('pendientes', 'fallidos', 'programadas', 'resumen'));
+    }
+
+    public function reintentarJobFallido(string $id): RedirectResponse
+    {
+        \Artisan::call('queue:retry', ['id' => $id]);
+        return redirect()->route('admin.marketing.emails.debug-queue')
+            ->with('success', "Job {$id} marcado para reintento. Se procesará en el próximo tick del worker.");
+    }
+
+    public function eliminarJobFallido(string $id): RedirectResponse
+    {
+        \Artisan::call('queue:forget', ['id' => $id]);
+        return redirect()->route('admin.marketing.emails.debug-queue')
+            ->with('success', "Job {$id} eliminado.");
+    }
 }

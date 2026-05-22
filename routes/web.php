@@ -934,6 +934,11 @@ Route::prefix('administrador/marketing')->name('admin.marketing.')->middleware([
         Route::get('/emails', [MarketingController::class, 'emails'])->name('emails');
         Route::post('/emails/enviar', [MarketingController::class, 'sendEmailCampaign'])->name('emails.send');
 
+        // Debug queue (solo lectura, útil para diagnosticar envíos)
+        Route::get('/emails/debug-queue', [MarketingController::class, 'debugQueue'])->name('emails.debug-queue');
+        Route::post('/emails/debug-queue/reintentar/{id}', [MarketingController::class, 'reintentarJobFallido'])->name('emails.debug-queue.reintentar');
+        Route::post('/emails/debug-queue/eliminar/{id}', [MarketingController::class, 'eliminarJobFallido'])->name('emails.debug-queue.eliminar');
+
         Route::post('/emails/logo/upload', [MarketingController::class, 'uploadLogo'])->name('emails.logo.upload');
         Route::delete('/emails/logo/delete', [MarketingController::class, 'deleteLogo'])->name('emails.logo.delete');
 
