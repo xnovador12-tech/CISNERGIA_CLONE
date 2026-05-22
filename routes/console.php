@@ -15,3 +15,11 @@ Schedule::command('emails:enviar-programados')
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::warning('Scheduler: fallo al ejecutar emails:enviar-programados');
     });
+
+Schedule::command('queue:work --stop-when-empty --max-time=290 --tries=3 --sleep=2')
+    ->everyMinute()
+    ->withoutOverlapping(5)
+    ->runInBackground()
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::warning('Scheduler: fallo al ejecutar queue:work');
+    });

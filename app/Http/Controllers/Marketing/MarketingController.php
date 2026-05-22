@@ -394,8 +394,9 @@ class MarketingController extends Controller
         if ($request->hasFile('adjuntos')) {
             foreach ($request->file('adjuntos') as $file) {
                 if (!$file->isValid()) continue;
+                $rutaRelativa = $file->store('campanas_email/adjuntos', 'public');
                 $adjuntos[] = [
-                    'path' => $file->getRealPath(),
+                    'path' => Storage::disk('public')->path($rutaRelativa),
                     'name' => $file->getClientOriginalName(),
                     'mime' => $file->getClientMimeType(),
                 ];

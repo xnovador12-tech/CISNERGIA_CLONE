@@ -59,11 +59,10 @@ class EmailMarketingService
             Log::warning("EmailMarketingService: ⚠ Logo no encontrado en disco: {$logoPath} — Se enviará sin logo.");
         }
 
-        // ── 3. Enviar a cada destinatario ──────────────────────────────────
-        $enviados         = 0;
-        $fallidos         = 0;
-        $invalidos        = 0;
-        $detallesFallidos = [];
+        // ── 3. Encolar envío a cada destinatario (asíncrono) ───────────────
+        $encolados   = 0;
+        $invalidos   = 0;
+        $fallosCola  = 0;
 
         foreach ($recipients as $rawEmail) {
             $email = trim($rawEmail);
@@ -78,60 +77,39 @@ class EmailMarketingService
                 continue;
             }
 
-            Log::info("EmailMarketingService: → Enviando a: {$email}");
-
-
             try {
-                // Instanciamos el Mailable pasando la ruta absoluta del logo
                 Mail::to($email)
-                    ->send(
+                    ->queue(
                         (new CampanaMarketing($htmlContent, $logoFullPath, $adjuntos))
                             ->subject($subject)
                     );
-
-                Log::info("EmailMarketingService: ✔ Enviado exitosamente a: {$email}");
-                $enviados++;
-
+                $encolados++;
             } catch (Exception $e) {
-                Log::error("EmailMarketingService: ✘ Fallo al enviar a {$email}", [
-                    'error'           => $e->getMessage(),
-                    'exception'       => get_class($e),
-                    'file'            => $e->getFile(),
-                    'line'            => $e->getLine(),
-                    'posibles_causas' => [
-                        'Credenciales SMTP incorrectas (MAIL_USERNAME / MAIL_PASSWORD en .env)',
-                        'Host SMTP no alcanzable (MAIL_HOST / MAIL_PORT)',
-                        'Puerto bloqueado por firewall del servidor (probar 587 vs 465 vs 25)',
-                        'Límite de envío del proveedor SMTP alcanzado',
-                        'El destinatario fue rechazado por el servidor remoto',
-                        'SSL/TLS no configurado correctamente (MAIL_ENCRYPTION)',
-                    ],
+                Log::error("EmailMarketingService: ✘ No se pudo encolar el envío a {$email}", [
+                    'error' => $e->getMessage(),
                 ]);
-                $fallidos++;
-                $detallesFallidos[] = $email;
+                $fallosCola++;
             }
         }
 
-        // ── 4. Resumen final ───────────────────────────────────────────────
-        Log::info('EmailMarketingService: ■ Campaña finalizada', [
-            'enviados'          => $enviados,
-            'fallidos'          => $fallidos,
-            'invalidos'         => $invalidos,
-            'fallidos_detalle'  => $detallesFallidos,
+        Log::info('EmailMarketingService: ■ Campaña encolada', [
+            'encolados'  => $encolados,
+            'invalidos'  => $invalidos,
+            'fallos_cola'=> $fallosCola,
         ]);
 
-        $partes = ["Campaña procesada: {$enviados} enviado(s)"];
-        if ($fallidos  > 0) $partes[] = "{$fallidos} fallido(s)";
-        if ($invalidos > 0) $partes[] = "{$invalidos} inválido(s)";
-        $partes[] = 'Revisa storage/logs/laravel.log para el detalle.';
+        $partes = ["Campaña en cola: {$encolados} correo(s) listo(s) para enviarse"];
+        if ($invalidos  > 0) $partes[] = "{$invalidos} inválido(s) omitido(s)";
+        if ($fallosCola > 0) $partes[] = "{$fallosCola} fallaron al encolar";
+        $partes[] = 'El worker procesará los envíos en los próximos minutos.';
 
         return [
-            'success'          => $enviados > 0,
-            'enviados'         => $enviados,
-            'fallidos'         => $fallidos,
-            'invalidos'        => $invalidos,
-            'fallidos_detalle' => $detallesFallidos,
-            'mensaje'          => implode(' — ', $partes),
+            'success'   => $encolados > 0,
+            'encolados' => $encolados,
+            'enviados'  => $encolados,
+            'fallidos'  => 0,
+            'invalidos' => $invalidos,
+            'mensaje'   => implode(' — ', $partes),
         ];
     }
 
