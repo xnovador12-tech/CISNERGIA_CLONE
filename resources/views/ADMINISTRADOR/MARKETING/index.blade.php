@@ -173,6 +173,7 @@
      data-csrf="{{ csrf_token() }}"
      data-url-data="{{ route('admin.marketing.metricas.data') }}"
      data-url-publish="{{ route('admin.marketing.comment.publish') }}"
+     data-url-convertir-lead="{{ route('admin.marketing.leads.convertir') }}"
      data-fallback-img="{{ asset('img/no-image.png') }}"></div>
 
 <div class="container-fluid py-4">
@@ -307,6 +308,7 @@
     const STORAGE_KEY = 'cisnergia_marketing_filtros';
     const URL_DATA = CFG.urlData;
     const URL_PUBLISH = CFG.urlPublish;
+    const URL_CONVERTIR_LEAD = CFG.urlConvertirLead;
     const FALLBACK_IMG = CFG.fallbackImg;
 
     const CANAL_LABEL = { all: 'Todos', fb: 'Facebook', ig: 'Instagram' };
@@ -466,6 +468,53 @@
             openCommentModal(post, btn.dataset.plataforma);
         } catch (err) {
             console.error('Error al parsear post:', err);
+        }
+    });
+
+    document.querySelector('.tab-content').addEventListener('click', async (e) => {
+        const btn = e.target.closest('.btn-convertir-lead');
+        if (!btn) return;
+        e.stopPropagation();
+
+        const datos = {
+            plataforma: btn.dataset.plataforma,
+            social_id: btn.dataset.socialId,
+            nombre_social: btn.dataset.nombre,
+            puntaje_interes: parseInt(btn.dataset.puntaje) || 0,
+        };
+
+        const confirm = await Swal.fire({
+            title: '¿Convertir a Prospecto?',
+            html: `Se creará un prospecto en el CRM con origen <strong>Redes Sociales</strong> para <strong>${datos.nombre_social}</strong>.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, convertir',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#20c997',
+        });
+        if (!confirm.isConfirmed) return;
+
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Registrando...';
+
+        try {
+            const { data } = await axios.post(URL_CONVERTIR_LEAD, datos);
+            if (data.success) {
+                btn.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Prospecto ${data.prospecto.codigo}`;
+                btn.style.backgroundColor = '#1C3146';
+                const mensaje = data.ya_existia
+                    ? 'Este lead ya tenía un prospecto registrado.'
+                    : `Prospecto ${data.prospecto.codigo} creado correctamente.`;
+                Swal.fire({ icon: 'success', title: '¡Listo!', text: mensaje, timer: 2500, showConfirmButton: false });
+            } else {
+                throw new Error(data.message || 'Error desconocido');
+            }
+        } catch (err) {
+            console.error('Error al convertir lead:', err);
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            Swal.fire('Error', err.response?.data?.message || 'No se pudo registrar el prospecto.', 'error');
         }
     });
 

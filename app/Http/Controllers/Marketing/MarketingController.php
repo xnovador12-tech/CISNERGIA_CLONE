@@ -5,19 +5,50 @@ namespace App\Http\Controllers\Marketing;
 use App\Http\Controllers\Controller;
 use App\Services\MetaMarketingService;
 use App\Services\EmailMarketingService;
+use App\Services\MarketingLeadService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage; 
+use Illuminate\Support\Facades\Storage;
 
 class MarketingController extends Controller
 {
     public function __construct(
         private readonly MetaMarketingService $metaService,
-        private readonly EmailMarketingService $emailService
+        private readonly EmailMarketingService $emailService,
+        private readonly MarketingLeadService $leadService,
     ) {}
+
+    public function convertirLeadAProspecto(Request $request): JsonResponse
+    {
+        $datos = $request->validate([
+            'plataforma' => 'required|in:facebook,instagram',
+            'social_id' => 'required|string|max:120',
+            'nombre_social' => 'nullable|string|max:150',
+            'puntaje_interes' => 'nullable|integer|min:0',
+            'comentario_origen' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $lead = $this->leadService->convertirAProspecto($datos);
+            $yaExistia = $lead->wasRecentlyCreated === false && $lead->prospecto_id !== null && $lead->wasChanged() === false;
+
+            return response()->json([
+                'success' => true,
+                'ya_existia' => $yaExistia,
+                'prospecto' => [
+                    'id' => $lead->prospecto?->id,
+                    'codigo' => $lead->prospecto?->codigo,
+                    'nombre' => $lead->prospecto?->nombre,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('MarketingController convertirLeadAProspecto: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'No se pudo registrar el prospecto.'], 500);
+        }
+    }
 
     public function metricas(Request $request): View
     {
@@ -323,15 +354,8 @@ class MarketingController extends Controller
             'asunto'        => 'required|string|max:255',
             'destinatarios' => 'required|string',
             'contenido'     => 'required|string',
+            'enviar_el'     => 'nullable|date',
             'adjuntos.*'    => 'nullable|file|max:10240',
-        ]);
-
-        Log::info('MarketingController: sendEmailCampaign iniciado', [
-            'asunto'        => $request->asunto,
-            'destinatarios' => $request->destinatarios,
-            'logo_path'     => $request->input('logo_path') ?? 'ninguno',
-            'tiene_adjuntos'=> $request->hasFile('adjuntos'),
-            'usuario'       => auth()->user()?->email ?? 'desconocido',
         ]);
 
         try {
@@ -341,52 +365,83 @@ class MarketingController extends Controller
             );
 
             if (empty($recipients)) {
-                Log::warning('MarketingController: No se encontraron destinatarios válidos en la cadena.');
                 return redirect()->back()->with('error', 'No se encontraron destinatarios válidos.');
             }
 
             $logoPath = $request->input('logo_path') ?: null;
+            $enviarEl = $request->filled('enviar_el') ? \Carbon\Carbon::parse($request->input('enviar_el')) : null;
+            $esProgramado = $enviarEl && $enviarEl->isFuture();
 
-            $adjuntos = [];
-            if ($request->hasFile('adjuntos')) {
-                foreach ($request->file('adjuntos') as $file) {
-                    if (!$file->isValid()) {
-                        Log::warning('MarketingController: Archivo adjunto inválido omitido.', [
-                            'original_name' => $file->getClientOriginalName(),
-                            'error'         => $file->getErrorMessage(),
-                        ]);
-                        continue;
-                    }
-                    $adjuntos[] = [
-                        'path' => $file->getRealPath(),
-                        'name' => $file->getClientOriginalName(),
-                        'mime' => $file->getClientMimeType(),
-                    ];
-                    Log::info('MarketingController: Adjunto preparado: ' . $file->getClientOriginalName());
-                }
+            if ($esProgramado) {
+                return $this->programarCampania($request, $recipients, $logoPath, $enviarEl);
             }
 
-            $resultado = $this->emailService->dispatchCampaign(
-                $recipients,
-                $request->asunto,
-                $request->contenido,
-                $logoPath,
-                $adjuntos
-            );
-
-            Log::info('MarketingController: Campaña procesada', $resultado);
-
-            $tipo = $resultado['success'] ? 'success' : 'warning';
-            return redirect()->route('admin.marketing.emails')->with($tipo, $resultado['mensaje']);
+            return $this->enviarCampaniaInmediata($request, $recipients, $logoPath);
 
         } catch (\Exception $e) {
-            Log::error('MarketingController: Excepción inesperada en sendEmailCampaign', [
-                'error'     => $e->getMessage(),
-                'exception' => get_class($e),
-                'file'      => $e->getFile(),
-                'line'      => $e->getLine(),
+            Log::error('MarketingController: Excepción en sendEmailCampaign', [
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
             ]);
-            return redirect()->back()->with('error', 'Error inesperado al procesar la campaña. Revisa los logs.');
+            return redirect()->back()->with('error', 'Error inesperado. Revisa los logs.');
         }
+    }
+
+    private function enviarCampaniaInmediata(Request $request, array $recipients, ?string $logoPath): RedirectResponse
+    {
+        $adjuntos = [];
+        if ($request->hasFile('adjuntos')) {
+            foreach ($request->file('adjuntos') as $file) {
+                if (!$file->isValid()) continue;
+                $adjuntos[] = [
+                    'path' => $file->getRealPath(),
+                    'name' => $file->getClientOriginalName(),
+                    'mime' => $file->getClientMimeType(),
+                ];
+            }
+        }
+
+        $resultado = $this->emailService->dispatchCampaign(
+            $recipients,
+            $request->asunto,
+            $request->contenido,
+            $logoPath,
+            $adjuntos
+        );
+
+        $tipo = $resultado['success'] ? 'success' : 'warning';
+        return redirect()->route('admin.marketing.emails')->with($tipo, $resultado['mensaje']);
+    }
+
+    private function programarCampania(Request $request, array $recipients, ?string $logoPath, \Carbon\Carbon $enviarEl): RedirectResponse
+    {
+        $adjuntosGuardados = [];
+        if ($request->hasFile('adjuntos')) {
+            foreach ($request->file('adjuntos') as $file) {
+                if (!$file->isValid()) continue;
+                $path = $file->store('campanas_email/adjuntos', 'public');
+                $adjuntosGuardados[] = [
+                    'path' => $path,
+                    'name' => $file->getClientOriginalName(),
+                    'mime' => $file->getClientMimeType(),
+                ];
+            }
+        }
+
+        \App\Models\CampanaEmailProgramada::create([
+            'asunto' => $request->asunto,
+            'destinatarios' => $recipients,
+            'contenido_html' => $request->contenido,
+            'logo_path' => $logoPath,
+            'adjuntos' => $adjuntosGuardados,
+            'enviar_el' => $enviarEl,
+            'estado' => \App\Models\CampanaEmailProgramada::ESTADO_PENDIENTE,
+            'user_id' => auth()->id(),
+        ]);
+
+        $fechaTexto = $enviarEl->locale('es')->translatedFormat('d M Y, H:i');
+        return redirect()->route('admin.marketing.emails')
+            ->with('success', "Campaña programada para el {$fechaTexto}. Se enviará automáticamente.");
     }
 }

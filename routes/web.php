@@ -45,6 +45,7 @@ use App\Http\Controllers\admin_LibroReclamacionesController;
 use App\Http\Controllers\admin_ModeloController;
 use App\Http\Controllers\admin_UbigeoController;
 use App\Http\Controllers\Marketing\MarketingController;
+use App\Http\Controllers\Marketing\PlantillaEmailController;
 use App\Http\Controllers\MetaWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -923,17 +924,30 @@ Route::prefix('administrador/marketing')->name('admin.marketing.')->middleware([
         Route::get('/metricas', [MarketingController::class, 'metricas'])->name('metricas');
         Route::get('/metricas/data', [MarketingController::class, 'metricasData'])->name('metricas.data');
         Route::get('/metricas/globales', [MarketingController::class, 'metricasGlobales'])->name('metricas_globales');
-        Route::get('/metricas/globales/data', [MarketingController::class, 'metricasGlobalesData'])->name('metricas_globales.data');
         // Acciones Meta (Comentarios)
         Route::post('/comment/publish', [MarketingController::class, 'publishComment'])->name('comment.publish');
         Route::delete('/comment/{id}', [MarketingController::class, 'deleteComment'])->name('comment.delete');
         Route::post('/comment/{id}/toggle-like', [MarketingController::class, 'toggleLike'])->name('comment.toggle-like'); // <-- RUTAS DE REACCIÓN
+        // Conversión de leads sociales a Prospectos del CRM
+        Route::post('/leads/convertir', [MarketingController::class, 'convertirLeadAProspecto'])->name('leads.convertir');
         // Emails
         Route::get('/emails', [MarketingController::class, 'emails'])->name('emails');
         Route::post('/emails/enviar', [MarketingController::class, 'sendEmailCampaign'])->name('emails.send');
 
         Route::post('/emails/logo/upload', [MarketingController::class, 'uploadLogo'])->name('emails.logo.upload');
         Route::delete('/emails/logo/delete', [MarketingController::class, 'deleteLogo'])->name('emails.logo.delete');
+
+        // Plantillas de email
+        Route::get('/plantillas', [PlantillaEmailController::class, 'index'])->name('plantillas.index');
+        Route::post('/plantillas', [PlantillaEmailController::class, 'store'])->name('plantillas.store');
+        Route::put('/plantillas/{plantilla}', [PlantillaEmailController::class, 'update'])->name('plantillas.update');
+        Route::delete('/plantillas/{plantilla}', [PlantillaEmailController::class, 'destroy'])->name('plantillas.destroy');
+        Route::post('/plantillas/imagen', [PlantillaEmailController::class, 'subirImagen'])->name('plantillas.imagen');
+
+        // Etiquetas de plantillas
+        Route::get('/etiquetas', [PlantillaEmailController::class, 'listarEtiquetas'])->name('etiquetas.index');
+        Route::post('/etiquetas', [PlantillaEmailController::class, 'crearEtiqueta'])->name('etiquetas.store');
+        Route::delete('/etiquetas/{etiqueta}', [PlantillaEmailController::class, 'eliminarEtiqueta'])->name('etiquetas.destroy');
     });
 // =============================================================
 // AUTH — Login, registro, password reset (públicos)

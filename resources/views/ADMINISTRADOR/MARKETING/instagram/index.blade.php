@@ -6,7 +6,12 @@
             </div>
             <div class="card-body p-3 overflow-auto" style="max-height: 500px;">
                 @forelse($igData['top_leads'] ?? [] as $lead)
-                    <div class="d-flex align-items-center mb-3 p-2 border rounded shadow-sm bg-light">
+                    @php
+                        $nombreLead = isset($lead['perfil']['is_fallback']) && $lead['perfil']['is_fallback']
+                            ? ($lead['nombre'] ?? 'Usuario')
+                            : trim(($lead['perfil']['first_name'] ?? '') . ' ' . ($lead['perfil']['last_name'] ?? ''));
+                    @endphp
+                    <div class="d-flex align-items-center mb-3 p-2 border rounded shadow-sm bg-light flex-wrap gap-2">
                         <div class="position-relative flex-shrink-0">
                             <img src="{{ $lead['perfil']['profile_pic'] ?? asset('img/no-image.png') }}"
                                  class="rounded-circle object-fit-cover border"
@@ -15,14 +20,8 @@
                                 <i class="bi bi-instagram" style="font-size: 0.6rem;"></i>
                             </span>
                         </div>
-                        <div class="ms-3 flex-grow-1 min-w-0">
-                            <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 0.9rem;">
-                                @if(isset($lead['perfil']['is_fallback']) && $lead['perfil']['is_fallback'] && isset($lead['nombre']))
-                                    {{ $lead['nombre'] }}
-                                @else
-                                    {{ $lead['perfil']['first_name'] }} {{ $lead['perfil']['last_name'] }}
-                                @endif
-                            </h6>
+                        <div class="ms-2 flex-grow-1 min-w-0">
+                            <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 0.9rem;">{{ $nombreLead ?: 'Usuario' }}</h6>
                             @if(isset($lead['perfil']['is_fallback']) && $lead['perfil']['is_fallback'])
                                 <small class="fw-bold" style="font-size: 0.7rem; color: #6c757d;">
                                     <i class="bi bi-hourglass-split"></i> ID: {{ $lead['id'] }}
@@ -34,13 +33,19 @@
                             @endif
                         </div>
                         <div class="text-end flex-shrink-0">
-                            <span class="badge text-white" style="background-color: #1C3146;">
-                                Pts: {{ $lead['score_interes'] }}
-                            </span>
+                            <span class="badge text-white" style="background-color: #1C3146;">Pts: {{ $lead['score_interes'] }}</span>
                             <div class="small mt-1" style="font-size: 0.7rem; color: #6c757d;">
                                 {{ $lead['total_comentarios'] }} <i class="bi bi-chat-dots"></i>
                             </div>
                         </div>
+                        <button class="btn btn-sm rounded-pill fw-bold w-100 mt-1 btn-convertir-lead"
+                                style="background-color: #20c997; color: white; border: none; font-size: 0.75rem;"
+                                data-plataforma="instagram"
+                                data-social-id="{{ $lead['id'] }}"
+                                data-nombre="{{ $nombreLead ?: 'Usuario' }}"
+                                data-puntaje="{{ $lead['score_interes'] }}">
+                            <i class="bi bi-person-plus-fill me-1"></i> Convertir a Prospecto
+                        </button>
                     </div>
                 @empty
                     <div class="text-center py-4" style="color: #6c757d;">

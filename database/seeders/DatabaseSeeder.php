@@ -66,5 +66,8 @@ class DatabaseSeeder extends Seeder
         $this->call(KanbanTestDataSeeder::class);
         $this->call(OrdenCompraTestSeeder::class);
         $this->call(OrdenCompraCuotasTestSeeder::class);
+
+        // Marketing
+        $this->call(PlantillasEmailSeeder::class);
     }
 }

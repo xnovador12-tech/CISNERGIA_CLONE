@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('campania_id')->constrained('campanias')->onDelete('cascade');
             $table->date('fecha');
-            $table->integer('visitas')->default(0);
             $table->integer('pedidos_generados')->default(0);
             $table->integer('productos_vendidos')->default(0);
             $table->decimal('monto_total', 12, 2)->default(0);
